@@ -17,6 +17,16 @@
 include "RISCVInstrFormatsV.td"
 
 //===----------------------------------------------------------------------===//
+// Operand and SDNode transformation definitions.
+//===----------------------------------------------------------------------===//
+
+def simm3 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<3>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<3>;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeSImmOperand<3>";
+}
+
+//===----------------------------------------------------------------------===//
 // Instruction class templates
 //===----------------------------------------------------------------------===//
 
@@ -27,6 +37,14 @@ class VALU_rr<bits<7> funct7, bits<1> funct1, RVVMaskCond m, string opcodestr>
     : RVInstVR<funct7, funct1, m, OPC_VEC_OP,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
                opcodestr, "$vd, $vs1, $vs2">;
+
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class VLoad_UnitStride<bits<2> funct2, bits<3> funct3, RVVMaskCond m,
+                       string opcodestr>
+    : RVInstVLoad<funct2, funct3, m, OPC_LOAD_FP,
+                  (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm3:$imm3),
+                  opcodestr, "$vd, ${imm3}(${rs1})">;
+
 
 class ImplicitVCFGPseudo<RVInst ExplicitInst>
     : Pseudo<ExplicitInst.OutOperandList, ExplicitInst.InOperandList, []> {
@@ -54,6 +72,7 @@ def ImplicitVCFGTable : GenericTable {
   let PrimaryKey = [ "ImplicitOpcode" ];
   let PrimaryKeyName = "getImplicitVCFGInfo";
 }
+
 //===----------------------------------------------------------------------===//
 // Instructions
 //===----------------------------------------------------------------------===//
@@ -66,5 +85,7 @@ def VADD : VALU_rr<0b1001000, 0b1, RVV_Unmasked, "vadd">;
 // pseudos only become important once instruction selection work starts.
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VADD_ic : ImplicitVCFGPseudo<ADD>;
+
+def VLW : VLoad_UnitStride<0b00, 0b110, RVV_Unmasked, "vlw">;
 
 } // Predicates = [HasStdExtV]
