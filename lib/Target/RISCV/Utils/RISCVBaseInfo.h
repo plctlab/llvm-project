@@ -149,8 +149,18 @@ struct SysReg {
 };
 
 #define GET_SysRegsList_DECL
-#include "RISCVGenSystemOperands.inc"
+#include "RISCVGenSearchableTables.inc"
 } // end namespace RISCVSysReg
+
+namespace RISCVImplicitVCFGTable {
+  struct ImplicitVCFGInfo {
+    unsigned ImplicitOpcode;
+    unsigned ExplicitOpcode;
+  };
+
+  #define GET_ImplicitVCFGTable_DECL
+  #include "RISCVGenSearchableTables.inc"
+}
 
 } // namespace llvm
 

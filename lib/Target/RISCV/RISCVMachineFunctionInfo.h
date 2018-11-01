@@ -16,8 +16,30 @@
 
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
+#include "llvm/CodeGen/TargetSubtargetInfo.h"
+#include <memory>
 
 namespace llvm {
+// RISCV-specific PseudoSourceValue, represents the vector unit configuration.
+// Used to help alias analysis distinguish instructions that only access said
+// configuration from real memory accesses.
+class RISCVVectorConfigPseudoSourceValue : public PseudoSourceValue {
+public:
+  explicit RISCVVectorConfigPseudoSourceValue(const TargetInstrInfo &TII)
+      : PseudoSourceValue(PseudoSourceValue::TargetCustom, TII) {}
+
+  bool isConstant(const MachineFrameInfo *) const override { return false; }
+
+  bool isAliased(const MachineFrameInfo *) const override {
+    // The CSRs are not in addressable memory, so IR can't point at them.
+    return false;
+  }
+
+  bool mayAlias(const MachineFrameInfo *) const override {
+    // The CSRs are not in addressable memory, so IR can't point at them.
+    return false;
+  }
+};
 
 /// RISCVMachineFunctionInfo - This class is derived from MachineFunctionInfo
 /// and contains private RISCV-specific information for each MachineFunction.
@@ -32,10 +54,22 @@ private:
   /// of 32-bit GPRs via the stack.
   int MoveF64FrameIndex = -1;
 
-public:
-  //  RISCVMachineFunctionInfo() = default;
+  std::unique_ptr<RISCVVectorConfigPseudoSourceValue> VCFGPSV;
+  std::unique_ptr<MachineMemOperand> MMOReadVCFG;
+  std::unique_ptr<MachineMemOperand> MMOWriteVCFG;
 
-  RISCVMachineFunctionInfo(MachineFunction &MF) : MF(MF) {}
+public:
+  RISCVMachineFunctionInfo() = delete;
+
+  RISCVMachineFunctionInfo(MachineFunction &MF) : MF(MF) {
+    auto &TII = *MF.getSubtarget().getInstrInfo();
+    VCFGPSV = make_unique<RISCVVectorConfigPseudoSourceValue>(TII);
+    MachinePointerInfo PtrInfo(VCFGPSV.get());
+    MMOReadVCFG = make_unique<MachineMemOperand>(
+        PtrInfo, MachineMemOperand::MOLoad, 1, 1);
+    MMOReadVCFG = make_unique<MachineMemOperand>(
+        PtrInfo, MachineMemOperand::MOStore, 1, 1);
+  }
 
   int getVarArgsFrameIndex() const { return VarArgsFrameIndex; }
   void setVarArgsFrameIndex(int Index) { VarArgsFrameIndex = Index; }
@@ -48,6 +82,9 @@ public:
       MoveF64FrameIndex = MF.getFrameInfo().CreateStackObject(8, 8, false);
     return MoveF64FrameIndex;
   }
+
+  MachineMemOperand *getVCFGReadMMO() const { return MMOReadVCFG.get(); }
+  MachineMemOperand *getVCFGWriteMMO() const { return MMOWriteVCFG.get(); }
 };
 
 } // end namespace llvm

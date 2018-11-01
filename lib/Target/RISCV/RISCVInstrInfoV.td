@@ -28,6 +28,32 @@ class VALU_rr<bits<7> funct7, bits<1> funct1, RVVMaskCond m, string opcodestr>
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
                opcodestr, "$vd, $vs1, $vs2">;
 
+class ImplicitVCFGPseudo<RVInst ExplicitInst>
+    : Pseudo<ExplicitInst.OutOperandList, ExplicitInst.InOperandList, []> {
+  let isCodeGenOnly = 1;
+  let isAsmParserOnly = 0;
+  // These fields are stored solely for the benefit of the VCFG access table.
+  // Note that we need the ISD enumerator that MachineInstr::getOpcode returns,
+  // not the 7-bit "Opcode" field of the RISC-V instruction encoding.
+  Instruction ImplicitOpcode = !cast<Instruction>(NAME);
+  Instruction ExplicitOpcode = ExplicitInst;
+}
+
+//===----------------------------------------------------------------------===//
+// VCFG access table.
+//
+// Generate a table mapping the pseudos with implicit VCFG access to the
+// corresponding real instruction.
+// This information is used in the RISCVIntroduceVCFGUses pass.
+//===----------------------------------------------------------------------===//
+
+def ImplicitVCFGTable : GenericTable {
+  let FilterClass = "ImplicitVCFGPseudo";
+  let CppTypeName = "ImplicitVCFGInfo";
+  let Fields = [ "ImplicitOpcode", "ExplicitOpcode" ];
+  let PrimaryKey = [ "ImplicitOpcode" ];
+  let PrimaryKeyName = "getImplicitVCFGInfo";
+}
 //===----------------------------------------------------------------------===//
 // Instructions
 //===----------------------------------------------------------------------===//
@@ -35,5 +61,10 @@ class VALU_rr<bits<7> funct7, bits<1> funct1, RVVMaskCond m, string opcodestr>
 let Predicates = [HasStdExtV] in {
 
 def VADD : VALU_rr<0b1001000, 0b1, RVV_Unmasked, "vadd">;
+
+// This *_ic pseudo is just an example (and makes the build work), these
+// pseudos only become important once instruction selection work starts.
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VADD_ic : ImplicitVCFGPseudo<ADD>;
 
 } // Predicates = [HasStdExtV]
