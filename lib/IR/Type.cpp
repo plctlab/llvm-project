@@ -600,21 +600,23 @@ bool ArrayType::isValidElementType(Type *ElemTy) {
 //                          VectorType Implementation
 //===----------------------------------------------------------------------===//
 
-VectorType::VectorType(Type *ElType, unsigned NumEl)
-  : SequentialType(VectorTyID, ElType, NumEl) {}
+VectorType::VectorType(Type *ElType, ElementCount EC)
+  : SequentialType(VectorTyID, ElType, EC.Min), Scalable(EC.Scalable) {}
 
-VectorType *VectorType::get(Type *ElementType, unsigned NumElements) {
-  assert(NumElements > 0 && "#Elements of a VectorType must be greater than 0");
+VectorType *VectorType::get(Type *ElementType, ElementCount EC) {
+  assert(EC.Min > 0 && "#Elements of a VectorType must be greater than 0");
   assert(isValidElementType(ElementType) && "Element type of a VectorType must "
                                             "be an integer, floating point, or "
                                             "pointer type.");
 
+  uint64_t LookupEC = (uint64_t)EC.Min | (EC.Scalable ? (1ull << 63) : 0ull);
+
   LLVMContextImpl *pImpl = ElementType->getContext().pImpl;
   VectorType *&Entry = ElementType->getContext().pImpl
-    ->VectorTypes[std::make_pair(ElementType, NumElements)];
+    ->VectorTypes[std::make_pair(ElementType, LookupEC)];
 
   if (!Entry)
-    Entry = new (pImpl->TypeAllocator) VectorType(ElementType, NumElements);
+    Entry = new (pImpl->TypeAllocator) VectorType(ElementType, EC);
   return Entry;
 }
 

@@ -622,7 +622,11 @@ void TypePrinting::print(Type *Ty, raw_ostream &OS) {
   }
   case Type::VectorTyID: {
     VectorType *PTy = cast<VectorType>(Ty);
-    OS << "<" << PTy->getNumElements() << " x ";
+    OS << "<";
+    if (PTy->isScalable()) {
+      OS << "scalable ";
+    }
+    OS << PTy->getNumElements() << " x ";
     print(PTy->getElementType(), OS);
     OS << '>';
     return;

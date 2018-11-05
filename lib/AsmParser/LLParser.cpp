@@ -2684,7 +2684,15 @@ bool LLParser::ParseStructBody(SmallVectorImpl<Type*> &Body) {
 ///   Type
 ///     ::= '[' APSINTVAL 'x' Types ']'
 ///     ::= '<' APSINTVAL 'x' Types '>'
+///     ::= '<' 'scalable' APSINTVAL 'x' Types '>'
 bool LLParser::ParseArrayVectorType(Type *&Result, bool isVector) {
+  bool Scalable = false;
+
+  if (isVector && Lex.getKind() == lltok::kw_scalable) {
+    Lex.Lex(); // consume the 'scalable'
+    Scalable = true;
+  }
+
   if (Lex.getKind() != lltok::APSInt || Lex.getAPSIntVal().isSigned() ||
       Lex.getAPSIntVal().getBitWidth() > 64)
     return TokError("expected number in address space");
@@ -2711,7 +2719,7 @@ bool LLParser::ParseArrayVectorType(Type *&Result, bool isVector) {
       return Error(SizeLoc, "size too large for vector");
     if (!VectorType::isValidElementType(EltTy))
       return Error(TypeLoc, "invalid vector element type");
-    Result = VectorType::get(EltTy, unsigned(Size));
+    Result = VectorType::get(EltTy, unsigned(Size), Scalable);
   } else {
     if (!ArrayType::isValidElementType(EltTy))
       return Error(TypeLoc, "invalid array element type");

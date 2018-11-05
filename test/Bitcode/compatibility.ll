@@ -838,6 +838,10 @@ define void @typesystem() {
   ; CHECK: %t7 = alloca x86_mmx
   %t8 = alloca %opaquety*
   ; CHECK: %t8 = alloca %opaquety*
+  %t9 = alloca <4 x i32>
+  ; CHECK: %t9 = alloca <4 x i32>
+  %t10 = alloca <scalable 4 x i32>
+  ; CHECK: %t10 = alloca <scalable 4 x i32>
 
   ret void
 }

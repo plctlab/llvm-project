@@ -706,6 +706,7 @@ lltok::Kind LLLexer::LexIdentifier() {
   KEYWORD(xchg); KEYWORD(nand); KEYWORD(max); KEYWORD(min); KEYWORD(umax);
   KEYWORD(umin);
 
+  KEYWORD(scalable);
   KEYWORD(x);
   KEYWORD(blockaddress);
 

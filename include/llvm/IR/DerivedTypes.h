@@ -391,14 +391,46 @@ uint64_t Type::getArrayNumElements() const {
 
 /// Class to represent vector types.
 class VectorType : public SequentialType {
-  VectorType(Type *ElType, unsigned NumEl);
+public:
+  class ElementCount {
+  public:
+    unsigned Min;  // Minimum number of vector elements.
+    bool Scalable; // if true, NumElements is an unknown multiple of 'Min'
+
+    ElementCount(unsigned Min, bool Scalable)
+    : Min(Min), Scalable(Scalable) {}
+
+    ElementCount operator*(unsigned RHS) {
+      return { Min * RHS, Scalable };
+    }
+    ElementCount operator/(unsigned RHS) {
+      return { Min / RHS, Scalable };
+    }
+
+    bool operator==(const ElementCount& RHS) {
+      return Min == RHS.Min && Scalable == RHS.Scalable;
+    }
+  };
+
+private:
+  VectorType(Type *ElType, unsigned NumEl, bool Scalable = false);
+  VectorType(Type *ElType, ElementCount EC);
+
+  // If true, the total number of elements is an unknown multiple of the
+  // minimum 'NumElements' from SequentialType. Otherwise the total number
+  // of elements is exactly equal to 'NumElements'
+  bool Scalable;
 
 public:
   VectorType(const VectorType &) = delete;
   VectorType &operator=(const VectorType &) = delete;
 
   /// This static method is the primary way to construct an VectorType.
-  static VectorType *get(Type *ElementType, unsigned NumElements);
+  static VectorType *get(Type *ElementType, ElementCount EC);
+  static VectorType *get(Type *ElementType, unsigned NumElements,
+                         bool Scalable = false) {
+    return VectorType::get(ElementType, {NumElements, Scalable});
+  }
 
   /// This static method gets a VectorType with the same number of elements as
   /// the input type, and the element type is an integer type of the same width
@@ -407,7 +439,7 @@ public:
     unsigned EltBits = VTy->getElementType()->getPrimitiveSizeInBits();
     assert(EltBits && "Element size must be of a non-zero size");
     Type *EltTy = IntegerType::get(VTy->getContext(), EltBits);
-    return VectorType::get(EltTy, VTy->getNumElements());
+    return VectorType::get(EltTy, VTy->getElementCount());
   }
 
   /// This static method is like getInteger except that the element types are
@@ -415,7 +447,7 @@ public:
   static VectorType *getExtendedElementVectorType(VectorType *VTy) {
     unsigned EltBits = VTy->getElementType()->getPrimitiveSizeInBits();
     Type *EltTy = IntegerType::get(VTy->getContext(), EltBits * 2);
-    return VectorType::get(EltTy, VTy->getNumElements());
+    return VectorType::get(EltTy, VTy->getElementCount());
   }
 
   /// This static method is like getInteger except that the element types are
@@ -425,29 +457,43 @@ public:
     assert((EltBits & 1) == 0 &&
            "Cannot truncate vector element with odd bit-width");
     Type *EltTy = IntegerType::get(VTy->getContext(), EltBits / 2);
-    return VectorType::get(EltTy, VTy->getNumElements());
+    return VectorType::get(EltTy, VTy->getElementCount());
   }
 
   /// This static method returns a VectorType with half as many elements as the
   /// input type and the same element type.
   static VectorType *getHalfElementsVectorType(VectorType *VTy) {
-    unsigned NumElts = VTy->getNumElements();
-    assert ((NumElts & 1) == 0 &&
+    auto EltCnt = VTy->getElementCount();
+    assert ((EltCnt.Min & 1) == 0 &&
             "Cannot halve vector with odd number of elements.");
-    return VectorType::get(VTy->getElementType(), NumElts/2);
+    return VectorType::get(VTy->getElementType(), EltCnt/2);
   }
 
   /// This static method returns a VectorType with twice as many elements as the
   /// input type and the same element type.
   static VectorType *getDoubleElementsVectorType(VectorType *VTy) {
-    unsigned NumElts = VTy->getNumElements();
-    return VectorType::get(VTy->getElementType(), NumElts*2);
+    auto EltCnt = VTy->getElementCount();
+    return VectorType::get(VTy->getElementType(), EltCnt*2);
   }
 
   /// Return true if the specified type is valid as a element type.
   static bool isValidElementType(Type *ElemTy);
 
-  /// Return the number of bits in the Vector type.
+  /// Return an ElementCount instance to represent the (possibly scalable)
+  /// number of elements in the vector
+  ElementCount getElementCount() const {
+    uint64_t MinimumEltCnt = getNumElements();
+    assert(MinimumEltCnt <= UINT_MAX && "Too many elements in vector");
+    return { (unsigned)MinimumEltCnt, Scalable };
+  }
+
+  /// Returns whether or not this is a scalable vector (meaning the total
+  /// element count is a multiple of the minimum).
+  bool isScalable() const {
+    return Scalable;
+  }
+
+  /// Return the minimum number of bits in the Vector type.
   /// Returns zero when the vector is a vector of pointers.
   unsigned getBitWidth() const {
     return getNumElements() * getElementType()->getPrimitiveSizeInBits();
@@ -462,6 +508,11 @@ public:
 unsigned Type::getVectorNumElements() const {
   return cast<VectorType>(this)->getNumElements();
 }
+
+bool Type::getVectorIsScalable() const {
+  return cast<VectorType>(this)->isScalable();
+}
+
 
 /// Class to represent pointers.
 class PointerType : public Type {

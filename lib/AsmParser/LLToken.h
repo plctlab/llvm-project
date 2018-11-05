@@ -38,6 +38,7 @@ enum Kind {
   bar,     // |
   colon,   // :
 
+  kw_scalable,
   kw_x,
   kw_true,
   kw_false,
