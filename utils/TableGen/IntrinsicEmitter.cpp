@@ -220,7 +220,8 @@ enum IIT_Info {
   IIT_STRUCT6 = 38,
   IIT_STRUCT7 = 39,
   IIT_STRUCT8 = 40,
-  IIT_F128 = 41
+  IIT_F128 = 41,
+  IIT_SV1 = 42,
 };
 
 static void EncodeFixedValueType(MVT::SimpleValueType VT,
@@ -335,17 +336,24 @@ static void EncodeFixedType(Record *R, std::vector<unsigned char> &ArgCodes,
 
   if (MVT(VT).isVector()) {
     MVT VVT = VT;
-    switch (VVT.getVectorNumElements()) {
-    default: PrintFatalError("unhandled vector type width in intrinsic!");
-    case 1: Sig.push_back(IIT_V1); break;
-    case 2: Sig.push_back(IIT_V2); break;
-    case 4: Sig.push_back(IIT_V4); break;
-    case 8: Sig.push_back(IIT_V8); break;
-    case 16: Sig.push_back(IIT_V16); break;
-    case 32: Sig.push_back(IIT_V32); break;
-    case 64: Sig.push_back(IIT_V64); break;
-    case 512: Sig.push_back(IIT_V512); break;
-    case 1024: Sig.push_back(IIT_V1024); break;
+    if (VVT.isScalableVector()) {
+      switch (VVT.getVectorNumElements()) {
+      default: PrintFatalError("unhandled vector type width in intrinsic!");
+      case 1: Sig.push_back(IIT_SV1); break;
+      }
+    } else {
+      switch (VVT.getVectorNumElements()) {
+      default: PrintFatalError("unhandled vector type width in intrinsic!");
+      case 1: Sig.push_back(IIT_V1); break;
+      case 2: Sig.push_back(IIT_V2); break;
+      case 4: Sig.push_back(IIT_V4); break;
+      case 8: Sig.push_back(IIT_V8); break;
+      case 16: Sig.push_back(IIT_V16); break;
+      case 32: Sig.push_back(IIT_V32); break;
+      case 64: Sig.push_back(IIT_V64); break;
+      case 512: Sig.push_back(IIT_V512); break;
+      case 1024: Sig.push_back(IIT_V1024); break;
+      }
     }
 
     return EncodeFixedValueType(VVT.getVectorElementType().SimpleTy, Sig);

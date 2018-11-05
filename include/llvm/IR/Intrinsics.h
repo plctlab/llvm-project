@@ -98,7 +98,7 @@ namespace Intrinsic {
   struct IITDescriptor {
     enum IITDescriptorKind {
       Void, VarArg, MMX, Token, Metadata, Half, Float, Double, Quad,
-      Integer, Vector, Pointer, Struct,
+      Integer, Vector, ScalableVector, Pointer, Struct,
       Argument, ExtendArgument, TruncArgument, HalfVecArgument,
       SameVecWidthArgument, PtrToArgument, PtrToElt, VecOfAnyPtrsToElt
     } Kind;
