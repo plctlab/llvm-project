@@ -116,7 +116,8 @@ std::string EVT::getEVTString() const {
   switch (V.SimpleTy) {
   default:
     if (isVector())
-      return "v" + utostr(getVectorNumElements()) +
+      return std::string(isScalableVector() ? "nx" : "") + "v" +
+             utostr(getVectorNumElements()) +
              getVectorElementType().getEVTString();
     if (isInteger())
       return "i" + utostr(getSizeInBits());
@@ -271,6 +272,7 @@ Type *EVT::getTypeForEVT(LLVMContext &Context) const {
   case MVT::v2f64:   return VectorType::get(Type::getDoubleTy(Context), 2);
   case MVT::v4f64:   return VectorType::get(Type::getDoubleTy(Context), 4);
   case MVT::v8f64:   return VectorType::get(Type::getDoubleTy(Context), 8);
+  case MVT::nxv1i32: return VectorType::get(Type::getInt32Ty(Context), 1, true);
   case MVT::Metadata: return Type::getMetadataTy(Context);
  }
 }

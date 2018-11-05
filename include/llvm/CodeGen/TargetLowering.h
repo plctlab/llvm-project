@@ -1109,7 +1109,7 @@ public:
       }
 
       return EVT::getVectorVT(Ty->getContext(), EVT::getEVT(Elm, false),
-                       VTy->getNumElements());
+                       VTy->getNumElements(), VTy->isScalable());
     }
     return EVT::getEVT(Ty, AllowUnknown);
   }
