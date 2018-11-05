@@ -228,3 +228,41 @@ def FPR64C : RegisterClass<"RISCV", [f64], 64, (add
   (sequence "F%u_64", 10, 15),
   (sequence "F%u_64", 8, 9)
 )>;
+
+// Vector registers
+let RegAltNameIndices = [ABIRegAltName] in {
+  def V0  : RISCVReg<0, "v0", ["v0"]>;
+  def V1  : RISCVReg<1, "v1", ["v1"]>;
+  def V2  : RISCVReg<2, "v2", ["v2"]>;
+  def V3  : RISCVReg<3, "v3", ["v3"]>;
+  def V4  : RISCVReg<4, "v4", ["v4"]>;
+  def V5  : RISCVReg<5, "v5", ["v5"]>;
+  def V6  : RISCVReg<6, "v6", ["v6"]>;
+  def V7  : RISCVReg<7, "v7", ["v7"]>;
+  def V8  : RISCVReg<8, "v8", ["v8"]>;
+  def V9  : RISCVReg<9, "v9", ["v9"]>;
+  def V10 : RISCVReg<10,"v10", ["v10"]>;
+  def V11 : RISCVReg<11,"v11", ["v11"]>;
+  def V12 : RISCVReg<12,"v12", ["v12"]>;
+  def V13 : RISCVReg<13,"v13", ["v13"]>;
+  def V14 : RISCVReg<14,"v14", ["v14"]>;
+  def V15 : RISCVReg<15,"v15", ["v15"]>;
+  def V16 : RISCVReg<16,"v16", ["v16"]>;
+  def V17 : RISCVReg<17,"v17", ["v17"]>;
+  def V18 : RISCVReg<18,"v18", ["v18"]>;
+  def V19 : RISCVReg<19,"v19", ["v19"]>;
+  def V20 : RISCVReg<20,"v20", ["v20"]>;
+  def V21 : RISCVReg<21,"v21", ["v21"]>;
+  def V22 : RISCVReg<22,"v22", ["v22"]>;
+  def V23 : RISCVReg<23,"v23", ["v23"]>;
+  def V24 : RISCVReg<24,"v24", ["v24"]>;
+  def V25 : RISCVReg<25,"v25", ["v25"]>;
+  def V26 : RISCVReg<26,"v26", ["v26"]>;
+  def V27 : RISCVReg<27,"v27", ["v27"]>;
+  def V28 : RISCVReg<28,"v28", ["v28"]>;
+  def V29 : RISCVReg<29,"v29", ["v29"]>;
+  def V30 : RISCVReg<30,"v30", ["v30"]>;
+  def V31 : RISCVReg<31,"v31", ["v31"]>;
+}
+
+def VR : RegisterClass<"RISCV", [nxv1i32], 32, (sequence "V%u", 0, 31)>;
