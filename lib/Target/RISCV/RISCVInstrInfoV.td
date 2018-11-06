@@ -99,11 +99,6 @@ let Predicates = [HasStdExtV] in {
 
 def VADD : VALU_rr<0b1001000, 0b1, "vadd">;
 
-// This *_ic pseudo is just an example (and makes the build work), these
-// pseudos only become important once instruction selection work starts.
-let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-def VADD_ic : ImplicitVCFGPseudo<ADD>;
-
 def VLW : VLoad_UnitStride<0b00, 0b110, "vlw">;
 
 def VSW : VStore_UnitStride<0b110, 0b00, "vsw">;
@@ -161,6 +156,14 @@ let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
 // TODO auto-generate these pseudos
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSETVL_ic : ImplicitVCFGPseudo<VSETVL>;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VADD_ic : ImplicitVCFGPseudo<VADD>;
+
+class PatVrVr<SDPatternOperator OpNode, ImplicitVCFGPseudo Inst>
+    : Pat<(OpNode VR:$rs1, VR:$rs2, VLR:$vl), (Inst VR:$rs1, VR:$rs2, VLR:$vl)>;
+
+def : PatVrVr<int_riscv_vadd, VADD_ic>;
 
 def : Pat<(RISCVSETVL GPR:$rs1), (VSETVL_ic GPR:$rs1)>;
 
