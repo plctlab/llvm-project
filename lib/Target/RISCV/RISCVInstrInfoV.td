@@ -163,6 +163,9 @@ def VADD_ic : ImplicitVCFGPseudo<VADD>;
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 def VLW_ic : ImplicitVCFGPseudo<VLW>;
 
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+def VSW_ic : ImplicitVCFGPseudo<VSW>;
+
 class PatVrVr<SDPatternOperator OpNode, ImplicitVCFGPseudo Inst>
     : Pat<(OpNode VR:$rs1, VR:$rs2, VLR:$vl), (Inst VR:$rs1, VR:$rs2, VLR:$vl)>;
 
@@ -171,6 +174,9 @@ def : PatVrVr<int_riscv_vadd, VADD_ic>;
 // TODO exploit immediate offset
 def : Pat<(int_riscv_vlw GPR:$rs1, VLR:$vl),
           (VLW_ic GPR:$rs1, VLR:$vl, 0)>;
+
+def : Pat<(int_riscv_vsw GPR:$rs1, VR:$rs2, VLR:$vl),
+          (VSW_ic GPR:$rs1, VR:$rs2, VLR:$vl, 0)>;
 
 def : Pat<(RISCVSETVL GPR:$rs1), (VSETVL_ic GPR:$rs1)>;
 
