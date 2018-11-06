@@ -33,15 +33,14 @@ def simm3 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<3>(Imm);}]> {
 // mayLoad = 1 because vector ALU ops read the configuration CSRs
 // and we model that as memory operand.
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-class VALU_rr<bits<7> funct7, bits<1> funct1, RVVMaskCond m, string opcodestr>
-    : RVInstVR<funct7, funct1, m, OPC_VEC_OP,
+class VALU_rr<bits<7> funct7, bits<1> funct1, string opcodestr>
+    : RVInstVR<funct7, funct1, RVV_Unmasked, OPC_VEC_OP,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
                opcodestr, "$vd, $vs1, $vs2">;
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-class VLoad_UnitStride<bits<2> funct2, bits<3> funct3, RVVMaskCond m,
-                       string opcodestr>
-    : RVInstVLoad<funct2, funct3, m, OPC_LOAD_FP,
+class VLoad_UnitStride<bits<2> funct2, bits<3> funct3, string opcodestr>
+    : RVInstVLoad<funct2, funct3, RVV_Unmasked, OPC_LOAD_FP,
                   (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm3:$imm3),
                   opcodestr, "$vd, ${imm3}(${rs1})">;
 
@@ -79,13 +78,13 @@ def ImplicitVCFGTable : GenericTable {
 
 let Predicates = [HasStdExtV] in {
 
-def VADD : VALU_rr<0b1001000, 0b1, RVV_Unmasked, "vadd">;
+def VADD : VALU_rr<0b1001000, 0b1, "vadd">;
 
 // This *_ic pseudo is just an example (and makes the build work), these
 // pseudos only become important once instruction selection work starts.
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VADD_ic : ImplicitVCFGPseudo<ADD>;
 
-def VLW : VLoad_UnitStride<0b00, 0b110, RVV_Unmasked, "vlw">;
+def VLW : VLoad_UnitStride<0b00, 0b110, "vlw">;
 
 } // Predicates = [HasStdExtV]

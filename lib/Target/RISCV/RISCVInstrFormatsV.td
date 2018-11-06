@@ -19,8 +19,8 @@ class RVVMaskCond<bits<2> m> {
 
 def RVV_Unmasked : RVVMaskCond<0b01>;
 
-class RVInstVR<bits<7> funct7, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode, dag outs,
-               dag ins, string opcodestr, string argstr>
+class RVInstVR<bits<7> funct7, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode,
+               dag outs, dag ins, string opcodestr, string argstr>
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatR> {
   bits<5> vs2;
   bits<5> vs1;
