@@ -17,6 +17,17 @@
 include "RISCVInstrFormatsV.td"
 
 //===----------------------------------------------------------------------===//
+// RISC-V vector extension specific DAG Nodes.
+//===----------------------------------------------------------------------===//
+
+
+def SDT_RISCVSETVL : SDTypeProfile<2, 1, [SDTCisVT<0, i32>,
+                                          SDTCisSameAs<0, 1>,
+                                          SDTCisSameAs<0, 2>]>;
+
+def RISCVSETVL : SDNode<"RISCVISD::SETVL", SDT_RISCVSETVL>;
+
+//===----------------------------------------------------------------------===//
 // Operand and SDNode transformation definitions.
 //===----------------------------------------------------------------------===//
 
@@ -146,5 +157,11 @@ let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
   def PseudoCSRR_VL : Pseudo<(outs GPR:$rd), (ins VLR:$vl), []>,
                       PseudoInstExpansion<(CSRRS GPR:$rd, 0xCC0, X0)>;
 }
+
+// TODO auto-generate these pseudos
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VSETVL_ic : ImplicitVCFGPseudo<VSETVL>;
+
+def : Pat<(RISCVSETVL GPR:$rs1), (VSETVL_ic GPR:$rs1)>;
 
 } // Predicates = [HasStdExtV]

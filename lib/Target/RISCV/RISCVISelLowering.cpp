@@ -138,6 +138,8 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::BlockAddress, XLenVT, Custom);
   setOperationAction(ISD::ConstantPool, XLenVT, Custom);
 
+  setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::Other, Custom);
+
   if (Subtarget.hasStdExtA()) {
     setMaxAtomicSizeInBitsSupported(Subtarget.getXLen());
     setMinCmpXchgSizeInBits(32);
@@ -316,6 +318,8 @@ SDValue RISCVTargetLowering::LowerOperation(SDValue Op,
     return lowerFRAMEADDR(Op, DAG);
   case ISD::RETURNADDR:
     return lowerRETURNADDR(Op, DAG);
+  case ISD::INTRINSIC_WO_CHAIN:
+    return lowerINTRINSIC_WO_CHAIN(Op, DAG);
   }
 }
 
@@ -511,6 +515,24 @@ SDValue RISCVTargetLowering::PerformDAGCombine(SDNode *N,
   }
 
   return SDValue();
+}
+
+SDValue RISCVTargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
+                                                     SelectionDAG &DAG) const {
+  unsigned IntrinsicID = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
+  switch (IntrinsicID) {
+  default:
+    return SDValue(); // Don't custom lower most intrinsics
+  case Intrinsic::riscv_setvl:
+    return lowerSETVL(Op, DAG);
+  }
+}
+
+SDValue RISCVTargetLowering::lowerSETVL(SDValue Op, SelectionDAG &DAG) const {
+  SDLoc DL(Op);
+  MVT XLenVT = Subtarget.getXLenVT();
+  SDVTList ResultVTs = DAG.getVTList(XLenVT, XLenVT);
+  return DAG.getNode(RISCVISD::SETVL, DL, ResultVTs, Op.getOperand(1));
 }
 
 static MachineBasicBlock *emitSplitF64Pseudo(MachineInstr &MI,
@@ -1601,6 +1623,8 @@ const char *RISCVTargetLowering::getTargetNodeName(unsigned Opcode) const {
     return "RISCVISD::SplitF64";
   case RISCVISD::TAIL:
     return "RISCVISD::TAIL";
+  case RISCVISD::SETVL:
+    return "RISCVISD::SETVL";
   }
   return nullptr;
 }

@@ -32,7 +32,8 @@ enum NodeType : unsigned {
   SELECT_CC,
   BuildPairF64,
   SplitF64,
-  TAIL
+  TAIL,
+  SETVL
 };
 }
 
@@ -116,6 +117,10 @@ private:
   SDValue lowerVASTART(SDValue Op, SelectionDAG &DAG) const;
   SDValue lowerFRAMEADDR(SDValue Op, SelectionDAG &DAG) const;
   SDValue lowerRETURNADDR(SDValue Op, SelectionDAG &DAG) const;
+  SDValue lowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const;
+
+  // Handling of specific intrinsics
+  SDValue lowerSETVL(SDValue Op, SelectionDAG &DAG) const;
 
   bool IsEligibleForTailCallOptimization(CCState &CCInfo,
     CallLoweringInfo &CLI, MachineFunction &MF,
