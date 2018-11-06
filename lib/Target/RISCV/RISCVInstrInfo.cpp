@@ -92,6 +92,22 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
     return;
   }
 
+  // GPR -> VL via VSETVL
+  if (RISCV::GPRRegClass.contains(SrcReg) &&
+      RISCV::VLRRegClass.contains(DstReg)) {
+    BuildMI(MBB, MBBI, DL, get(RISCV::VSETVL), DstReg)
+        .addDef(RISCV::X0)
+        .addReg(SrcReg, getKillRegState(KillSrc));
+    return;
+  }
+  // VL -> GPR via CSR read
+  if (RISCV::VLRRegClass.contains(SrcReg) &&
+      RISCV::GPRRegClass.contains(DstReg)) {
+    BuildMI(MBB, MBBI, DL, get(RISCV::PseudoCSRR_VL), DstReg)
+        .addReg(SrcReg, getKillRegState(KillSrc));
+    return;
+  }
+
   // FPR->FPR copies
   unsigned Opc;
   if (RISCV::FPR32RegClass.contains(DstReg, SrcReg))

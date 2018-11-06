@@ -348,3 +348,10 @@ def : SysReg<"tdata3", 0x7A3>;
 def : SysReg<"dcsr", 0x7B0>;
 def : SysReg<"dpc", 0x7B1>;
 def : SysReg<"dscratch", 0x7B2>;
+
+
+//===-----------------------------------------------
+// Vector unit CSRs (made-up CSR numbers for now)
+//===-----------------------------------------------
+// 0xCC0 is a non-standard read-only user mode CSR
+def VLCSR : SysReg<"vl", 0xCC0>;
