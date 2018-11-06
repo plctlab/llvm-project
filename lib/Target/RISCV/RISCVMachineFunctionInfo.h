@@ -67,7 +67,7 @@ public:
     MachinePointerInfo PtrInfo(VCFGPSV.get());
     MMOReadVCFG = make_unique<MachineMemOperand>(
         PtrInfo, MachineMemOperand::MOLoad, 1, 1);
-    MMOReadVCFG = make_unique<MachineMemOperand>(
+    MMOWriteVCFG = make_unique<MachineMemOperand>(
         PtrInfo, MachineMemOperand::MOStore, 1, 1);
   }
 
