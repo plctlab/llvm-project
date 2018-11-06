@@ -116,4 +116,21 @@ def VSETVL: RVInst<(outs VLR:$vl, GPR:$rd), (ins GPR:$rs1),
   let Opcode = OPC_VEC_OP.Value;
 }
 
+// mayStore = 1 because vconfig writes the configuration CSRs
+// and we model that as memory operand.
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+def VCONFIG : RVInst<(outs), (ins uimm8:$imm8),
+                     "vconfig", "$imm8", [], InstFormatOther>
+{
+  bits<8> imm8;
+
+  let Inst{31-28} = 0b1111;
+  let Inst{27-20} = imm8;
+  let Inst{19-15} = 0b00000;
+  let Inst{14} = 0b1;
+  let Inst{13-12} = 0b01;
+  let Inst{11-7} = 0b00000;
+  let Opcode = OPC_VEC_OP.Value;
+}
+
 } // Predicates = [HasStdExtV]
