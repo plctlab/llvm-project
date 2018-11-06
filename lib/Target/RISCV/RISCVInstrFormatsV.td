@@ -35,7 +35,7 @@ class RVInstVR<bits<7> funct7, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode
   let Opcode = opcode.Value;
 }
 
-// TODO parametrize over stride (currently hardcoded X0 = unit stride)
+// TODO parametrize over rs2/vs2
 class RVInstVLoad<bits<2> funct2, bits<3> funct3, RVVMaskCond m,
                   RISCVOpcode opcode, dag outs, dag ins,
                   string opcodestr, string argstr>
@@ -47,9 +47,28 @@ class RVInstVLoad<bits<2> funct2, bits<3> funct3, RVVMaskCond m,
   let Inst{31-29} = simm3;
   let Inst{28-27} = funct2;
   let Inst{26-25} = m.Value;
-  let Inst{24-20} = 0b00000; // TODO rs2 (stride)
+  let Inst{24-20} = 0b00000; // TODO rs2 (stride) / vs2 (index vector)
   let Inst{19-15} = rs1;
   let Inst{14-12} = funct3;
   let Inst{11-7} = vd;
+  let Opcode = opcode.Value;
+}
+
+// TODO parametrize over rs2/vs2
+class RVInstVStore<bits<3> funct3, bits<2> funct2, RVVMaskCond m,
+                   RISCVOpcode opcode, dag outs, dag ins,
+                   string opcodestr, string argstr>
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther /* TODO */> {
+  bits<5> rs1;
+  bits<5> vs3;
+  bits<3> simm3;
+
+  let Inst{31-27} = vs3;
+  let Inst{26-25} = m.Value;
+  let Inst{24-20} = 0b00000; // TODO rs2 (stride) / vs2 (index vector)
+  let Inst{19-15} = rs1;
+  let Inst{14-12} = funct3;
+  let Inst{11-9} = simm3;
+  let Inst{8-7} = m.Value;
   let Opcode = opcode.Value;
 }

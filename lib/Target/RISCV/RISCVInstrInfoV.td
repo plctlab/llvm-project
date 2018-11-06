@@ -44,6 +44,14 @@ class VLoad_UnitStride<bits<2> funct2, bits<3> funct3, string opcodestr>
                   (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm3:$imm3),
                   opcodestr, "$vd, ${imm3}(${rs1})">;
 
+// mayLoad = 1 because stores read the configuration CSRs
+// and we model that as memory operand.
+let hasSideEffects = 0, mayLoad = 1, mayStore = 1 in
+class VStore_UnitStride<bits<3> funct3, bits<2> funct2, string opcodestr>
+    : RVInstVStore<funct3, funct2, RVV_Unmasked, OPC_STORE_FP,
+                   (outs), (ins GPR:$rs1, VR:$vs3, VLR:$vl, simm3:$imm3),
+                   opcodestr, "$vs3, ${imm3}(${rs1})">;
+
 
 class ImplicitVCFGPseudo<RVInst ExplicitInst>
     : Pseudo<ExplicitInst.OutOperandList, ExplicitInst.InOperandList, []> {
@@ -86,5 +94,7 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VADD_ic : ImplicitVCFGPseudo<ADD>;
 
 def VLW : VLoad_UnitStride<0b00, 0b110, "vlw">;
+
+def VSW : VStore_UnitStride<0b110, 0b00, "vsw">;
 
 } // Predicates = [HasStdExtV]
