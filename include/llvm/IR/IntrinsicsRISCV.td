@@ -45,6 +45,30 @@ def int_riscv_vadd : Intrinsic<[llvm_nxv1i32_ty],
                                [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
                                [IntrNoMem]>;
 
+
+def int_riscv_vsub : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+
+def int_riscv_vmul : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+
+def int_riscv_vand : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+
+def int_riscv_vor : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+def int_riscv_vxor : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
 def int_riscv_vlw : Intrinsic<[llvm_nxv1i32_ty],
                               [llvm_ptr32_ty, llvm_i32_ty],
                               [IntrReadMem]>;

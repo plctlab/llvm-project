@@ -99,6 +99,19 @@ let Predicates = [HasStdExtV] in {
 
 def VADD : VALU_rr<0b1001000, 0b1, "vadd">;
 
+def VSUB : VALU_rr<0b1001001, 0b1, "vsub">;
+
+
+//Instruction encoding table: https://github.com/riscv/riscv-v-spec/blob/master/inst-table.adoc
+
+def VMUL : VALU_rr<0b1000100, 0b1, "vmul">;
+
+def VAND : VALU_rr<0b1001110, 0b1, "vand">;
+
+def VOR : VALU_rr<0b1001101, 0b1, "vor">;
+
+def VXOR : VALU_rr<0b1100000, 0b1, "vxor">;
+
 def VLW : VLoad_UnitStride<0b00, 0b110, "vlw">;
 
 def VSW : VStore_UnitStride<0b110, 0b00, "vsw">;
@@ -160,6 +173,21 @@ def VSETVL_ic : ImplicitVCFGPseudo<VSETVL>;
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VADD_ic : ImplicitVCFGPseudo<VADD>;
 
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VSUB_ic : ImplicitVCFGPseudo<VSUB>;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VMUL_ic : ImplicitVCFGPseudo<VMUL>;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VAND_ic : ImplicitVCFGPseudo<VAND>;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VOR_ic : ImplicitVCFGPseudo<VOR>;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VXOR_ic : ImplicitVCFGPseudo<VXOR>;
+
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 def VLW_ic : ImplicitVCFGPseudo<VLW>;
 
@@ -170,6 +198,11 @@ class PatVrVr<SDPatternOperator OpNode, ImplicitVCFGPseudo Inst>
     : Pat<(OpNode VR:$rs1, VR:$rs2, VLR:$vl), (Inst VR:$rs1, VR:$rs2, VLR:$vl)>;
 
 def : PatVrVr<int_riscv_vadd, VADD_ic>;
+def : PatVrVr<int_riscv_vsub, VSUB_ic>;
+def : PatVrVr<int_riscv_vmul, VMUL_ic>;
+def : PatVrVr<int_riscv_vand, VAND_ic>;
+def : PatVrVr<int_riscv_vor, VOR_ic>;
+def : PatVrVr<int_riscv_vxor, VXOR_ic>;
 
 // TODO exploit immediate offset
 def : Pat<(int_riscv_vlw GPR:$rs1, VLR:$vl),
