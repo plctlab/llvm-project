@@ -35,6 +35,22 @@ class RVInstVR<bits<7> funct7, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode
   let Opcode = opcode.Value;
 }
 
+class RVInstVI<bits<4> funct4, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode,
+               dag outs, dag ins, string opcodestr, string argstr>
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther> {
+  bits<8> simm8;
+  bits<5> vs1;
+  bits<5> vd;
+
+  let Inst{31-28} = funct4;
+  let Inst{27-20} = simm8;
+  let Inst{19-15} = vs1;
+  let Inst{14}    = funct1;
+  let Inst{13-12} = m.Value;
+  let Inst{11-7}  = vd;
+  let Opcode = opcode.Value;
+}
+
 // TODO parametrize over rs2/vs2
 class RVInstVLoad<bits<2> funct2, bits<3> funct3, RVVMaskCond m,
                   RISCVOpcode opcode, dag outs, dag ins,

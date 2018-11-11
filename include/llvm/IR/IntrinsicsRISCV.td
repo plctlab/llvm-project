@@ -45,7 +45,6 @@ def int_riscv_vadd : Intrinsic<[llvm_nxv1i32_ty],
                                [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
                                [IntrNoMem]>;
 
-
 def int_riscv_vsub : Intrinsic<[llvm_nxv1i32_ty],
                                [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
                                [IntrNoMem]>;

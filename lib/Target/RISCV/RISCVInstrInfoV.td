@@ -37,6 +37,12 @@ def simm3 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<3>(Imm);}]> {
   let DecoderMethod = "decodeSImmOperand<3>";
 }
 
+def simm8 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<8>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<8>;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeSImmOperand<8>";
+}
+
 //===----------------------------------------------------------------------===//
 // Instruction class templates
 //===----------------------------------------------------------------------===//
@@ -48,6 +54,14 @@ class VALU_rr<bits<7> funct7, bits<1> funct1, string opcodestr>
     : RVInstVR<funct7, funct1, RVV_Unmasked, OPC_VEC_OP,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
                opcodestr, "$vd, $vs1, $vs2">;
+
+// mayLoad = 1 because vector ALU ops read the configuration CSRs
+// and we model that as memory operand.
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class VALU_ri<bits<4> funct4, bits<1> funct1, string opcodestr>
+    : RVInstVI<funct4, funct1, RVV_Unmasked, OPC_VEC_OP,
+               (outs VR:$vd), (ins VR:$vs1, simm8:$imm8, VLR:$vl),
+               opcodestr, "$vd, $vs1, $imm8">;
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 class VLoad_UnitStride<bits<2> funct2, bits<3> funct3, string opcodestr>
@@ -101,6 +115,8 @@ def VADD : VALU_rr<0b1001000, 0b1, "vadd">;
 
 def VSUB : VALU_rr<0b1001001, 0b1, "vsub">;
 
+
+def VADDI : VALU_ri<0b0000, 0b1, "vaddi">;
 
 //Instruction encoding table: https://github.com/riscv/riscv-v-spec/blob/master/inst-table.adoc
 
@@ -172,6 +188,9 @@ def VSETVL_ic : ImplicitVCFGPseudo<VSETVL>;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VADD_ic : ImplicitVCFGPseudo<VADD>;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VADDI_ic : ImplicitVCFGPseudo<VADDI>;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSUB_ic : ImplicitVCFGPseudo<VSUB>;
