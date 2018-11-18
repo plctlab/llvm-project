@@ -222,6 +222,7 @@ enum IIT_Info {
   IIT_STRUCT8 = 40,
   IIT_F128 = 41,
   IIT_SV1 = 42,
+  IIT_VEC_ELEMENT = 43
 };
 
 static void EncodeFixedValueType(MVT::SimpleValueType VT,
@@ -291,6 +292,8 @@ static void EncodeFixedType(Record *R, std::vector<unsigned char> &ArgCodes,
       return;
     } else if (R->isSubClassOf("LLVMPointerToElt"))
       Sig.push_back(IIT_PTR_TO_ELT);
+    else if (R->isSubClassOf("LLVMVectorElementType"))
+      Sig.push_back(IIT_VEC_ELEMENT);
     else
       Sig.push_back(IIT_ARG);
     return Sig.push_back((Number << 3) | ArgCodes[Number]);
