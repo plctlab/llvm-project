@@ -33,7 +33,8 @@ enum NodeType : unsigned {
   BuildPairF64,
   SplitF64,
   TAIL,
-  SETVL
+  SETVL,
+  BROADCAST
 };
 }
 
@@ -121,6 +122,7 @@ private:
 
   // Handling of specific intrinsics
   SDValue lowerSETVL(SDValue Op, SelectionDAG &DAG) const;
+  SDValue lowerSPLAT_VECTOR(SDValue Op, SelectionDAG &DAG) const;
 
   bool IsEligibleForTailCallOptimization(CCState &CCInfo,
     CallLoweringInfo &CLI, MachineFunction &MF,
