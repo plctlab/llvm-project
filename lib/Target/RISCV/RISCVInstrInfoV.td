@@ -27,6 +27,11 @@ def SDT_RISCVSETVL : SDTypeProfile<2, 1, [SDTCisVT<0, i32>,
 
 def RISCVSETVL : SDNode<"RISCVISD::SETVL", SDT_RISCVSETVL>;
 
+def SDT_RISCVBROADCAST : SDTypeProfile<1, 1, [SDTCisVT<0, nxv1i32>,
+                                              SDTCisVT<1, i32>]>;
+
+def RISCVBROADCAST : SDNode<"RISCVISD::BROADCAST", SDT_RISCVBROADCAST>;
+
 //===----------------------------------------------------------------------===//
 // Operand and SDNode transformation definitions.
 //===----------------------------------------------------------------------===//
@@ -216,12 +221,16 @@ def VSW_ic : ImplicitVCFGPseudo<VSW>;
 class PatVrVr<SDPatternOperator OpNode, ImplicitVCFGPseudo Inst>
     : Pat<(OpNode VR:$rs1, VR:$rs2, VLR:$vl), (Inst VR:$rs1, VR:$rs2, VLR:$vl)>;
 
+class PatVrIm<SDPatternOperator OpNode, ImplicitVCFGPseudo Inst>
+    : Pat<(OpNode VR:$rs1, (RISCVBROADCAST simm8:$imm), VLR:$vl), (Inst VR:$rs1, simm8:$imm, VLR:$vl)>; 
+
 def : PatVrVr<int_riscv_vadd, VADD_ic>;
 def : PatVrVr<int_riscv_vsub, VSUB_ic>;
 def : PatVrVr<int_riscv_vmul, VMUL_ic>;
 def : PatVrVr<int_riscv_vand, VAND_ic>;
 def : PatVrVr<int_riscv_vor, VOR_ic>;
 def : PatVrVr<int_riscv_vxor, VXOR_ic>;
+def : PatVrIm<int_riscv_vadd, VADDI_ic>;
 
 // TODO exploit immediate offset
 def : Pat<(int_riscv_vlw GPR:$rs1, VLR:$vl),

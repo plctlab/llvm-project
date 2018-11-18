@@ -536,7 +536,7 @@ SDValue RISCVTargetLowering::lowerSPLAT_VECTOR(SDValue Op, SelectionDAG &DAG) co
   EVT ElemVT = VT.getScalarType();
   if (ElemVT == MVT::i32) {
     SDValue SplatVal = Op.getOperand(1);
-    return DAG.getNode(RISCVISD::BROADCAST, DL, VT, SplatVal);
+    return DAG.getNode(RISCVISD::BROADCAST, dl, VT, SplatVal);
   }
   return SDValue();
 }
@@ -1638,6 +1638,8 @@ const char *RISCVTargetLowering::getTargetNodeName(unsigned Opcode) const {
     return "RISCVISD::TAIL";
   case RISCVISD::SETVL:
     return "RISCVISD::SETVL";
+  case RISCVISD::BROADCAST:
+    return "RISCVISD::BROADCAST";
   }
   return nullptr;
 }
