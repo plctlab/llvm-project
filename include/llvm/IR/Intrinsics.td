@@ -1024,6 +1024,10 @@ def int_experimental_vector_reduce_fmin : Intrinsic<[llvm_anyfloat_ty],
                                                     [llvm_anyvector_ty],
                                                     [IntrNoMem]>;
 
+def int_experimental_vector_splatvector : Intrinsic<[llvm_anyvector_ty],
+                                                   [LLVMVectorElementType<0>],
+                                                   [IntrNoMem]>;
+
 //===----- Intrinsics that are used to provide predicate information -----===//
 
 def int_ssa_copy : Intrinsic<[llvm_any_ty], [LLVMMatchType<0>],

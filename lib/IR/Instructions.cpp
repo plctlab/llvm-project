@@ -1581,7 +1581,7 @@ ShuffleVectorInst::ShuffleVectorInst(Value *V1, Value *V2, Value *Mask,
                                      const Twine &Name,
                                      Instruction *InsertBefore)
 : Instruction(VectorType::get(cast<VectorType>(V1->getType())->getElementType(),
-                cast<VectorType>(Mask->getType())->getNumElements()),
+                cast<VectorType>(Mask->getType())->getElementCount()),
               ShuffleVector,
               OperandTraits<ShuffleVectorInst>::op_begin(this),
               OperandTraits<ShuffleVectorInst>::operands(this),
@@ -1598,7 +1598,7 @@ ShuffleVectorInst::ShuffleVectorInst(Value *V1, Value *V2, Value *Mask,
                                      const Twine &Name,
                                      BasicBlock *InsertAtEnd)
 : Instruction(VectorType::get(cast<VectorType>(V1->getType())->getElementType(),
-                cast<VectorType>(Mask->getType())->getNumElements()),
+                cast<VectorType>(Mask->getType())->getElementCount()),
               ShuffleVector,
               OperandTraits<ShuffleVectorInst>::op_begin(this),
               OperandTraits<ShuffleVectorInst>::operands(this),
@@ -1841,6 +1841,20 @@ bool ShuffleVectorInst::isConcat() const {
   // and neither of the inputs are undef vectors. If the mask picks consecutive
   // elements from both inputs, then this is a concatenation of the inputs.
   return isIdentityMaskImpl(getShuffleMask(), NumMaskElts);
+}
+
+bool ShuffleVectorInst::getShuffleMask(Value *Mask,
+                                      SmallVectorImpl<int> &Result) {
+ VectorType *VecTy = cast<VectorType>(Mask->getType());
+ if (VecTy->isScalable())
+   return false;
+
+ if (auto *CMask = dyn_cast<Constant>(Mask)) {
+   getShuffleMask(CMask, Result);
+   return true;
+ }
+
+ return false;
 }
 
 //===----------------------------------------------------------------------===//
