@@ -531,7 +531,7 @@ SDValue RISCVTargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
 }
 
 SDValue RISCVTargetLowering::lowerSPLAT_VECTOR(SDValue Op, SelectionDAG &DAG) const {
-  SDLoc dl(Op);
+  SDLoc DL(Op);
   EVT VT = Op.getValueType();
   EVT ElemVT = VT.getScalarType();
   if (ElemVT == MVT::i32) {
