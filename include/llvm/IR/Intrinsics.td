@@ -160,6 +160,7 @@ class LLVMVectorSameWidth<int num, LLVMType elty>
 class LLVMPointerTo<int num> : LLVMMatchType<num>;
 class LLVMPointerToElt<int num> : LLVMMatchType<num>;
 class LLVMVectorOfAnyPointersToElt<int num> : LLVMMatchType<num>;
+class LLVMVectorElementType<int num> : LLVMMatchType<num>;
 
 // Match the type of another intrinsic parameter that is expected to be a
 // vector type, but change the element count to be half as many
@@ -1022,6 +1023,10 @@ def int_experimental_vector_reduce_fmax : Intrinsic<[llvm_anyfloat_ty],
 def int_experimental_vector_reduce_fmin : Intrinsic<[llvm_anyfloat_ty],
                                                     [llvm_anyvector_ty],
                                                     [IntrNoMem]>;
+
+def int_experimental_vector_splatvector : Intrinsic<[llvm_anyvector_ty],
+                                                   [LLVMVectorElementType<0>],
+                                                   [IntrNoMem]>;
 
 //===----- Intrinsics that are used to provide predicate information -----===//
 
