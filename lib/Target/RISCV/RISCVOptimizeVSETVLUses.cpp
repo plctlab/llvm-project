@@ -11,17 +11,12 @@
 
 #include "RISCV.h"
 #include "RISCVInstrInfo.h"
-#include "RISCVMachineFunctionInfo.h"
 #include "RISCVTargetMachine.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
-#include "llvm/CodeGen/MachineMemOperand.h"
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/Support/Debug.h"
-#include "llvm/Support/Printable.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Target/TargetOptions.h"
-#include <vector>
-#include <unordered_map>
 using namespace llvm;
 
 #define DEBUG_TYPE "riscv-optimize-vsetvl-uses"
@@ -48,6 +43,11 @@ struct RISCVOptimizeVSETVLUses : public MachineFunctionPass {
 } // end anonymous namespace
 
 
+bool isSameRegisterClass(unsigned Reg1, unsigned Reg2) {
+  return RISCV::GPRRegClass.contains(Reg1, Reg2) ||
+         RISCV::VLRRegClass.contains(Reg1, Reg2);
+}
+
 bool RISCVOptimizeVSETVLUses::runOnMachineFunction(MachineFunction &Fn) {
   if (skipFunction(Fn.getFunction()))
     return false;
@@ -62,26 +62,31 @@ bool RISCVOptimizeVSETVLUses::runOnMachineFunction(MachineFunction &Fn) {
    for (MachineBasicBlock &MBB : Fn) {
     for (MachineInstr &Instr : MBB) {
       if (Instr.isCopy()) {
-          for (auto& CopyRegsUsed : Instr.uses()) {
-            const MachineInstr* MI = MRI.getVRegDef(CopyRegsUsed.getReg());
+          const auto& CopyDest = Instr.getOperand(0);
+          auto& CopySource = Instr.getOperand(1);
 
-            if (MI->getOpcode() == RISCV::VSETVL_ic) {
-                LLVM_DEBUG(dbgs() << "*** Found COPY instruction from result" <<
-                                     "of VSETVL to GPR" << " ***\n");
-                LLVM_DEBUG(Instr.dump());
+          const MachineInstr* MI = MRI.getVRegDef(CopySource.getReg());
 
-              for (const auto& VSETVLRegsDef : MI->defs()) {
-                if (VSETVLRegsDef.getReg() != CopyRegsUsed.getReg()) {
-                  LLVM_DEBUG(dbgs() << "*** Replacing VR machine register "
-                                    << " ***\n");
-                  LLVM_DEBUG(CopyRegsUsed.dump());
-                  LLVM_DEBUG(dbgs() << "*** With GPR machine register "
-                                    <<  " ***\n");
-                  LLVM_DEBUG(VSETVLRegsDef.dump());
-                  CopyRegsUsed.setReg(VSETVLRegsDef.getReg());
-                }
-              }
-            }
+          if (MI->getOpcode() == RISCV::VSETVL_ic &&
+                !isSameRegisterClass(CopyDest.getReg(), CopySource.getReg())) {
+              LLVM_DEBUG(dbgs() << "*** Found COPY instruction from VSETVL" <<
+                                   "across register class" << " ***\n");
+              LLVM_DEBUG(Instr.dump());
+
+              const auto& VSETVLDefGPR = MI->getOperand(0);
+              const auto& VSETVLDefVLR = MI->getOperand(1);
+
+              //Handle both GPR->VLR and VLR->GPR
+              const auto& Replacement = 
+                  VSETVLDefGPR.getReg() != CopySource.getReg() ?
+                            VSETVLDefGPR : VSETVLDefVLR;
+
+              //Clear flags on CopySource reg
+              CopySource.setIsKill(false);
+
+              CopySource.setReg(Replacement.getReg());
+              //Remove kill flag on all that use Replacement reg
+              MRI.clearKillFlags(Replacement.getReg());
           }
       }
     }
