@@ -10,11 +10,15 @@ define i32 @setvl() nounwind {
 ; RV32IV-LABEL: setvl:
 ; RV32IV:       # %bb.0:
 ; RV32IV-NEXT:    vconfig 96
-; RV32IV-NEXT:    addi a0, zero, 99
+; RV32IV-NEXT:    addi a0, zero, 23
 ; RV32IV-NEXT:    vsetvl a0, a0
-; RV32IV-NEXT:    csrr a0, vl
+; RV32IV-NEXT:    addi a1, zero, 99
+; RV32IV-NEXT:    vsetvl a1, a1
+; RV32IV-NEXT:    add a0, a1, a0
 ; RV32IV-NEXT:    vconfig 1
 ; RV32IV-NEXT:    ret
-  %vl = call i32 @llvm.riscv.setvl(i32 99)
-  ret i32 %vl
+  %vl1 = call i32 @llvm.riscv.setvl(i32 99)
+  %vl2 = call i32 @llvm.riscv.setvl(i32 23)
+  %vl3 = add i32 %vl1, %vl2
+  ret i32 %vl3
 }
