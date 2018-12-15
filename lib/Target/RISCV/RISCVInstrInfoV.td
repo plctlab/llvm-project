@@ -56,9 +56,17 @@ def simm8 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<8>(Imm);}]> {
 // and we model that as memory operand.
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 class VALU_rr<bits<7> funct7, bits<1> funct1, string opcodestr>
-    : RVInstVR<funct7, funct1, RVV_Unmasked, OPC_VEC_OP,
+    : RVInstVrVr<funct7, funct1, RVV_Unmasked, OPC_VEC_OP,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
                opcodestr, "$vd, $vs1, $vs2">;
+
+// mayLoad = 1 because vector ALU ops read the configuration CSRs
+// and we model that as memory operand.
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class VALU_VrGpr<bits<3> funct3, bits<5> funct5, string opcodestr>
+    : RVInstVrGpr<funct3, funct5, RVV_Unmasked, OPC_VEC_OP,
+               (outs GPR:$rd), (ins VR:$vs1, VLR:$vl),
+               opcodestr, "$rd, $vs1">;
 
 // mayLoad = 1 because vector ALU ops read the configuration CSRs
 // and we model that as memory operand.
@@ -120,7 +128,6 @@ def VADD : VALU_rr<0b1001000, 0b1, "vadd">;
 
 def VSUB : VALU_rr<0b1001001, 0b1, "vsub">;
 
-
 def VADDI : VALU_ri<0b0000, 0b1, "vaddi">;
 
 //Instruction encoding table: https://github.com/riscv/riscv-v-spec/blob/master/inst-table.adoc
@@ -136,6 +143,9 @@ def VXOR : VALU_rr<0b1100000, 0b1, "vxor">;
 def VLW : VLoad_UnitStride<0b00, 0b110, "vlw">;
 
 def VSW : VStore_UnitStride<0b110, 0b00, "vsw">;
+
+def VMPOPC : VALU_VrGpr<0b010, 0b00000, "vmpopc">;
+def VMFIRST : VALU_VrGpr<0b010, 0b00001, "vmfirst">;
 
 // mayLoad = 1 because vsetvl reads the configuration CSRs
 // and we model that as memory operand.
@@ -218,11 +228,20 @@ def VLW_ic : ImplicitVCFGPseudo<VLW>;
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 def VSW_ic : ImplicitVCFGPseudo<VSW>;
 
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VMPOPC_ic : ImplicitVCFGPseudo<VMPOPC>;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VMFIRST_ic : ImplicitVCFGPseudo<VMFIRST>;
+
 class PatVrVr<SDPatternOperator OpNode, ImplicitVCFGPseudo Inst>
     : Pat<(OpNode VR:$rs1, VR:$rs2, VLR:$vl), (Inst VR:$rs1, VR:$rs2, VLR:$vl)>;
 
 class PatVrIm<SDPatternOperator OpNode, ImplicitVCFGPseudo Inst>
     : Pat<(OpNode VR:$rs1, (RISCVBROADCAST simm8:$imm), VLR:$vl), (Inst VR:$rs1, simm8:$imm, VLR:$vl)>; 
+
+class PatVr<SDPatternOperator OpNode, ImplicitVCFGPseudo Inst>
+    : Pat<(OpNode VR:$rs1, VLR:$vl), (Inst VR:$rs1, VLR:$vl)>;
 
 def : PatVrVr<int_riscv_vadd, VADD_ic>;
 def : PatVrVr<int_riscv_vsub, VSUB_ic>;
@@ -231,6 +250,9 @@ def : PatVrVr<int_riscv_vand, VAND_ic>;
 def : PatVrVr<int_riscv_vor, VOR_ic>;
 def : PatVrVr<int_riscv_vxor, VXOR_ic>;
 def : PatVrIm<int_riscv_vadd, VADDI_ic>;
+
+def : PatVr<int_riscv_vmpopcnt, VMPOPC_ic>;
+def : PatVr<int_riscv_vmfirst, VMFIRST_ic>;
 
 // TODO exploit immediate offset
 def : Pat<(int_riscv_vlw GPR:$rs1, VLR:$vl),
