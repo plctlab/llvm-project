@@ -65,6 +65,9 @@ bool RISCVOptimizeVSETVLUses::runOnMachineFunction(MachineFunction &Fn) {
           const auto& CopyDest = Instr.getOperand(0);
           auto& CopySource = Instr.getOperand(1);
 
+          if (!TargetRegisterInfo::isVirtualRegister(CopySource.getReg()))
+            continue;
+
           const MachineInstr* MI = MRI.getVRegDef(CopySource.getReg());
 
           if (MI->getOpcode() == RISCV::VSETVL_ic &&
