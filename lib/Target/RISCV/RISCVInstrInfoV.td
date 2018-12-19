@@ -63,8 +63,8 @@ class VALU_rr<bits<7> funct7, bits<1> funct1, string opcodestr>
 // mayLoad = 1 because vector ALU ops read the configuration CSRs
 // and we model that as memory operand.
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-class VALU_VrGpr<bits<3> funct3, bits<5> funct5, string opcodestr>
-    : RVInstVrGpr<funct3, funct5, RVV_Unmasked, OPC_VEC_OP,
+class VALU_VrGpr<bits<12> funct12, bits<1> funct1, string opcodestr>
+    : RVInstVrGpr<funct12, funct1, RVV_Unmasked, OPC_VEC_OP,
                (outs GPR:$rd), (ins VR:$vs1, VLR:$vl),
                opcodestr, "$rd, $vs1">;
 
@@ -144,8 +144,8 @@ def VLW : VLoad_UnitStride<0b00, 0b110, "vlw">;
 
 def VSW : VStore_UnitStride<0b110, 0b00, "vsw">;
 
-def VMPOPC : VALU_VrGpr<0b010, 0b00000, "vmpopc">;
-def VMFIRST : VALU_VrGpr<0b010, 0b00001, "vmfirst">;
+def VMPOPC : VALU_VrGpr<0b101011100001, 0b1, "vmpop">;
+def VMFIRST : VALU_VrGpr<0b101011100000, 0b1, "vmfirst">;
 
 // mayLoad = 1 because vsetvl reads the configuration CSRs
 // and we model that as memory operand.

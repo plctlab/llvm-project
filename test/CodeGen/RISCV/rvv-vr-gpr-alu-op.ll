@@ -16,7 +16,7 @@ define i32 @foo(i32 %n, i32* %A) {
 ; RV32IV-NEXT:    vsetvl a0, a0
 ; RV32IV-NEXT:    vlw v0, 0(a1)
 ; RV32IV-NEXT:    vmfirst a0, v0
-; RV32IV-NEXT:    vmpopc a1, v0
+; RV32IV-NEXT:    vmpop a1, v0
 ; RV32IV-NEXT:    add a0, a1, a0
 ; RV32IV-NEXT:    vconfig 1
 ; RV32IV-NEXT:    ret

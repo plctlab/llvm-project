@@ -65,6 +65,7 @@ bool RISCVOptimizeVSETVLUses::runOnMachineFunction(MachineFunction &Fn) {
           const auto& CopyDest = Instr.getOperand(0);
           auto& CopySource = Instr.getOperand(1);
 
+          //To avoid null MI when COPY source is a live-in (from parameter)
           if (!TargetRegisterInfo::isVirtualRegister(CopySource.getReg()))
             continue;
 
