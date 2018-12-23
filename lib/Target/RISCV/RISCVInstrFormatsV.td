@@ -19,7 +19,8 @@ class RVVMaskCond<bits<2> m> {
 
 def RVV_Unmasked : RVVMaskCond<0b01>;
 
-class RVInstVR<bits<7> funct7, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode,
+//Vector, Vector -> Vector
+class RVInstVrVr<bits<7> funct7, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode,
                dag outs, dag ins, string opcodestr, string argstr>
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatR> {
   bits<5> vs2;
@@ -35,6 +36,22 @@ class RVInstVR<bits<7> funct7, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode
   let Opcode = opcode.Value;
 }
 
+//Vector -> GPR 
+class RVInstVrGpr<bits<12> funct12, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode,
+               dag outs, dag ins, string opcodestr, string argstr>
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther> {
+  bits<5> vs1;
+  bits<5> rd;
+
+  let Inst{31-20} = funct12;
+  let Inst{19-15} = vs1;
+  let Inst{14}    = funct1;
+  let Inst{13-12} = m.Value;
+  let Inst{11-7}  = rd;
+  let Opcode = opcode.Value;
+}
+
+//Vector, Immediate -> Vector
 class RVInstVI<bits<4> funct4, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode,
                dag outs, dag ins, string opcodestr, string argstr>
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther> {
@@ -50,6 +67,7 @@ class RVInstVI<bits<4> funct4, bits<1> funct1, RVVMaskCond m, RISCVOpcode opcode
   let Inst{11-7}  = vd;
   let Opcode = opcode.Value;
 }
+
 
 // TODO parametrize over rs2/vs2
 class RVInstVLoad<bits<2> funct2, bits<3> funct3, RVVMaskCond m,

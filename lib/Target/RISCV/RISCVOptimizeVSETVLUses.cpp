@@ -64,8 +64,12 @@ bool RISCVOptimizeVSETVLUses::runOnMachineFunction(MachineFunction &Fn) {
       if (Instr.isCopy()) {
           const auto& CopyDest = Instr.getOperand(0);
           auto& CopySource = Instr.getOperand(1);
-
+	 
           const MachineInstr* MI = MRI.getVRegDef(CopySource.getReg());
+          if (!MI) {
+              // No definition (e.g., a live-in physical register), can't optimize
+              continue;
+          }
 
           if (MI->getOpcode() == RISCV::VSETVL_ic &&
                 !isSameRegisterClass(CopyDest.getReg(), CopySource.getReg())) {
