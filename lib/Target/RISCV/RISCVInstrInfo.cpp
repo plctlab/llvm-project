@@ -108,6 +108,49 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
     return;
   }
 
+  // VR -> VR copies
+  if (RISCV::VRRegClass.contains(SrcReg) &&
+      RISCV::VRRegClass.contains(DstReg)) {
+    
+    auto Scavenger = RegScavenger();
+    Scavenger.enterBasicBlockEnd(MBB);
+    unsigned SavedVL = Scavenger.scavengeRegisterBackwards(
+      RISCV::GPRRegClass, MBBI, false, 0);
+
+    //Save current VL
+    MachineInstr &MI = *BuildMI(MBB, MBBI, DL, get(RISCV::CSRRS), SavedVL)
+        .addImm(0xCC0)
+        .addReg(RISCV::X0);
+
+    Scavenger.setRegUsed(SavedVL);
+
+    //Save MAXVL in GPR
+    unsigned MaxVL = Scavenger.scavengeRegisterBackwards(
+      RISCV::GPRRegClass, MachineBasicBlock::iterator(MI), false, 0);
+
+
+    BuildMI(MBB, MBBI, DL, get(RISCV::CSRRS), MaxVL)
+        .addImm(0xCC1) //Couldn't find the actual CSR number - placeholder
+        .addReg(RISCV::X0);
+
+    //Set VL to MAXVL
+    BuildMI(MBB, MBBI, DL, get(RISCV::VSETVL), RISCV::VL)
+        .addDef(RISCV::X0)
+        .addReg(MaxVL, getKillRegState(true));
+
+    //Copy Vector
+    BuildMI(MBB, MBBI, DL, get(RISCV::VADDI), DstReg)
+        .addReg(SrcReg, getKillRegState(KillSrc))
+        .addImm(0)
+        .addReg(RISCV::VL);
+
+    BuildMI(MBB, MBBI, DL, get(RISCV::VSETVL), RISCV::VL)
+        .addDef(RISCV::X0)
+        .addReg(SavedVL, getKillRegState(true));
+
+    return;
+  }
+
   // FPR->FPR copies
   unsigned Opc;
   if (RISCV::FPR32RegClass.contains(DstReg, SrcReg))
