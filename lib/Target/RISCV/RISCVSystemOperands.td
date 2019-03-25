@@ -355,3 +355,4 @@ def : SysReg<"dscratch", 0x7B2>;
 //===-----------------------------------------------
 // 0xCC0 is a non-standard read-only user mode CSR
 def VLCSR : SysReg<"vl", 0xCC0>;
+def VLMAXCSR : SysReg<"vlmax", 0xCC1>;
