@@ -111,6 +111,7 @@ void RISCVPassConfig::addPreEmitPass2() {
 }
 
 void RISCVPassConfig::addMachineSSAOptimization() {
+  TargetPassConfig::addMachineSSAOptimization();
   addPass(createRISCVOptimizeVSETVLUsesPass());
 }
 
