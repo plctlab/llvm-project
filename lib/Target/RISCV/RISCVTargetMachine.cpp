@@ -117,5 +117,4 @@ void RISCVPassConfig::addMachineSSAOptimization() {
 
 void RISCVPassConfig::addPreRegAlloc() {
   addPass(createRISCVMergeBaseOffsetOptPass());
-  addPass(createRISCVIntroduceVCFGUsesPass());
 }

@@ -279,3 +279,13 @@ def VLR: RegisterClass<"RISCV", [XLenVT], 32, (add VL)> {
     [RV32,              RV64,              DefaultMode],
     [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
+
+// VCFG
+def VCFG : RISCVReg<0, "vcfg">;
+def VCFGR : RegisterClass<"RISCV", [XLenVT], 32, (add VCFG)> {
+  let CopyCost = -1; // Don't allow copying
+  let isAllocatable = 0; // Not allocatable
+  let RegInfos = RegInfoByHwMode<
+      [RV32,              RV64,              DefaultMode],
+      [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
+}

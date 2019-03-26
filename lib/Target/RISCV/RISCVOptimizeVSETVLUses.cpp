@@ -71,7 +71,7 @@ bool RISCVOptimizeVSETVLUses::runOnMachineFunction(MachineFunction &Fn) {
               continue;
           }
 
-          if (MI->getOpcode() == RISCV::VSETVL_ic &&
+          if (MI->getOpcode() == RISCV::VSETVL &&
                 !isSameRegisterClass(CopyDest.getReg(), CopySource.getReg())) {
               LLVM_DEBUG(dbgs() << "*** Found COPY instruction from VSETVL" <<
                                    "across register class" << " ***\n");

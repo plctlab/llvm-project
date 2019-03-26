@@ -26,24 +26,17 @@ Another concern is the active vector length, which is an operand to most vector 
 
 ## Vector length register
 
-We represent the VL register as an ordinary physical register that can hold an XLEN-sized integer (`XLenVT`). There is a register class, `VLR`, that contains only VL. Most vector instructions have `VLR` inputs, `setvl` has a `VLR` output (along with the GPR result).
+We represent the VL CSR as an ordinary physical register that can hold an XLEN-sized integer (`XLenVT`). There is a register class, `VLR`, that contains only VL. Most vector instructions have `VLR` inputs, `setvl` has a `VLR` output (along with the GPR result).
 
 This register class is naturally not the preferred one for selecting integer code, but copies between it and GPRs are possible via CSR reads and writes.
 
 > Note: Still need to decide on a solution for VLR virtregs with overlapping live ranges. As-is they cause crashes during register allocation.
 
-## Making the configuration explicit
+## Vector unit configuration CSR
 
-Before introducing any instructions that change the vector unit configuration, we need to make the dependencies on the configuration explicit. This is done by replacing each `*_ImpConf` pseudo with the real instruction, which is identical except is also reads the current vector configuration.
-
-The configuration is not represented as register but as if it was a special, otherwise-inaccessible region of memory. This means all instructions that touch vector registers have `mayLoad = 1`, and those that affect the configuration have `mayStore = 1`.
-
-To recover some optimizations blocked by this, we use a specially crafted `MachineMemOperand` with a target-specific `PseudoSourceValue` that does not alias any IR values. This at least allows reordering most vector operations with scalar stores that come from IR. Further improvements, such as being able to reorder a vector store with a vector load if the actual memory accessed does not alias, require improving `MachineInstr::mayAlias`.
-
-One reason to model the configuration as memory instead of as a register is that this would mean having *virtual* registers representing the vector unit configuration, and multiple ones if we ever want to use multiple different configurations for different code regions. It is completely impossible to generate reasonable code juggling two different configurations at the same time, so we would have to restrict the live ranges of these virtual registers to be non-overlapping, which does not seem feasible.
-
-By using memory, we can better represent that there is a single configuration which changes over time and these changes are barriers for code motion.
-
+Ẃe represent the vector unit configuration CSR as an unallocatable, permanently reserved physical register.
+It is implicitly used by most vector instructions, and instructions that change the configuration define this register implicitly.
+There are no corresponding virtual registers, it's a physical register operand from the very start.
 
 ## Selecting the active vector length
 
@@ -60,7 +53,7 @@ This is only correct for side-effect-free operations, but operations with side e
 ## Deciding the configuration
 
 The configuration is decided before register allocation, because register allocation needs complete knowledge of the physical register field.
-Integrating these decisions into register allocation, but it's not clear how to do that (and it would be likely a huge project in any case).
+Integrating these decisions into register allocation would be even better, but it's not clear how to do that (and it would be likely a huge project in any case).
 By looking at the live intervals, proportions of data type widths among them, etc. we can at least try to heuristically find a good fit.
 
 In the future we should try to separate the function body into several regions between which we can safely change the configuration (at minimum this means no vector values live between them, not even in memory).
