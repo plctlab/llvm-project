@@ -54,7 +54,7 @@ def simm8 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<8>(Imm);}]> {
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_rr<bits<7> funct7, bits<1> funct1, string opcodestr>
-    : RVInstVrVr<funct7, funct1, RVV_Unmasked, OPC_VEC_OP,
+    : RVInstVrVr<funct7, funct1, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
                opcodestr, "$vd, $vs1, $vs2">
 {
@@ -63,7 +63,7 @@ class VALU_rr<bits<7> funct7, bits<1> funct1, string opcodestr>
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_VrGpr<bits<12> funct12, bits<1> funct1, string opcodestr>
-    : RVInstVrGpr<funct12, funct1, RVV_Unmasked, OPC_VEC_OP,
+    : RVInstVrGpr<funct12, funct1, RVV_Unmasked, OPC_OP_V,
                (outs GPR:$rd), (ins VR:$vs1, VLR:$vl),
                opcodestr, "$rd, $vs1">
 {
@@ -72,7 +72,7 @@ class VALU_VrGpr<bits<12> funct12, bits<1> funct1, string opcodestr>
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_ri<bits<4> funct4, bits<1> funct1, string opcodestr>
-    : RVInstVI<funct4, funct1, RVV_Unmasked, OPC_VEC_OP,
+    : RVInstVI<funct4, funct1, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, simm8:$imm8, VLR:$vl),
                opcodestr, "$vd, $vs1, $imm8">
 {
@@ -140,7 +140,7 @@ def VSETVL: RVInst<(outs VLR:$vl, GPR:$rd), (ins GPR:$rs1),
   let Inst{14} = 0b1;
   let Inst{13-12} = 0b00;
   let Inst{11-7} = rd;
-  let Opcode = OPC_VEC_OP.Value;
+  let Opcode = OPC_OP_V.Value;
 
   let Uses = [VCFG];
 }
@@ -157,7 +157,7 @@ def VCONFIG : RVInst<(outs), (ins uimm8:$imm8),
   let Inst{14} = 0b1;
   let Inst{13-12} = 0b01;
   let Inst{11-7} = 0b00000;
-  let Opcode = OPC_VEC_OP.Value;
+  let Opcode = OPC_OP_V.Value;
 
   let Defs = [VCFG];
 }
