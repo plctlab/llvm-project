@@ -20,12 +20,11 @@ define void @shifted_add(i32 %n.0, i32* %A.0) {
 ; RV32IV-NEXT:    # =>This Inner Loop Header: Depth=1
 ; RV32IV-NEXT:    addi a2, a0, -1
 ; RV32IV-NEXT:    vsetvl a2, a2
-; RV32IV-NEXT:    addi a2, a1, 4
-; RV32IV-NEXT:    vlw v0, 0(a2)
+; RV32IV-NEXT:    addi a3, a1, 4
+; RV32IV-NEXT:    vlw v0, 0(a3)
 ; RV32IV-NEXT:    vlw v1, 0(a1)
 ; RV32IV-NEXT:    vadd v0, v1, v0
 ; RV32IV-NEXT:    vsw v0, 0(a1)
-; RV32IV-NEXT:    csrr a2, vl
 ; RV32IV-NEXT:    slli a3, a2, 2
 ; RV32IV-NEXT:    add a1, a1, a3
 ; RV32IV-NEXT:    sub a0, a0, a2

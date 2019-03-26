@@ -18,7 +18,6 @@ define void @foo(i32 %n.0, i32* %R.0, i32* %A.0) {
 ; RV32IV-NEXT:    vlw v0, 0(a2)
 ; RV32IV-NEXT:    vaddi v0, v0, 2
 ; RV32IV-NEXT:    vsw v0, 0(a1)
-; RV32IV-NEXT:    csrr a3, vl
 ; RV32IV-NEXT:    slli a4, a3, 2
 ; RV32IV-NEXT:    add a1, a1, a4
 ; RV32IV-NEXT:    add a2, a2, a4
