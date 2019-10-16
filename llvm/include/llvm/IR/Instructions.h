@@ -2032,6 +2032,8 @@ public:
   static void getShuffleMask(const Constant *Mask,
                              SmallVectorImpl<int> &Result);
 
+  static bool getShuffleMask(Value *Mask, SmallVectorImpl<int> &Result);
+
   /// Return the mask for this instruction as a vector of integers. Undefined
   /// elements of the mask are returned as -1.
   void getShuffleMask(SmallVectorImpl<int> &Result) const {

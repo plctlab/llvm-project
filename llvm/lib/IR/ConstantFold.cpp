@@ -797,8 +797,9 @@ Constant *llvm::ConstantFoldExtractElementInstruction(Constant *Val,
 
   if (ConstantInt *CIdx = dyn_cast<ConstantInt>(Idx)) {
     // ee({w,x,y,z}, wrong_value) -> undef
-    if (CIdx->uge(Val->getType()->getVectorNumElements()))
-      return UndefValue::get(Val->getType()->getVectorElementType());
+    if (!Val->getType()->getVectorIsScalable())
+      if (CIdx->uge(Val->getType()->getVectorNumElements()))
+        return UndefValue::get(Val->getType()->getVectorElementType());
     return Val->getAggregateElement(CIdx->getZExtValue());
   }
   return nullptr;
@@ -809,6 +810,10 @@ Constant *llvm::ConstantFoldInsertElementInstruction(Constant *Val,
                                                      Constant *Idx) {
   if (isa<UndefValue>(Idx))
     return UndefValue::get(Val->getType());
+
+  // Everything after this point assumes you can iterate across Val.
+  if (Val->getType()->getVectorIsScalable())
+    return nullptr;
 
   ConstantInt *CIdx = dyn_cast<ConstantInt>(Idx);
   if (!CIdx) return nullptr;
@@ -837,8 +842,9 @@ Constant *llvm::ConstantFoldInsertElementInstruction(Constant *Val,
 Constant *llvm::ConstantFoldShuffleVectorInstruction(Constant *V1,
                                                      Constant *V2,
                                                      Constant *Mask) {
-  unsigned MaskNumElts = Mask->getType()->getVectorNumElements();
-  Type *EltTy = V1->getType()->getVectorElementType();
+   auto *MaskTy = cast<VectorType>(Mask->getType());
+   auto MaskNumElts = MaskTy->getElementCount();
+   Type *EltTy = V1->getType()->getVectorElementType();
 
   // Undefined shuffle mask -> undefined value.
   if (isa<UndefValue>(Mask))
@@ -847,11 +853,23 @@ Constant *llvm::ConstantFoldShuffleVectorInstruction(Constant *V1,
   // Don't break the bitcode reader hack.
   if (isa<ConstantExpr>(Mask)) return nullptr;
 
+  if (MaskTy->isScalable()) {
+   // Is splat?
+   if (Mask->isNullValue()) {
+     Constant *Zero = Constant::getNullValue(MaskTy->getElementType());
+     Constant *SplatVal = ConstantFoldExtractElementInstruction(V1, Zero);
+     // Is splat of zero?
+     if (SplatVal && SplatVal->isNullValue())
+       return Constant::getNullValue(VectorType::get(EltTy, MaskNumElts));
+   }
+   return nullptr;
+  }
+
   unsigned SrcNumElts = V1->getType()->getVectorNumElements();
 
   // Loop over the shuffle mask, evaluating each element.
   SmallVector<Constant*, 32> Result;
-  for (unsigned i = 0; i != MaskNumElts; ++i) {
+  for (unsigned i = 0; i != MaskNumElts.Min; ++i) {
     int Elt = ShuffleVectorInst::getMaskValue(Mask, i);
     if (Elt == -1) {
       Result.push_back(UndefValue::get(EltTy));

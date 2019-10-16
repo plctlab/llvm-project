@@ -2166,8 +2166,9 @@ Constant *ConstantExpr::getShuffleVector(Constant *V1, Constant *V2,
     return FC;          // Fold a few common cases.
 
   unsigned NElts = Mask->getType()->getVectorNumElements();
+  bool Scalable = Mask->getType()->getVectorIsScalable();
   Type *EltTy = V1->getType()->getVectorElementType();
-  Type *ShufTy = VectorType::get(EltTy, NElts);
+  Type *ShufTy = VectorType::get(EltTy, NElts, Scalable);
 
   if (OnlyIfReducedTy == ShufTy)
     return nullptr;

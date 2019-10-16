@@ -66,11 +66,12 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
 
   // Set up the register classes.
   addRegisterClass(XLenVT, &RISCV::GPRRegClass);
-
   if (Subtarget.hasStdExtF())
     addRegisterClass(MVT::f32, &RISCV::FPR32RegClass);
   if (Subtarget.hasStdExtD())
     addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
+  if (STI.hasStdExtV())
+    addRegisterClass(MVT::nxv1i32, &RISCV::VRRegClass);
 
   // Compute derived properties from the register classes.
   computeRegisterProperties(STI.getRegisterInfo());
@@ -187,6 +188,8 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
   // Unfortunately this can't be determined just from the ISA naming string.
   setOperationAction(ISD::READCYCLECOUNTER, MVT::i64,
                      Subtarget.is64Bit() ? Legal : Custom);
+
+  setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::Other, Custom);
 
   if (Subtarget.hasStdExtA()) {
     setMaxAtomicSizeInBitsSupported(Subtarget.getXLen());
@@ -378,6 +381,8 @@ SDValue RISCVTargetLowering::LowerOperation(SDValue Op,
     return lowerFRAMEADDR(Op, DAG);
   case ISD::RETURNADDR:
     return lowerRETURNADDR(Op, DAG);
+  case ISD::INTRINSIC_WO_CHAIN:
+    return lowerINTRINSIC_WO_CHAIN(Op, DAG);
   case ISD::SHL_PARTS:
     return lowerShiftLeftParts(Op, DAG);
   case ISD::SRA_PARTS:
@@ -1138,6 +1143,37 @@ static MachineBasicBlock *emitReadCycleWidePseudo(MachineInstr &MI,
   MI.eraseFromParent();
 
   return DoneMBB;
+}
+
+SDValue RISCVTargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
+                                                     SelectionDAG &DAG) const {
+  unsigned IntrinsicID = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
+  switch (IntrinsicID) {
+  default:
+    return SDValue(); // Don't custom lower most intrinsics
+  case Intrinsic::riscv_setvl:
+    return lowerSETVL(Op, DAG);
+  case Intrinsic::experimental_vector_splatvector:
+    return lowerSPLAT_VECTOR(Op, DAG);
+  }
+}
+
+SDValue RISCVTargetLowering::lowerSPLAT_VECTOR(SDValue Op, SelectionDAG &DAG) const {
+  SDLoc DL(Op);
+  EVT VT = Op.getValueType();
+  EVT ElemVT = VT.getScalarType();
+  if (ElemVT == MVT::i32) {
+    SDValue SplatVal = Op.getOperand(1);
+    return DAG.getNode(RISCVISD::BROADCAST, DL, VT, SplatVal);
+  }
+  return SDValue();
+}
+
+SDValue RISCVTargetLowering::lowerSETVL(SDValue Op, SelectionDAG &DAG) const {
+  SDLoc DL(Op);
+  MVT XLenVT = Subtarget.getXLenVT();
+  SDVTList ResultVTs = DAG.getVTList(XLenVT, XLenVT);
+  return DAG.getNode(RISCVISD::SETVL, DL, ResultVTs, Op.getOperand(1));
 }
 
 static MachineBasicBlock *emitSplitF64Pseudo(MachineInstr &MI,
@@ -2397,6 +2433,10 @@ const char *RISCVTargetLowering::getTargetNodeName(unsigned Opcode) const {
     return "RISCVISD::SplitF64";
   case RISCVISD::TAIL:
     return "RISCVISD::TAIL";
+  case RISCVISD::SETVL:
+    return "RISCVISD::SETVL";
+  case RISCVISD::BROADCAST:
+    return "RISCVISD::BROADCAST";
   case RISCVISD::SLLW:
     return "RISCVISD::SLLW";
   case RISCVISD::SRAW:

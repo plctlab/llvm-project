@@ -1,18 +1,12 @@
-The LLVM Compiler Infrastructure
-================================
+This repository contains a fork of LLVM (see https://llvm.org) with patches
+towards supporting the RISC-V vector extension (see
+https://github.com/riscv/riscv-v-spec/). This is very much a work in progress.
 
-This directory and its subdirectories contain source code for LLVM,
-a toolkit for the construction of highly optimized compilers,
-optimizers, and runtime environments.
+See `docs/RISCVVectorCodegen.md` for some documentation.
 
-LLVM is open source software. You may freely distribute it under the terms of
-the license agreement found in LICENSE.txt.
-
-Please see the documentation provided in docs/ for further
-assistance with LLVM, and in particular docs/GettingStarted.rst for getting
-started with LLVM and docs/README.txt for an overview of LLVM's
-documentation setup.
-
-If you are writing a package for LLVM, see docs/Packaging.rst for our
-suggestions.
-
+These patches are regularly rebased to track LLVM trunk, which means commit
+hashes will change. To mitigate the annoyance that causes, development always
+happens on a branch named `rvv-<date>` where `<date>` is the date of the last
+rebase, and on the next rebase this branch is left alone and a new branch is
+created. The downside of this is that you will have to check the list of
+branches to find the latest version.

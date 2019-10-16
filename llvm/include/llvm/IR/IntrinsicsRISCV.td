@@ -65,4 +65,51 @@ def int_riscv_masked_cmpxchg_i64
                                 llvm_i64_ty, llvm_i64_ty],
                 [IntrArgMemOnly, NoCapture<0>, ImmArg<4>]>;
 
+//===----------------------------------------------------------------------===//
+// Vector extension
+
+def int_riscv_setvl : Intrinsic<[llvm_i32_ty], [llvm_i32_ty], [IntrNoMem]>;
+
+def int_riscv_vadd : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+def int_riscv_vsub : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+
+def int_riscv_vmul : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+
+def int_riscv_vand : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+
+def int_riscv_vor : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+def int_riscv_vxor : Intrinsic<[llvm_nxv1i32_ty],
+                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+def int_riscv_vlw : Intrinsic<[llvm_nxv1i32_ty],
+                              [llvm_ptr32_ty, llvm_i32_ty],
+                              [IntrReadMem]>;
+def int_riscv_vsw : Intrinsic<[],
+                              [llvm_ptr32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                              [IntrWriteMem]>;
+
+def int_riscv_vmpopcnt : Intrinsic<[llvm_i32_ty],
+                               [llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
+def int_riscv_vmfirst : Intrinsic<[llvm_i32_ty],
+                               [llvm_nxv1i32_ty, llvm_i32_ty],
+                               [IntrNoMem]>;
+
 } // TargetPrefix = "riscv"

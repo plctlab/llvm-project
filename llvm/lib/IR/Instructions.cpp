@@ -2103,6 +2103,20 @@ bool ShuffleVectorInst::isConcat() const {
   return isIdentityMaskImpl(getShuffleMask(), NumMaskElts);
 }
 
+bool ShuffleVectorInst::getShuffleMask(Value *Mask,
+                                      SmallVectorImpl<int> &Result) {
+  VectorType *VecTy = cast<VectorType>(Mask->getType());
+  if (VecTy->isScalable())
+    return false;
+
+  if (auto *CMask = dyn_cast<Constant>(Mask)) {
+    getShuffleMask(CMask, Result);
+    return true;
+  }
+
+  return false;
+}
+
 //===----------------------------------------------------------------------===//
 //                             InsertValueInst Class
 //===----------------------------------------------------------------------===//

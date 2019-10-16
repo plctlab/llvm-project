@@ -15,9 +15,10 @@
 
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
+#include "llvm/CodeGen/TargetSubtargetInfo.h"
+#include <memory>
 
 namespace llvm {
-
 /// RISCVMachineFunctionInfo - This class is derived from MachineFunctionInfo
 /// and contains private RISCV-specific information for each MachineFunction.
 class RISCVMachineFunctionInfo : public MachineFunctionInfo {
@@ -32,6 +33,7 @@ private:
   int MoveF64FrameIndex = -1;
 
 public:
+  RISCVMachineFunctionInfo() = delete;
   RISCVMachineFunctionInfo(MachineFunction &MF) : MF(MF) {}
 
   int getVarArgsFrameIndex() const { return VarArgsFrameIndex; }

@@ -1,0 +1,353 @@
+commit 5dd2e94b266274638dc508c002126eab3ed84ff1
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Mar 26 14:55:30 2019 +0100
+
+    Update major opcode name to the one used in current draft spec
+
+commit dac2866a62f12ab64456a5ec60a27cda29164859
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Mar 26 15:22:28 2019 +0100
+
+    Switch to representing VCFG as unallocatable, reserved physreg
+
+commit 45d59563d27bdd4f8be0ea83ec3008d0cd5e7b25
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Mar 26 15:20:20 2019 +0100
+
+    Update tests where VL->GPR copies are now optimized
+
+commit b8f46be1b1359b4b3fadf18a6cc2db4cdbbe9529
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Mar 25 22:42:46 2019 +0100
+
+    Restore default machine SSA optimizations
+    
+    The override of addMachineSSAOptimizations() was missing a call to the
+    superclass implementation, which caused missed optimizations and
+    CodeGen test failures.
+
+commit d282cb7a7b0b39cf48a0a109ca3b836320b8e0a6
+Merge: b99586154d7d dbc26eedbee5
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Mar 25 19:44:11 2019 +0100
+
+    Merge pull request #18 from pranav-prakash/rvv-2018-11-01
+    
+    Add support for VR->VR physical register copies
+
+commit dbc26eedbee5c668a9fd2b33804abd8b81a46c83
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Sun Dec 30 14:56:12 2018 -0800
+
+    Add support for VR->VR physical register copies
+
+commit b99586154d7dff5834f4ee34e766b7b3cc67bd87
+Merge: 212d532075b1 a27b3b1fcf60
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Sun Dec 23 12:36:11 2018 +0100
+
+    Merge pull request #17 from pranav-prakash/rvv-2018-11-01
+    
+    Add encoding & intrinsic for VR -> GPR ALU ops
+
+commit a27b3b1fcf60b8384184dc8c2d40d038fc3afc85
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Sat Dec 22 18:15:59 2018 -0800
+
+    Switch to checking nullity of machineinstr directly for robustness/clarity in RISCVOptimizeVSETVL
+
+commit fbb31d053ce763c522189daa3733e280207a8352
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Tue Dec 18 16:04:34 2018 -0800
+
+    Update vmpopc and vmfirst to use older 0.5-draft encoding, add clarifying comments on instr format
+
+commit 5d463592e55bc6c05f76687e57c566fe6c8fc0fe
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Sat Dec 15 11:28:35 2018 -0800
+
+    Add encoding and intrinsic for vector->gpr operations such as popcnt
+
+commit 5ca808dc27af50eb4bf1fa0c7215fec85cf642ec
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Sat Dec 15 11:23:32 2018 -0800
+
+    Guard against optimizing COPY from non-vreg source
+
+commit 212d532075b1071bf8f882bea4d72494dd80da31
+Merge: e131acebfdf5 e2e10c4eb2af
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Sun Dec 2 16:41:41 2018 +0100
+
+    Merge pull request #16 from pranav-prakash/rvv-2018-11-01
+    
+    Add MIR optimization pass to avoid CSRR read when using VSETVL result
+
+commit e2e10c4eb2af7fddc5a672d9bfb5c49cf7a85c52
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Wed Nov 28 13:49:43 2018 -0800
+
+    Simplify VSETVL MIR pass logic, remove kill flags on replaced register
+
+commit 423e40e31e217e536d1b48b27155d586a47173b5
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Thu Nov 22 22:30:33 2018 -0800
+
+    Add MIR optimization pass to remove CSRR when using result of VSETVL
+
+commit e131acebfdf562f692fddbf81ffdc283d286519a
+Merge: 133e2d0b2c6b b67f8767122a
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Wed Nov 21 09:40:05 2018 +0100
+
+    Merge pull request #15 from pranav-prakash/rvv-2018-11-01
+    
+    Fix to uppercase parameter in previous style change
+
+commit b67f8767122a13ee8c4e31044c1372f52476fba7
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Tue Nov 20 21:38:23 2018 -0800
+
+    Forgot to uppercase parameter in previous style change
+
+commit 133e2d0b2c6b9dcb473e7e7de1dfefc7c5ef9d2b
+Merge: 9a96e1011070 d83686510024
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 20 10:12:53 2018 +0100
+
+    Merge pull request #14 from pranav-prakash/rvv-2018-11-01
+    
+    Merge in SVE splat intrinsic patch and add isel support for vaddi
+
+commit d8368651002466bec5de1cc4cc812e61b6f6f3d4
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Mon Nov 19 23:45:52 2018 -0800
+
+    Fix style, add codegen test for vaddi
+
+commit cf34a94ed092c83a0f79318abd46695fbbe8c688
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Sun Nov 18 15:27:37 2018 -0800
+
+    Add isel for vaddi
+
+commit c89199739b88d1ff21dc26e270b1a98c2afd3eb9
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Sun Nov 18 15:17:47 2018 -0800
+
+    Add custom RISCV lowering for splatvector intrinsic
+
+commit af881a5daf2d376d0604e1b128de7ee9ad72915f
+Author: Graham Hunter <Graham.Hunter@arm.com>
+Date:   Sun Nov 18 15:30:45 2018 -0800
+
+    Merge 'SVE Add SplatVector Intrinsic' [D47775]
+
+commit 9af116a29c2c305e9a34dc65edf2eac1dc6e97be
+Author: Graham Hunter <Graham.Hunter@arm.com>
+Date:   Sun Nov 18 15:17:01 2018 -0800
+
+    Merge SVE Vector element constraint patch [D47768]
+
+commit 9a96e1011070b2ddb9a4aba2e4a5f6729ed395c2
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Sun Nov 11 01:47:43 2018 -0800
+
+    Add reg+Imm vector encoding support (e.g. vaddi) to RISCV backend (#2)
+    
+    Add reg+Imm vector encoding support (e.g. vaddi) to RISCV backend
+
+commit 054e4c2d57b0cf075ec131796a624bcc2ff8cefc
+Merge: 8aae058865e3 94ba8c6536bd
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Wed Nov 7 10:14:23 2018 +0100
+
+    Merge pull request #1 from pranav-prakash/rvv-2018-11-01
+    
+    Add additional unit test for vectorized loop and support for additional binary vector operations
+
+commit 94ba8c6536bdee88bbb9aaa20f6c86d46d2bb8d7
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Tue Nov 6 23:27:45 2018 -0800
+
+    Add vmul/vsub/vand/vxor intrinsic support to riscv-v backend
+
+commit d21c7be8419150e65a204d024cd4ebd7b6279bfd
+Author: Pranav Prakash <pranav-prakash@users.noreply.github.com>
+Date:   Tue Nov 6 20:20:12 2018 -0800
+
+    Add additional test for RISC-V vadd
+
+commit 8aae058865e31d07c71023529951c83a6619fa21
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 22:33:58 2018 +0100
+
+    First working strip-mined loop!
+
+commit f6e21aa94dee6561e64f6783217045e222e28817
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 22:33:20 2018 +0100
+
+    Fix typo in creation of VCFG MachineMemOperands
+
+commit d3ef00b8ac76c28e56b14cea5e2ae726083921f3
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 21:52:58 2018 +0100
+
+    [ISel] llvm.riscv.vsw
+
+commit 1526a2bf201cd3983f78c83536a4c997a7c03321
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 21:52:43 2018 +0100
+
+    [ISel] llvm.riscv.vlw
+
+commit 0e342dc371cac68408a8fe50e333f58c5d36aeaa
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 21:48:52 2018 +0100
+
+    [ISel] llvm.riscv.vadd
+
+commit cf125935968eaf1c6ddc39b1132319d42259b9c5
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 21:32:10 2018 +0100
+
+    [ISel] llvm.riscv.setvl
+
+commit e49cf36b756c0639da7427f5a602876c227ad798
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 21:20:49 2018 +0100
+
+    Implement copies between GPRs and VL
+
+commit d049f31c1132af692ce8446394ff7ce5b7c8e9d6
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 20:11:43 2018 +0100
+
+    Naively enable vector unit in prologue and disable in epilogue
+
+commit 447a4a4cf02f7bf46afdbd9743667be6a6609d72
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 19:37:17 2018 +0100
+
+    [MC] Define (prelimary) VCONFIG instruction
+
+commit 8d0b9fcb3011758bf5cc444e0c83e07a84b9c349
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 19:05:57 2018 +0100
+
+    [MC] Define VSETVL instruction
+
+commit 0f0dadf8e782035e4315e589ccd9cc943e8dd412
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 14:29:23 2018 +0100
+
+    [MC] Define (unpredicated) VSW instruction
+
+commit f6ceffc4ca19c598914011eafa37f333cf33434a
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Tue Nov 6 10:43:02 2018 +0100
+
+    Be honest about only supporting unpredicated instructions
+    
+    Once we support other settings of m, they will be separate instructions
+    created by a multiclass, not replicated manually, so there's no
+    use in putting m into the individual instruction definitions.
+
+commit 22533d10c2aa6786cfc81a97a49d7eec53428fef
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Sun Jul 15 00:19:01 2018 +0200
+
+    [MC] Define (unpredicated) VLW instruction
+
+commit a8e134cbffc9270dfbf9cef95664c37a8f1ddd63
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Thu Nov 1 21:56:43 2018 +0100
+
+    Introduce infrastructure for RVV "implicit config" pseudos
+
+commit 54536e54866b59ac19de387dc750824a8b3516b9
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 22:48:45 2018 +0100
+
+    [MC] Define VADD instruction
+
+commit 3055a7d06032e1f6f047359088c9fad65050263d
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 19:03:29 2018 +0100
+
+    [HACK] Introduce a few RVV intrinsics
+
+commit c22adefb8aeec6710d9a4b8d28e991df1c6a5831
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 19:26:50 2018 +0100
+
+    Make <scalable 1 x i32> legal on RVV
+
+commit ee57886c58f45d14f7d9898c3e0f41bef6c04db3
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 19:25:16 2018 +0100
+
+    [Scaffolding] Introduce RISCVInstrInfoV.td
+
+commit a2c7fbd62bf2ae02ae6cba770824f521384709a1
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 19:19:51 2018 +0100
+
+    Define vl register and associated (singleton) register class
+
+commit cf8fb88e9a9638784fbf9a118c0914126c73b166
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 18:54:00 2018 +0100
+
+    Define vector registers v0..v31
+
+commit 8825700400d276090896de6e2bc5afed943c7cbe
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 18:53:17 2018 +0100
+
+    Add 'v' subtarget feature
+
+commit e13f7fe0432b422dd8073d72caf2eb9832b13a03
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 18:28:26 2018 +0100
+
+    Introduce major opcode proposed to be used for V
+
+commit bb20a19e115d92ff913230c3909fcd3d822ecdea
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 19:53:24 2018 +0100
+
+    Hijack readme
+
+commit 542b2a23cc769739ea07d97b6baf30a0f78557c7
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 19:29:03 2018 +0100
+
+    Briefly document the (planned) backend architecture for RVV
+
+commit 8272eb1e917478d2177c6f06b44bcc9649878f89
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 18:19:02 2018 +0100
+
+    [HACK] some limited support for <scalable 1 x T> in intrinsics
+
+commit 12f5dd38eb944df1952caa013027518e62aa0ec2
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 18:17:42 2018 +0100
+
+    [HACK] extend IR->SDAG step with some support for scalable vectors
+    
+    Probably missing some things but it's enough to do some instruction
+    selection for RVV intrinsics
+
+commit 5781c62d43e4099b1f877c73058b75f94da34ec4
+Author: Robin Kruppe <robin.kruppe@gmail.com>
+Date:   Mon Nov 5 18:09:08 2018 +0100
+
+    [HACK] Apply (an old version of) Graham Hunter's D32530
+    
+    This introduces the scalable vector type, but not yet any
+    support for it in CodeGen/Intrinsics/etc.
+    
+    Patch by Graham Hunter.

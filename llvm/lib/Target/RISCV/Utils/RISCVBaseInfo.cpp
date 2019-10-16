@@ -6,7 +6,7 @@
 namespace llvm {
 namespace RISCVSysReg {
 #define GET_SysRegsList_IMPL
-#include "RISCVGenSystemOperands.inc"
+#include "RISCVGenSearchableTables.inc"
 } // namespace RISCVSysReg
 
 namespace RISCVABI {

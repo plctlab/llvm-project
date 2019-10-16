@@ -285,6 +285,8 @@ def llvm_v2f64_ty      : LLVMType<v2f64>;    //  2 x double
 def llvm_v4f64_ty      : LLVMType<v4f64>;    //  4 x double
 def llvm_v8f64_ty      : LLVMType<v8f64>;    //  8 x double
 
+def llvm_nxv1i32_ty    : LLVMType<nxv1i32>;  // scalable 1 x i32
+
 def llvm_vararg_ty     : LLVMType<isVoid>;   // this means vararg here
 
 //===----------------------------------------------------------------------===//
@@ -1229,6 +1231,8 @@ let IntrProperties = [IntrNoMem, IntrWillReturn] in {
   def int_experimental_vector_reduce_fmax : Intrinsic<[LLVMVectorElementType<0>],
                                                       [llvm_anyvector_ty]>;
   def int_experimental_vector_reduce_fmin : Intrinsic<[LLVMVectorElementType<0>],
+                                                      [llvm_anyvector_ty]>;
+  def int_experimental_vector_splatvector : Intrinsic<[LLVMVectorElementType<0>],
                                                       [llvm_anyvector_ty]>;
 }
 

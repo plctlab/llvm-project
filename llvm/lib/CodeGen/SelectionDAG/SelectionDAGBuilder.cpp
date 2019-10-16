@@ -1545,6 +1545,17 @@ SDValue SelectionDAGBuilder::getValueImpl(const Value *V) {
         Op = DAG.getConstantFP(0, getCurSDLoc(), EltVT);
       else
         Op = DAG.getConstant(0, getCurSDLoc(), EltVT);
+
+      if (VT.isScalableVector()) {
+        auto INum = DAG.getConstant(Intrinsic::experimental_vector_splatvector,
+                                   getCurSDLoc(), MVT::i32);
+
+        auto Splat = DAG.getNode(ISD::INTRINSIC_WO_CHAIN, getCurSDLoc(), VT,
+                                INum, Op);
+
+        return Splat;
+      }
+
       Ops.assign(NumElements, Op);
     }
 
@@ -3538,16 +3549,50 @@ void SelectionDAGBuilder::visitExtractElement(const User &I) {
 void SelectionDAGBuilder::visitShuffleVector(const User &I) {
   SDValue Src1 = getValue(I.getOperand(0));
   SDValue Src2 = getValue(I.getOperand(1));
+  Value *MaskV = I.getOperand(2);
   SDLoc DL = getCurSDLoc();
-
-  SmallVector<int, 8> Mask;
-  ShuffleVectorInst::getShuffleMask(cast<Constant>(I.getOperand(2)), Mask);
-  unsigned MaskNumElts = Mask.size();
 
   const TargetLowering &TLI = DAG.getTargetLoweringInfo();
   EVT VT = TLI.getValueType(DAG.getDataLayout(), I.getType());
+  bool IsScalable = VT.isScalableVector();
   EVT SrcVT = Src1.getValueType();
   unsigned SrcNumElts = SrcVT.getVectorNumElements();
+
+  SmallVector<int, 8> Mask;
+  if (!ShuffleVectorInst::getShuffleMask(MaskV, Mask)) {
+   SDValue Mask = getValue(I.getOperand(2));
+   unsigned NumElts = VT.getVectorNumElements();
+   // We don't currently support variable shuffles on fixed-length vectors
+   assert(IsScalable && "Non-constant shuffle mask on fixed-length vector");
+
+   // We haven't introduced a vector_shuffle_var intrinsic to support shuffles
+   // where we need to extract or merge vectors.
+   if (NumElts != SrcNumElts)
+     llvm_unreachable("Haven't implemented VECTOR_SHUFFLE_VAR intrinsic yet");
+
+   // Currently only handling splats of a single value for scalable vectors
+   if (auto *CMask = dyn_cast<Constant>(MaskV))
+     if (CMask->isNullValue()) {
+       // Splat of first element.
+       auto FirstElt = DAG.getNode(ISD::EXTRACT_VECTOR_ELT, DL,
+                                   SrcVT.getScalarType(), Src1,
+                                   DAG.getConstant(0, DL,
+                                   TLI.getVectorIdxTy(DAG.getDataLayout())));
+
+       auto INum = DAG.getConstant(Intrinsic::experimental_vector_splatvector,
+                                   DL, MVT::i32);
+
+       auto Splat = DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, VT,
+                                INum, FirstElt);
+
+       setValue(&I, Splat);
+       return;
+     }
+   llvm_unreachable("Haven't implemented VECTOR_SHUFFLE_VAR intrinsic yet");
+   return;
+  }
+
+  unsigned MaskNumElts = Mask.size();
 
   if (SrcNumElts == MaskNumElts) {
     setValue(&I, DAG.getVectorShuffle(VT, DL, Src1, Src2, Mask));

@@ -92,6 +92,7 @@ public:
   void addPreEmitPass() override;
   void addPreEmitPass2() override;
   void addPreRegAlloc() override;
+  void addMachineSSAOptimization() override;
 };
 }
 
@@ -137,6 +138,11 @@ void RISCVPassConfig::addPreEmitPass2() {
   // possibility for other passes to break the requirements for forward
   // progress in the LR/SC block.
   addPass(createRISCVExpandPseudoPass());
+}
+
+void RISCVPassConfig::addMachineSSAOptimization() {
+  TargetPassConfig::addMachineSSAOptimization();
+  addPass(createRISCVOptimizeVSETVLUsesPass());
 }
 
 void RISCVPassConfig::addPreRegAlloc() {
