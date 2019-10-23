@@ -441,6 +441,26 @@ public:
            VK == RISCVMCExpr::VK_RISCV_None;
   }
 
+  bool isSImm5() const {
+    if (!isImm())
+      return false;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    int64_t Imm;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isInt<5>(Imm) &&
+           VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
+  bool isSImm5NonZero() const {
+    if (!isImm())
+      return false;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    int64_t Imm;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isInt<5>(Imm) && (Imm != 0) &&
+           VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
   bool isSImm6() const {
     if (!isImm())
       return false;
@@ -480,6 +500,15 @@ public:
     bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
     return IsConstantImm && isShiftedUInt<5, 2>(Imm) &&
            VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
+  bool isUImm7() const {
+    int64_t Imm;
+    RISCVMCExpr::VariantKind VK;
+    if (!isImm())
+      return false;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isUInt<7>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
   bool isUImm8() const {
@@ -531,6 +560,15 @@ public:
     bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
     return IsConstantImm && isShiftedUInt<8, 2>(Imm) && (Imm != 0) &&
            VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
+  bool isUImm11() const {
+    int64_t Imm;
+    RISCVMCExpr::VariantKind VK;
+    if (!isImm())
+      return false;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isUInt<11>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
   bool isSImm12() const {

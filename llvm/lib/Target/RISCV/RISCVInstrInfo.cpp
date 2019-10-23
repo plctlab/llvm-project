@@ -139,7 +139,7 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
         .addReg(MaxVL, getKillRegState(true));
 
     //Copy Vector
-    BuildMI(MBB, MBBI, DL, get(RISCV::VADDI), DstReg)
+    BuildMI(MBB, MBBI, DL, get(RISCV::VADD_VI), DstReg)
         .addReg(SrcReg, getKillRegState(KillSrc))
         .addImm(0)
         .addReg(RISCV::VL);

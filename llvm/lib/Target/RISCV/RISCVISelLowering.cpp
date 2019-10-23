@@ -1173,7 +1173,8 @@ SDValue RISCVTargetLowering::lowerSETVL(SDValue Op, SelectionDAG &DAG) const {
   SDLoc DL(Op);
   MVT XLenVT = Subtarget.getXLenVT();
   SDVTList ResultVTs = DAG.getVTList(XLenVT, XLenVT);
-  return DAG.getNode(RISCVISD::SETVL, DL, ResultVTs, Op.getOperand(1));
+  SDValue Ops[] = { Op.getOperand(1), Op.getOperand(2) };
+  return DAG.getNode(RISCVISD::SETVL, DL, ResultVTs, Ops);
 }
 
 static MachineBasicBlock *emitSplitF64Pseudo(MachineInstr &MI,

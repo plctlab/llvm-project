@@ -21,9 +21,10 @@ include "RISCVInstrFormatsV.td"
 //===----------------------------------------------------------------------===//
 
 
-def SDT_RISCVSETVL : SDTypeProfile<2, 1, [SDTCisVT<0, i32>,
+def SDT_RISCVSETVL : SDTypeProfile<2, 2, [SDTCisVT<0, i32>,
                                           SDTCisSameAs<0, 1>,
-                                          SDTCisSameAs<0, 2>]>;
+                                          SDTCisSameAs<0, 2>,
+                                          SDTCisSameAs<0, 3>]>;
 
 def RISCVSETVL : SDNode<"RISCVISD::SETVL", SDT_RISCVSETVL>;
 
@@ -36,114 +37,129 @@ def RISCVBROADCAST : SDNode<"RISCVISD::BROADCAST", SDT_RISCVBROADCAST>;
 // Operand and SDNode transformation definitions.
 //===----------------------------------------------------------------------===//
 
-def simm3 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<3>(Imm);}]> {
-  let ParserMatchClass = SImmAsmOperand<3>;
+def simm5 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<5>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<5>;
   let EncoderMethod = "getImmOpValue";
-  let DecoderMethod = "decodeSImmOperand<3>";
+  let DecoderMethod = "decodeSImmOperand<5>";
 }
 
-def simm8 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<8>(Imm);}]> {
-  let ParserMatchClass = SImmAsmOperand<8>;
+def uimm11 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<11>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<11>;
   let EncoderMethod = "getImmOpValue";
-  let DecoderMethod = "decodeSImmOperand<8>";
+  let DecoderMethod = "decodeUImmOperand<11>";
 }
 
 //===----------------------------------------------------------------------===//
 // Instruction class templates
 //===----------------------------------------------------------------------===//
 
-let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-class VALU_rr<bits<7> funct7, bits<1> funct1, string opcodestr>
-    : RVInstVrVr<funct7, funct1, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
-               opcodestr, "$vd, $vs1, $vs2">
-{
-  let Uses = [VCFG];
-}
-
-let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-class VALU_VrGpr<bits<12> funct12, bits<1> funct1, string opcodestr>
-    : RVInstVrGpr<funct12, funct1, RVV_Unmasked, OPC_OP_V,
-               (outs GPR:$rd), (ins VR:$vs1, VLR:$vl),
-               opcodestr, "$rd, $vs1">
-{
-  let Uses = [VCFG];
-}
-
-let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-class VALU_ri<bits<4> funct4, bits<1> funct1, string opcodestr>
-    : RVInstVI<funct4, funct1, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs1, simm8:$imm8, VLR:$vl),
-               opcodestr, "$vd, $vs1, $imm8">
-{
-  let Uses = [VCFG];
-}
-
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-class VLoad_UnitStride<bits<2> funct2, bits<3> funct3, string opcodestr>
-    : RVInstVLoad<funct2, funct3, RVV_Unmasked, OPC_LOAD_FP,
-                  (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm3:$imm3),
-                  opcodestr, "$vd, ${imm3}(${rs1})">
+class VLoad_UnitStride<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
+    : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
+                  (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5),
+                  opcodestr, "$vd, ${imm5}(${rs1})">
 {
-  let Uses = [VCFG];
+  //let Uses = [VCFG];
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
-class VStore_UnitStride<bits<3> funct3, bits<2> funct2, string opcodestr>
-    : RVInstVStore<funct3, funct2, RVV_Unmasked, OPC_STORE_FP,
-                   (outs), (ins GPR:$rs1, VR:$vs3, VLR:$vl, simm3:$imm3),
-                   opcodestr, "$vs3, ${imm3}(${rs1})">
+class VStore_UnitStride<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
+    : RVInstVStore<nf, mop, width, RVV_Unmasked, OPC_STORE_FP,
+                   (outs), (ins GPR:$rs1, VR:$vs3, VLR:$vl, simm5:$imm5),
+                   opcodestr, "$vs3, ${imm5}(${rs1})">
 {
-  let Uses = [VCFG];
+  //let Uses = [VCFG];
 }
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_AMO<bits<5> amoop, bits<1> wd, bits<3> width, string opcodestr>
+    : RVInstVAMO<amoop, wd, width, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vs3), (ins GPR:$rs1, VR:$vs2, VLR:$vl),
+               opcodestr, "$vs3, $vs1, $vs2">
+{
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPIVV<bits<6> funct6, string opcodestr>
+    : RVInstVA<funct6, 0b000, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
+               opcodestr, "$vd, $vs2, $vs1">
+{
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPIVI<bits<6> funct6, string opcodestr>
+    : RVInstVA<funct6, 0b011, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs2, simm5:$imm5, VLR:$vl),
+               opcodestr, "$vd, $vs2, $imm5">
+{
+  //let Uses = [VCFG];
+}
+
 
 //===----------------------------------------------------------------------===//
 // Instructions
 //===----------------------------------------------------------------------===//
 
-let Predicates = [HasStdExtV] in {
+//VSETVL{I}
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VSETVLI: RVInstVSet<0b0, OPC_OP_V, 
+                      (outs VLR:$vl, GPR:$rd), (ins GPR:$rs1, uimm11:$vtypei),
+                      "vsetvli", "$rd, $rs1, $vtypei">
+{
+  bits<11> vtypei;
 
-def VADD : VALU_rr<0b1001000, 0b1, "vadd">;
+  let Inst{30-20} = vtypei;
 
-def VSUB : VALU_rr<0b1001001, 0b1, "vsub">;
-
-def VADDI : VALU_ri<0b0000, 0b1, "vaddi">;
-
-//Instruction encoding table: https://github.com/riscv/riscv-v-spec/blob/master/inst-table.adoc
-
-def VMUL : VALU_rr<0b1000100, 0b1, "vmul">;
-
-def VAND : VALU_rr<0b1001110, 0b1, "vand">;
-
-def VOR : VALU_rr<0b1001101, 0b1, "vor">;
-
-def VXOR : VALU_rr<0b1100000, 0b1, "vxor">;
-
-def VLW : VLoad_UnitStride<0b00, 0b110, "vlw">;
-
-def VSW : VStore_UnitStride<0b110, 0b00, "vsw">;
-
-def VMPOPC : VALU_VrGpr<0b101011100001, 0b1, "vmpop">;
-def VMFIRST : VALU_VrGpr<0b101011100000, 0b1, "vmfirst">;
+  //let Uses = [VCFG];
+}
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-def VSETVL: RVInst<(outs VLR:$vl, GPR:$rd), (ins GPR:$rs1),
-                   "vsetvl", "$rd, $rs1", [], InstFormatOther>
+def VSETVL: RVInstVSet<0b1, OPC_OP_V, 
+                      (outs VLR:$vl, GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
+                      "vsetvl", "$rd, $rs1, $rs2">
 {
-  bits<5> rs1;
-  bits<5> rd;
+  bits<5> rs2;
 
-  let Inst{31-28} = 0b1111;
-  let Inst{27-25} = 0b000;
-  let Inst{24-20} = 0b00000;
-  let Inst{19-15} = rs1;
-  let Inst{14} = 0b1;
-  let Inst{13-12} = 0b00;
-  let Inst{11-7} = rd;
-  let Opcode = OPC_OP_V.Value;
-
-  let Uses = [VCFG];
+  let Inst{30-25} = 0b000000;
+  let Inst{24-20} = rs2;
+  
+  //let Uses = [VCFG];
 }
+
+
+
+
+let Predicates = [HasStdExtV] in {
+
+def VADD_VV : VALU_OPIVV<0b000000, "vadd.vv">;
+
+def VSUB_VV : VALU_OPIVV<0b000010, "vsub.vv">;
+
+def VADD_VI : VALU_OPIVI<0b000000, "vadd.vi">;
+
+//Instruction encoding table: https://github.com/riscv/riscv-v-spec/blob/master/inst-table.adoc
+/*
+def VMUL : VALU_Ari<0b100010, 0b010, "vmul">;
+
+def VAND : VALU_Ari<0b100111, 0b100, "vand">;
+
+def VOR : VALU_Ari<0b100110, 0b100, "vor">;
+
+def VXOR : VALU_Ari<0b110000, 0b100, "vxor">;
+*/
+
+def VLW_V : VLoad_UnitStride<0b000, 0b100, 0b110, "vlw.v">;
+
+def VSW_V : VStore_UnitStride<0b000, 0b000, 0b110, "vsw.v">;
+
+/*
+def VMPOPC : VALU_Ari<0b101011, 0b100, "vmpop">;
+def VMFIRST : VALU_Ari<0b101011, 0b101, "vmfirst">;
+*/
+
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VCONFIG : RVInst<(outs), (ins uimm8:$imm8),
@@ -175,7 +191,7 @@ let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
   def PseudoCSRR_VL : Pseudo<(outs GPR:$rd), (ins VLR:$vl), []>,
                       PseudoInstExpansion<(CSRRS GPR:$rd, 0xCC0, X0)>
   {
-    let Uses = [VCFG];
+    //let Uses = [VCFG];
   }
 }
 
@@ -184,29 +200,33 @@ class PatVrVr<SDPatternOperator OpNode, RVInst Inst>
     : Pat<(OpNode VR:$rs1, VR:$rs2, VLR:$vl), (Inst VR:$rs1, VR:$rs2, VLR:$vl)>;
 
 class PatVrIm<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode VR:$rs1, (RISCVBROADCAST simm8:$imm), VLR:$vl), (Inst VR:$rs1, simm8:$imm, VLR:$vl)>; 
-
+    : Pat<(OpNode VR:$rs1, (RISCVBROADCAST simm5:$imm), VLR:$vl), (Inst VR:$rs1, simm5:$imm, VLR:$vl)>; 
+/*
 class PatVr<SDPatternOperator OpNode, RVInst Inst>
     : Pat<(OpNode VR:$rs1, VLR:$vl), (Inst VR:$rs1, VLR:$vl)>;
+*/
 
-def : PatVrVr<int_riscv_vadd, VADD>;
-def : PatVrVr<int_riscv_vsub, VSUB>;
+def : PatVrVr<int_riscv_vadd, VADD_VV>;
+def : PatVrVr<int_riscv_vsub, VSUB_VV>;
+def : PatVrIm<int_riscv_vadd, VADD_VI>;
+
+/*
 def : PatVrVr<int_riscv_vmul, VMUL>;
 def : PatVrVr<int_riscv_vand, VAND>;
 def : PatVrVr<int_riscv_vor, VOR>;
 def : PatVrVr<int_riscv_vxor, VXOR>;
-def : PatVrIm<int_riscv_vadd, VADDI>;
-
 def : PatVr<int_riscv_vmpopcnt, VMPOPC>;
 def : PatVr<int_riscv_vmfirst, VMFIRST>;
+*/
+
 
 // TODO exploit immediate offset
 def : Pat<(int_riscv_vlw GPR:$rs1, VLR:$vl),
-          (VLW GPR:$rs1, VLR:$vl, 0)>;
+          (VLW_V GPR:$rs1, VLR:$vl, 0)>;
 
 def : Pat<(int_riscv_vsw GPR:$rs1, VR:$rs2, VLR:$vl),
-          (VSW GPR:$rs1, VR:$rs2, VLR:$vl, 0)>;
+          (VSW_V GPR:$rs1, VR:$rs2, VLR:$vl, 0)>;
 
-def : Pat<(RISCVSETVL GPR:$rs1), (VSETVL GPR:$rs1)>;
+def : Pat<(RISCVSETVL GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
 
 } // Predicates = [HasStdExtV]

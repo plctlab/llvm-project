@@ -2,10 +2,10 @@
 ; RUN: llc -mtriple=riscv32 -mattr=+v -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s -check-prefix=RV32IV
 
-declare i32 @llvm.riscv.setvl(i32)
-declare <scalable 1 x i32> @llvm.riscv.vadd(<scalable 1 x i32>, <scalable 1 x i32>, i32)
-declare <scalable 1 x i32> @llvm.riscv.vlw(i32*, i32)
-declare void @llvm.riscv.vsw(i32*, <scalable 1 x i32>, i32)
+declare i32 @llvm.riscv.setvl(i32, i32)
+declare <vscale x 1 x i32> @llvm.riscv.vadd(<vscale x 1 x i32>, <vscale x 1 x i32>, i32)
+declare <vscale x 1 x i32> @llvm.riscv.vlw(i32*, i32)
+declare void @llvm.riscv.vsw(i32*, <vscale x 1 x i32>, i32)
 
 ; A[0..n]
 ; Add pairs of elements together
@@ -18,19 +18,20 @@ define void @shifted_add(i32 %n.0, i32* %A.0) {
 ; RV32IV-NEXT:    bltu a0, a2, .LBB0_2
 ; RV32IV-NEXT:  .LBB0_1: # %loop
 ; RV32IV-NEXT:    # =>This Inner Loop Header: Depth=1
-; RV32IV-NEXT:    addi a2, a0, -1
-; RV32IV-NEXT:    vsetvl a2, a2
-; RV32IV-NEXT:    addi a3, a1, 4
-; RV32IV-NEXT:    vlw v0, 0(a3)
-; RV32IV-NEXT:    vlw v1, 0(a1)
-; RV32IV-NEXT:    vadd v0, v1, v0
+; RV32IV-NEXT:    addi a3, a0, -1
+; RV32IV-NEXT:    vsetvl a3, a3, a2
+; RV32IV-NEXT:    vlw v0, 0(a1)
+; RV32IV-NEXT:    addi a4, a1, 4
+; RV32IV-NEXT:    vlw v1, 0(a4)
+; RV32IV-NEXT:    vadd v0, v0, v1
 ; RV32IV-NEXT:    vsw v0, 0(a1)
-; RV32IV-NEXT:    slli a3, a2, 2
-; RV32IV-NEXT:    add a1, a1, a3
-; RV32IV-NEXT:    sub a0, a0, a2
-; RV32IV-NEXT:    bnez a2, .LBB0_1
+; RV32IV-NEXT:    sub a0, a0, a3
+; RV32IV-NEXT:    slli a4, a3, 2
+; RV32IV-NEXT:    add a1, a1, a4
+; RV32IV-NEXT:    bnez a3, .LBB0_1
 ; RV32IV-NEXT:  .LBB0_2: # %exit
 ; RV32IV-NEXT:    vconfig 1
+; RV32IV-NEXT:    .cfi_def_cfa_offset 0
 ; RV32IV-NEXT:    ret
 entry:
 	%shouldStartLoop = icmp ule i32 %n.0, 1
@@ -41,14 +42,14 @@ loop:
 
 	%n.minusOne = sub i32 %n, 1
 
-	%vl = call i32 @llvm.riscv.setvl(i32 %n.minusOne)
-	%v.A = call <scalable 1 x i32> @llvm.riscv.vlw(i32* %A, i32 %vl)
+	%vl = call i32 @llvm.riscv.setvl(i32 %n.minusOne, i32 2)
+	%v.A = call <vscale x 1 x i32> @llvm.riscv.vlw(i32* %A, i32 %vl)
 
 	%A.shift = getelementptr i32, i32* %A, i32 1
-	%v.A_shift = call <scalable 1 x i32> @llvm.riscv.vlw(i32* %A.shift, i32 %vl)
+	%v.A_shift = call <vscale x 1 x i32> @llvm.riscv.vlw(i32* %A.shift, i32 %vl)
 
-	%v.sum = call <scalable 1 x i32> @llvm.riscv.vadd(<scalable 1 x i32> %v.A, <scalable 1 x i32> %v.A_shift, i32 %vl)
-	call void @llvm.riscv.vsw(i32* %A, <scalable 1 x i32> %v.sum, i32 %vl)
+	%v.sum = call <vscale x 1 x i32> @llvm.riscv.vadd(<vscale x 1 x i32> %v.A, <vscale x 1 x i32> %v.A_shift, i32 %vl)
+	call void @llvm.riscv.vsw(i32* %A, <vscale x 1 x i32> %v.sum, i32 %vl)
 
 	%n.rem = sub i32 %n, %vl
 	%A.rem = getelementptr i32, i32* %A, i32 %vl
