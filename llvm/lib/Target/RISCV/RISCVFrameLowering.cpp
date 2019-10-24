@@ -127,7 +127,7 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
   // to determine the end of the prologue.
   DebugLoc DL;
 
-  if (shouldEnableVectorUnit(MF)) {
+  /*if (shouldEnableVectorUnit(MF)) {
     // For now, always enable all registers with 's' width
     // TODO compute a configuration earlier & store it in MachineFunctionInfo
     //      (and not enable at all if not needed)
@@ -136,7 +136,7 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
         // 0b11_00_000 = 0x60
         .addImm(0x60);
   }
-
+*/
   // Determine the correct frame layout
   determineFrameLayout(MF);
 
@@ -318,11 +318,11 @@ void RISCVFrameLowering::emitEpilogue(MachineFunction &MF,
   // Deallocate stack
   adjustReg(MBB, MBBI, DL, SPReg, SPReg, StackSize, MachineInstr::FrameDestroy);
 
-  if (shouldEnableVectorUnit(MF)) {
+  /*if (shouldEnableVectorUnit(MF)) {
     BuildMI(MBB, MBBI, DL, STI.getInstrInfo()->get(RISCV::VCONFIG))
         // vdisable = vconfig 0x01
         .addImm(0x01);
-  }
+  }*/
 
   // After restoring $sp, we need to adjust CFA to $(sp + 0)
   // Emit ".cfi_def_cfa_offset 0"

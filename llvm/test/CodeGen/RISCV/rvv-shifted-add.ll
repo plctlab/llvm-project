@@ -13,24 +13,22 @@ declare void @llvm.riscv.vsw(i32*, <vscale x 1 x i32>, i32)
 define void @shifted_add(i32 %n.0, i32* %A.0) {
 ; RV32IV-LABEL: shifted_add:
 ; RV32IV:       # %bb.0: # %entry
-; RV32IV-NEXT:    vconfig 96
 ; RV32IV-NEXT:    addi a2, zero, 2
 ; RV32IV-NEXT:    bltu a0, a2, .LBB0_2
 ; RV32IV-NEXT:  .LBB0_1: # %loop
 ; RV32IV-NEXT:    # =>This Inner Loop Header: Depth=1
 ; RV32IV-NEXT:    addi a3, a0, -1
 ; RV32IV-NEXT:    vsetvl a3, a3, a2
-; RV32IV-NEXT:    vlw v0, 0(a1)
+; RV32IV-NEXT:    vlw.v v0, 0(a1)
 ; RV32IV-NEXT:    addi a4, a1, 4
-; RV32IV-NEXT:    vlw v1, 0(a4)
-; RV32IV-NEXT:    vadd v0, v0, v1
-; RV32IV-NEXT:    vsw v0, 0(a1)
+; RV32IV-NEXT:    vlw.v v1, 0(a4)
+; RV32IV-NEXT:    vadd.vv v0, v1, v0
+; RV32IV-NEXT:    vsw.v v0, 0(a1)
 ; RV32IV-NEXT:    sub a0, a0, a3
 ; RV32IV-NEXT:    slli a4, a3, 2
 ; RV32IV-NEXT:    add a1, a1, a4
 ; RV32IV-NEXT:    bnez a3, .LBB0_1
 ; RV32IV-NEXT:  .LBB0_2: # %exit
-; RV32IV-NEXT:    vconfig 1
 ; RV32IV-NEXT:    .cfi_def_cfa_offset 0
 ; RV32IV-NEXT:    ret
 entry:

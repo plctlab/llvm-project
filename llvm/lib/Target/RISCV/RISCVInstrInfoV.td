@@ -158,7 +158,7 @@ def VSW_V : VStore_UnitStride<0b000, 0b000, 0b110, "vsw.v">;
 /*
 def VMPOPC : VALU_Ari<0b101011, 0b100, "vmpop">;
 def VMFIRST : VALU_Ari<0b101011, 0b101, "vmfirst">;
-*/
+
 
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
@@ -177,6 +177,8 @@ def VCONFIG : RVInst<(outs), (ins uimm8:$imm8),
 
   let Defs = [VCFG];
 }
+*/
+
 
 } // Predicates = [HasStdExtV]
 
