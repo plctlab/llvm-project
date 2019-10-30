@@ -152,7 +152,7 @@ class VALU_OPMVX<bits<6> funct6, string opcodestr>
 
 let Predicates = [HasStdExtV] in {
 
-//VSETVL{I}
+// Configuration-Setting Instructions
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSETVLI: RVInstVSet<0b0, OPC_OP_V, 
                       (outs VLR:$vl, GPR:$rd), (ins GPR:$rs1, uimm11:$vtypei),
@@ -164,7 +164,6 @@ def VSETVLI: RVInstVSet<0b0, OPC_OP_V,
 
   //let Uses = [VCFG];
 }
-
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSETVL: RVInstVSet<0b1, OPC_OP_V, 
                       (outs VLR:$vl, GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
@@ -179,9 +178,21 @@ def VSETVL: RVInstVSet<0b1, OPC_OP_V,
 }
 
 
+// Vector Unit-Stride Instructions
+def VLB_V : VLoad_UnitStride<0b000, 0b100, 0b000, "vlb.v">;
+def VLH_V : VLoad_UnitStride<0b000, 0b100, 0b101, "vlh.v">;
 def VLW_V : VLoad_UnitStride<0b000, 0b100, 0b110, "vlw.v">;
+def VLBU_V : VLoad_UnitStride<0b000, 0b000, 0b000, "vlbu.v">;
+def VLHU_V : VLoad_UnitStride<0b000, 0b000, 0b101, "vlhu.v">;
+def VLWU_V : VLoad_UnitStride<0b000, 0b000, 0b110, "vlwu.v">;
+def VLE_V : VLoad_UnitStride<0b000, 0b000, 0b111, "vle.v">;
 
+def VSB_V : VStore_UnitStride<0b000, 0b000, 0b000, "vsb.v">;
+def VSH_V : VStore_UnitStride<0b000, 0b000, 0b101, "vsh.v">;
 def VSW_V : VStore_UnitStride<0b000, 0b000, 0b110, "vsw.v">;
+def VSE_V : VStore_UnitStride<0b000, 0b000, 0b111, "vse.v">;
+
+
 
 def VADD_VV : VALU_OPIVV<0b000000, "vadd.vv">;
 
