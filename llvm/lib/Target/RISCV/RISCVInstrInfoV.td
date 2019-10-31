@@ -97,6 +97,30 @@ class VStore_Strided<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
   //let Uses = [VCFG];
 }
 
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class VLoad_Indexed<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
+    : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
+                  (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5),
+                  opcodestr, "$vd, ${imm5}(${rs1}), $vs2">
+{
+  bits<5> vs2;
+
+  let Inst{24-20} = vs2;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+class VStore_Indexed<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
+    : RVInstVStore<nf, mop, width, RVV_Unmasked, OPC_STORE_FP,
+                   (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl, simm5:$imm5),
+                   opcodestr, "$vs3, ${imm5}(${rs1}), $vs2">
+{
+  bits<5> vs2;
+
+  let Inst{24-20} = vs2;
+  //let Uses = [VCFG];
+}
+
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_AMO<bits<5> amoop, bits<1> wd, bits<3> width, string opcodestr>
     : RVInstVAMO<amoop, wd, width, RVV_Unmasked, OPC_OP_V,
@@ -235,6 +259,26 @@ def VSSB_V : VStore_Strided<0b000, 0b010, 0b000, "vssb.v">;
 def VSSH_V : VStore_Strided<0b000, 0b010, 0b101, "vssh.v">;
 def VSSW_V : VStore_Strided<0b000, 0b010, 0b110, "vssw.v">;
 def VSSE_V : VStore_Strided<0b000, 0b010, 0b111, "vsse.v">;
+
+
+// Vector Indexed Instructions
+
+def VLXB_V : VLoad_Indexed<0b000, 0b111, 0b000, "vlxb.v">;
+def VLXH_V : VLoad_Indexed<0b000, 0b111, 0b101, "vlxh.v">;
+def VLXW_V : VLoad_Indexed<0b000, 0b111, 0b110, "vlxw.v">;
+def VLXBU_V : VLoad_Indexed<0b000, 0b011, 0b000, "vlxbu.v">;
+def VLXHU_V : VLoad_Indexed<0b000, 0b011, 0b101, "vlxhu.v">;
+def VLXWU_V : VLoad_Indexed<0b000, 0b011, 0b110, "vlxwu.v">;
+def VLXE_V : VLoad_Indexed<0b000, 0b011, 0b111, "vlxe.v">;
+
+def VSXB_V : VStore_Indexed<0b000, 0b011, 0b000, "vsxb.v">;
+def VSXH_V : VStore_Indexed<0b000, 0b011, 0b101, "vsxh.v">;
+def VSXW_V : VStore_Indexed<0b000, 0b011, 0b110, "vsxw.v">;
+def VSXE_V : VStore_Indexed<0b000, 0b011, 0b111, "vsxe.v">;
+def VSUXB_V : VStore_Indexed<0b000, 0b111, 0b000, "vsuxb.v">;
+def VSUXH_V : VStore_Indexed<0b000, 0b111, 0b101, "vsuxh.v">;
+def VSUXW_V : VStore_Indexed<0b000, 0b111, 0b110, "vsuxw.v">;
+def VSUXE_V : VStore_Indexed<0b000, 0b111, 0b111, "vsuxe.v">;
 
 
 
