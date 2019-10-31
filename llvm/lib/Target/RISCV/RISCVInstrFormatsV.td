@@ -21,7 +21,6 @@ def RVV_Unmasked : RVVMaskCond<0b1>;
 
 
 // Format for Vector Load Instructions under LOAD-FP major opcode
-// TODO parametrize over rs2/vs2
 class RVInstVLoad<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
                   RISCVOpcode opcode, dag outs, dag ins,
                   string opcodestr, string argstr>
@@ -32,7 +31,6 @@ class RVInstVLoad<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
   let Inst{31-29} = nf;
   let Inst{28-26} = mop;
   let Inst{25}    = m.Value;
-  let Inst{24-20} = 0b00000; // TODO rs2 (stride) / vs2 (index vector)
   let Inst{19-15} = rs1;
   let Inst{14-12} = width;
   let Inst{11-7}  = vd;
@@ -40,7 +38,6 @@ class RVInstVLoad<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
 }
 
 // Format for Vector Store Instructions under STORE-FP major opcode
-// TODO parametrize over rs2/vs2
 class RVInstVStore<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
                    RISCVOpcode opcode, dag outs, dag ins,
                    string opcodestr, string argstr>
@@ -51,7 +48,6 @@ class RVInstVStore<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
   let Inst{31-29} = nf;
   let Inst{28-26} = mop;
   let Inst{25}    = m.Value;
-  let Inst{24-20} = 0b00000; // TODO rs2 (stride) / vs2 (index vector)
   let Inst{19-15} = rs1;
   let Inst{14-12} = width;
   let Inst{11-7}  = vs3;

@@ -59,6 +59,7 @@ class VLoad_UnitStride<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
                   (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5),
                   opcodestr, "$vd, ${imm5}(${rs1})">
 {
+  let Inst{24-20} = 0b00000;
   //let Uses = [VCFG];
 }
 
@@ -68,6 +69,31 @@ class VStore_UnitStride<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr
                    (outs), (ins GPR:$rs1, VR:$vs3, VLR:$vl, simm5:$imm5),
                    opcodestr, "$vs3, ${imm5}(${rs1})">
 {
+  let Inst{24-20} = 0b00000;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class VLoad_Strided<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
+    : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
+                  (outs VR:$vd), (ins GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5),
+                  opcodestr, "$vd, ${imm5}(${rs1}), $rs2">
+{
+  bits<5> rs2;  
+
+  let Inst{24-20} = rs2;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+class VStore_Strided<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
+    : RVInstVStore<nf, mop, width, RVV_Unmasked, OPC_STORE_FP,
+                   (outs), (ins GPR:$rs1, GPR:$rs2, VR:$vs3, VLR:$vl, simm5:$imm5),
+                   opcodestr, "$vs3, ${imm5}(${rs1}), $rs2">
+{
+  bits<5> rs2;  
+
+  let Inst{24-20} = rs2;
   //let Uses = [VCFG];
 }
 
@@ -153,6 +179,7 @@ class VALU_OPMVX<bits<6> funct6, string opcodestr>
 let Predicates = [HasStdExtV] in {
 
 // Configuration-Setting Instructions
+
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSETVLI: RVInstVSet<0b0, OPC_OP_V, 
                       (outs VLR:$vl, GPR:$rd), (ins GPR:$rs1, uimm11:$vtypei),
@@ -179,6 +206,7 @@ def VSETVL: RVInstVSet<0b1, OPC_OP_V,
 
 
 // Vector Unit-Stride Instructions
+
 def VLB_V : VLoad_UnitStride<0b000, 0b100, 0b000, "vlb.v">;
 def VLH_V : VLoad_UnitStride<0b000, 0b100, 0b101, "vlh.v">;
 def VLW_V : VLoad_UnitStride<0b000, 0b100, 0b110, "vlw.v">;
@@ -191,6 +219,22 @@ def VSB_V : VStore_UnitStride<0b000, 0b000, 0b000, "vsb.v">;
 def VSH_V : VStore_UnitStride<0b000, 0b000, 0b101, "vsh.v">;
 def VSW_V : VStore_UnitStride<0b000, 0b000, 0b110, "vsw.v">;
 def VSE_V : VStore_UnitStride<0b000, 0b000, 0b111, "vse.v">;
+
+
+// Vector Strided Instructions
+
+def VLSB_V : VLoad_Strided<0b000, 0b110, 0b000, "vlsb.v">;
+def VLSH_V : VLoad_Strided<0b000, 0b110, 0b101, "vlsh.v">;
+def VLSW_V : VLoad_Strided<0b000, 0b110, 0b110, "vlsw.v">;
+def VLSBU_V : VLoad_Strided<0b000, 0b010, 0b000, "vlsbu.v">;
+def VLSHU_V : VLoad_Strided<0b000, 0b010, 0b101, "vlshu.v">;
+def VLSWU_V : VLoad_Strided<0b000, 0b010, 0b110, "vlswu.v">;
+def VLSE_V : VLoad_Strided<0b000, 0b010, 0b111, "vlse.v">;
+
+def VSSB_V : VStore_Strided<0b000, 0b010, 0b000, "vssb.v">;
+def VSSH_V : VStore_Strided<0b000, 0b010, 0b101, "vssh.v">;
+def VSSW_V : VStore_Strided<0b000, 0b010, 0b110, "vssw.v">;
+def VSSE_V : VStore_Strided<0b000, 0b010, 0b111, "vsse.v">;
 
 
 

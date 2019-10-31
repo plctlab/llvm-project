@@ -54,6 +54,50 @@ vsw.v v0, 0(a1)
 # CHECK-ASM: encoding: [0x27,0xf0,0x05,0x02]
 vse.v v0, 0(a1)
 
+# CHECK-ASM-AND-OBJ: vlsb.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x07,0x80,0xc5,0x1a]
+vlsb.v v0, 0(a1), a2
+
+# CHECK-ASM-AND-OBJ: vlsh.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x07,0xd0,0xc5,0x1a]
+vlsh.v v0, 0(a1), a2
+
+# CHECK-ASM-AND-OBJ: vlsw.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x07,0xe0,0xc5,0x1a]
+vlsw.v v0, 0(a1), a2
+
+# CHECK-ASM-AND-OBJ: vlsbu.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x07,0x80,0xc5,0x0a]
+vlsbu.v v0, 0(a1), a2
+
+# CHECK-ASM-AND-OBJ: vlshu.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x07,0xd0,0xc5,0x0a]
+vlshu.v v0, 0(a1), a2
+
+# CHECK-ASM-AND-OBJ: vlswu.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x07,0xe0,0xc5,0x0a]
+vlswu.v v0, 0(a1), a2
+
+# CHECK-ASM-AND-OBJ: vlse.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x07,0xf0,0xc5,0x0a]
+vlse.v v0, 0(a1), a2
+
+# CHECK-ASM-AND-OBJ: vssb.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x27,0x80,0xc5,0x0a]
+vssb.v v0, 0(a1), a2
+
+# CHECK-ASM-AND-OBJ: vssh.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x27,0xd0,0xc5,0x0a]
+vssh.v v0, 0(a1), a2
+
+# CHECK-ASM-AND-OBJ: vssw.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x27,0xe0,0xc5,0x0a]
+vssw.v v0, 0(a1), a2
+
+# CHECK-ASM-AND-OBJ: vsse.v v0, 0(a1), a2
+# CHECK-ASM: encoding: [0x27,0xf0,0xc5,0x0a]
+vsse.v v0, 0(a1), a2
+
 # CHECK-ASM-AND-OBJ: vadd.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0x02]
 vadd.vv v0, v1, v0
