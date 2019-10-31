@@ -158,6 +158,34 @@ vsuxw.v v0, 0(a1), v2
 # CHECK-ASM: encoding: [0x27,0xf0,0x25,0x1e]
 vsuxe.v v0, 0(a1), v2
 
+# CHECK-ASM-AND-OBJ: vlbff.v v0, 0(a1)
+# CHECK-ASM: encoding: [0x07,0x80,0x05,0x13]
+vlbff.v v0, 0(a1)
+
+# CHECK-ASM-AND-OBJ: vlhff.v v0, 0(a1)
+# CHECK-ASM: encoding: [0x07,0xd0,0x05,0x13]
+vlhff.v v0, 0(a1)
+
+# CHECK-ASM-AND-OBJ: vlwff.v v0, 0(a1)
+# CHECK-ASM: encoding: [0x07,0xe0,0x05,0x13]
+vlwff.v v0, 0(a1)
+
+# CHECK-ASM-AND-OBJ: vlbuff.v v0, 0(a1)
+# CHECK-ASM: encoding: [0x07,0x80,0x05,0x03]
+vlbuff.v v0, 0(a1)
+
+# CHECK-ASM-AND-OBJ: vlhuff.v v0, 0(a1)
+# CHECK-ASM: encoding: [0x07,0xd0,0x05,0x03]
+vlhuff.v v0, 0(a1)
+
+# CHECK-ASM-AND-OBJ: vlwuff.v v0, 0(a1)
+# CHECK-ASM: encoding: [0x07,0xe0,0x05,0x03]
+vlwuff.v v0, 0(a1)
+
+# CHECK-ASM-AND-OBJ: vleff.v v0, 0(a1)
+# CHECK-ASM: encoding: [0x07,0xf0,0x05,0x03]
+vleff.v v0, 0(a1)
+
 # CHECK-ASM-AND-OBJ: vadd.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0x02]
 vadd.vv v0, v1, v0

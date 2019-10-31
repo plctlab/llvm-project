@@ -63,6 +63,16 @@ class VLoad_UnitStride<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
   //let Uses = [VCFG];
 }
 
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class VLoad_UnitStrideFF<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
+    : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
+                  (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5),
+                  opcodestr, "$vd, ${imm5}(${rs1})">
+{
+  let Inst{24-20} = 0b10000;
+  //let Uses = [VCFG];
+}
+
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 class VStore_UnitStride<bits<3> nf, bits<3> mop, bits<3> width, string opcodestr>
     : RVInstVStore<nf, mop, width, RVV_Unmasked, OPC_STORE_FP,
@@ -279,6 +289,17 @@ def VSUXB_V : VStore_Indexed<0b000, 0b111, 0b000, "vsuxb.v">;
 def VSUXH_V : VStore_Indexed<0b000, 0b111, 0b101, "vsuxh.v">;
 def VSUXW_V : VStore_Indexed<0b000, 0b111, 0b110, "vsuxw.v">;
 def VSUXE_V : VStore_Indexed<0b000, 0b111, 0b111, "vsuxe.v">;
+
+
+// Unit-stride Fault-Only-First Loads Instructions
+
+def VLBFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b000, "vlbff.v">;
+def VLHFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b101, "vlhff.v">;
+def VLWFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b110, "vlwff.v">;
+def VLBUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b000, "vlbuff.v">;
+def VLHUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b101, "vlhuff.v">;
+def VLWUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b110, "vlwuff.v">;
+def VLEFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b111, "vleff.v">;
 
 
 
