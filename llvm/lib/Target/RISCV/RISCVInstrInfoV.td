@@ -146,24 +146,39 @@ class VALU_OPIVV<bits<6> funct6, string opcodestr>
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
                opcodestr, "$vd, $vs2, $vs1">
 {
+  bits<5> vs1;
+  bits<5> vd;
+
+  let Inst{19-15} = vs1;
+  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPFVV<bits<6> funct6, string opcodestr>
-    : RVInstVA<funct6, 0b000, RVV_Unmasked, OPC_OP_V,
+    : RVInstVA<funct6, 0b001, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
                opcodestr, "$vd, $vs2, $vs1">
 {
+  bits<5> vs1;
+  bits<5> vd;
+
+  let Inst{19-15} = vs1;
+  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPMVV<bits<6> funct6, string opcodestr>
-    : RVInstVA<funct6, 0b000, RVV_Unmasked, OPC_OP_V,
+    : RVInstVA<funct6, 0b010, RVV_Unmasked, OPC_OP_V,
                (outs GPR:$rd, VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
                opcodestr, "${vd}(${rd}), $vs2, $vs1">
 {
+  bits<5> vs1;
+  bits<5> vd;
+
+  let Inst{19-15} = vs1;
+  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
@@ -173,33 +188,53 @@ class VALU_OPIVI<bits<6> funct6, string opcodestr>
                (outs VR:$vd), (ins VR:$vs2, simm5:$imm5, VLR:$vl),
                opcodestr, "$vd, $vs2, $imm5">
 {
+  bits<5> simm5;
+  bits<5> vd;
+
+  let Inst{19-15} = simm5;
+  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVX<bits<6> funct6, string opcodestr>
-    : RVInstVA<funct6, 0b011, RVV_Unmasked, OPC_OP_V,
+    : RVInstVA<funct6, 0b100, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
                opcodestr, "$vd, $vs2, $rs1">
 {
+  bits<5> rs1;
+  bits<5> vd;
+
+  let Inst{19-15} = rs1;
+  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPFVF<bits<6> funct6, string opcodestr>
-    : RVInstVA<funct6, 0b011, RVV_Unmasked, OPC_OP_V,
+    : RVInstVA<funct6, 0b101, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
                opcodestr, "$vd, $vs2, $rs1">
 {
+  bits<5> rs1;
+  bits<5> vd;
+
+  let Inst{19-15} = rs1;
+  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPMVX<bits<6> funct6, string opcodestr>
-    : RVInstVA<funct6, 0b011, RVV_Unmasked, OPC_OP_V,
+    : RVInstVA<funct6, 0b110, RVV_Unmasked, OPC_OP_V,
                (outs GPR:$rd, VR:$vd), (ins VR:$vs2, simm5:$imm5, VLR:$vl),
                opcodestr, "${vd}(${rd}), $vs2, $imm5">
 {
+  bits<5> rs1;
+  bits<5> vd;
+
+  let Inst{19-15} = rs1;
+  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
@@ -302,12 +337,19 @@ def VLWUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b110, "vlwuff.v">;
 def VLEFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b111, "vleff.v">;
 
 
+// Vector Single-Width Integer Add and Subtract Instructions
 
 def VADD_VV : VALU_OPIVV<0b000000, "vadd.vv">;
+def VADD_VX : VALU_OPIVX<0b000000, "vadd.vx">;
+def VADD_VI : VALU_OPIVI<0b000000, "vadd.vi">;
 
 def VSUB_VV : VALU_OPIVV<0b000010, "vsub.vv">;
+def VSUB_VX : VALU_OPIVX<0b000010, "vsub.vx">;
 
-def VADD_VI : VALU_OPIVI<0b000000, "vadd.vi">;
+def VRSUB_VX : VALU_OPIVX<0b000011, "vrsub.vx">;
+def VRSUB_VI : VALU_OPIVI<0b000011, "vrsub.vi">;
+
+
 /*
 def VAND_VV : VALU_OPIVV<0b001001, "vand.vv">;
 

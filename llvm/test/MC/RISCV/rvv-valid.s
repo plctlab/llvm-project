@@ -190,10 +190,26 @@ vleff.v v0, 0(a1)
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0x02]
 vadd.vv v0, v1, v0
 
-# CHECK-ASM-AND-OBJ: vsub.vv v0, v1, v0
-# CHECK-ASM: encoding: [0x57,0x00,0x10,0x0a]
-vsub.vv v0, v1, v0
+# CHECK-ASM-AND-OBJ: vadd.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x02]
+vadd.vx v0, v1, a0
 
 # CHECK-ASM-AND-OBJ: vadd.vi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0x02]
 vadd.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vsub.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x0a]
+vsub.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vsub.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x0a]
+vsub.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vrsub.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x0e]
+vrsub.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vrsub.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x0e]
+vrsub.vi v0, v1, 0
