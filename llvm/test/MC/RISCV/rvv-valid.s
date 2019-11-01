@@ -213,3 +213,67 @@ vrsub.vx v0, v1, a0
 # CHECK-ASM-AND-OBJ: vrsub.vi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0x0e]
 vrsub.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vwaddu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xc2]
+vwaddu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwaddu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xc2]
+vwaddu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vwsubu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xca]
+vwsubu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwsubu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xca]
+vwsubu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vwadd.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xc6]
+vwadd.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwadd.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xc6]
+vwadd.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vwsub.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xce]
+vwsub.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwsub.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xce]
+vwsub.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vwaddu.wv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xd2]
+vwaddu.wv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwaddu.wx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xd2]
+vwaddu.wx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vwsubu.wv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xda]
+vwsubu.wv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwsubu.wx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xda]
+vwsubu.wx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vwadd.wv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xd6]
+vwadd.wv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwadd.wx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xd6]
+vwadd.wx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vwsub.wv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xde]
+vwsub.wv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwsub.wx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xde]
+vwsub.wx v0, v1, a0

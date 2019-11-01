@@ -147,10 +147,8 @@ class VALU_OPIVV<bits<6> funct6, string opcodestr>
                opcodestr, "$vd, $vs2, $vs1">
 {
   bits<5> vs1;
-  bits<5> vd;
 
   let Inst{19-15} = vs1;
-  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
@@ -161,24 +159,20 @@ class VALU_OPFVV<bits<6> funct6, string opcodestr>
                opcodestr, "$vd, $vs2, $vs1">
 {
   bits<5> vs1;
-  bits<5> vd;
 
   let Inst{19-15} = vs1;
-  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPMVV<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b010, RVV_Unmasked, OPC_OP_V,
-               (outs GPR:$rd, VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
-               opcodestr, "${vd}(${rd}), $vs2, $vs1">
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
+               opcodestr, "$vd, $vs2, $vs1">
 {
   bits<5> vs1;
-  bits<5> vd;
 
   let Inst{19-15} = vs1;
-  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
@@ -189,10 +183,8 @@ class VALU_OPIVI<bits<6> funct6, string opcodestr>
                opcodestr, "$vd, $vs2, $imm5">
 {
   bits<5> simm5;
-  bits<5> vd;
 
   let Inst{19-15} = simm5;
-  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
@@ -203,10 +195,8 @@ class VALU_OPIVX<bits<6> funct6, string opcodestr>
                opcodestr, "$vd, $vs2, $rs1">
 {
   bits<5> rs1;
-  bits<5> vd;
 
   let Inst{19-15} = rs1;
-  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
@@ -217,24 +207,20 @@ class VALU_OPFVF<bits<6> funct6, string opcodestr>
                opcodestr, "$vd, $vs2, $rs1">
 {
   bits<5> rs1;
-  bits<5> vd;
 
   let Inst{19-15} = rs1;
-  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPMVX<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b110, RVV_Unmasked, OPC_OP_V,
-               (outs GPR:$rd, VR:$vd), (ins VR:$vs2, simm5:$imm5, VLR:$vl),
-               opcodestr, "${vd}(${rd}), $vs2, $imm5">
+               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
+               opcodestr, "$vd, $vs2, $rs1">
 {
   bits<5> rs1;
-  bits<5> vd;
 
   let Inst{19-15} = rs1;
-  let Inst{11-7}  = vd;
   //let Uses = [VCFG];
 }
 
@@ -348,6 +334,34 @@ def VSUB_VX : VALU_OPIVX<0b000010, "vsub.vx">;
 
 def VRSUB_VX : VALU_OPIVX<0b000011, "vrsub.vx">;
 def VRSUB_VI : VALU_OPIVI<0b000011, "vrsub.vi">;
+
+
+// Vector Widening Integer Add and Subtract Instructions
+
+def VWADDU_VV : VALU_OPMVV<0b110000, "vwaddu.vv">;
+def VWADDU_VX : VALU_OPMVX<0b110000, "vwaddu.vx">;
+def VWSUBU_VV : VALU_OPMVV<0b110010, "vwsubu.vv">;
+def VWSUBU_VX : VALU_OPMVX<0b110010, "vwsubu.vx">;
+
+def VWADD_VV : VALU_OPMVV<0b110001, "vwadd.vv">;
+def VWADD_VX : VALU_OPMVX<0b110001, "vwadd.vx">;
+def VWSUB_VV : VALU_OPMVV<0b110011, "vwsub.vv">;
+def VWSUB_VX : VALU_OPMVX<0b110011, "vwsub.vx">;
+
+def VWADDU_WV : VALU_OPMVV<0b110100, "vwaddu.wv">;
+def VWADDU_WX : VALU_OPMVX<0b110100, "vwaddu.wx">;
+def VWSUBU_WV : VALU_OPMVV<0b110110, "vwsubu.wv">;
+def VWSUBU_WX : VALU_OPMVX<0b110110, "vwsubu.wx">;
+
+def VWADD_WV : VALU_OPMVV<0b110101, "vwadd.wv">;
+def VWADD_WX : VALU_OPMVX<0b110101, "vwadd.wx">;
+def VWSUB_WV : VALU_OPMVV<0b110111, "vwsub.wv">;
+def VWSUB_WX : VALU_OPMVX<0b110111, "vwsub.wx">;
+
+
+// Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
+// TODO
+
 
 
 /*
