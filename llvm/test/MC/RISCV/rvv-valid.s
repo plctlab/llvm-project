@@ -373,3 +373,83 @@ vnsra.vx v0, v1, a0
 # CHECK-ASM-AND-OBJ: vnsra.vi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0xb6]
 vnsra.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vmseq.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x62]
+vmseq.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmseq.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x62]
+vmseq.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmseq.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x62]
+vmseq.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vmsne.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x66]
+vmsne.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmsne.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x66]
+vmsne.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmsne.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x66]
+vmsne.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vmsltu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x6a]
+vmsltu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmsltu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x6a]
+vmsltu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmslt.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x6e]
+vmslt.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmslt.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x6e]
+vmslt.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmsleu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x72]
+vmsleu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmsleu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x72]
+vmsleu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmsleu.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x72]
+vmsleu.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vmsle.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x76]
+vmsle.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmsle.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x76]
+vmsle.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmsle.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x76]
+vmsle.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vmsgtu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x7a]
+vmsgtu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmsgtu.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x7a]
+vmsgtu.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vmsgt.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x7e]
+vmsgt.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmsgt.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x7e]
+vmsgt.vi v0, v1, 0

@@ -404,6 +404,37 @@ def VNSRA_VX : VALU_OPIVX<0b101101, "vnsra.vx">;
 def VNSRA_VI : VALU_OPIVI<0b101101, "vnsra.vi">;
 
 
+// Vector Integer Comparison Instructions
+
+def VMSEQ_VV : VALU_OPIVV<0b011000, "vmseq.vv">;
+def VMSEQ_VX : VALU_OPIVX<0b011000, "vmseq.vx">;
+def VMSEQ_VI : VALU_OPIVI<0b011000, "vmseq.vi">;
+
+def VMSNE_VV : VALU_OPIVV<0b011001, "vmsne.vv">;
+def VMSNE_VX : VALU_OPIVX<0b011001, "vmsne.vx">;
+def VMSNE_VI : VALU_OPIVI<0b011001, "vmsne.vi">;
+
+def VMSLTU_VV : VALU_OPIVV<0b011010, "vmsltu.vv">;
+def VMSLTU_VX : VALU_OPIVX<0b011010, "vmsltu.vx">;
+
+def VMSLT_VV : VALU_OPIVV<0b011011, "vmslt.vv">;
+def VMSLT_VX : VALU_OPIVX<0b011011, "vmslt.vx">;
+
+def VMSLEU_VV : VALU_OPIVV<0b011100, "vmsleu.vv">;
+def VMSLEU_VX : VALU_OPIVX<0b011100, "vmsleu.vx">;
+def VMSLEU_VI : VALU_OPIVI<0b011100, "vmsleu.vi">;
+
+def VMSLE_VV : VALU_OPIVV<0b011101, "vmsle.vv">;
+def VMSLE_VX : VALU_OPIVX<0b011101, "vmsle.vx">;
+def VMSLE_VI : VALU_OPIVI<0b011101, "vmsle.vi">;
+
+def VMSGTU_VX : VALU_OPIVX<0b011110, "vmsgtu.vx">;
+def VMSGTU_VI : VALU_OPIVI<0b011110, "vmsgtu.vi">;
+
+def VMSGT_VX : VALU_OPIVX<0b011111, "vmsgt.vx">;
+def VMSGT_VI : VALU_OPIVI<0b011111, "vmsgt.vi">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
