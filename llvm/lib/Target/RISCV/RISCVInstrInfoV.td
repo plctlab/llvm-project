@@ -378,6 +378,21 @@ def VXOR_VX : VALU_OPIVX<0b001011, "vxor.vx">;
 def VXOR_VI : VALU_OPIVI<0b001011, "vxor.vi">;
 
 
+// Vector Single-Width Bit Shift Instructions
+
+def VSLL_VV : VALU_OPIVV<0b100101, "vsll.vv">;
+def VSLL_VX : VALU_OPIVX<0b100101, "vsll.vx">;
+def VSLL_VI : VALU_OPIVI<0b100101, "vsll.vi">;
+
+def VSRL_VV : VALU_OPIVV<0b101000, "vsrl.vv">;
+def VSRL_VX : VALU_OPIVX<0b101000, "vsrl.vx">;
+def VSRL_VI : VALU_OPIVI<0b101000, "vsrl.vi">;
+
+def VSRA_VV : VALU_OPIVV<0b101001, "vsra.vv">;
+def VSRA_VX : VALU_OPIVX<0b101001, "vsra.vx">;
+def VSRA_VI : VALU_OPIVI<0b101001, "vsra.vi">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//

@@ -313,3 +313,39 @@ vxor.vx v0, v1, a0
 # CHECK-ASM-AND-OBJ: vxor.vi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0x2e]
 vxor.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vsll.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x96]
+vsll.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vsll.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x96]
+vsll.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vsll.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x96]
+vsll.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vsrl.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xa2]
+vsrl.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vsrl.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xa2]
+vsrl.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vsrl.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0xa2]
+vsrl.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vsra.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xa6]
+vsra.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vsra.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xa6]
+vsra.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vsra.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0xa6]
+vsra.vi v0, v1, 0
