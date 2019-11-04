@@ -549,3 +549,27 @@ vrem.vv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vrem.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x60,0x15,0x8e]
 vrem.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vwmul.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xee]
+vwmul.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwmul.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xee]
+vwmul.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vwmulu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xe2]
+vwmulu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwmulu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xe2]
+vwmulu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vwmulsu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xea]
+vwmulsu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwmulsu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xea]
+vwmulsu.vx v0, v1, a0

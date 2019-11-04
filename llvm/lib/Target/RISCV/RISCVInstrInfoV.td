@@ -480,6 +480,18 @@ def VREM_VV : VALU_OPMVV<0b100011, "vrem.vv">;
 def VREM_VX : VALU_OPMVX<0b100011, "vrem.vx">;
 
 
+// Vector Widening Integer Multiply Instructions
+
+def VWMUL_VV : VALU_OPMVV<0b111011, "vwmul.vv">;
+def VWMUL_VX : VALU_OPMVX<0b111011, "vwmul.vx">;
+
+def VWMULU_VV : VALU_OPMVV<0b111000, "vwmulu.vv">;
+def VWMULU_VX : VALU_OPMVX<0b111000, "vwmulu.vx">;
+
+def VWMULSU_VV : VALU_OPMVV<0b111010, "vwmulsu.vv">;
+def VWMULSU_VX : VALU_OPMVX<0b111010, "vwmulsu.vx">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
