@@ -465,6 +465,21 @@ def VMULHSU_VV : VALU_OPMVV<0b100110, "vmulhsu.vv">;
 def VMULHSU_VX : VALU_OPMVX<0b100110, "vmulhsu.vx">;
 
 
+// Vector Integer Divide Instructions
+
+def VDIVU_VV : VALU_OPMVV<0b100000, "vdivu.vv">;
+def VDIVU_VX : VALU_OPMVX<0b100000, "vdivu.vx">;
+
+def VDIV_VV : VALU_OPMVV<0b100001, "vdiv.vv">;
+def VDIV_VX : VALU_OPMVX<0b100001, "vdiv.vx">;
+
+def VREMU_VV : VALU_OPMVV<0b100010, "vremu.vv">;
+def VREMU_VX : VALU_OPMVX<0b100010, "vremu.vx">;
+
+def VREM_VV : VALU_OPMVV<0b100011, "vrem.vv">;
+def VREM_VX : VALU_OPMVX<0b100011, "vrem.vx">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//

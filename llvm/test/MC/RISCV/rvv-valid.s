@@ -517,3 +517,35 @@ vmulhsu.vv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vmulhsu.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x60,0x15,0x9a]
 vmulhsu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vdivu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x82]
+vdivu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vdivu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x82]
+vdivu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vdiv.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x86]
+vdiv.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vdiv.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x86]
+vdiv.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vremu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x8a]
+vremu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vremu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x8a]
+vremu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vrem.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x8e]
+vrem.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vrem.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x8e]
+vrem.vx v0, v1, a0
