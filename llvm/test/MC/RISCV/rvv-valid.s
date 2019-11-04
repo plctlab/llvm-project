@@ -485,3 +485,35 @@ vmax.vv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vmax.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0x1e]
 vmax.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmul.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x96]
+vmul.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmul.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x96]
+vmul.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmulh.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x9e]
+vmulh.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmulh.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x9e]
+vmulh.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmulhu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x92]
+vmulhu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmulhu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x92]
+vmulhu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmulhsu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x9a]
+vmulhsu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmulhsu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x9a]
+vmulhsu.vx v0, v1, a0

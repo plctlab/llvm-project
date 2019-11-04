@@ -450,6 +450,21 @@ def VMAX_VV : VALU_OPIVV<0b000111, "vmax.vv">;
 def VMAX_VX : VALU_OPIVX<0b000111, "vmax.vx">;
 
 
+// Vector Single-Width Integer Multiply Instructions
+
+def VMUL_VV : VALU_OPMVV<0b100101, "vmul.vv">;
+def VMUL_VX : VALU_OPMVX<0b100101, "vmul.vx">;
+
+def VMULH_VV : VALU_OPMVV<0b100111, "vmulh.vv">;
+def VMULH_VX : VALU_OPMVX<0b100111, "vmulh.vx">;
+
+def VMULHU_VV : VALU_OPMVV<0b100100, "vmulhu.vv">;
+def VMULHU_VX : VALU_OPMVX<0b100100, "vmulhu.vx">;
+
+def VMULHSU_VV : VALU_OPMVV<0b100110, "vmulhsu.vv">;
+def VMULHSU_VX : VALU_OPMVX<0b100110, "vmulhsu.vx">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
