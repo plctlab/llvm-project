@@ -363,18 +363,20 @@ def VWSUB_WX : VALU_OPMVX<0b110111, "vwsub.wx">;
 // TODO
 
 
+// Vector Bitwise Logical Instructions
 
-/*
 def VAND_VV : VALU_OPIVV<0b001001, "vand.vv">;
+def VAND_VX : VALU_OPIVX<0b001001, "vand.vx">;
+def VAND_VI : VALU_OPIVI<0b001001, "vand.vi">;
 
 def VOR_VV : VALU_OPIVV<0b001010, "vor.vv">;
+def VOR_VX : VALU_OPIVX<0b001010, "vor.vx">;
+def VOR_VI : VALU_OPIVI<0b001010, "vor.vi">;
 
 def VXOR_VV : VALU_OPIVV<0b001011, "vxor.vv">;
+def VXOR_VX : VALU_OPIVX<0b001011, "vxor.vx">;
+def VXOR_VI : VALU_OPIVI<0b001011, "vxor.vi">;
 
-def VMUL_VV : VALU_OPMVV<0b100101, "vmul.vv">;
-
-def VDIV_VV : VALU_OPMVV<0b100001, "vdiv.vv">;
-*/
 
 } // Predicates = [HasStdExtV]
 

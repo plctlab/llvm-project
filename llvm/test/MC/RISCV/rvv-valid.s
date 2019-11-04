@@ -277,3 +277,39 @@ vwsub.wv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vwsub.wx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x60,0x15,0xde]
 vwsub.wx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vand.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x26]
+vand.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vand.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x26]
+vand.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vand.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x26]
+vand.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vor.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x2a]
+vor.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vor.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x2a]
+vor.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vor.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x2a]
+vor.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vxor.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x2e]
+vxor.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vxor.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x2e]
+vxor.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vxor.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x2e]
+vxor.vi v0, v1, 0
