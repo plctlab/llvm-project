@@ -435,6 +435,21 @@ def VMSGT_VX : VALU_OPIVX<0b011111, "vmsgt.vx">;
 def VMSGT_VI : VALU_OPIVI<0b011111, "vmsgt.vi">;
 
 
+// Vector Integer Min/Max Instructions
+
+def VMINU_VV : VALU_OPIVV<0b000100, "vminu.vv">;
+def VMINU_VX : VALU_OPIVX<0b000100, "vminu.vx">;
+
+def VMIN_VV : VALU_OPIVV<0b000101, "vmin.vv">;
+def VMIN_VX : VALU_OPIVX<0b000101, "vmin.vx">;
+
+def VMAXU_VV : VALU_OPIVV<0b000110, "vmaxu.vv">;
+def VMAXU_VX : VALU_OPIVX<0b000110, "vmaxu.vx">;
+
+def VMAX_VV : VALU_OPIVV<0b000111, "vmax.vv">;
+def VMAX_VX : VALU_OPIVX<0b000111, "vmax.vx">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//

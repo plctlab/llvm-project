@@ -453,3 +453,35 @@ vmsgt.vx v0, v1, a0
 # CHECK-ASM-AND-OBJ: vmsgt.vi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0x7e]
 vmsgt.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vminu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x12]
+vminu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vminu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x12]
+vminu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmin.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x16]
+vmin.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmin.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x16]
+vmin.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmaxu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x1a]
+vmaxu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmaxu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x1a]
+vmaxu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmax.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x1e]
+vmax.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmax.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x1e]
+vmax.vx v0, v1, a0
