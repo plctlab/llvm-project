@@ -393,6 +393,17 @@ def VSRA_VX : VALU_OPIVX<0b101001, "vsra.vx">;
 def VSRA_VI : VALU_OPIVI<0b101001, "vsra.vi">;
 
 
+// Vector Narrowing Integer Right Shift Instructions
+
+def VNSRL_VV : VALU_OPIVV<0b101100, "vnsrl.vv">;
+def VNSRL_VX : VALU_OPIVX<0b101100, "vnsrl.vx">;
+def VNSRL_VI : VALU_OPIVI<0b101100, "vnsrl.vi">;
+
+def VNSRA_VV : VALU_OPIVV<0b101101, "vnsra.vv">;
+def VNSRA_VX : VALU_OPIVX<0b101101, "vnsra.vx">;
+def VNSRA_VI : VALU_OPIVI<0b101101, "vnsra.vi">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//

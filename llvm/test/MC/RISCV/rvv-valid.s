@@ -349,3 +349,27 @@ vsra.vx v0, v1, a0
 # CHECK-ASM-AND-OBJ: vsra.vi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0xa6]
 vsra.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vnsrl.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xb2]
+vnsrl.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vnsrl.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xb2]
+vnsrl.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vnsrl.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0xb2]
+vnsrl.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vnsra.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xb6]
+vnsra.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vnsra.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xb6]
+vnsra.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vnsra.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0xb6]
+vnsra.vi v0, v1, 0
