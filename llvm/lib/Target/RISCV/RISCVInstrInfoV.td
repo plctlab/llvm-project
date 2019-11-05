@@ -590,6 +590,28 @@ def VFWSUB_WV : VALU_OPFVV<0b110110, "vfwsub.wv">;
 def VFWSUB_WF : VALU_OPFVF<0b110110, "vfwsub.wf">;
 
 
+// Vector Single-Width Floating-Point Multiply/Divide Instructions
+
+def VFMUL_VV : VALU_OPFVV<0b100100, "vfmul.vv">;
+def VFMUL_VF : VALU_OPFVF<0b100100, "vfmul.vf">;
+
+def VFDIV_VV : VALU_OPFVV<0b100000, "vfdiv.vv">;
+def VFDIV_VF : VALU_OPFVF<0b100000, "vfdiv.vf">;
+def VFRDIV_VF : VALU_OPFVF<0b100001, "vfrdiv.vf">;
+
+
+// Vector Widening Floating-Point Multiply
+// TODO
+
+
+// Vector Single-Width Floating-Point Fused Multiply-Add Instructions
+// TODO
+
+
+// Vector Widening Floating-Point Fused Multiply-Add Instructions
+// TODO
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
