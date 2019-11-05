@@ -203,7 +203,7 @@ class VALU_OPIVX<bits<6> funct6, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPFVF<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b101, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, FPR32:$rs1, VLR:$vl),
                opcodestr, "$vd, $vs2, $rs1">
 {
   bits<5> rs1;
@@ -565,6 +565,16 @@ def VNCLIPU_VI : VALU_OPIVI<0b101110, "vnclipu.vi">;
 def VNCLIP_VV : VALU_OPIVV<0b101111, "vnclip.vv">;
 def VNCLIP_VX : VALU_OPIVX<0b101111, "vnclip.vx">;
 def VNCLIP_VI : VALU_OPIVI<0b101111, "vnclip.vi">;
+
+
+// Vector Single-Width Floating-Point Add/Subtract Instructions
+
+def VFADD_VV : VALU_OPFVV<0b000000, "vfadd.vv">;
+def VFADD_VF : VALU_OPFVF<0b000000, "vfadd.vf">;
+
+def VFSUB_VV : VALU_OPFVV<0b000010, "vfsub.vv">;
+def VFSUB_VF : VALU_OPFVF<0b000010, "vfsub.vf">;
+def VFRSUB_VF : VALU_OPFVF<0b100111, "vfrsub.vf">;
 
 
 } // Predicates = [HasStdExtV]

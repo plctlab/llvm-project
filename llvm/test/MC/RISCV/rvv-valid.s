@@ -689,3 +689,23 @@ vnclip.vx v0, v1, a0
 # CHECK-ASM-AND-OBJ: vnclip.vi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0xbe]
 vnclip.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vfadd.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x02]
+vfadd.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfadd.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x02]
+vfadd.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfsub.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x0a]
+vfsub.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfsub.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x0a]
+vfsub.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfrsub.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x9e]
+vfrsub.vf v0, v1, ft0
