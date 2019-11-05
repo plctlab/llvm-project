@@ -665,3 +665,27 @@ vssra.vx v0, v1, a0
 # CHECK-ASM-AND-OBJ: vssra.vi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0xae]
 vssra.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vnclipu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xba]
+vnclipu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vnclipu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xba]
+vnclipu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vnclipu.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0xba]
+vnclipu.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vnclip.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xbe]
+vnclip.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vnclip.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xbe]
+vnclip.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vnclip.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0xbe]
+vnclip.vi v0, v1, 0

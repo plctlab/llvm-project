@@ -556,6 +556,17 @@ def VSSRA_VX : VALU_OPIVX<0b101011, "vssra.vx">;
 def VSSRA_VI : VALU_OPIVI<0b101011, "vssra.vi">;
 
 
+// Vector Narrowing Fixed-Point Clip Instructions
+
+def VNCLIPU_VV : VALU_OPIVV<0b101110, "vnclipu.vv">;
+def VNCLIPU_VX : VALU_OPIVX<0b101110, "vnclipu.vx">;
+def VNCLIPU_VI : VALU_OPIVI<0b101110, "vnclipu.vi">;
+
+def VNCLIP_VV : VALU_OPIVV<0b101111, "vnclip.vv">;
+def VNCLIP_VX : VALU_OPIVX<0b101111, "vnclip.vx">;
+def VNCLIP_VI : VALU_OPIVI<0b101111, "vnclip.vi">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
