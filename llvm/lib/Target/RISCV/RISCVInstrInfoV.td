@@ -525,6 +525,16 @@ def VSSUB_VV : VALU_OPIVV<0b100011, "vssub.vv">;
 def VSSUB_VX : VALU_OPIVX<0b100011, "vssub.vx">;
 
 
+// Vector Single-Width Averaging Add and Subtract Instructions
+
+def VAADD_VV : VALU_OPIVV<0b100100, "vaadd.vv">;
+def VAADD_VX : VALU_OPIVX<0b100100, "vaadd.vx">;
+def VAADD_VI : VALU_OPIVI<0b100100, "vaadd.vi">;
+
+def VASUB_VV : VALU_OPIVV<0b100110, "vasub.vv">;
+def VASUB_VX : VALU_OPIVX<0b100110, "vasub.vx">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//

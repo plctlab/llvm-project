@@ -613,3 +613,23 @@ vssub.vv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vssub.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0x8e]
 vssub.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vaadd.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x92]
+vaadd.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vaadd.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x92]
+vaadd.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vaadd.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x92]
+vaadd.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vasub.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x9a]
+vasub.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vasub.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x9a]
+vasub.vx v0, v1, a0
