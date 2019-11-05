@@ -541,7 +541,7 @@ def VSMUL_VV : VALU_OPIVV<0b100111, "vsmul.vv">;
 def VSMUL_VX : VALU_OPIVX<0b100111, "vsmul.vx">;
 
 
-// Vector Widening Saturating Scaled Multiply-Add
+// Vector Widening Saturating Scaled Multiply-Add Instructions
 // TODO
 
 
@@ -600,8 +600,10 @@ def VFDIV_VF : VALU_OPFVF<0b100000, "vfdiv.vf">;
 def VFRDIV_VF : VALU_OPFVF<0b100001, "vfrdiv.vf">;
 
 
-// Vector Widening Floating-Point Multiply
-// TODO
+// Vector Widening Floating-Point Multiply Instructions
+
+def VFWMUL_VV : VALU_OPFVV<0b111000, "vfwmul.vv">;
+def VFWMUL_VF : VALU_OPFVF<0b111000, "vfwmul.vf">;
 
 
 // Vector Single-Width Floating-Point Fused Multiply-Add Instructions

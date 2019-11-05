@@ -761,3 +761,11 @@ vfdiv.vf v0, v1, ft0
 # CHECK-ASM-AND-OBJ: vfrdiv.vf v0, v1, ft0
 # CHECK-ASM: encoding: [0x57,0x50,0x10,0x86]
 vfrdiv.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfwmul.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xe2]
+vfwmul.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfwmul.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xe2]
+vfwmul.vf v0, v1, ft0
