@@ -535,6 +535,12 @@ def VASUB_VV : VALU_OPIVV<0b100110, "vasub.vv">;
 def VASUB_VX : VALU_OPIVX<0b100110, "vasub.vx">;
 
 
+// Vector Single-Width Fractional Multiply Instructions with Rounding and Saturation
+
+def VSMUL_VV : VALU_OPIVV<0b100111, "vsmul.vv">;
+def VSMUL_VX : VALU_OPIVX<0b100111, "vsmul.vx">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//

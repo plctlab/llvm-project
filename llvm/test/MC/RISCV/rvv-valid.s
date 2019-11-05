@@ -633,3 +633,11 @@ vasub.vv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vasub.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0x9a]
 vasub.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vsmul.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x9e]
+vsmul.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vsmul.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x9e]
+vsmul.vx v0, v1, a0
