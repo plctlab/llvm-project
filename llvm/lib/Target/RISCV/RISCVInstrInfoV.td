@@ -323,6 +323,10 @@ def VLWUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b110, "vlwuff.v">;
 def VLEFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b111, "vleff.v">;
 
 
+// Vector Load/Store Segment Instructions
+// TODO
+
+
 // Vector Single-Width Integer Add and Subtract Instructions
 
 def VADD_VV : VALU_OPIVV<0b000000, "vadd.vv">;
@@ -490,6 +494,35 @@ def VWMULU_VX : VALU_OPMVX<0b111000, "vwmulu.vx">;
 
 def VWMULSU_VV : VALU_OPMVV<0b111010, "vwmulsu.vv">;
 def VWMULSU_VX : VALU_OPMVX<0b111010, "vwmulsu.vx">;
+
+
+// Vector Single-Width Integer Multiply-Add Instructions
+// TODO
+
+
+// Vector Widening Integer Multiply-Add Instructions
+// TODO
+
+
+// Vector Integer Merge and Move Instructions
+// TODO
+
+
+// Vector Single-Width Saturating Add and Subtract Instructions
+
+def VSADDU_VV : VALU_OPIVV<0b100000, "vsaddu.vv">;
+def VSADDU_VX : VALU_OPIVX<0b100000, "vsaddu.vx">;
+def VSADDU_VI : VALU_OPIVI<0b100000, "vsaddu.vi">;
+
+def VSADD_VV : VALU_OPIVV<0b100001, "vsadd.vv">;
+def VSADD_VX : VALU_OPIVX<0b100001, "vsadd.vx">;
+def VSADD_VI : VALU_OPIVI<0b100001, "vsadd.vi">;
+
+def VSSUBU_VV : VALU_OPIVV<0b100010, "vssubu.vv">;
+def VSSUBU_VX : VALU_OPIVX<0b100010, "vssubu.vx">;
+
+def VSSUB_VV : VALU_OPIVV<0b100011, "vssub.vv">;
+def VSSUB_VX : VALU_OPIVX<0b100011, "vssub.vx">;
 
 
 } // Predicates = [HasStdExtV]

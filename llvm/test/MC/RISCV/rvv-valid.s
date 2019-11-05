@@ -573,3 +573,43 @@ vwmulsu.vv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vwmulsu.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x60,0x15,0xea]
 vwmulsu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vsaddu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x82]
+vsaddu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vsaddu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x82]
+vsaddu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vsaddu.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x82]
+vsaddu.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vsadd.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x86]
+vsadd.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vsadd.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x86]
+vsadd.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vsadd.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x86]
+vsadd.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vssubu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x8a]
+vssubu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vssubu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x8a]
+vssubu.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vssub.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x8e]
+vssub.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vssub.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x8e]
+vssub.vx v0, v1, a0
