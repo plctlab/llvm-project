@@ -709,3 +709,35 @@ vfsub.vf v0, v1, ft0
 # CHECK-ASM-AND-OBJ: vfrsub.vf v0, v1, ft0
 # CHECK-ASM: encoding: [0x57,0x50,0x10,0x9e]
 vfrsub.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfwadd.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xc2]
+vfwadd.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfwadd.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xc2]
+vfwadd.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfwsub.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xca]
+vfwsub.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfwsub.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xca]
+vfwsub.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfwadd.wv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xd2]
+vfwadd.wv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfwadd.wf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xd2]
+vfwadd.wf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfwsub.wv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xda]
+vfwsub.wv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfwsub.wf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xda]
+vfwsub.wf v0, v1, ft0

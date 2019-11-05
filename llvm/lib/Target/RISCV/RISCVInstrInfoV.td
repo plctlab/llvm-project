@@ -577,6 +577,19 @@ def VFSUB_VF : VALU_OPFVF<0b000010, "vfsub.vf">;
 def VFRSUB_VF : VALU_OPFVF<0b100111, "vfrsub.vf">;
 
 
+// Vector Widening Floating-Point Add/Subtract Instructions
+
+def VFWADD_VV : VALU_OPFVV<0b110000, "vfwadd.vv">;
+def VFWADD_VF : VALU_OPFVF<0b110000, "vfwadd.vf">;
+def VFWSUB_VV : VALU_OPFVV<0b110010, "vfwsub.vv">;
+def VFWSUB_VF : VALU_OPFVF<0b110010, "vfwsub.vf">;
+
+def VFWADD_WV : VALU_OPFVV<0b110100, "vfwadd.wv">;
+def VFWADD_WF : VALU_OPFVF<0b110100, "vfwadd.wf">;
+def VFWSUB_WV : VALU_OPFVV<0b110110, "vfwsub.wv">;
+def VFWSUB_WF : VALU_OPFVF<0b110110, "vfwsub.wf">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
