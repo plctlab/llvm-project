@@ -541,6 +541,21 @@ def VSMUL_VV : VALU_OPIVV<0b100111, "vsmul.vv">;
 def VSMUL_VX : VALU_OPIVX<0b100111, "vsmul.vx">;
 
 
+// Vector Widening Saturating Scaled Multiply-Add
+// TODO
+
+
+// Vector Single-Width Scaling Shift Instructions
+
+def VSSRL_VV : VALU_OPIVV<0b101010, "vssrl.vv">;
+def VSSRL_VX : VALU_OPIVX<0b101010, "vssrl.vx">;
+def VSSRL_VI : VALU_OPIVI<0b101010, "vssrl.vi">;
+
+def VSSRA_VV : VALU_OPIVV<0b101011, "vssra.vv">;
+def VSSRA_VX : VALU_OPIVX<0b101011, "vssra.vx">;
+def VSSRA_VI : VALU_OPIVI<0b101011, "vssra.vi">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
