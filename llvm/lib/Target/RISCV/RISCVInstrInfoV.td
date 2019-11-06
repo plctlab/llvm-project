@@ -685,6 +685,18 @@ def VWREDSUMU_VS : VALU_OPIVV<0b110000, "vwredsumu.vs">;
 def VWREDSUM_VS : VALU_OPIVV<0b110001, "vwredsum.vs">;
 
 
+// Vector Single-Width Floating-Point Reduction Instructions
+
+def VFREDOSUM_VS : VALU_OPFVV<0b000011, "vfredosum.vs">;
+def VFREDSUM_VS : VALU_OPFVV<0b000001, "vfredsum.vs">;
+def VFREDMAX_VS : VALU_OPFVV<0b000111, "vfredmax.vs">;
+def VFREDMIN_VS : VALU_OPFVV<0b000101, "vfredmin.vs">;
+
+
+// Vector Widening Floating-Point Reduction Instructions
+// TODO
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//

@@ -865,3 +865,19 @@ vwredsumu.vs v0, v1, v0
 # CHECK-ASM-AND-OBJ: vwredsum.vs v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0xc6]
 vwredsum.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfredosum.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x0e]
+vfredosum.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfredsum.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x06]
+vfredsum.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfredmax.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x1e]
+vfredmax.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfredmin.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x16]
+vfredmin.vs v0, v1, v0
