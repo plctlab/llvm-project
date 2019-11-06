@@ -679,6 +679,12 @@ def VREDOR_VS : VALU_OPMVV<0b000010, "vredor.vs">;
 def VREDXOR_VS : VALU_OPMVV<0b000011, "vredxor.vs">;
 
 
+// Vector Widening Integer Reduction Instructions
+
+def VWREDSUMU_VS : VALU_OPIVV<0b110000, "vwredsumu.vs">;
+def VWREDSUM_VS : VALU_OPIVV<0b110001, "vwredsum.vs">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//

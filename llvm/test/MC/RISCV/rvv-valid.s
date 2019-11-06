@@ -857,3 +857,11 @@ vredor.vs v0, v1, v0
 # CHECK-ASM-AND-OBJ: vredxor.vs v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x20,0x10,0x0e]
 vredxor.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwredsumu.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xc2]
+vwredsumu.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vwredsum.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xc6]
+vwredsum.vs v0, v1, v0
