@@ -769,3 +769,19 @@ vfwmul.vv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vfwmul.vf v0, v1, ft0
 # CHECK-ASM: encoding: [0x57,0x50,0x10,0xe2]
 vfwmul.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfmin.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x12]
+vfmin.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfmin.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x12]
+vfmin.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfmax.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x1a]
+vfmax.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfmax.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x1a]
+vfmax.vf v0, v1, ft0

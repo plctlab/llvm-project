@@ -614,6 +614,19 @@ def VFWMUL_VF : VALU_OPFVF<0b111000, "vfwmul.vf">;
 // TODO
 
 
+// Vector Floating-Point Square-Root Instruction
+// TODO
+
+
+// Vector Floating-Point MIN/MAX Instructions
+
+def VFMIN_VV : VALU_OPFVV<0b000100, "vfmin.vv">;
+def VFMIN_VF : VALU_OPFVF<0b000100, "vfmin.vf">;
+
+def VFMAX_VV : VALU_OPFVV<0b000110, "vfmax.vv">;
+def VFMAX_VF : VALU_OPFVF<0b000110, "vfmax.vf">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
