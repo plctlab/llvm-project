@@ -825,3 +825,35 @@ vmfgt.vf v0, v1, ft0
 # CHECK-ASM-AND-OBJ: vmfge.vf v0, v1, ft0
 # CHECK-ASM: encoding: [0x57,0x50,0x10,0x7e]
 vmfge.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vredsum.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x02]
+vredsum.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vredmaxu.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x1a]
+vredmaxu.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vredmax.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x1e]
+vredmax.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vredminu.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x12]
+vredminu.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vredmin.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x16]
+vredmin.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vredand.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x06]
+vredand.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vredor.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x0a]
+vredor.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vredxor.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x0e]
+vredxor.vs v0, v1, v0

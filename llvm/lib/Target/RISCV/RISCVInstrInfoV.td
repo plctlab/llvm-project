@@ -651,6 +651,34 @@ def VMFORD_VF : VALU_OPFVF<0b011010, "vmford.vf">;
 */
 
 
+// Vector Floating-Point Classify Instruction
+// TODO
+
+
+// Vector Floating-Point Merge and Move Instructions
+// TODO
+
+
+// Widening Floating-Point/Integer Type-Convert Instructions
+// TODO
+
+
+// Narrowing Floating-Point/Integer Type-Convert Instructions
+// TODO
+
+
+// Vector Single-Width Integer Reduction Instructions
+
+def VREDSUM_VS : VALU_OPMVV<0b000000, "vredsum.vs">;
+def VREDMAXU_VS : VALU_OPMVV<0b000110, "vredmaxu.vs">;
+def VREDMAX_VS : VALU_OPMVV<0b000111, "vredmax.vs">;
+def VREDMINU_VS : VALU_OPMVV<0b000100, "vredminu.vs">;
+def VREDMIN_VS : VALU_OPMVV<0b000101, "vredmin.vs">;
+def VREDAND_VS : VALU_OPMVV<0b000001, "vredand.vs">;
+def VREDOR_VS : VALU_OPMVV<0b000010, "vredor.vs">;
+def VREDXOR_VS : VALU_OPMVV<0b000011, "vredxor.vs">;
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
