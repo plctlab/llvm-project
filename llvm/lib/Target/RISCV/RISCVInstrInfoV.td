@@ -627,6 +627,30 @@ def VFMAX_VV : VALU_OPFVV<0b000110, "vfmax.vv">;
 def VFMAX_VF : VALU_OPFVF<0b000110, "vfmax.vf">;
 
 
+// Vector Floating-Point Compare Instructions
+
+def VMFEQ_VV : VALU_OPFVV<0b011000, "vmfeq.vv">;
+def VMFEQ_VF : VALU_OPFVF<0b011000, "vmfeq.vf">;
+
+def VMFNE_VV : VALU_OPFVV<0b011100, "vmfne.vv">;
+def VMFNE_VF : VALU_OPFVF<0b011100, "vmfne.vf">;
+
+def VMFLT_VV : VALU_OPFVV<0b011011, "vmflt.vv">;
+def VMFLT_VF : VALU_OPFVF<0b011011, "vmflt.vf">;
+
+def VMFLE_VV : VALU_OPFVV<0b011001, "vmfle.vv">;
+def VMFLE_VF : VALU_OPFVF<0b011001, "vmfle.vf">;
+
+def VMFGT_VF : VALU_OPFVF<0b011101, "vmfgt.vf">;
+
+def VMFGE_VF : VALU_OPFVF<0b011111, "vmfge.vf">;
+
+/*
+def VMFORD_VV : VALU_OPFVV<0b011010, "vmford.vv">;
+def VMFORD_VF : VALU_OPFVF<0b011010, "vmford.vf">;
+*/
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//

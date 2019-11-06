@@ -785,3 +785,43 @@ vfmax.vv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vfmax.vf v0, v1, ft0
 # CHECK-ASM: encoding: [0x57,0x50,0x10,0x1a]
 vfmax.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vmfeq.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x62]
+vmfeq.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmfeq.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x62]
+vmfeq.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vmfne.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x72]
+vmfne.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmfne.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x72]
+vmfne.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vmflt.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x6e]
+vmflt.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmflt.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x6e]
+vmflt.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vmfle.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x66]
+vmfle.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmfle.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x66]
+vmfle.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vmfgt.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x76]
+vmfgt.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vmfge.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x7e]
+vmfge.vf v0, v1, ft0
