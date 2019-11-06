@@ -881,3 +881,11 @@ vfredmax.vs v0, v1, v0
 # CHECK-ASM-AND-OBJ: vfredmin.vs v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x10,0x10,0x16]
 vfredmin.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfwredosum.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xce]
+vfwredosum.vs v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfwredsum.vs v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xc6]
+vfwredsum.vs v0, v1, v0

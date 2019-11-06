@@ -694,7 +694,9 @@ def VFREDMIN_VS : VALU_OPFVV<0b000101, "vfredmin.vs">;
 
 
 // Vector Widening Floating-Point Reduction Instructions
-// TODO
+
+def VFWREDOSUM_VS : VALU_OPFVV<0b110011, "vfwredosum.vs">;
+def VFWREDSUM_VS : VALU_OPFVV<0b110001, "vfwredsum.vs">;
 
 
 } // Predicates = [HasStdExtV]
