@@ -921,3 +921,27 @@ vmornot.mm v0, v1, v0
 # CHECK-ASM-AND-OBJ: vmxnor.mm v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x20,0x10,0x7e]
 vmxnor.mm v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vslideup.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x3a]
+vslideup.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vslideup.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x3a]
+vslideup.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vslidedown.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x3e]
+vslidedown.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vslidedown.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x3e]
+vslidedown.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vslide1up.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x3a]
+vslide1up.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vslide1down.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x3e]
+vslide1down.vx v0, v1, a0

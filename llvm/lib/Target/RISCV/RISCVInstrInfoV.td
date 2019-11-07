@@ -739,6 +739,39 @@ def VMXNOR_MM : VALU_OPMVV<0b011111, "vmxnor.mm">;
 // TODO
 
 
+// Integer Extract Instruction
+// TODO
+
+
+// Integer Scalar Move Instruction
+// TODO
+
+
+// Floating-Point Scalar Move Instructions
+// TODO
+
+
+// Vector Slide Instructions
+
+def VSLIDEUP_VX : VALU_OPIVX<0b001110, "vslideup.vx">;
+def VSLIDEUP_VI : VALU_OPIVI<0b001110, "vslideup.vi">;
+
+def VSLIDEDOWN_VX : VALU_OPIVX<0b001111, "vslidedown.vx">;
+def VSLIDEDOWN_VI : VALU_OPIVI<0b001111, "vslidedown.vi">;
+
+def VSLIDE1UP_VX : VALU_OPMVX<0b001110, "vslide1up.vx">;
+
+def VSLIDE1DOWN_VX : VALU_OPMVX<0b001111, "vslide1down.vx">;
+
+
+// Vector Register Gather Instructions
+// TODO
+
+
+// Vector Compress Instruction
+// TODO
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
