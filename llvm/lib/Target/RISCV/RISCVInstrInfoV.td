@@ -765,7 +765,10 @@ def VSLIDE1DOWN_VX : VALU_OPMVX<0b001111, "vslide1down.vx">;
 
 
 // Vector Register Gather Instructions
-// TODO
+
+def VRGATHER_VV : VALU_OPIVV<0b001100, "vrgather.vv">;
+def VRGATHER_VX : VALU_OPIVX<0b001100, "vrgather.vx">;
+def VRGATHER_VI : VALU_OPIVI<0b001100, "vrgather.vi">;
 
 
 // Vector Compress Instruction
