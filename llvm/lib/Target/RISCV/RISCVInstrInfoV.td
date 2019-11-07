@@ -327,6 +327,10 @@ def VLEFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b111, "vleff.v">;
 // TODO
 
 
+// Vector AMO Operations
+// TODO
+
+
 // Vector Single-Width Integer Add and Subtract Instructions
 
 def VADD_VV : VALU_OPIVV<0b000000, "vadd.vv">;
@@ -782,8 +786,10 @@ def VDOTU_VV : VALU_OPIVV<0b111000, "vdotu.vv">;
 def VDOT_VV : VALU_OPIVV<0b111001, "vdot.vv">;
 
 
-// Vector Floating-Point Dot Product Instruction
-// TODO
+// Vector Floating-Point Dot-Product Instruction
+
+def VFDOT_VV : VALU_OPFVV<0b111001, "vfdot.vv">;
+
 
 } // Predicates = [HasStdExtV]
 

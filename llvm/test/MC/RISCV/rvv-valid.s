@@ -969,3 +969,7 @@ vdotu.vv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vdot.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0xe6]
 vdot.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfdot.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xe6]
+vfdot.vv v0, v1, v0
