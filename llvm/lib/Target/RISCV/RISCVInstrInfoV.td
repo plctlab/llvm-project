@@ -699,6 +699,46 @@ def VFWREDOSUM_VS : VALU_OPFVV<0b110011, "vfwredosum.vs">;
 def VFWREDSUM_VS : VALU_OPFVV<0b110001, "vfwredsum.vs">;
 
 
+// Vector Mask-Register Logical Instructions
+
+def VMAND_MM : VALU_OPMVV<0b011001, "vmand.mm">;
+def VMNAND_MM : VALU_OPMVV<0b011101, "vmnand.mm">;
+def VMANDNOT_MM : VALU_OPMVV<0b011000, "vmandnot.mm">;
+def VMXOR_MM : VALU_OPMVV<0b011011, "vmxor.mm">;
+def VMOR_MM : VALU_OPMVV<0b011010, "vmor.mm">;
+def VMNOR_MM : VALU_OPMVV<0b011110, "vmnor.mm">;
+def VMORNOT_MM : VALU_OPMVV<0b011100, "vmornot.mm">;
+def VMXNOR_MM : VALU_OPMVV<0b011111, "vmxnor.mm">;
+
+
+// Vector mask population count Instruction
+// TODO
+
+
+// find-first-set mask bit  Instruction
+// TODO
+
+
+// set-before-first mask bit Instruction
+// TODO
+
+
+// set-including-first mask bit Instruction
+// TODO
+
+
+// set-only-first mask bit Instruction
+// TODO
+
+
+// Vector Iota Instruction
+// TODO
+
+
+// Vector Element Index Instruction
+// TODO
+
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
