@@ -772,7 +772,8 @@ def VRGATHER_VI : VALU_OPIVI<0b001100, "vrgather.vi">;
 
 
 // Vector Compress Instruction
-// TODO
+
+def VCOMPRESS_VM : VALU_OPMVV<0b010111, "vcompress.vm">;
 
 
 } // Predicates = [HasStdExtV]
