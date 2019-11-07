@@ -776,6 +776,15 @@ def VRGATHER_VI : VALU_OPIVI<0b001100, "vrgather.vi">;
 def VCOMPRESS_VM : VALU_OPMVV<0b010111, "vcompress.vm">;
 
 
+// Vector Integer Dot-Product Instructions
+
+def VDOTU_VV : VALU_OPIVV<0b111000, "vdotu.vv">;
+def VDOT_VV : VALU_OPIVV<0b111001, "vdot.vv">;
+
+
+// Vector Floating-Point Dot Product Instruction
+// TODO
+
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//

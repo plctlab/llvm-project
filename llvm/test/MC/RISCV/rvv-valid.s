@@ -961,3 +961,11 @@ vrgather.vi v0, v1, 0
 # CHECK-ASM-AND-OBJ: vcompress.vm v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x20,0x10,0x5e]
 vcompress.vm v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vdotu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xe2]
+vdotu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vdot.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xe6]
+vdot.vv v0, v1, v0
