@@ -177,6 +177,18 @@ class VALU_OPFVV<bits<6> funct6, string opcodestr>
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPFVV_MulAdd<bits<6> funct6, string opcodestr>
+    : RVInstVA<funct6, 0b001, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
+               opcodestr, "$vd, $vs1, $vs2">
+{
+  bits<5> vs1;
+
+  let Inst{19-15} = vs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPMVV<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b010, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
@@ -242,6 +254,18 @@ class VALU_OPFVF<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b101, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs2, FPR32:$rs1, VLR:$vl),
                opcodestr, "$vd, $vs2, $rs1">
+{
+  bits<5> rs1;
+
+  let Inst{19-15} = rs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPFVF_MulAdd<bits<6> funct6, string opcodestr>
+    : RVInstVA<funct6, 0b101, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs2, FPR32:$rs1, VLR:$vl),
+               opcodestr, "$vd, $rs1, $vs2">
 {
   bits<5> rs1;
 
@@ -691,7 +715,30 @@ def VFWMUL_VF : VALU_OPFVF<0b111000, "vfwmul.vf">;
 
 
 // Vector Single-Width Floating-Point Fused Multiply-Add Instructions
-// TODO
+
+def VFMACC_VV : VALU_OPFVV_MulAdd<0b101100, "vfmacc.vv">;
+def VFMACC_VF : VALU_OPFVF_MulAdd<0b101100, "vfmacc.vf">;
+
+def VFNMACC_VV : VALU_OPFVV_MulAdd<0b101101, "vfnmacc.vv">;
+def VFNMACC_VF : VALU_OPFVF_MulAdd<0b101101, "vfnmacc.vf">;
+
+def VFMSAC_VV : VALU_OPFVV_MulAdd<0b101110, "vfmsac.vv">;
+def VFMSAC_VF : VALU_OPFVF_MulAdd<0b101110, "vfmsac.vf">;
+
+def VFNMSAC_VV : VALU_OPFVV_MulAdd<0b101111, "vfnmsac.vv">;
+def VFNMSAC_VF : VALU_OPFVF_MulAdd<0b101111, "vfnmsac.vf">;
+
+def VFMADD_VV : VALU_OPFVV_MulAdd<0b101000, "vfmadd.vv">;
+def VFMADD_VF : VALU_OPFVF_MulAdd<0b101000, "vfmadd.vf">;
+
+def VFNMADD_VV : VALU_OPFVV_MulAdd<0b101001, "vfnmadd.vv">;
+def VFNMADD_VF : VALU_OPFVF_MulAdd<0b101001, "vfnmadd.vf">;
+
+def VFMSUB_VV : VALU_OPFVV_MulAdd<0b101010, "vfmsub.vv">;
+def VFMSUB_VF : VALU_OPFVF_MulAdd<0b101010, "vfmsub.vf">;
+
+def VFNMSUB_VV : VALU_OPFVV_MulAdd<0b101011, "vfnmsub.vv">;
+def VFNMSUB_VF : VALU_OPFVF_MulAdd<0b101011, "vfnmsub.vf">;
 
 
 // Vector Widening Floating-Point Fused Multiply-Add Instructions

@@ -858,6 +858,70 @@ vfwmul.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x50,0x10,0xe2]
 vfwmul.vf v0, v1, ft0
 
+# CHECK-ASM-AND-OBJ: vfmacc.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xb2]
+vfmacc.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfmacc.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xb2]
+vfmacc.vf v0, ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfnmacc.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xb6]
+vfnmacc.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfnmacc.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xb6]
+vfnmacc.vf v0, ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfmsac.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xba]
+vfmsac.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfmsac.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xba]
+vfmsac.vf v0, ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfnmsac.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xbe]
+vfnmsac.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfnmsac.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xbe]
+vfnmsac.vf v0, ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfmadd.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xa2]
+vfmadd.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfmadd.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xa2]
+vfmadd.vf v0, ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfnmadd.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xa6]
+vfnmadd.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfnmadd.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xa6]
+vfnmadd.vf v0, ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfmsub.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xaa]
+vfmsub.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfmsub.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xaa]
+vfmsub.vf v0, ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfnmsub.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xae]
+vfnmsub.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfnmsub.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xae]
+vfnmsub.vf v0, ft0, v1
+
 # CHECK-ASM-AND-OBJ: vfmin.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x10,0x10,0x12]
 vfmin.vv v0, v1, v0
