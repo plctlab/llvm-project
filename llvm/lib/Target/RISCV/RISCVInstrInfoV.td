@@ -541,7 +541,17 @@ def VNMSUB_VX : VALU_OPMVX_MulAdd<0b101011, "vnmsub.vx">;
 
 
 // Vector Widening Integer Multiply-Add Instructions
-// TODO
+
+def VWMACCU_VV : VALU_OPMVV_MulAdd<0b111100, "vwmaccu.vv">;
+def VWMACCU_VX : VALU_OPMVX_MulAdd<0b111100, "vwmaccu.vx">;
+
+def VWMACC_VV : VALU_OPMVV_MulAdd<0b111101, "vwmacc.vv">;
+def VWMACC_VX : VALU_OPMVX_MulAdd<0b111101, "vwmacc.vx">;
+
+def VWMACCSU_VV : VALU_OPMVV_MulAdd<0b111110, "vwmaccsu.vv">;
+def VWMACCSU_VX : VALU_OPMVX_MulAdd<0b111110, "vwmaccsu.vx">;
+
+def VWMACCUS_VX : VALU_OPMVX_MulAdd<0b111111, "vwmaccus.vx">;
 
 
 // Vector Integer Merge and Move Instructions
