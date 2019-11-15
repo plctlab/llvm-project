@@ -702,6 +702,34 @@ vsmul.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0x9e]
 vsmul.vx v0, v1, a0
 
+# CHECK-ASM-AND-OBJ: vwsmaccu.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xf2]
+vwsmaccu.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vwsmaccu.vx v0, a0, v1
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xf2]
+vwsmaccu.vx v0, a0, v1
+
+# CHECK-ASM-AND-OBJ: vwsmacc.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xf6]
+vwsmacc.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vwsmacc.vx v0, a0, v1
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xf6]
+vwsmacc.vx v0, a0, v1
+
+# CHECK-ASM-AND-OBJ: vwsmaccsu.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xfa]
+vwsmaccsu.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vwsmaccsu.vx v0, a0, v1
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xfa]
+vwsmaccsu.vx v0, a0, v1
+
+# CHECK-ASM-AND-OBJ: vwsmaccus.vx v0, a0, v1
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xfe]
+vwsmaccus.vx v0, a0, v1
+
 # CHECK-ASM-AND-OBJ: vssrl.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0xaa]
 vssrl.vv v0, v1, v0

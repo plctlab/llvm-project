@@ -153,6 +153,18 @@ class VALU_OPIVV<bits<6> funct6, string opcodestr>
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPIVV_MulAdd<bits<6> funct6, string opcodestr>
+    : RVInstVA<funct6, 0b000, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
+               opcodestr, "$vd, $vs1, $vs2">
+{
+  bits<5> vs1;
+
+  let Inst{19-15} = vs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPFVV<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b001, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
@@ -206,6 +218,18 @@ class VALU_OPIVX<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b100, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
                opcodestr, "$vd, $vs2, $rs1">
+{
+  bits<5> rs1;
+
+  let Inst{19-15} = rs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPIVX_MulAdd<bits<6> funct6, string opcodestr>
+    : RVInstVA<funct6, 0b100, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
+               opcodestr, "$vd, $rs1, $vs2">
 {
   bits<5> rs1;
 
@@ -592,7 +616,17 @@ def VSMUL_VX : VALU_OPIVX<0b100111, "vsmul.vx">;
 
 
 // Vector Widening Saturating Scaled Multiply-Add Instructions
-// TODO
+
+def VWSMACCU_VV : VALU_OPIVV_MulAdd<0b111100, "vwsmaccu.vv">;
+def VWSMACCU_VX : VALU_OPIVX_MulAdd<0b111100, "vwsmaccu.vx">;
+
+def VWSMACC_VV : VALU_OPIVV_MulAdd<0b111101, "vwsmacc.vv">;
+def VWSMACC_VX : VALU_OPIVX_MulAdd<0b111101, "vwsmacc.vx">;
+
+def VWSMACCSU_VV : VALU_OPIVV_MulAdd<0b111110, "vwsmaccsu.vv">;
+def VWSMACCSU_VX : VALU_OPIVX_MulAdd<0b111110, "vwsmaccsu.vx">;
+
+def VWSMACCUS_VX : VALU_OPIVX_MulAdd<0b111111, "vwsmaccus.vx">;
 
 
 // Vector Single-Width Scaling Shift Instructions
