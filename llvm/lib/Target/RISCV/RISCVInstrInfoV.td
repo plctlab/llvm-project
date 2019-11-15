@@ -742,7 +742,18 @@ def VFNMSUB_VF : VALU_OPFVF_MulAdd<0b101011, "vfnmsub.vf">;
 
 
 // Vector Widening Floating-Point Fused Multiply-Add Instructions
-// TODO
+
+def VFWMACC_VV : VALU_OPFVV_MulAdd<0b111100, "vfwmacc.vv">;
+def VFWMACC_VF : VALU_OPFVF_MulAdd<0b111100, "vfwmacc.vf">;
+
+def VFWNMACC_VV : VALU_OPFVV_MulAdd<0b111101, "vfwnmacc.vv">;
+def VFWNMACC_VF : VALU_OPFVF_MulAdd<0b111101, "vfwnmacc.vf">;
+
+def VFWMSAC_VV : VALU_OPFVV_MulAdd<0b111110, "vfwmsac.vv">;
+def VFWMSAC_VF : VALU_OPFVF_MulAdd<0b111110, "vfwmsac.vf">;
+
+def VFWNMSAC_VV : VALU_OPFVV_MulAdd<0b111111, "vfwnmsac.vv">;
+def VFWNMSAC_VF : VALU_OPFVF_MulAdd<0b111111, "vfwnmsac.vf">;
 
 
 // Vector Floating-Point Square-Root Instruction

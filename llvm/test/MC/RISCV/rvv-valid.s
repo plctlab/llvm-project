@@ -922,6 +922,38 @@ vfnmsub.vv v0, v0, v1
 # CHECK-ASM: encoding: [0x57,0x50,0x10,0xae]
 vfnmsub.vf v0, ft0, v1
 
+# CHECK-ASM-AND-OBJ: vfwmacc.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xf2]
+vfwmacc.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfwmacc.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xf2]
+vfwmacc.vf v0, ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfwnmacc.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xf6]
+vfwnmacc.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfwnmacc.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xf6]
+vfwnmacc.vf v0, ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfwmsac.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xfa]
+vfwmsac.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfwmsac.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xfa]
+vfwmsac.vf v0, ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfwnmsac.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0xfe]
+vfwnmsac.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vfwnmsac.vf v0, ft0, v1
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0xfe]
+vfwnmsac.vf v0, ft0, v1
+
 # CHECK-ASM-AND-OBJ: vfmin.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x10,0x10,0x12]
 vfmin.vv v0, v1, v0
