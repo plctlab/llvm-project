@@ -777,7 +777,8 @@ def VFWNMSAC_VF : VALU_OPFVF_MulAdd<0b111111, "vfwnmsac.vf">;
 
 
 // Vector Floating-Point Square-Root Instruction
-// TODO
+
+def VFSQRT_V : VALU_OPFVV_VFUNARY1<0b00000, "vfsqrt.v">;
 
 
 // Vector Floating-Point MIN/MAX Instructions

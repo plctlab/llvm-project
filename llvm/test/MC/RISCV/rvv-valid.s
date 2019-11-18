@@ -954,6 +954,10 @@ vfwnmsac.vv v0, v0, v1
 # CHECK-ASM: encoding: [0x57,0x50,0x10,0xfe]
 vfwnmsac.vf v0, ft0, v1
 
+# CHECK-ASM-AND-OBJ: vfsqrt.v v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x8e]
+vfsqrt.v v0, v1
+
 # CHECK-ASM-AND-OBJ: vfmin.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x10,0x10,0x12]
 vfmin.vv v0, v1, v0
