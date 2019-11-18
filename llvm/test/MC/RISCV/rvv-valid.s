@@ -1026,6 +1026,26 @@ vfcvt.f.xu.v v0, v1
 # CHECK-ASM: encoding: [0x57,0x90,0x11,0x8a]
 vfcvt.f.x.v v0, v1
 
+# CHECK-ASM-AND-OBJ: vfwcvt.xu.f.v v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x14,0x8a]
+vfwcvt.xu.f.v v0, v1
+
+# CHECK-ASM-AND-OBJ: vfwcvt.x.f.v v0, v1
+# CHECK-ASM: encoding: [0x57,0x90,0x14,0x8a]
+vfwcvt.x.f.v v0, v1
+
+# CHECK-ASM-AND-OBJ: vfwcvt.f.xu.v v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x15,0x8a]
+vfwcvt.f.xu.v v0, v1
+
+# CHECK-ASM-AND-OBJ: vfwcvt.f.x.v v0, v1
+# CHECK-ASM: encoding: [0x57,0x90,0x15,0x8a]
+vfwcvt.f.x.v v0, v1
+
+# CHECK-ASM-AND-OBJ: vfwcvt.f.f.v v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x16,0x8a]
+vfwcvt.f.f.v v0, v1
+
 # CHECK-ASM-AND-OBJ: vredsum.vs v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x20,0x10,0x02]
 vredsum.vs v0, v1, v0
