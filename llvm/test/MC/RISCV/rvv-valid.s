@@ -1010,6 +1010,22 @@ vmfgt.vf v0, v1, ft0
 # CHECK-ASM: encoding: [0x57,0x50,0x10,0x7e]
 vmfge.vf v0, v1, ft0
 
+# CHECK-ASM-AND-OBJ: vfcvt.xu.f.v v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x8a]
+vfcvt.xu.f.v v0, v1
+
+# CHECK-ASM-AND-OBJ: vfcvt.x.f.v v0, v1
+# CHECK-ASM: encoding: [0x57,0x90,0x10,0x8a]
+vfcvt.x.f.v v0, v1
+
+# CHECK-ASM-AND-OBJ: vfcvt.f.xu.v v0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x11,0x8a]
+vfcvt.f.xu.v v0, v1
+
+# CHECK-ASM-AND-OBJ: vfcvt.f.x.v v0, v1
+# CHECK-ASM: encoding: [0x57,0x90,0x11,0x8a]
+vfcvt.f.x.v v0, v1
+
 # CHECK-ASM-AND-OBJ: vredsum.vs v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x20,0x10,0x02]
 vredsum.vs v0, v1, v0

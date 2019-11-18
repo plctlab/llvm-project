@@ -177,6 +177,26 @@ class VALU_OPFVV<bits<6> funct6, string opcodestr>
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPFVV_VFUNARY0<bits<5> vs1, string opcodestr>
+    : RVInstVA<0b100010, 0b001, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs2, VLR:$vl),
+               opcodestr, "$vd, $vs2">
+{
+  let Inst{19-15} = vs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPFVV_VFUNARY1<bits<5> vs1, string opcodestr>
+    : RVInstVA<0b100011, 0b001, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs2, VLR:$vl),
+               opcodestr, "$vd, $vs2">
+{
+  let Inst{19-15} = vs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPFVV_MulAdd<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b001, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
@@ -799,6 +819,14 @@ def VMFORD_VF : VALU_OPFVF<0b011010, "vmford.vf">;
 
 // Vector Floating-Point Merge and Move Instructions
 // TODO
+
+
+// Single-Width Floating-Point/Integer Type-Convert Instructions
+
+def VFCVT_XU_F_V : VALU_OPFVV_VFUNARY0<0b00000, "vfcvt.xu.f.v">;
+def VFCVT_X_F_V : VALU_OPFVV_VFUNARY0<0b00001, "vfcvt.x.f.v">;
+def VFCVT_F_XU_V : VALU_OPFVV_VFUNARY0<0b00010, "vfcvt.f.xu.v">;
+def VFCVT_F_X_V : VALU_OPFVV_VFUNARY0<0b00011, "vfcvt.f.x.v">;
 
 
 // Widening Floating-Point/Integer Type-Convert Instructions
