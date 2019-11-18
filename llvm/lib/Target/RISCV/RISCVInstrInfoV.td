@@ -839,7 +839,12 @@ def VFWCVT_F_F_V : VALU_OPFVV_VFUNARY0<0b01100, "vfwcvt.f.f.v">;
 
 
 // Narrowing Floating-Point/Integer Type-Convert Instructions
-// TODO
+
+def VFNCVT_XU_F_V : VALU_OPFVV_VFUNARY0<0b10000, "vfncvt.xu.f.v">;
+def VFNCVT_X_F_V : VALU_OPFVV_VFUNARY0<0b10001, "vfncvt.x.f.v">;
+def VFNCVT_F_XU_V : VALU_OPFVV_VFUNARY0<0b10010, "vfncvt.f.xu.v">;
+def VFNCVT_F_X_V : VALU_OPFVV_VFUNARY0<0b10011, "vfncvt.f.x.v">;
+def VFNCVT_F_F_V : VALU_OPFVV_VFUNARY0<0b10100, "vfncvt.f.f.v">;
 
 
 // Vector Single-Width Integer Reduction Instructions
