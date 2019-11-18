@@ -815,7 +815,8 @@ def VMFORD_VF : VALU_OPFVF<0b011010, "vmford.vf">;
 
 
 // Vector Floating-Point Classify Instruction
-// TODO
+
+def VFCLASS_V : VALU_OPFVV_VFUNARY1<0b10000, "vfclass.v">;
 
 
 // Vector Floating-Point Merge and Move Instructions
@@ -896,7 +897,7 @@ def VMXNOR_MM : VALU_OPMVV<0b011111, "vmxnor.mm">;
 // TODO
 
 
-// find-first-set mask bit  Instruction
+// find-first-set mask bit Instruction
 // TODO
 
 
