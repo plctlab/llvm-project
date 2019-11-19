@@ -1170,6 +1170,34 @@ vmornot.mm v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x20,0x10,0x7e]
 vmxnor.mm v0, v1, v0
 
+# CHECK-ASM-AND-OBJ: vmpopc.m a0, v1
+# CHECK-ASM: encoding: [0x57,0x25,0x1c,0x5a]
+vmpopc.m a0, v1
+
+# CHECK-ASM-AND-OBJ: vmfirst.m a0, v1
+# CHECK-ASM: encoding: [0x57,0xa5,0x1c,0x5a]
+vmfirst.m a0, v1
+
+# CHECK-ASM-AND-OBJ: vmsbf.m v0, v1
+# CHECK-ASM: encoding: [0x57,0xa0,0x10,0x5a]
+vmsbf.m v0, v1
+
+# CHECK-ASM-AND-OBJ: vmsif.m v0, v1
+# CHECK-ASM: encoding: [0x57,0xa0,0x11,0x5a]
+vmsif.m v0, v1
+
+# CHECK-ASM-AND-OBJ: vmsof.m v0, v1
+# CHECK-ASM: encoding: [0x57,0x20,0x11,0x5a]
+vmsof.m v0, v1
+
+# CHECK-ASM-AND-OBJ: viota.m v0, v1
+# CHECK-ASM: encoding: [0x57,0x20,0x18,0x5a]
+viota.m v0, v1
+
+# CHECK-ASM-AND-OBJ: vid.v v0
+# CHECK-ASM: encoding: [0x57,0xa0,0x08,0x5a]
+vid.v v0
+
 # CHECK-ASM-AND-OBJ: vslideup.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0x3a]
 vslideup.vx v0, v1, a0

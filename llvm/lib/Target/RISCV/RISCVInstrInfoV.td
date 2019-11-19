@@ -221,6 +221,26 @@ class VALU_OPMVV<bits<6> funct6, string opcodestr>
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPMVV_VMUNARY0_VR<bits<5> vs1, string opcodestr>
+    : RVInstVA<0b010110, 0b010, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs2, VLR:$vl),
+               opcodestr, "$vd, $vs2">
+{
+  let Inst{19-15} = vs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPMVV_VMUNARY0_GPR<bits<5> vs1, string opcodestr>
+    : RVInstVA<0b010110, 0b010, RVV_Unmasked, OPC_OP_V,
+               (outs GPR:$rd), (ins VR:$vs2, VLR:$vl),
+               opcodestr, "$rd, $vs2">
+{
+  let Inst{19-15} = vs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPMVV_MulAdd<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b010, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
@@ -894,31 +914,47 @@ def VMXNOR_MM : VALU_OPMVV<0b011111, "vmxnor.mm">;
 
 
 // Vector mask population count Instruction
-// TODO
+
+def VMPOPC_M : VALU_OPMVV_VMUNARY0_GPR<0b11000, "vmpopc.m">;
 
 
 // find-first-set mask bit Instruction
-// TODO
+
+def VMFIRST_M : VALU_OPMVV_VMUNARY0_GPR<0b11001, "vmfirst.m">;
 
 
 // set-before-first mask bit Instruction
-// TODO
+
+def VMSBF_M : VALU_OPMVV_VMUNARY0_VR<0b00001, "vmsbf.m">;
 
 
 // set-including-first mask bit Instruction
-// TODO
+
+def VMSIF_M : VALU_OPMVV_VMUNARY0_VR<0b00011, "vmsif.m">;
 
 
 // set-only-first mask bit Instruction
-// TODO
+
+def VMSOF_M : VALU_OPMVV_VMUNARY0_VR<0b00010, "vmsof.m">;
 
 
 // Vector Iota Instruction
-// TODO
+
+def VIOTA_M : VALU_OPMVV_VMUNARY0_VR<0b10000, "viota.m">;
 
 
 // Vector Element Index Instruction
-// TODO
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VID_V: RVInstVA<0b010110, 0b010, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VLR:$vl), "vid.v", "$vd">
+{
+  bits<5> vs1;
+  let vs1 = 0b10001;
+  let vs2 = 0b00000;
+  let Inst{19-15} = vs1;
+  //let Uses = [VCFG];
+}
 
 
 // Integer Extract Instruction
