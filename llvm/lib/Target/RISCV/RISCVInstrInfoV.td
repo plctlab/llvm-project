@@ -958,16 +958,56 @@ def VID_V: RVInstVA<0b010110, 0b010, RVV_Unmasked, OPC_OP_V,
 
 
 // Integer Extract Instruction
-// TODO
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VEXT_X_V: RVInstVA<0b001100, 0b010, RVV_Unmasked, OPC_OP_V,
+               (outs GPR:$rd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
+               "vext.x.v", "$rd, $vs2, $rs1">
+{
+  bits<5> rs1;
+  
+  let Inst{19-15} = rs1;
+  //let Uses = [VCFG];
+}
 
 
 // Integer Scalar Move Instruction
-// TODO
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VMV_S_X: RVInstVA<0b001101, 0b110, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins GPR:$rs1, VLR:$vl),
+               "vmv.s.x", "$vd, $rs1">
+{
+  bits<5> rs1;
+  let vs2 = 0b00000;
+  let Inst{19-15} = rs1;
+  //let Uses = [VCFG];
+}
 
 
 // Floating-Point Scalar Move Instructions
-// TODO
 
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VFMV_F_S: RVInstVA<0b001100, 0b001, RVV_Unmasked, OPC_OP_V,
+               (outs FPR32:$rd), (ins VR:$vs2, VLR:$vl),
+               "vfmv.f.s", "$rd, $vs2">
+{
+  bits<5> rs1;
+  let rs1 = 0b00000;
+  let Inst{19-15} = rs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VFMV_S_F: RVInstVA<0b001101, 0b101, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins FPR32:$rs1, VLR:$vl),
+               "vfmv.s.f", "$vd, $rs1">
+{
+  bits<5> rs1;
+  let vs2 = 0b00000;
+  let Inst{19-15} = rs1;
+  //let Uses = [VCFG];
+}
 
 // Vector Slide Instructions
 

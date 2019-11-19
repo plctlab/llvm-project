@@ -1198,6 +1198,22 @@ viota.m v0, v1
 # CHECK-ASM: encoding: [0x57,0xa0,0x08,0x5a]
 vid.v v0
 
+# CHECK-ASM-AND-OBJ: vext.x.v a0, v1, a1
+# CHECK-ASM: encoding: [0x57,0xa5,0x15,0x32]
+vext.x.v a0, v1, a1
+
+# CHECK-ASM-AND-OBJ: vmv.s.x v0, a1
+# CHECK-ASM: encoding: [0x57,0xe0,0x05,0x36]
+vmv.s.x v0, a1
+
+# CHECK-ASM-AND-OBJ: vfmv.f.s ft0, v1
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x32]
+vfmv.f.s ft0, v1
+
+# CHECK-ASM-AND-OBJ: vfmv.s.f v0, ft1
+# CHECK-ASM: encoding: [0x57,0xd0,0x00,0x36]
+vfmv.s.f v0, ft1
+
 # CHECK-ASM-AND-OBJ: vslideup.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0x3a]
 vslideup.vx v0, v1, a0
