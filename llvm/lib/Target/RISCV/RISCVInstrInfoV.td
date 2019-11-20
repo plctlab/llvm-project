@@ -153,6 +153,18 @@ class VALU_OPIVV<bits<6> funct6, string opcodestr>
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPIVVM<bits<6> funct6, string opcodestr>
+    : RVInstVA<funct6, 0b000, RVV_masked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VR:$vm, VLR:$vl),
+               opcodestr, "$vd, $vs2, $vs1, $vm">
+{
+  bits<5> vs1;
+
+  let Inst{19-15} = vs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVV_MulAdd<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b000, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
@@ -252,7 +264,6 @@ class VALU_OPMVV_MulAdd<bits<6> funct6, string opcodestr>
   //let Uses = [VCFG];
 }
 
-
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVI<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b011, RVV_Unmasked, OPC_OP_V,
@@ -266,10 +277,34 @@ class VALU_OPIVI<bits<6> funct6, string opcodestr>
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPIVIM<bits<6> funct6, string opcodestr>
+    : RVInstVA<funct6, 0b011, RVV_masked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs2, simm5:$imm5, VR:$vm, VLR:$vl),
+               opcodestr, "$vd, $vs2, $imm5, $vm">
+{
+  bits<5> simm5;
+
+  let Inst{19-15} = simm5;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVX<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b100, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
                opcodestr, "$vd, $vs2, $rs1">
+{
+  bits<5> rs1;
+
+  let Inst{19-15} = rs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPIVXM<bits<6> funct6, string opcodestr>
+    : RVInstVA<funct6, 0b100, RVV_masked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VR:$vm, VLR:$vl),
+               opcodestr, "$vd, $vs2, $rs1, $vm">
 {
   bits<5> rs1;
 
@@ -642,7 +677,14 @@ def VWMACCSU_VX : VALU_OPMVX_MulAdd<0b111110, "vwmaccsu.vx">;
 def VWMACCUS_VX : VALU_OPMVX_MulAdd<0b111111, "vwmaccus.vx">;
 
 
-// Vector Integer Merge and Move Instructions
+// Vector Integer Merge Instructions
+
+def VMERGE_VVM : VALU_OPIVVM<0b010111, "vmerge.vvm">;
+def VMERGE_VXM : VALU_OPIVXM<0b010111, "vmerge.vxm">;
+def VMERGE_VIM : VALU_OPIVIM<0b010111, "vmerge.vim">;
+
+
+// Vector Integer Move Instructions
 // TODO
 
 

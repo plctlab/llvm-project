@@ -18,6 +18,7 @@ class RVVMaskCond<bits<1> m> {
 }
 
 def RVV_Unmasked : RVVMaskCond<0b1>;
+def RVV_masked : RVVMaskCond<0b0>;
 
 
 // Format for Vector Load Instructions under LOAD-FP major opcode
