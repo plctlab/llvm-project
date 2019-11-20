@@ -1042,6 +1042,10 @@ vmfge.vf v0, v1, ft0
 # CHECK-ASM: encoding: [0x57,0x10,0x18,0x8e]
 vfclass.v v0, v1
 
+# CHECK-ASM-AND-OBJ: vfmerge.vfm v0, v1, ft0, v0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x5c]
+vfmerge.vfm v0, v1, ft0, v0
+
 # CHECK-ASM-AND-OBJ: vfcvt.xu.f.v v0, v1
 # CHECK-ASM: encoding: [0x57,0x10,0x10,0x8a]
 vfcvt.xu.f.v v0, v1

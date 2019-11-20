@@ -337,6 +337,18 @@ class VALU_OPFVF<bits<6> funct6, string opcodestr>
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPFVFM<bits<6> funct6, string opcodestr>
+    : RVInstVA<funct6, 0b101, RVV_Masked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs2, VR:$vm, FPR32:$rs1, VLR:$vl),
+               opcodestr, "$vd, $vs2, $rs1, $vm">
+{
+  bits<5> rs1;
+
+  let Inst{19-15} = rs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPFVF_MulAdd<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b101, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs2, FPR32:$rs1, VLR:$vl),
@@ -913,7 +925,12 @@ def VMFORD_VF : VALU_OPFVF<0b011010, "vmford.vf">;
 def VFCLASS_V : VALU_OPFVV_VFUNARY1<0b10000, "vfclass.v">;
 
 
-// Vector Floating-Point Merge and Move Instructions
+// Vector Floating-Point Merge Instruction
+
+def VFMERGE_VFM : VALU_OPFVFM<0b010111, "vfmerge.vfm">;
+
+
+// Vector Floating-Point Move Instruction
 // TODO
 
 
