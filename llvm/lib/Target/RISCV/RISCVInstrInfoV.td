@@ -528,7 +528,27 @@ def VWSUB_WX : VALU_OPMVX<0b110111, "vwsub.wx">;
 
 
 // Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
-// TODO
+
+def VADC_VVM : VALU_OPIVVM<0b010000, "vadc.vvm">;
+def VADC_VXM : VALU_OPIVXM<0b010000, "vadc.vxm">;
+def VADC_VIM : VALU_OPIVIM<0b010000, "vadc.vim">;
+
+def VMADC_VVM : VALU_OPIVVM<0b010001, "vmadc.vvm">;
+def VMADC_VXM : VALU_OPIVXM<0b010001, "vmadc.vxm">;
+def VMADC_VIM : VALU_OPIVIM<0b010001, "vmadc.vim">;
+
+def VMADC_VV : VALU_OPIVV<0b010001, "vmadc.vv">;
+def VMADC_VX : VALU_OPIVX<0b010001, "vmadc.vx">;
+def VMADC_VI : VALU_OPIVI<0b010001, "vmadc.vi">;
+
+def VSBC_VVM : VALU_OPIVVM<0b010010, "vsbc.vvm">;
+def VSBC_VXM : VALU_OPIVXM<0b010010, "vsbc.vxm">;
+
+def VMSBC_VVM : VALU_OPIVVM<0b010011, "vmsbc.vvm">;
+def VMSBC_VXM : VALU_OPIVXM<0b010011, "vmsbc.vxm">;
+
+def VMSBC_VV : VALU_OPIVV<0b010011, "vmsbc.vv">;
+def VMSBC_VX : VALU_OPIVX<0b010011, "vmsbc.vx">;
 
 
 // Vector Bitwise Logical Instructions

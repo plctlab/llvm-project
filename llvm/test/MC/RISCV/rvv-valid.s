@@ -278,6 +278,66 @@ vwsub.wv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x60,0x15,0xde]
 vwsub.wx v0, v1, a0
 
+# CHECK-ASM-AND-OBJ: vadc.vvm v0, v1, v0, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x40]
+vadc.vvm v0, v1, v0, v0
+
+# CHECK-ASM-AND-OBJ: vadc.vxm v0, v1, a0, v0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x40]
+vadc.vxm v0, v1, a0, v0
+
+# CHECK-ASM-AND-OBJ: vadc.vim v0, v1, 0, v0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x40]
+vadc.vim v0, v1, 0, v0
+
+# CHECK-ASM-AND-OBJ: vmadc.vvm v0, v1, v0, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x44]
+vmadc.vvm v0, v1, v0, v0
+
+# CHECK-ASM-AND-OBJ: vmadc.vxm v0, v1, a0, v0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x44]
+vmadc.vxm v0, v1, a0, v0
+
+# CHECK-ASM-AND-OBJ: vmadc.vim v0, v1, 0, v0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x44]
+vmadc.vim v0, v1, 0, v0
+
+# CHECK-ASM-AND-OBJ: vmadc.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x46]
+vmadc.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmadc.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x46]
+vmadc.vx v0, v1, a0
+
+# CHECK-ASM-AND-OBJ: vmadc.vi v0, v1, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x10,0x46]
+vmadc.vi v0, v1, 0
+
+# CHECK-ASM-AND-OBJ: vsbc.vvm v0, v1, v0, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x48]
+vsbc.vvm v0, v1, v0, v0
+
+# CHECK-ASM-AND-OBJ: vsbc.vxm v0, v1, a0, v0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x48]
+vsbc.vxm v0, v1, a0, v0
+
+# CHECK-ASM-AND-OBJ: vmsbc.vvm v0, v1, v0, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x4c]
+vmsbc.vvm v0, v1, v0, v0
+
+# CHECK-ASM-AND-OBJ: vmsbc.vxm v0, v1, a0, v0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x4c]
+vmsbc.vxm v0, v1, a0, v0
+
+# CHECK-ASM-AND-OBJ: vmsbc.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0x4e]
+vmsbc.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vmsbc.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0x4e]
+vmsbc.vx v0, v1, a0
+
 # CHECK-ASM-AND-OBJ: vand.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0x26]
 vand.vv v0, v1, v0
