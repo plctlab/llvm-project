@@ -1058,6 +1058,30 @@ vfmax.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x50,0x10,0x1a]
 vfmax.vf v0, v1, ft0
 
+# CHECK-ASM-AND-OBJ: vfsgnj.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x22]
+vfsgnj.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfsgnj.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x22]
+vfsgnj.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfsgnjn.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x26]
+vfsgnjn.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfsgnjn.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x26]
+vfsgnjn.vf v0, v1, ft0
+
+# CHECK-ASM-AND-OBJ: vfsgnjx.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x2a]
+vfsgnjx.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vfsgnjx.vf v0, v1, ft0
+# CHECK-ASM: encoding: [0x57,0x50,0x10,0x2a]
+vfsgnjx.vf v0, v1, ft0
+
 # CHECK-ASM-AND-OBJ: vmfeq.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x10,0x10,0x62]
 vmfeq.vv v0, v1, v0

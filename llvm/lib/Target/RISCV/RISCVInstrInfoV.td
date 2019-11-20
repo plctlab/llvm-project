@@ -916,6 +916,18 @@ def VFMAX_VV : VALU_OPFVV<0b000110, "vfmax.vv">;
 def VFMAX_VF : VALU_OPFVF<0b000110, "vfmax.vf">;
 
 
+// Vector Floating-Point Sign-Injection Instructions
+
+def VFSGNJ_VV : VALU_OPFVV<0b001000, "vfsgnj.vv">;
+def VFSGNJ_VF : VALU_OPFVF<0b001000, "vfsgnj.vf">;
+
+def VFSGNJN_VV : VALU_OPFVV<0b001001, "vfsgnjn.vv">;
+def VFSGNJN_VF : VALU_OPFVF<0b001001, "vfsgnjn.vf">;
+
+def VFSGNJX_VV : VALU_OPFVV<0b001010, "vfsgnjx.vv">;
+def VFSGNJX_VF : VALU_OPFVF<0b001010, "vfsgnjx.vf">;
+
+
 // Vector Floating-Point Compare Instructions
 
 def VMFEQ_VV : VALU_OPFVV<0b011000, "vmfeq.vv">;
