@@ -931,7 +931,17 @@ def VFMERGE_VFM : VALU_OPFVFM<0b010111, "vfmerge.vfm">;
 
 
 // Vector Floating-Point Move Instruction
-// TODO
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VFMV_V_F: RVInstVA<0b010111, 0b101, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins FPR32:$rs1, VLR:$vl),
+               "vfmv.v.f", "$vd, $rs1">
+{
+  bits<5> rs1;
+  let vs2 = 0b00000;
+  let Inst{19-15} = rs1;
+  //let Uses = [VCFG];
+}
 
 
 // Single-Width Floating-Point/Integer Type-Convert Instructions
