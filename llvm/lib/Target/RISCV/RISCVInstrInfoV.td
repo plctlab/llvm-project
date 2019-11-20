@@ -154,7 +154,7 @@ class VALU_OPIVV<bits<6> funct6, string opcodestr>
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVVM<bits<6> funct6, string opcodestr>
-    : RVInstVA<funct6, 0b000, RVV_masked, OPC_OP_V,
+    : RVInstVA<funct6, 0b000, RVV_Masked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VR:$vm, VLR:$vl),
                opcodestr, "$vd, $vs2, $vs1, $vm">
 {
@@ -278,7 +278,7 @@ class VALU_OPIVI<bits<6> funct6, string opcodestr>
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVIM<bits<6> funct6, string opcodestr>
-    : RVInstVA<funct6, 0b011, RVV_masked, OPC_OP_V,
+    : RVInstVA<funct6, 0b011, RVV_Masked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs2, simm5:$imm5, VR:$vm, VLR:$vl),
                opcodestr, "$vd, $vs2, $imm5, $vm">
 {
@@ -302,7 +302,7 @@ class VALU_OPIVX<bits<6> funct6, string opcodestr>
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVXM<bits<6> funct6, string opcodestr>
-    : RVInstVA<funct6, 0b100, RVV_masked, OPC_OP_V,
+    : RVInstVA<funct6, 0b100, RVV_Masked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VR:$vm, VLR:$vl),
                opcodestr, "$vd, $vs2, $rs1, $vm">
 {
@@ -685,7 +685,39 @@ def VMERGE_VIM : VALU_OPIVIM<0b010111, "vmerge.vim">;
 
 
 // Vector Integer Move Instructions
-// TODO
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VMV_V_V: RVInstVA<0b010111, 0b000, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs1, VLR:$vl),
+               "vmv.v.v", "$vd, $vs1">
+{
+  bits<5> vs1;
+  let vs2 = 0b00000;
+  let Inst{19-15} = vs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VMV_V_X: RVInstVA<0b010111, 0b100, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins GPR:$rs1, VLR:$vl),
+               "vmv.v.x", "$vd, $rs1">
+{
+  bits<5> rs1;
+  let vs2 = 0b00000;
+  let Inst{19-15} = rs1;
+  //let Uses = [VCFG];
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def VMV_V_I: RVInstVA<0b010111, 0b011, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins simm5:$imm5, VLR:$vl),
+               "vmv.v.i", "$vd, $imm5">
+{
+  bits<5> simm5;
+  let vs2 = 0b00000;
+  let Inst{19-15} = simm5;
+  //let Uses = [VCFG];
+}
 
 
 // Vector Single-Width Saturating Add and Subtract Instructions

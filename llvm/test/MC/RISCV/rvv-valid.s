@@ -634,17 +634,29 @@ vwmaccsu.vx v0, a0, v1
 # CHECK-ASM: encoding: [0x57,0x60,0x15,0xfe]
 vwmaccus.vx v0, a0, v1
 
-# CHECK-ASM-AND-OBJ: vmerge.vvm v0, v1, v0
+# CHECK-ASM-AND-OBJ: vmerge.vvm v0, v1, v0, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0x5c]
 vmerge.vvm v0, v1, v0, v0
 
-# CHECK-ASM-AND-OBJ: vmerge.vxm v0, v1, a0
+# CHECK-ASM-AND-OBJ: vmerge.vxm v0, v1, a0, v0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0x5c]
 vmerge.vxm v0, v1, a0, v0
 
-# CHECK-ASM-AND-OBJ: vmerge.vim v0, v1, 0
+# CHECK-ASM-AND-OBJ: vmerge.vim v0, v1, 0, v0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0x5c]
 vmerge.vim v0, v1, 0, v0
+
+# CHECK-ASM-AND-OBJ: vmv.v.v v0, v0
+# CHECK-ASM: encoding: [0x57,0x00,0x00,0x5e]
+vmv.v.v v0, v0
+
+# CHECK-ASM-AND-OBJ: vmv.v.x v0, a0
+# CHECK-ASM: encoding: [0x57,0x40,0x05,0x5e]
+vmv.v.x v0, a0
+
+# CHECK-ASM-AND-OBJ: vmv.v.i v0, 0
+# CHECK-ASM: encoding: [0x57,0x30,0x00,0x5e]
+vmv.v.i v0, 0
 
 # CHECK-ASM-AND-OBJ: vsaddu.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0x82]
