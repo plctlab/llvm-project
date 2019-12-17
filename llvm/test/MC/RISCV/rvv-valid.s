@@ -410,29 +410,29 @@ vsra.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0xa6]
 vsra.vi v0, v1, 0
 
-# CHECK-ASM-AND-OBJ: vnsrl.vv v0, v1, v0
+# CHECK-ASM-AND-OBJ: vnsrl.wv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0xb2]
-vnsrl.vv v0, v1, v0
+vnsrl.wv v0, v1, v0
 
-# CHECK-ASM-AND-OBJ: vnsrl.vx v0, v1, a0
+# CHECK-ASM-AND-OBJ: vnsrl.wx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0xb2]
-vnsrl.vx v0, v1, a0
+vnsrl.wx v0, v1, a0
 
-# CHECK-ASM-AND-OBJ: vnsrl.vi v0, v1, 0
+# CHECK-ASM-AND-OBJ: vnsrl.wi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0xb2]
-vnsrl.vi v0, v1, 0
+vnsrl.wi v0, v1, 0
 
-# CHECK-ASM-AND-OBJ: vnsra.vv v0, v1, v0
+# CHECK-ASM-AND-OBJ: vnsra.wv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0xb6]
-vnsra.vv v0, v1, v0
+vnsra.wv v0, v1, v0
 
-# CHECK-ASM-AND-OBJ: vnsra.vx v0, v1, a0
+# CHECK-ASM-AND-OBJ: vnsra.wx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0xb6]
-vnsra.vx v0, v1, a0
+vnsra.wx v0, v1, a0
 
-# CHECK-ASM-AND-OBJ: vnsra.vi v0, v1, 0
+# CHECK-ASM-AND-OBJ: vnsra.wi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0xb6]
-vnsra.vi v0, v1, 0
+vnsra.wi v0, v1, 0
 
 # CHECK-ASM-AND-OBJ: vmseq.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0x62]
@@ -758,24 +758,36 @@ vssub.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0x8e]
 vssub.vx v0, v1, a0
 
+# CHECK-ASM-AND-OBJ: vaaddu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x22]
+vaaddu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vaaddu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x22]
+vaaddu.vx v0, v1, a0
+
 # CHECK-ASM-AND-OBJ: vaadd.vv v0, v1, v0
-# CHECK-ASM: encoding: [0x57,0x00,0x10,0x92]
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x26]
 vaadd.vv v0, v1, v0
 
 # CHECK-ASM-AND-OBJ: vaadd.vx v0, v1, a0
-# CHECK-ASM: encoding: [0x57,0x40,0x15,0x92]
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x26]
 vaadd.vx v0, v1, a0
 
-# CHECK-ASM-AND-OBJ: vaadd.vi v0, v1, 0
-# CHECK-ASM: encoding: [0x57,0x30,0x10,0x92]
-vaadd.vi v0, v1, 0
+# CHECK-ASM-AND-OBJ: vasubu.vv v0, v1, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x2a]
+vasubu.vv v0, v1, v0
+
+# CHECK-ASM-AND-OBJ: vasubu.vx v0, v1, a0
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x2a]
+vasubu.vx v0, v1, a0
 
 # CHECK-ASM-AND-OBJ: vasub.vv v0, v1, v0
-# CHECK-ASM: encoding: [0x57,0x00,0x10,0x9a]
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0x2e]
 vasub.vv v0, v1, v0
 
 # CHECK-ASM-AND-OBJ: vasub.vx v0, v1, a0
-# CHECK-ASM: encoding: [0x57,0x40,0x15,0x9a]
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0x2e]
 vasub.vx v0, v1, a0
 
 # CHECK-ASM-AND-OBJ: vsmul.vv v0, v1, v0
@@ -785,34 +797,6 @@ vsmul.vv v0, v1, v0
 # CHECK-ASM-AND-OBJ: vsmul.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0x9e]
 vsmul.vx v0, v1, a0
-
-# CHECK-ASM-AND-OBJ: vwsmaccu.vv v0, v0, v1
-# CHECK-ASM: encoding: [0x57,0x00,0x10,0xf2]
-vwsmaccu.vv v0, v0, v1
-
-# CHECK-ASM-AND-OBJ: vwsmaccu.vx v0, a0, v1
-# CHECK-ASM: encoding: [0x57,0x40,0x15,0xf2]
-vwsmaccu.vx v0, a0, v1
-
-# CHECK-ASM-AND-OBJ: vwsmacc.vv v0, v0, v1
-# CHECK-ASM: encoding: [0x57,0x00,0x10,0xf6]
-vwsmacc.vv v0, v0, v1
-
-# CHECK-ASM-AND-OBJ: vwsmacc.vx v0, a0, v1
-# CHECK-ASM: encoding: [0x57,0x40,0x15,0xf6]
-vwsmacc.vx v0, a0, v1
-
-# CHECK-ASM-AND-OBJ: vwsmaccsu.vv v0, v0, v1
-# CHECK-ASM: encoding: [0x57,0x00,0x10,0xfa]
-vwsmaccsu.vv v0, v0, v1
-
-# CHECK-ASM-AND-OBJ: vwsmaccsu.vx v0, a0, v1
-# CHECK-ASM: encoding: [0x57,0x40,0x15,0xfa]
-vwsmaccsu.vx v0, a0, v1
-
-# CHECK-ASM-AND-OBJ: vwsmaccus.vx v0, a0, v1
-# CHECK-ASM: encoding: [0x57,0x40,0x15,0xfe]
-vwsmaccus.vx v0, a0, v1
 
 # CHECK-ASM-AND-OBJ: vssrl.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0xaa]
@@ -838,29 +822,29 @@ vssra.vx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0xae]
 vssra.vi v0, v1, 0
 
-# CHECK-ASM-AND-OBJ: vnclipu.vv v0, v1, v0
+# CHECK-ASM-AND-OBJ: vnclipu.wv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0xba]
-vnclipu.vv v0, v1, v0
+vnclipu.wv v0, v1, v0
 
-# CHECK-ASM-AND-OBJ: vnclipu.vx v0, v1, a0
+# CHECK-ASM-AND-OBJ: vnclipu.wx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0xba]
-vnclipu.vx v0, v1, a0
+vnclipu.wx v0, v1, a0
 
-# CHECK-ASM-AND-OBJ: vnclipu.vi v0, v1, 0
+# CHECK-ASM-AND-OBJ: vnclipu.wi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0xba]
-vnclipu.vi v0, v1, 0
+vnclipu.wi v0, v1, 0
 
-# CHECK-ASM-AND-OBJ: vnclip.vv v0, v1, v0
+# CHECK-ASM-AND-OBJ: vnclip.wv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0xbe]
-vnclip.vv v0, v1, v0
+vnclip.wv v0, v1, v0
 
-# CHECK-ASM-AND-OBJ: vnclip.vx v0, v1, a0
+# CHECK-ASM-AND-OBJ: vnclip.wx v0, v1, a0
 # CHECK-ASM: encoding: [0x57,0x40,0x15,0xbe]
-vnclip.vx v0, v1, a0
+vnclip.wx v0, v1, a0
 
-# CHECK-ASM-AND-OBJ: vnclip.vi v0, v1, 0
+# CHECK-ASM-AND-OBJ: vnclip.wi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x30,0x10,0xbe]
-vnclip.vi v0, v1, 0
+vnclip.wi v0, v1, 0
 
 # CHECK-ASM-AND-OBJ: vfadd.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x10,0x10,0x02]
@@ -1170,25 +1154,29 @@ vfwcvt.f.x.v v0, v1
 # CHECK-ASM: encoding: [0x57,0x10,0x16,0x8a]
 vfwcvt.f.f.v v0, v1
 
-# CHECK-ASM-AND-OBJ: vfncvt.xu.f.v v0, v1
+# CHECK-ASM-AND-OBJ: vfncvt.xu.f.w v0, v1
 # CHECK-ASM: encoding: [0x57,0x10,0x18,0x8a]
-vfncvt.xu.f.v v0, v1
+vfncvt.xu.f.w v0, v1
 
-# CHECK-ASM-AND-OBJ: vfncvt.x.f.v v0, v1
+# CHECK-ASM-AND-OBJ: vfncvt.x.f.w v0, v1
 # CHECK-ASM: encoding: [0x57,0x90,0x18,0x8a]
-vfncvt.x.f.v v0, v1
+vfncvt.x.f.w v0, v1
 
-# CHECK-ASM-AND-OBJ: vfncvt.f.xu.v v0, v1
+# CHECK-ASM-AND-OBJ: vfncvt.f.xu.w v0, v1
 # CHECK-ASM: encoding: [0x57,0x10,0x19,0x8a]
-vfncvt.f.xu.v v0, v1
+vfncvt.f.xu.w v0, v1
 
-# CHECK-ASM-AND-OBJ: vfncvt.f.x.v v0, v1
+# CHECK-ASM-AND-OBJ: vfncvt.f.x.w v0, v1
 # CHECK-ASM: encoding: [0x57,0x90,0x19,0x8a]
-vfncvt.f.x.v v0, v1
+vfncvt.f.x.w v0, v1
 
-# CHECK-ASM-AND-OBJ: vfncvt.f.f.v v0, v1
+# CHECK-ASM-AND-OBJ: vfncvt.f.f.w v0, v1
 # CHECK-ASM: encoding: [0x57,0x10,0x1a,0x8a]
-vfncvt.f.f.v v0, v1
+vfncvt.f.f.w v0, v1
+
+# CHECK-ASM-AND-OBJ: vfncvt.rod.f.f.w v0, v1
+# CHECK-ASM: encoding: [0x57,0x90,0x1a,0x8a]
+vfncvt.rod.f.f.w v0, v1
 
 # CHECK-ASM-AND-OBJ: vredsum.vs v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x20,0x10,0x02]
@@ -1286,48 +1274,48 @@ vmornot.mm v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x20,0x10,0x7e]
 vmxnor.mm v0, v1, v0
 
-# CHECK-ASM-AND-OBJ: vmpopc.m a0, v1
-# CHECK-ASM: encoding: [0x57,0x25,0x1c,0x5a]
-vmpopc.m a0, v1
+# CHECK-ASM-AND-OBJ: vpopc.m a0, v1
+# CHECK-ASM: encoding: [0x57,0x25,0x18,0x42]
+vpopc.m a0, v1
 
-# CHECK-ASM-AND-OBJ: vmfirst.m a0, v1
-# CHECK-ASM: encoding: [0x57,0xa5,0x1c,0x5a]
-vmfirst.m a0, v1
+# CHECK-ASM-AND-OBJ: vfirst.m a0, v1
+# CHECK-ASM: encoding: [0x57,0xa5,0x18,0x42]
+vfirst.m a0, v1
 
 # CHECK-ASM-AND-OBJ: vmsbf.m v0, v1
-# CHECK-ASM: encoding: [0x57,0xa0,0x10,0x5a]
+# CHECK-ASM: encoding: [0x57,0xa0,0x10,0x52]
 vmsbf.m v0, v1
 
 # CHECK-ASM-AND-OBJ: vmsif.m v0, v1
-# CHECK-ASM: encoding: [0x57,0xa0,0x11,0x5a]
+# CHECK-ASM: encoding: [0x57,0xa0,0x11,0x52]
 vmsif.m v0, v1
 
 # CHECK-ASM-AND-OBJ: vmsof.m v0, v1
-# CHECK-ASM: encoding: [0x57,0x20,0x11,0x5a]
+# CHECK-ASM: encoding: [0x57,0x20,0x11,0x52]
 vmsof.m v0, v1
 
 # CHECK-ASM-AND-OBJ: viota.m v0, v1
-# CHECK-ASM: encoding: [0x57,0x20,0x18,0x5a]
+# CHECK-ASM: encoding: [0x57,0x20,0x18,0x52]
 viota.m v0, v1
 
 # CHECK-ASM-AND-OBJ: vid.v v0
-# CHECK-ASM: encoding: [0x57,0xa0,0x08,0x5a]
+# CHECK-ASM: encoding: [0x57,0xa0,0x08,0x52]
 vid.v v0
 
-# CHECK-ASM-AND-OBJ: vext.x.v a0, v1, a1
-# CHECK-ASM: encoding: [0x57,0xa5,0x15,0x32]
-vext.x.v a0, v1, a1
+# CHECK-ASM-AND-OBJ: vmv.x.s a0, v1
+# CHECK-ASM: encoding: [0x57,0x25,0x10,0x42]
+vmv.x.s a0, v1
 
 # CHECK-ASM-AND-OBJ: vmv.s.x v0, a1
-# CHECK-ASM: encoding: [0x57,0xe0,0x05,0x36]
+# CHECK-ASM: encoding: [0x57,0xe0,0x05,0x42]
 vmv.s.x v0, a1
 
 # CHECK-ASM-AND-OBJ: vfmv.f.s ft0, v1
-# CHECK-ASM: encoding: [0x57,0x10,0x10,0x32]
+# CHECK-ASM: encoding: [0x57,0x10,0x10,0x42]
 vfmv.f.s ft0, v1
 
 # CHECK-ASM-AND-OBJ: vfmv.s.f v0, ft1
-# CHECK-ASM: encoding: [0x57,0xd0,0x00,0x36]
+# CHECK-ASM: encoding: [0x57,0xd0,0x00,0x42]
 vfmv.s.f v0, ft1
 
 # CHECK-ASM-AND-OBJ: vslideup.vx v0, v1, a0

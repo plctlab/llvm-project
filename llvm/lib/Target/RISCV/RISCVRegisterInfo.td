@@ -272,6 +272,12 @@ let RegAltNameIndices = [ABIRegAltName] in {
 
 def VR : RegisterClass<"RISCV", [nxv1i32], 32, (sequence "V%u", 0, 31)>;
 
+def VRV0 : RegisterClass<"RISCV", [nxv1i32], 32, (add V0)>;
+
+let RegAltNameIndices = [ABIRegAltName] in
+def VM : RISCVReg<0, "v0.t", ["v0.t"]>;
+def VMR : RegisterClass<"RISCV", [nxv1i32], 32, (add VM)>;
+
 // Active vector length register (vl)
 // There is only one physical register, and it is not explicitly encoded
 // as operand of in any instructions, but for various reasons it is easier
