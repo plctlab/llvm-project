@@ -103,7 +103,7 @@ def int_riscv_vlw : Intrinsic<[llvm_nxv1i32_ty],
                               [llvm_ptr32_ty, llvm_i32_ty],
                               [IntrReadMem]>;
 def int_riscv_vsw : Intrinsic<[],
-                              [llvm_ptr32_ty, llvm_nxv1i32_ty, llvm_i32_ty],
+                              [llvm_nxv1i32_ty, llvm_ptr32_ty, llvm_i32_ty],
                               [IntrWriteMem]>;
 
 def int_riscv_vmpopcnt : Intrinsic<[llvm_i32_ty],

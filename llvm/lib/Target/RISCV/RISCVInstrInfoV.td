@@ -84,12 +84,12 @@ multiclass VLoad_UnitStrideFF<bits<3> mop, bits<3> width, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 multiclass VStore_UnitStride<bits<3> mop, bits<3> width, string opcodestr> {
   def _m  : RVInstVStore<0b000, mop, width, RVV_Masked, OPC_STORE_FP,
-                     (outs), (ins GPR:$rs1, VR:$vs3, VLR:$vl, simm5:$imm5, VMR:$vm),
+                     (outs), (ins VR:$vs3, GPR:$rs1, VLR:$vl, simm5:$imm5, VMR:$vm),
                      opcodestr, "$vs3, ${imm5}(${rs1}), $vm"> {
     let Inst{24-20} = 0b00000;
   }
   def _um : RVInstVStore<0b000, mop, width, RVV_Unmasked, OPC_STORE_FP,
-                     (outs), (ins GPR:$rs1, VR:$vs3, VLR:$vl, simm5:$imm5),
+                     (outs), (ins VR:$vs3, GPR:$rs1, VLR:$vl, simm5:$imm5),
                      opcodestr, "$vs3, ${imm5}(${rs1})"> {
     let Inst{24-20} = 0b00000;
   }
@@ -114,13 +114,13 @@ multiclass VLoad_Strided<bits<3> mop, bits<3> width, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 multiclass VStore_Strided<bits<3> mop, bits<3> width, string opcodestr>{
   def _m  : RVInstVStore<0b000, mop, width, RVV_Masked, OPC_STORE_FP,
-                   (outs), (ins GPR:$rs1, GPR:$rs2, VR:$vs3, VLR:$vl, simm5:$imm5, VMR:$vm),
+                   (outs), (ins VR:$vs3, GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5, VMR:$vm),
                    opcodestr, "$vs3, ${imm5}(${rs1}), $rs2, $vm"> {
     bits<5> rs2;
     let Inst{24-20} = rs2;
   }
   def _um : RVInstVStore<0b000, mop, width, RVV_Unmasked, OPC_STORE_FP,
-                   (outs), (ins GPR:$rs1, GPR:$rs2, VR:$vs3, VLR:$vl, simm5:$imm5),
+                   (outs), (ins VR:$vs3, GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5),
                    opcodestr, "$vs3, ${imm5}(${rs1}), $rs2"> {
     bits<5> rs2;
     let Inst{24-20} = rs2;
@@ -146,13 +146,13 @@ multiclass VLoad_Indexed<bits<3> mop, bits<3> width, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 multiclass VStore_Indexed<bits<3> mop, bits<3> width, string opcodestr> {
   def _m  : RVInstVStore<0b000, mop, width, RVV_Masked, OPC_STORE_FP,
-                   (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl, simm5:$imm5, VMR:$vm),
+                   (outs), (ins VR:$vs3, GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5, VMR:$vm),
                    opcodestr, "$vs3, ${imm5}(${rs1}), $vs2, $vm"> {
     bits<5> vs2;
     let Inst{24-20} = vs2;
   }
   def _um : RVInstVStore<0b000, mop, width, RVV_Unmasked, OPC_STORE_FP,
-                   (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl, simm5:$imm5),
+                   (outs), (ins VR:$vs3, GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5),
                    opcodestr, "$vs3, ${imm5}(${rs1}), $vs2"> {
     bits<5> vs2;
     let Inst{24-20} = vs2;
@@ -1283,6 +1283,113 @@ defm VFDOT_VV : VALU_OPFVV<0b111001, "vfdot.vv">;
 } // Predicates = [HasStdExtV]
 
 //===----------------------------------------------------------------------===//
+// Assembler Pseudo Instructions
+//===----------------------------------------------------------------------===//
+
+let EmitPriority = 0 in {
+
+
+def : InstAlias<"vlb.v $vd, (${rs1})", (VLB_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlb.v $vd, (${rs1}), $vm", (VLB_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlh.v $vd, (${rs1})", (VLH_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlh.v $vd, (${rs1}), $vm", (VLH_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlw.v $vd, (${rs1})", (VLW_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlw.v $vd, (${rs1}), $vm", (VLW_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlbu.v $vd, (${rs1})", (VLBU_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlbu.v $vd, (${rs1}), $vm", (VLBU_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlhu.v $vd, (${rs1})", (VLHU_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlhu.v $vd, (${rs1}), $vm", (VLHU_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlwu.v $vd, (${rs1})", (VLWU_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlwu.v $vd, (${rs1}), $vm", (VLWU_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vle.v $vd, (${rs1})", (VLE_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vle.v $vd, (${rs1}), $vm", (VLE_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+
+def : InstAlias<"vsb.v $vs3, (${rs1})", (VSB_V_um  VR:$vs3, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vsb.v $vs3, (${rs1}), $vm", (VSB_V_m  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vsh.v $vs3, (${rs1})", (VSH_V_um  VR:$vs3, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vsh.v $vs3, (${rs1}), $vm", (VSH_V_m  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vsw.v $vs3, (${rs1})", (VSW_V_um  VR:$vs3, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vsw.v $vs3, (${rs1}), $vm", (VSW_V_m  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vse.v $vs3, (${rs1})", (VSE_V_um  VR:$vs3, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vse.v $vs3, (${rs1}), $vm", (VSE_V_m  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+
+
+def : InstAlias<"vlsb.v $vd, (${rs1}), $rs2", (VLSB_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vlsb.v $vd, (${rs1}), $rs2, $vm", (VLSB_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlsh.v $vd, (${rs1}), $rs2", (VLSH_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vlsh.v $vd, (${rs1}), $rs2, $vm", (VLSH_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlsw.v $vd, (${rs1}), $rs2", (VLSW_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vlsw.v $vd, (${rs1}), $rs2, $vm", (VLSW_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlsbu.v $vd, (${rs1}), $rs2", (VLSBU_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vlsbu.v $vd, (${rs1}), $rs2, $vm", (VLSBU_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlshu.v $vd, (${rs1}), $rs2", (VLSHU_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vlshu.v $vd, (${rs1}), $rs2, $vm", (VLSHU_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlswu.v $vd, (${rs1}), $rs2", (VLSWU_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vlswu.v $vd, (${rs1}), $rs2, $vm", (VLSWU_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlse.v $vd, (${rs1}), $rs2", (VLSE_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vlse.v $vd, (${rs1}), $rs2, $vm", (VLSE_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+
+def : InstAlias<"vssb.v $vs3, (${rs1}), $rs2", (VSSB_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vssb.v $vs3, (${rs1}), $rs2, $vm", (VSSB_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vssh.v $vs3, (${rs1}), $rs2", (VSSH_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vssh.v $vs3, (${rs1}), $rs2, $vm", (VSSH_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vssw.v $vs3, (${rs1}), $rs2", (VSSW_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vssw.v $vs3, (${rs1}), $rs2, $vm", (VSSW_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vsse.v $vs3, (${rs1}), $rs2", (VSSE_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+def : InstAlias<"vsse.v $vs3, (${rs1}), $rs2, $vm", (VSSE_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+
+
+def : InstAlias<"vlxb.v $vd, (${rs1}), $vs2", (VLXB_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vlxb.v $vd, (${rs1}), $vs2, $vm", (VLXB_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlxh.v $vd, (${rs1}), $vs2", (VLXH_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vlxh.v $vd, (${rs1}), $vs2, $vm", (VLXH_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlxw.v $vd, (${rs1}), $vs2", (VLXW_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vlxw.v $vd, (${rs1}), $vs2, $vm", (VLXW_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlxbu.v $vd, (${rs1}), $vs2", (VLXBU_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vlxbu.v $vd, (${rs1}), $vs2, $vm", (VLXBU_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlxhu.v $vd, (${rs1}), $vs2", (VLXHU_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vlxhu.v $vd, (${rs1}), $vs2, $vm", (VLXHU_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlxwu.v $vd, (${rs1}), $vs2", (VLXWU_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vlxwu.v $vd, (${rs1}), $vs2, $vm", (VLXWU_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlxe.v $vd, (${rs1}), $vs2", (VLXE_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vlxe.v $vd, (${rs1}), $vs2, $vm", (VLXE_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+
+def : InstAlias<"vsxb.v $vs3, (${rs1}), $vs2", (VSXB_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vsxb.v $vs3, (${rs1}), $vs2, $vm", (VSXB_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vsxh.v $vs3, (${rs1}), $vs2", (VSXH_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vsxh.v $vs3, (${rs1}), $vs2, $vm", (VSXH_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vsxw.v $vs3, (${rs1}), $vs2", (VSXW_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vsxw.v $vs3, (${rs1}), $vs2, $vm", (VSXW_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vsxe.v $vs3, (${rs1}), $vs2", (VSXE_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vsxe.v $vs3, (${rs1}), $vs2, $vm", (VSXE_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vsuxb.v $vs3, (${rs1}), $vs2", (VSUXB_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vsuxb.v $vs3, (${rs1}), $vs2, $vm", (VSUXB_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vsuxh.v $vs3, (${rs1}), $vs2", (VSUXH_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vsuxh.v $vs3, (${rs1}), $vs2, $vm", (VSUXH_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vsuxw.v $vs3, (${rs1}), $vs2", (VSUXW_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vsuxw.v $vs3, (${rs1}), $vs2, $vm", (VSUXW_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+def : InstAlias<"vsuxe.v $vs3, (${rs1}), $vs2", (VSUXE_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+def : InstAlias<"vsuxe.v $vs3, (${rs1}), $vs2, $vm", (VSUXE_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+
+
+def : InstAlias<"vlbff.v $vd, (${rs1})", (VLBFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlbff.v $vd, (${rs1}), $vm", (VLBFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlhff.v $vd, (${rs1})", (VLHFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlhff.v $vd, (${rs1}), $vm", (VLHFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlwff.v $vd, (${rs1})", (VLWFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlwff.v $vd, (${rs1}), $vm", (VLWFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlbuff.v $vd, (${rs1})", (VLBUFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlbuff.v $vd, (${rs1}), $vm", (VLBUFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlhuff.v $vd, (${rs1})", (VLHUFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlhuff.v $vd, (${rs1}), $vm", (VLHUFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vlwuff.v $vd, (${rs1})", (VLWUFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vlwuff.v $vd, (${rs1}), $vm", (VLWUFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+def : InstAlias<"vleff.v $vd, (${rs1})", (VLEFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+def : InstAlias<"vleff.v $vd, (${rs1}), $vm", (VLEFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+
+}
+
+//===----------------------------------------------------------------------===//
 // Pseudo-instructions and codegen patterns
 //===----------------------------------------------------------------------===//
 
@@ -1291,10 +1398,7 @@ let Predicates = [HasStdExtV] in {
 let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
     isCodeGenOnly = 1, isAsmParserOnly = 0 in {
   def PseudoCSRR_VL : Pseudo<(outs GPR:$rd), (ins VLR:$vl), []>,
-                      PseudoInstExpansion<(CSRRS GPR:$rd, 0xCC0, X0)>
-  {
-    //let Uses = [VCFG];
-  }
+                      PseudoInstExpansion<(CSRRS GPR:$rd, 0xCC0, X0)>;
 }
 
 
@@ -1318,8 +1422,8 @@ def : PatVrVr<int_riscv_vxor, VXOR_VV_um>;
 def : Pat<(int_riscv_vlw GPR:$rs1, VLR:$vl),
           (VLW_V_um GPR:$rs1, VLR:$vl, 0)>;
 
-def : Pat<(int_riscv_vsw GPR:$rs1, VR:$rs2, VLR:$vl),
-          (VSW_V_um GPR:$rs1, VR:$rs2, VLR:$vl, 0)>;
+def : Pat<(int_riscv_vsw VR:$vs3, GPR:$rs1, VLR:$vl),
+          (VSW_V_um VR:$vs3, GPR:$rs1, VLR:$vl, 0)>;
 
 def : Pat<(RISCVSETVL GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
 
