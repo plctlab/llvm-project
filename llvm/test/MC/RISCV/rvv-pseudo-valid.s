@@ -177,3 +177,55 @@ vlwuff.v v0, (a1)
 # CHECK-ASM-AND-OBJ: vleff.v v0, 0(a1)
 # CHECK-ASM: encoding: [0x07,0xf0,0x05,0x03]
 vleff.v v0, (a1)
+
+# CHECK-ASM-AND-OBJ: vwadd.vx v0, v1, zero
+# CHECK-ASM: encoding: [0x57,0x60,0x10,0xc6]
+vwcvt.x.x.v v0, v1
+
+# CHECK-ASM-AND-OBJ: vwaddu.vx v0, v1, zero
+# CHECK-ASM: encoding: [0x57,0x60,0x10,0xc2]
+vwcvtu.x.x.v v0, v1
+
+# CHECK-ASM-AND-OBJ: vxor.vi v0, v1, -1
+# CHECK-ASM: encoding: [0x57,0xb0,0x1f,0x2e]
+vnot.v v0, v1
+
+# CHECK-ASM-AND-OBJ: vmslt.vv v0, v2, v1
+# CHECK-ASM: encoding: [0x57,0x80,0x20,0x6e]
+vmsgt.vv v0, v1, v2
+
+# CHECK-ASM-AND-OBJ: vmsltu.vv v0, v2, v1
+# CHECK-ASM: encoding: [0x57,0x80,0x20,0x6a]
+vmsgtu.vv v0, v1, v2
+
+# CHECK-ASM-AND-OBJ: vmsle.vv v0, v2, v1
+# CHECK-ASM: encoding: [0x57,0x80,0x20,0x76]
+vmsge.vv v0, v1, v2
+
+# CHECK-ASM-AND-OBJ: vmsleu.vv v0, v2, v1
+# CHECK-ASM: encoding: [0x57,0x80,0x20,0x72]
+vmsgeu.vv v0, v1, v2
+
+# CHECK-ASM-AND-OBJ: vmflt.vv v0, v2, v1
+# CHECK-ASM: encoding: [0x57,0x90,0x20,0x6e]
+vmfgt.vv v0, v1, v2
+
+# CHECK-ASM-AND-OBJ: vmfle.vv v0, v2, v1
+# CHECK-ASM: encoding: [0x57,0x90,0x20,0x66]
+vmfge.vv v0, v1, v2
+
+# CHECK-ASM-AND-OBJ: vmand.mm v0, v1, v1
+# CHECK-ASM: encoding: [0x57,0xa0,0x10,0x66]
+vmcpy.m v0, v1
+
+# CHECK-ASM-AND-OBJ: vmxor.mm v0, v0, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x00,0x6e]
+vmclr.m v0
+
+# CHECK-ASM-AND-OBJ: vmxnor.mm v0, v0, v0
+# CHECK-ASM: encoding: [0x57,0x20,0x00,0x7e]
+vmset.m v0
+
+# CHECK-ASM-AND-OBJ: vmnand.mm v0, v1, v1
+# CHECK-ASM: encoding: [0x57,0xa0,0x10,0x76]
+vmnot.m v0, v1

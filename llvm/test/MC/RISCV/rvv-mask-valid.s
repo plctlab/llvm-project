@@ -1142,38 +1142,6 @@ vfwredosum.vs v0, v1, v0, v0.t
 # CHECK-ASM: encoding: [0x57,0x10,0x10,0xc4]
 vfwredsum.vs v0, v1, v0, v0.t
 
-# CHECK-ASM-AND-OBJ: vmand.mm v0, v1, v0, v0.t
-# CHECK-ASM: encoding: [0x57,0x20,0x10,0x64]
-vmand.mm v0, v1, v0, v0.t
-
-# CHECK-ASM-AND-OBJ: vmnand.mm v0, v1, v0, v0.t
-# CHECK-ASM: encoding: [0x57,0x20,0x10,0x74]
-vmnand.mm v0, v1, v0, v0.t
-
-# CHECK-ASM-AND-OBJ: vmandnot.mm v0, v1, v0, v0.t
-# CHECK-ASM: encoding: [0x57,0x20,0x10,0x60]
-vmandnot.mm v0, v1, v0, v0.t
-
-# CHECK-ASM-AND-OBJ: vmxor.mm v0, v1, v0, v0.t
-# CHECK-ASM: encoding: [0x57,0x20,0x10,0x6c]
-vmxor.mm v0, v1, v0, v0.t
-
-# CHECK-ASM-AND-OBJ: vmor.mm v0, v1, v0, v0.t
-# CHECK-ASM: encoding: [0x57,0x20,0x10,0x68]
-vmor.mm v0, v1, v0, v0.t
-
-# CHECK-ASM-AND-OBJ: vmnor.mm v0, v1, v0, v0.t
-# CHECK-ASM: encoding: [0x57,0x20,0x10,0x78]
-vmnor.mm v0, v1, v0, v0.t
-
-# CHECK-ASM-AND-OBJ: vmornot.mm v0, v1, v0, v0.t
-# CHECK-ASM: encoding: [0x57,0x20,0x10,0x70]
-vmornot.mm v0, v1, v0, v0.t
-
-# CHECK-ASM-AND-OBJ: vmxnor.mm v0, v1, v0, v0.t
-# CHECK-ASM: encoding: [0x57,0x20,0x10,0x7c]
-vmxnor.mm v0, v1, v0, v0.t
-
 # CHECK-ASM-AND-OBJ: vpopc.m a0, v1, v0.t
 # CHECK-ASM: encoding: [0x57,0x25,0x18,0x40]
 vpopc.m a0, v1, v0.t
