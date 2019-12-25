@@ -54,13 +54,14 @@ def uimm11 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<11>(Imm);}]> {
 //===----------------------------------------------------------------------===//
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-multiclass VLoad_UnitStride<bits<3> mop, bits<3> width, string opcodestr> {
-  def _m  : RVInstVLoad<0b000, mop, width, RVV_Masked, OPC_LOAD_FP,
+multiclass VLoad_UnitStride<bits<3> nf, bits<3> mop,
+                            bits<3> width, string opcodestr> {
+  def _m  : RVInstVLoad<nf, mop, width, RVV_Masked, OPC_LOAD_FP,
                   (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5, VMR:$vm),
                   opcodestr, "$vd, ${imm5}(${rs1}), $vm"> {
     let Inst{24-20} = 0b00000;
   }
-  def _um : RVInstVLoad<0b000, mop, width, RVV_Unmasked, OPC_LOAD_FP,
+  def _um : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
                   (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5),
                   opcodestr, "$vd, ${imm5}(${rs1})"> {
     let Inst{24-20} = 0b00000;
@@ -68,13 +69,14 @@ multiclass VLoad_UnitStride<bits<3> mop, bits<3> width, string opcodestr> {
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-multiclass VLoad_UnitStrideFF<bits<3> mop, bits<3> width, string opcodestr> {
-  def _m  : RVInstVLoad<0b000, mop, width, RVV_Masked, OPC_LOAD_FP,
+multiclass VLoad_UnitStrideFF<bits<3> nf, bits<3> mop,
+                              bits<3> width, string opcodestr> {
+  def _m  : RVInstVLoad<nf, mop, width, RVV_Masked, OPC_LOAD_FP,
                     (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5, VMR:$vm),
                     opcodestr, "$vd, ${imm5}(${rs1}), $vm"> {
     let Inst{24-20} = 0b10000;
   }
-  def _um : RVInstVLoad<0b000, mop, width, RVV_Unmasked, OPC_LOAD_FP,
+  def _um : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
                     (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5),
                     opcodestr, "$vd, ${imm5}(${rs1})"> {
     let Inst{24-20} = 0b10000;
@@ -82,13 +84,14 @@ multiclass VLoad_UnitStrideFF<bits<3> mop, bits<3> width, string opcodestr> {
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
-multiclass VStore_UnitStride<bits<3> mop, bits<3> width, string opcodestr> {
-  def _m  : RVInstVStore<0b000, mop, width, RVV_Masked, OPC_STORE_FP,
+multiclass VStore_UnitStride<bits<3> nf, bits<3> mop,
+                             bits<3> width, string opcodestr> {
+  def _m  : RVInstVStore<nf, mop, width, RVV_Masked, OPC_STORE_FP,
                      (outs), (ins VR:$vs3, GPR:$rs1, VLR:$vl, simm5:$imm5, VMR:$vm),
                      opcodestr, "$vs3, ${imm5}(${rs1}), $vm"> {
     let Inst{24-20} = 0b00000;
   }
-  def _um : RVInstVStore<0b000, mop, width, RVV_Unmasked, OPC_STORE_FP,
+  def _um : RVInstVStore<nf, mop, width, RVV_Unmasked, OPC_STORE_FP,
                      (outs), (ins VR:$vs3, GPR:$rs1, VLR:$vl, simm5:$imm5),
                      opcodestr, "$vs3, ${imm5}(${rs1})"> {
     let Inst{24-20} = 0b00000;
@@ -96,14 +99,15 @@ multiclass VStore_UnitStride<bits<3> mop, bits<3> width, string opcodestr> {
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-multiclass VLoad_Strided<bits<3> mop, bits<3> width, string opcodestr> {
-  def _m  : RVInstVLoad<0b000, mop, width, RVV_Masked, OPC_LOAD_FP,
+multiclass VLoad_Strided<bits<3> nf, bits<3> mop,
+                         bits<3> width, string opcodestr> {
+  def _m  : RVInstVLoad<nf, mop, width, RVV_Masked, OPC_LOAD_FP,
                   (outs VR:$vd), (ins GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5, VMR:$vm),
                   opcodestr, "$vd, ${imm5}(${rs1}), $rs2, $vm"> {
     bits<5> rs2;
     let Inst{24-20} = rs2;
   }
-  def _um : RVInstVLoad<0b000, mop, width, RVV_Unmasked, OPC_LOAD_FP,
+  def _um : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
                   (outs VR:$vd), (ins GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5),
                   opcodestr, "$vd, ${imm5}(${rs1}), $rs2"> {
     bits<5> rs2;
@@ -112,14 +116,15 @@ multiclass VLoad_Strided<bits<3> mop, bits<3> width, string opcodestr> {
 }
   
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
-multiclass VStore_Strided<bits<3> mop, bits<3> width, string opcodestr>{
-  def _m  : RVInstVStore<0b000, mop, width, RVV_Masked, OPC_STORE_FP,
+multiclass VStore_Strided<bits<3> nf, bits<3> mop,
+                          bits<3> width, string opcodestr> {
+  def _m  : RVInstVStore<nf, mop, width, RVV_Masked, OPC_STORE_FP,
                    (outs), (ins VR:$vs3, GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5, VMR:$vm),
                    opcodestr, "$vs3, ${imm5}(${rs1}), $rs2, $vm"> {
     bits<5> rs2;
     let Inst{24-20} = rs2;
   }
-  def _um : RVInstVStore<0b000, mop, width, RVV_Unmasked, OPC_STORE_FP,
+  def _um : RVInstVStore<nf, mop, width, RVV_Unmasked, OPC_STORE_FP,
                    (outs), (ins VR:$vs3, GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5),
                    opcodestr, "$vs3, ${imm5}(${rs1}), $rs2"> {
     bits<5> rs2;
@@ -128,14 +133,15 @@ multiclass VStore_Strided<bits<3> mop, bits<3> width, string opcodestr>{
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-multiclass VLoad_Indexed<bits<3> mop, bits<3> width, string opcodestr> {
-  def _m  : RVInstVLoad<0b000, mop, width, RVV_Masked, OPC_LOAD_FP,
+multiclass VLoad_Indexed<bits<3> nf, bits<3> mop,
+                         bits<3> width, string opcodestr> {
+  def _m  : RVInstVLoad<nf, mop, width, RVV_Masked, OPC_LOAD_FP,
                   (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5, VMR:$vm),
                   opcodestr, "$vd, ${imm5}(${rs1}), $vs2, $vm"> {
     bits<5> vs2;
     let Inst{24-20} = vs2;
   }
-  def _um : RVInstVLoad<0b000, mop, width, RVV_Unmasked, OPC_LOAD_FP,
+  def _um : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
                   (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5),
                   opcodestr, "$vd, ${imm5}(${rs1}), $vs2"> {
     bits<5> vs2;
@@ -144,14 +150,15 @@ multiclass VLoad_Indexed<bits<3> mop, bits<3> width, string opcodestr> {
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
-multiclass VStore_Indexed<bits<3> mop, bits<3> width, string opcodestr> {
-  def _m  : RVInstVStore<0b000, mop, width, RVV_Masked, OPC_STORE_FP,
+multiclass VStore_Indexed<bits<3> nf, bits<3> mop,
+                          bits<3> width, string opcodestr> {
+  def _m  : RVInstVStore<nf, mop, width, RVV_Masked, OPC_STORE_FP,
                    (outs), (ins VR:$vs3, GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5, VMR:$vm),
                    opcodestr, "$vs3, ${imm5}(${rs1}), $vs2, $vm"> {
     bits<5> vs2;
     let Inst{24-20} = vs2;
   }
-  def _um : RVInstVStore<0b000, mop, width, RVV_Unmasked, OPC_STORE_FP,
+  def _um : RVInstVStore<nf, mop, width, RVV_Unmasked, OPC_STORE_FP,
                    (outs), (ins VR:$vs3, GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5),
                    opcodestr, "$vs3, ${imm5}(${rs1}), $vs2"> {
     bits<5> vs2;
@@ -539,69 +546,160 @@ def VSETVL: RVInstVSet<0b1, OPC_OP_V,
 
 // Vector Unit-Stride Instructions
 
-defm VLB_V : VLoad_UnitStride<0b100, 0b000, "vlb.v">;
-defm VLH_V : VLoad_UnitStride<0b100, 0b101, "vlh.v">;
-defm VLW_V : VLoad_UnitStride<0b100, 0b110, "vlw.v">;
-defm VLBU_V : VLoad_UnitStride<0b000, 0b000, "vlbu.v">;
-defm VLHU_V : VLoad_UnitStride<0b000, 0b101, "vlhu.v">;
-defm VLWU_V : VLoad_UnitStride<0b000, 0b110, "vlwu.v">;
-defm VLE_V : VLoad_UnitStride<0b000, 0b111, "vle.v">;
+defm VLB_V : VLoad_UnitStride<0b000, 0b100, 0b000, "vlb.v">;
+defm VLH_V : VLoad_UnitStride<0b000, 0b100, 0b101, "vlh.v">;
+defm VLW_V : VLoad_UnitStride<0b000, 0b100, 0b110, "vlw.v">;
+defm VLBU_V : VLoad_UnitStride<0b000, 0b000, 0b000, "vlbu.v">;
+defm VLHU_V : VLoad_UnitStride<0b000, 0b000, 0b101, "vlhu.v">;
+defm VLWU_V : VLoad_UnitStride<0b000, 0b000, 0b110, "vlwu.v">;
+defm VLE_V : VLoad_UnitStride<0b000, 0b000, 0b111, "vle.v">;
 
-defm VSB_V : VStore_UnitStride<0b000, 0b000, "vsb.v">;
-defm VSH_V : VStore_UnitStride<0b000, 0b101, "vsh.v">;
-defm VSW_V : VStore_UnitStride<0b000, 0b110, "vsw.v">;
-defm VSE_V : VStore_UnitStride<0b000, 0b111, "vse.v">;
+defm VSB_V : VStore_UnitStride<0b000, 0b000, 0b000, "vsb.v">;
+defm VSH_V : VStore_UnitStride<0b000, 0b000, 0b101, "vsh.v">;
+defm VSW_V : VStore_UnitStride<0b000, 0b000, 0b110, "vsw.v">;
+defm VSE_V : VStore_UnitStride<0b000, 0b000, 0b111, "vse.v">;
 
 
 // Vector Strided Instructions
 
-defm VLSB_V : VLoad_Strided<0b110, 0b000, "vlsb.v">;
-defm VLSH_V : VLoad_Strided<0b110, 0b101, "vlsh.v">;
-defm VLSW_V : VLoad_Strided<0b110, 0b110, "vlsw.v">;
-defm VLSBU_V : VLoad_Strided<0b010, 0b000, "vlsbu.v">;
-defm VLSHU_V : VLoad_Strided<0b010, 0b101, "vlshu.v">;
-defm VLSWU_V : VLoad_Strided<0b010, 0b110, "vlswu.v">;
-defm VLSE_V : VLoad_Strided<0b010, 0b111, "vlse.v">;
+defm VLSB_V : VLoad_Strided<0b000, 0b110, 0b000, "vlsb.v">;
+defm VLSH_V : VLoad_Strided<0b000, 0b110, 0b101, "vlsh.v">;
+defm VLSW_V : VLoad_Strided<0b000, 0b110, 0b110, "vlsw.v">;
+defm VLSBU_V : VLoad_Strided<0b000, 0b010, 0b000, "vlsbu.v">;
+defm VLSHU_V : VLoad_Strided<0b000, 0b010, 0b101, "vlshu.v">;
+defm VLSWU_V : VLoad_Strided<0b000, 0b010, 0b110, "vlswu.v">;
+defm VLSE_V : VLoad_Strided<0b000, 0b010, 0b111, "vlse.v">;
 
-defm VSSB_V : VStore_Strided<0b010, 0b000, "vssb.v">;
-defm VSSH_V : VStore_Strided<0b010, 0b101, "vssh.v">;
-defm VSSW_V : VStore_Strided<0b010, 0b110, "vssw.v">;
-defm VSSE_V : VStore_Strided<0b010, 0b111, "vsse.v">;
+defm VSSB_V : VStore_Strided<0b000, 0b010, 0b000, "vssb.v">;
+defm VSSH_V : VStore_Strided<0b000, 0b010, 0b101, "vssh.v">;
+defm VSSW_V : VStore_Strided<0b000, 0b010, 0b110, "vssw.v">;
+defm VSSE_V : VStore_Strided<0b000, 0b010, 0b111, "vsse.v">;
 
 
 // Vector Indexed Instructions
 
-defm VLXB_V : VLoad_Indexed<0b111, 0b000, "vlxb.v">;
-defm VLXH_V : VLoad_Indexed<0b111, 0b101, "vlxh.v">;
-defm VLXW_V : VLoad_Indexed<0b111, 0b110, "vlxw.v">;
-defm VLXBU_V : VLoad_Indexed<0b011, 0b000, "vlxbu.v">;
-defm VLXHU_V : VLoad_Indexed<0b011, 0b101, "vlxhu.v">;
-defm VLXWU_V : VLoad_Indexed<0b011, 0b110, "vlxwu.v">;
-defm VLXE_V : VLoad_Indexed<0b011, 0b111, "vlxe.v">;
+defm VLXB_V : VLoad_Indexed<0b000, 0b111, 0b000, "vlxb.v">;
+defm VLXH_V : VLoad_Indexed<0b000, 0b111, 0b101, "vlxh.v">;
+defm VLXW_V : VLoad_Indexed<0b000, 0b111, 0b110, "vlxw.v">;
+defm VLXBU_V : VLoad_Indexed<0b000, 0b011, 0b000, "vlxbu.v">;
+defm VLXHU_V : VLoad_Indexed<0b000, 0b011, 0b101, "vlxhu.v">;
+defm VLXWU_V : VLoad_Indexed<0b000, 0b011, 0b110, "vlxwu.v">;
+defm VLXE_V : VLoad_Indexed<0b000, 0b011, 0b111, "vlxe.v">;
 
-defm VSXB_V : VStore_Indexed<0b011, 0b000, "vsxb.v">;
-defm VSXH_V : VStore_Indexed<0b011, 0b101, "vsxh.v">;
-defm VSXW_V : VStore_Indexed<0b011, 0b110, "vsxw.v">;
-defm VSXE_V : VStore_Indexed<0b011, 0b111, "vsxe.v">;
-defm VSUXB_V : VStore_Indexed<0b111, 0b000, "vsuxb.v">;
-defm VSUXH_V : VStore_Indexed<0b111, 0b101, "vsuxh.v">;
-defm VSUXW_V : VStore_Indexed<0b111, 0b110, "vsuxw.v">;
-defm VSUXE_V : VStore_Indexed<0b111, 0b111, "vsuxe.v">;
+defm VSXB_V : VStore_Indexed<0b000, 0b011, 0b000, "vsxb.v">;
+defm VSXH_V : VStore_Indexed<0b000, 0b011, 0b101, "vsxh.v">;
+defm VSXW_V : VStore_Indexed<0b000, 0b011, 0b110, "vsxw.v">;
+defm VSXE_V : VStore_Indexed<0b000, 0b011, 0b111, "vsxe.v">;
+defm VSUXB_V : VStore_Indexed<0b000, 0b111, 0b000, "vsuxb.v">;
+defm VSUXH_V : VStore_Indexed<0b000, 0b111, 0b101, "vsuxh.v">;
+defm VSUXW_V : VStore_Indexed<0b000, 0b111, 0b110, "vsuxw.v">;
+defm VSUXE_V : VStore_Indexed<0b000, 0b111, 0b111, "vsuxe.v">;
 
 
 // Unit-stride Fault-Only-First Loads Instructions
 
-defm VLBFF_V : VLoad_UnitStrideFF<0b100, 0b000, "vlbff.v">;
-defm VLHFF_V : VLoad_UnitStrideFF<0b100, 0b101, "vlhff.v">;
-defm VLWFF_V : VLoad_UnitStrideFF<0b100, 0b110, "vlwff.v">;
-defm VLBUFF_V : VLoad_UnitStrideFF<0b000, 0b000, "vlbuff.v">;
-defm VLHUFF_V : VLoad_UnitStrideFF<0b000, 0b101, "vlhuff.v">;
-defm VLWUFF_V : VLoad_UnitStrideFF<0b000, 0b110, "vlwuff.v">;
-defm VLEFF_V : VLoad_UnitStrideFF<0b000, 0b111, "vleff.v">;
+defm VLBFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b000, "vlbff.v">;
+defm VLHFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b101, "vlhff.v">;
+defm VLWFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b110, "vlwff.v">;
+defm VLBUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b000, "vlbuff.v">;
+defm VLHUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b101, "vlhuff.v">;
+defm VLWUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b110, "vlwuff.v">;
+defm VLEFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b111, "vleff.v">;
 
 
 // Vector Load/Store Segment Instructions
 // TODO
+
+foreach nf = 2-8 in {
+
+  // Vector Unit-Stride Segment Loads and Stores
+  defm VLSEG#nf#B_V : VLoad_UnitStride<!add(nf, -1), 0b100,
+                                       0b000, "vlseg"#nf#"b.v">;
+  defm VLSEG#nf#H_V : VLoad_UnitStride<!add(nf, -1), 0b100,
+                                       0b101, "vlseg"#nf#"h.v">;
+  defm VLSEG#nf#W_V : VLoad_UnitStride<!add(nf, -1), 0b100,
+                                       0b110, "vlseg"#nf#"w.v">;
+  defm VLSEG#nf#BU_V : VLoad_UnitStride<!add(nf, -1), 0b000,
+                                       0b000, "vlseg"#nf#"bu.v">;
+  defm VLSEG#nf#HU_V : VLoad_UnitStride<!add(nf, -1), 0b000,
+                                       0b101, "vlseg"#nf#"hu.v">;
+  defm VLSEG#nf#WU_V : VLoad_UnitStride<!add(nf, -1), 0b000,
+                                       0b110, "vlseg"#nf#"wu.v">;
+  defm VLSEG#nf#E_V : VLoad_UnitStride<!add(nf, -1), 0b000,
+                                       0b111, "vlseg"#nf#"e.v">;
+  defm VSSEG#nf#B_V : VStore_UnitStride<!add(nf, -1), 0b000,
+                                       0b000, "vsseg"#nf#"b.v">;
+  defm VSSEG#nf#H_V : VStore_UnitStride<!add(nf, -1), 0b000,
+                                       0b101, "vsseg"#nf#"h.v">;
+  defm VSSEG#nf#W_V : VStore_UnitStride<!add(nf, -1), 0b000,
+                                       0b110, "vsseg"#nf#"w.v">;
+  defm VSSEG#nf#E_V : VStore_UnitStride<!add(nf, -1), 0b000,
+                                       0b111, "vsseg"#nf#"e.v">;
+
+  // Vector Strided Segment Loads and Stores
+  defm VLSSEG#nf#B_V : VLoad_Strided<!add(nf, -1), 0b110,
+                                       0b000, "vlsseg"#nf#"b.v">;
+  defm VLSSEG#nf#H_V : VLoad_Strided<!add(nf, -1), 0b110,
+                                       0b101, "vlsseg"#nf#"h.v">;
+  defm VLSSEG#nf#W_V : VLoad_Strided<!add(nf, -1), 0b110,
+                                       0b110, "vlsseg"#nf#"w.v">;
+  defm VLSSEG#nf#BU_V : VLoad_Strided<!add(nf, -1), 0b010,
+                                       0b000, "vlsseg"#nf#"bu.v">;
+  defm VLSSEG#nf#HU_V : VLoad_Strided<!add(nf, -1), 0b010,
+                                       0b101, "vlsseg"#nf#"hu.v">;
+  defm VLSSEG#nf#WU_V : VLoad_Strided<!add(nf, -1), 0b010,
+                                       0b110, "vlsseg"#nf#"wu.v">;
+  defm VLSSEG#nf#E_V : VLoad_Strided<!add(nf, -1), 0b010,
+                                       0b111, "vlsseg"#nf#"e.v">;
+  defm VSSSEG#nf#B_V : VStore_Strided<!add(nf, -1), 0b010,
+                                       0b000, "vssseg"#nf#"b.v">;
+  defm VSSSEG#nf#H_V : VStore_Strided<!add(nf, -1), 0b010,
+                                       0b101, "vssseg"#nf#"h.v">;
+  defm VSSSEG#nf#W_V : VStore_Strided<!add(nf, -1), 0b010,
+                                       0b110, "vssseg"#nf#"w.v">;
+  defm VSSSEG#nf#E_V : VStore_Strided<!add(nf, -1), 0b010,
+                                       0b111, "vssseg"#nf#"e.v">;
+
+  // Vector Indexed Segment Loads and Stores
+  defm VLXSEG#nf#B_V : VLoad_Indexed<!add(nf, -1), 0b111,
+                                       0b000, "vlxseg"#nf#"b.v">;
+  defm VLXSEG#nf#H_V : VLoad_Indexed<!add(nf, -1), 0b111,
+                                       0b101, "vlxseg"#nf#"h.v">;
+  defm VLXSEG#nf#W_V : VLoad_Indexed<!add(nf, -1), 0b111,
+                                       0b110, "vlxseg"#nf#"w.v">;
+  defm VLXSEG#nf#BU_V : VLoad_Indexed<!add(nf, -1), 0b011,
+                                       0b000, "vlxseg"#nf#"bu.v">;
+  defm VLXSEG#nf#HU_V : VLoad_Indexed<!add(nf, -1), 0b011,
+                                       0b101, "vlxseg"#nf#"hu.v">;
+  defm VLXSEG#nf#WU_V : VLoad_Indexed<!add(nf, -1), 0b011,
+                                       0b110, "vlxseg"#nf#"wu.v">;
+  defm VLXSEG#nf#E_V : VLoad_Indexed<!add(nf, -1), 0b011,
+                                       0b111, "vlxseg"#nf#"e.v">;
+  defm VSXSEG#nf#B_V : VStore_Indexed<!add(nf, -1), 0b011,
+                                       0b000, "vsxseg"#nf#"b.v">;
+  defm VSXSEG#nf#H_V : VStore_Indexed<!add(nf, -1), 0b011,
+                                       0b101, "vsxseg"#nf#"h.v">;
+  defm VSXSEG#nf#W_V : VStore_Indexed<!add(nf, -1), 0b011,
+                                       0b110, "vsxseg"#nf#"w.v">;
+  defm VSXSEG#nf#E_V : VStore_Indexed<!add(nf, -1), 0b011,
+                                       0b111, "vsxseg"#nf#"e.v">;
+
+  // Vector Unit-Stride Fault-Only-First Segment Loads
+  defm VLSEG#nf#BFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b100,
+                                       0b000, "vlseg"#nf#"bff.v">;
+  defm VLSEG#nf#HFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b100,
+                                       0b101, "vlseg"#nf#"hff.v">;
+  defm VLSEG#nf#WFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b100,
+                                       0b110, "vlseg"#nf#"wff.v">;
+  defm VLSEG#nf#BUFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b000,
+                                       0b000, "vlseg"#nf#"buff.v">;
+  defm VLSEG#nf#HUFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b000,
+                                       0b101, "vlseg"#nf#"huff.v">;
+  defm VLSEG#nf#WUFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b000,
+                                       0b110, "vlseg"#nf#"wuff.v">;
+  defm VLSEG#nf#EFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b000,
+                                       0b111, "vlseg"#nf#"eff.v">;
+}
 
 
 // Vector Load/Store Whole Register Instructions
