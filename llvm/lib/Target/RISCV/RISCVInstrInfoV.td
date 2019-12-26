@@ -1583,6 +1583,260 @@ def : InstAlias<"vleff.v $vd, (${rs1}), $vm",
                 (VLEFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
 
 
+foreach nf = 2-8 in {
+
+  def : InstAlias<"vlseg"#nf#"b.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"B_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"b.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"B_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"h.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"H_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"h.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"H_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"w.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"W_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"w.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"W_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"bu.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"BU_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"bu.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"BU_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"hu.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"HU_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"hu.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"HU_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"wu.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"WU_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"wu.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"WU_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"e.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"E_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"e.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"E_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+
+  def : InstAlias<"vsseg"#nf#"b.v $vs3, (${rs1})",
+                  (!cast<RVInstVStore>("VSSEG"#nf#"B_V_um")
+                  VR:$vs3, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vsseg"#nf#"b.v $vs3, (${rs1}), $vm",
+                  (!cast<RVInstVStore>("VSSEG"#nf#"B_V_m")
+                  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vsseg"#nf#"h.v $vs3, (${rs1})",
+                  (!cast<RVInstVStore>("VSSEG"#nf#"H_V_um")
+                  VR:$vs3, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vsseg"#nf#"h.v $vs3, (${rs1}), $vm",
+                  (!cast<RVInstVStore>("VSSEG"#nf#"H_V_m")
+                  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vsseg"#nf#"w.v $vs3, (${rs1})",
+                  (!cast<RVInstVStore>("VSSEG"#nf#"W_V_um")
+                  VR:$vs3, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vsseg"#nf#"w.v $vs3, (${rs1}), $vm",
+                  (!cast<RVInstVStore>("VSSEG"#nf#"W_V_m")
+                  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vsseg"#nf#"e.v $vs3, (${rs1})",
+                  (!cast<RVInstVStore>("VSSEG"#nf#"E_V_um")
+                  VR:$vs3, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vsseg"#nf#"e.v $vs3, (${rs1}), $vm",
+                  (!cast<RVInstVStore>("VSSEG"#nf#"E_V_m")
+                  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+
+
+  def : InstAlias<"vlsseg"#nf#"b.v $vd, (${rs1}), $rs2",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"B_V_um")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vlsseg"#nf#"b.v $vd, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"B_V_m")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlsseg"#nf#"h.v $vd, (${rs1}), $rs2",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"H_V_um")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vlsseg"#nf#"h.v $vd, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"H_V_m")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlsseg"#nf#"w.v $vd, (${rs1}), $rs2",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"W_V_um")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vlsseg"#nf#"w.v $vd, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"W_V_m")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlsseg"#nf#"bu.v $vd, (${rs1}), $rs2",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"BU_V_um")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vlsseg"#nf#"bu.v $vd, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"BU_V_m")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlsseg"#nf#"hu.v $vd, (${rs1}), $rs2",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"HU_V_um")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vlsseg"#nf#"hu.v $vd, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"HU_V_m")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlsseg"#nf#"wu.v $vd, (${rs1}), $rs2",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"WU_V_um")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vlsseg"#nf#"wu.v $vd, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"WU_V_m")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlsseg"#nf#"e.v $vd, (${rs1}), $rs2",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"E_V_um")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vlsseg"#nf#"e.v $vd, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVLoad>("VLSSEG"#nf#"E_V_m")
+                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+
+  def : InstAlias<"vssseg"#nf#"b.v $vs3, (${rs1}), $rs2",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"B_V_um")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vssseg"#nf#"b.v $vs3, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"B_V_m")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vssseg"#nf#"h.v $vs3, (${rs1}), $rs2",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"H_V_um")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vssseg"#nf#"h.v $vs3, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"H_V_m")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vssseg"#nf#"w.v $vs3, (${rs1}), $rs2",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"W_V_um")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vssseg"#nf#"w.v $vs3, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"W_V_m")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vssseg"#nf#"e.v $vs3, (${rs1}), $rs2",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"E_V_um")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+  def : InstAlias<"vssseg"#nf#"e.v $vs3, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"E_V_m")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+
+
+  def : InstAlias<"vlxseg"#nf#"b.v $vd, (${rs1}), $vs2",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"B_V_um")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vlxseg"#nf#"b.v $vd, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"B_V_m")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlxseg"#nf#"h.v $vd, (${rs1}), $vs2",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"H_V_um")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vlxseg"#nf#"h.v $vd, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"H_V_m")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlxseg"#nf#"w.v $vd, (${rs1}), $vs2",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"W_V_um")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vlxseg"#nf#"w.v $vd, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"W_V_m")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlxseg"#nf#"bu.v $vd, (${rs1}), $vs2",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"BU_V_um")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vlxseg"#nf#"bu.v $vd, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"BU_V_m")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlxseg"#nf#"hu.v $vd, (${rs1}), $vs2",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"HU_V_um")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vlxseg"#nf#"hu.v $vd, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"HU_V_m")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlxseg"#nf#"wu.v $vd, (${rs1}), $vs2",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"WU_V_um")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vlxseg"#nf#"wu.v $vd, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"WU_V_m")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlxseg"#nf#"e.v $vd, (${rs1}), $vs2",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"E_V_um")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vlxseg"#nf#"e.v $vd, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVLoad>("VLXSEG"#nf#"E_V_m")
+                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+
+  def : InstAlias<"vsxseg"#nf#"b.v $vs3, (${rs1}), $vs2",
+                  (!cast<RVInstVStore>("VSXSEG"#nf#"B_V_um")
+                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vsxseg"#nf#"b.v $vs3, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVStore>("VSXSEG"#nf#"B_V_m")
+                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vsxseg"#nf#"h.v $vs3, (${rs1}), $vs2",
+                  (!cast<RVInstVStore>("VSXSEG"#nf#"H_V_um")
+                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vsxseg"#nf#"h.v $vs3, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVStore>("VSXSEG"#nf#"H_V_m")
+                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vsxseg"#nf#"w.v $vs3, (${rs1}), $vs2",
+                  (!cast<RVInstVStore>("VSXSEG"#nf#"W_V_um")
+                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vsxseg"#nf#"w.v $vs3, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVStore>("VSXSEG"#nf#"W_V_m")
+                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vsxseg"#nf#"e.v $vs3, (${rs1}), $vs2",
+                  (!cast<RVInstVStore>("VSXSEG"#nf#"E_V_um")
+                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+  def : InstAlias<"vsxseg"#nf#"e.v $vs3, (${rs1}), $vs2, $vm",
+                  (!cast<RVInstVStore>("VSXSEG"#nf#"E_V_m")
+                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+
+
+  def : InstAlias<"vlseg"#nf#"bff.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"BFF_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"bff.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"BFF_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"hff.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"HFF_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"hff.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"HFF_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"wff.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"WFF_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"wff.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"WFF_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"buff.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"BUFF_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"buff.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"BUFF_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"huff.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"HUFF_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"huff.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"HUFF_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"wuff.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"WUFF_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"wuff.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"WUFF_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+  def : InstAlias<"vlseg"#nf#"eff.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"EFF_V_um")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vlseg"#nf#"eff.v $vd, (${rs1}), $vm",
+                  (!cast<RVInstVLoad>("VLSEG"#nf#"EFF_V_m")
+                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+}
+
+
 def : InstAlias<"vwcvt.x.x.v $vd, $vs2",
                 (VWADD_VX_um  VR:$vd, VR:$vs2, X0, VL)>;
 def : InstAlias<"vwcvt.x.x.v $vd, $vs2, $vm",
