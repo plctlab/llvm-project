@@ -64,7 +64,6 @@ class RVInstVAMO<bits<5> amoop, bits<1> wd, bits<3> width, RVVMaskCond m,
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther /* TODO */> {
   bits<5> rs1;
   bits<5> vs2;
-  bits<5> vs3;
 
   let Inst{31-27} = amoop;
   let Inst{26}    = wd;
@@ -72,7 +71,6 @@ class RVInstVAMO<bits<5> amoop, bits<1> wd, bits<3> width, RVVMaskCond m,
   let Inst{24-20} = vs2;
   let Inst{19-15} = rs1;
   let Inst{14-12} = width;
-  let Inst{11-7}  = vs3;
   let Opcode = opcode.Value;
 }
 

@@ -166,13 +166,65 @@ multiclass VStore_Indexed<bits<3> nf, bits<3> mop,
   }
 }
 
-/*
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-class VALU_AMO<bits<5> amoop, bits<1> wd, bits<3> width, string opcodestr>
-    : RVInstVAMO<amoop, wd, width, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vs3), (ins GPR:$rs1, VR:$vs2, VLR:$vl),
-               opcodestr, "$vs3, $vs1, $vs2">
-*/
+multiclass VALU_AMO_W<bits<5> amoop, string opcodestr> {
+  def _wd_m  : RVInstVAMO<amoop, 0b1, 0b110, RVV_Masked, OPC_AMO,
+               (outs VR:$vd_wd), (ins GPR:$rs1, VR:$vs2, VR:$vd, VLR:$vl, VMR:$vm),
+               opcodestr, "$vd_wd, (${rs1}), $vs2, $vd, $vm"> {
+    let Constraints = "$vd = $vd_wd";
+    bits<5> vd;
+    let Inst{11-7}  = vd;
+  }
+  def _wd_um : RVInstVAMO<amoop, 0b1, 0b110, RVV_Unmasked, OPC_AMO,
+               (outs VR:$vd_wd), (ins GPR:$rs1, VR:$vs2, VR:$vd, VLR:$vl),
+               opcodestr, "$vd_wd, (${rs1}), $vs2, $vd"> {
+    let Constraints = "$vd = $vd_wd";
+    bits<5> vd;
+    let Inst{11-7}  = vd;
+  }
+  def _m  : RVInstVAMO<amoop, 0b0, 0b110, RVV_Masked, OPC_AMO,
+               (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl, VMR:$vm),
+               opcodestr, "x0, (${rs1}), $vs2, $vs3, $vm"> {
+    bits<5> vs3;
+    let Inst{11-7}  = vs3;
+  }
+  def _um : RVInstVAMO<amoop, 0b0, 0b110, RVV_Unmasked, OPC_AMO,
+               (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl),
+               opcodestr, "x0, (${rs1}), $vs2, $vs3"> {
+    bits<5> vs3;
+    let Inst{11-7}  = vs3;
+  }
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+multiclass VALU_AMO_E<bits<5> amoop, string opcodestr> {
+  def _wd_m  : RVInstVAMO<amoop, 0b1, 0b111, RVV_Masked, OPC_AMO,
+               (outs VR:$vd_wd), (ins GPR:$rs1, VR:$vs2, VR:$vd, VLR:$vl, VMR:$vm),
+               opcodestr, "$vd_wd, (${rs1}), $vs2, $vd, $vm"> {
+    let Constraints = "$vd = $vd_wd";
+    bits<5> vd;
+    let Inst{11-7}  = vd;
+  }
+  def _wd_um : RVInstVAMO<amoop, 0b1, 0b111, RVV_Unmasked, OPC_AMO,
+               (outs VR:$vd_wd), (ins GPR:$rs1, VR:$vs2, VR:$vd, VLR:$vl),
+               opcodestr, "$vd_wd, (${rs1}), $vs2, $vd"> {
+    let Constraints = "$vd = $vd_wd";
+    bits<5> vd;
+    let Inst{11-7}  = vd;
+  }
+  def _m  : RVInstVAMO<amoop, 0b0, 0b111, RVV_Masked, OPC_AMO,
+               (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl, VMR:$vm),
+               opcodestr, "x0, (${rs1}), $vs2, $vs3, $vm"> {
+    bits<5> vs3;
+    let Inst{11-7}  = vs3;
+  }
+  def _um : RVInstVAMO<amoop, 0b0, 0b111, RVV_Unmasked, OPC_AMO,
+               (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl),
+               opcodestr, "x0, (${rs1}), $vs2, $vs3"> {
+    bits<5> vs3;
+    let Inst{11-7}  = vs3;
+  }
+}
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPIVV<bits<6> funct6, string opcodestr> {
@@ -608,7 +660,6 @@ defm VLEFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b111, "vleff.v">;
 
 
 // Vector Load/Store Segment Instructions
-// TODO
 
 foreach nf = 2-8 in {
 
@@ -707,7 +758,26 @@ foreach nf = 2-8 in {
 
 
 // Vector AMO Operations
-// TODO
+
+defm VAMOSWAPW_V : VALU_AMO_W<0b00001, "vamoswapw.v">;
+defm VAMOADDW_V : VALU_AMO_W<0b00000, "vamoaddw.v">;
+defm VAMOXORW_V : VALU_AMO_W<0b00100, "vamoxorw.v">;
+defm VAMOANDW_V : VALU_AMO_W<0b01100, "vamoandw.v">;
+defm VAMOORW_V : VALU_AMO_W<0b01000, "vamoorw.v">;
+defm VAMOMINW_V : VALU_AMO_W<0b10000, "vamominw.v">;
+defm VAMOMAXW_V : VALU_AMO_W<0b10100, "vamomaxw.v">;
+defm VAMOMINUW_V : VALU_AMO_W<0b11000, "vamominuw.v">;
+defm VAMOMAXUW_V : VALU_AMO_W<0b11100, "vamomaxuw.v">;
+
+defm VAMOSWAPE_V : VALU_AMO_E<0b00001, "vamoswape.v">;
+defm VAMOADDE_V : VALU_AMO_E<0b00000, "vamoadde.v">;
+defm VAMOXORE_V : VALU_AMO_E<0b00100, "vamoxore.v">;
+defm VAMOANDE_V : VALU_AMO_E<0b01100, "vamoande.v">;
+defm VAMOORE_V : VALU_AMO_E<0b01000, "vamoore.v">;
+defm VAMOMINE_V : VALU_AMO_E<0b10000, "vamomine.v">;
+defm VAMOMAXE_V : VALU_AMO_E<0b10100, "vamomaxe.v">;
+defm VAMOMINUE_V : VALU_AMO_E<0b11000, "vamominue.v">;
+defm VAMOMAXUE_V : VALU_AMO_E<0b11100, "vamomaxue.v">;
 
 
 // Vector Single-Width Integer Add and Subtract Instructions
