@@ -1298,6 +1298,150 @@ vlseg8wuff.v v0, (a1), v0.t
 # CHECK-ASM: encoding: [0x07,0xf0,0x05,0xe1]
 vlseg8eff.v v0, (a1), v0.t
 
+# CHECK-ASM-AND-OBJ: vamoswapw.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x0c]
+vamoswapw.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoswapw.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x08]
+vamoswapw.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoaddw.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x04]
+vamoaddw.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoaddw.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x00]
+vamoaddw.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoxorw.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x24]
+vamoxorw.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoxorw.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x20]
+vamoxorw.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoandw.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x64]
+vamoandw.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoandw.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x60]
+vamoandw.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoorw.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x44]
+vamoorw.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoorw.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x40]
+vamoorw.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamominw.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x84]
+vamominw.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamominw.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0x80]
+vamominw.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamomaxw.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0xa4]
+vamomaxw.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamomaxw.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0xa0]
+vamomaxw.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamominuw.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0xc4]
+vamominuw.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamominuw.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0xc0]
+vamominuw.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamomaxuw.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0xe4]
+vamomaxuw.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamomaxuw.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xe0,0x25,0xe0]
+vamomaxuw.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoswape.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x0c]
+vamoswape.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoswape.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x08]
+vamoswape.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoadde.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x04]
+vamoadde.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoadde.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x00]
+vamoadde.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoxore.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x24]
+vamoxore.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoxore.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x20]
+vamoxore.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoande.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x64]
+vamoande.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoande.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x60]
+vamoande.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoore.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x44]
+vamoore.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamoore.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x40]
+vamoore.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamomine.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x84]
+vamomine.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamomine.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0x80]
+vamomine.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamomaxe.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0xa4]
+vamomaxe.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamomaxe.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0xa0]
+vamomaxe.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamominue.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0xc4]
+vamominue.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamominue.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0xc0]
+vamominue.v x0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamomaxue.v v0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0xe4]
+vamomaxue.v v0, (a1), v2, v0, v0.t
+
+# CHECK-ASM-AND-OBJ: vamomaxue.v x0, 0(a1), v2, v0, v0.t
+# CHECK-ASM: encoding: [0x2f,0xf0,0x25,0xe0]
+vamomaxue.v x0, (a1), v2, v0, v0.t
+
 # CHECK-ASM-AND-OBJ: vwadd.vx v0, v1, zero, v0.t
 # CHECK-ASM: encoding: [0x57,0x60,0x10,0xc4]
 vwcvt.x.x.v v0, v1, v0.t
