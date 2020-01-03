@@ -14,6 +14,7 @@
 #include "Utils/RISCVBaseInfo.h"
 #include "Utils/RISCVMatInt.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SmallBitVector.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/CodeGen/Register.h"
@@ -133,6 +134,8 @@ class RISCVAsmParser : public MCTargetAsmParser {
   OperandMatchResultTy parseBareSymbol(OperandVector &Operands);
   OperandMatchResultTy parseCallSymbol(OperandVector &Operands);
   OperandMatchResultTy parseJALOffset(OperandVector &Operands);
+  OperandMatchResultTy parseVTypeImmOperand(OperandVector &Operands);
+
 
   bool parseOperand(OperandVector &Operands, StringRef Mnemonic);
 
@@ -199,7 +202,8 @@ struct RISCVOperand : public MCParsedAsmOperand {
     Token,
     Register,
     Immediate,
-    SystemRegister
+    SystemRegister,
+    VTypeI,
   } Kind;
 
   bool IsRV64;
@@ -220,12 +224,45 @@ struct RISCVOperand : public MCParsedAsmOperand {
     // e.g.: read/write or user/supervisor/machine privileges.
   };
 
+  enum class VSEW {
+    SEW_8 = 0,
+    SEW_16,
+    SEW_32,
+    SEW_64,
+    SEW_128,
+    SEW_256,
+    SEW_512,
+    SEW_1024,
+  };
+
+  enum class VLMUL {
+    LMUL_1 = 0,
+    LMUL_2,
+    LMUL_4,
+    LMUL_8,
+  };
+
+  enum class VEDIV {
+    EDIV_1 = 0,
+    EDIV_2,
+    EDIV_4,
+    EDIV_8,
+  };
+
+  struct VtyiOp {
+    VSEW Sew;
+    VLMUL Lmul;
+    VEDIV Ediv;
+    unsigned Encoding;
+  };
+
   SMLoc StartLoc, EndLoc;
   union {
     StringRef Tok;
     RegOp Reg;
     ImmOp Imm;
     struct SysRegOp SysReg;
+    struct VtyiOp Vtyi;
   };
 
   RISCVOperand(KindTy K) : MCParsedAsmOperand(), Kind(K) {}
@@ -249,6 +286,9 @@ public:
     case KindTy::SystemRegister:
       SysReg = o.SysReg;
       break;
+    case KindTy::VTypeI:
+      Vtyi = o.Vtyi;
+      break;
     }
   }
 
@@ -257,6 +297,7 @@ public:
   bool isImm() const override { return Kind == KindTy::Immediate; }
   bool isMem() const override { return false; }
   bool isSystemRegister() const { return Kind == KindTy::SystemRegister; }
+  bool isVTypeI() const { return Kind == KindTy::VTypeI; }
 
   static bool evaluateConstantImm(const MCExpr *Expr, int64_t &Imm,
                                   RISCVMCExpr::VariantKind &VK) {
@@ -670,6 +711,67 @@ public:
     return StringRef(SysReg.Data, SysReg.Length);
   }
 
+static StringRef getSEWStr(VSEW sew) {
+    switch (sew) {
+    case VSEW::SEW_8:
+      return "e8";
+    case VSEW::SEW_16:
+      return "e16";
+    case VSEW::SEW_32:
+      return "e32";
+    case VSEW::SEW_64:
+      return "e64";
+    case VSEW::SEW_128:
+      return "e128";
+    case VSEW::SEW_256:
+      return "e256";
+    case VSEW::SEW_512:
+      return "e512";
+    case VSEW::SEW_1024:
+      return "e1024";
+    }
+    llvm_unreachable("SEW must be [8|16|32|64|128|256|512|1024]");
+  }
+
+  static StringRef getLMULStr(VLMUL lmul) {
+    switch (lmul) {
+    case VLMUL::LMUL_1:
+      return "m1";
+    case VLMUL::LMUL_2:
+      return "m2";
+    case VLMUL::LMUL_4:
+      return "m4";
+    case VLMUL::LMUL_8:
+      return "m8";
+    }
+    llvm_unreachable("LMUL must be [1|2|4|8]");
+  }
+
+  static StringRef getEDIVStr(VEDIV ediv) {
+    switch (ediv) {
+    case VEDIV::EDIV_1:
+      return "d1";
+    case VEDIV::EDIV_2:
+      return "d2";
+    case VEDIV::EDIV_4:
+      return "d4";
+    case VEDIV::EDIV_8:
+      return "d8";
+    }
+    llvm_unreachable("EDIV must be [1|2|4|8]");
+  }
+
+  StringRef getVTypeI(SmallVectorImpl<char> &Out) const {
+    assert(Kind == KindTy::VTypeI && "Invalid access!");
+    Twine vtypei(getSEWStr(Vtyi.Sew));
+    vtypei.concat(Twine(","));
+    vtypei.concat(Twine(getLMULStr(Vtyi.Lmul)));
+    vtypei.concat(Twine(","));
+    vtypei.concat(Twine(getEDIVStr(Vtyi.Ediv)));
+
+    return vtypei.toStringRef(Out);
+  }
+
   const MCExpr *getImm() const {
     assert(Kind == KindTy::Immediate && "Invalid type access!");
     return Imm.Val;
@@ -694,6 +796,10 @@ public:
       break;
     case KindTy::SystemRegister:
       OS << "<sysreg: " << getSysReg() << '>';
+      break;
+    case KindTy::VTypeI:
+      SmallVector<char, 8> VTypeBuf;
+      OS << "<vtype: " << getVTypeI(VTypeBuf) << '>';
       break;
     }
   }
@@ -739,6 +845,20 @@ public:
     return Op;
   }
 
+  static std::unique_ptr<RISCVOperand>
+  createVTypeI(APInt sew, APInt lmul, APInt ediv, SMLoc S, bool IsRV64) {
+    auto Op = std::make_unique<RISCVOperand>(KindTy::VTypeI);
+    sew.ashrInPlace(3);
+    Op->Vtyi.Sew = static_cast<VSEW>(sew.logBase2());
+    Op->Vtyi.Lmul = static_cast<VLMUL>(lmul.logBase2());
+    Op->Vtyi.Ediv = static_cast<VEDIV>(ediv.logBase2());
+    Op->Vtyi.Encoding = (ediv.logBase2() << 5) | (sew.logBase2() << 2)
+                                                | lmul.logBase2();
+    Op->StartLoc = S;
+    Op->IsRV64 = IsRV64;
+    return Op;
+  }
+
   void addExpr(MCInst &Inst, const MCExpr *Expr) const {
     assert(Expr && "Expr shouldn't be null!");
     int64_t Imm = 0;
@@ -760,6 +880,11 @@ public:
   void addImmOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     addExpr(Inst, getImm());
+  }
+
+  void addVTypeIOperands(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
+    Inst.addOperand(MCOperand::createImm(Vtyi.Encoding));
   }
 
   void addFenceArgOperands(MCInst &Inst, unsigned N) const {
@@ -1003,6 +1128,12 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
   case Match_InvalidTPRelAddSymbol: {
     SMLoc ErrorLoc = ((RISCVOperand &)*Operands[ErrorInfo]).getStartLoc();
     return Error(ErrorLoc, "operand must be a symbol with %tprel_add modifier");
+  }
+  case Match_InvalidVTypeIAsmOperand: {
+    SMLoc ErrorLoc = ((RISCVOperand &)*Operands[ErrorInfo]).getStartLoc();
+    return Error(ErrorLoc,
+                 "operand must be e[8|16|32|64|128|256|512|1024]"
+                 "{,m[1|2|4|8]}{,d[1|2|4|8]}");
   }
   }
 
@@ -1414,6 +1545,58 @@ OperandMatchResultTy RISCVAsmParser::parseAtomicMemOp(OperandVector &Operands) {
     return MatchOperand_ParseFail;
   }
 
+  return MatchOperand_Success;
+}
+
+OperandMatchResultTy
+RISCVAsmParser::parseVTypeImmOperand(OperandVector &Operands) {
+  SMLoc S = getLoc();
+  if (getLexer().getKind() != AsmToken::Identifier)
+    return MatchOperand_NoMatch;
+
+  APInt sew(16, 1);
+  APInt lmul(16, 1);
+  APInt ediv(16, 1);
+
+  StringRef Name = getLexer().getTok().getIdentifier();
+  if (!Name.consume_front("e"))
+    return MatchOperand_NoMatch;
+  sew = APInt(16, Name, 10);
+  if (sew != 8 && sew != 16 && sew != 32 && sew != 64 && sew != 128 &&
+      sew != 256 && sew != 512 && sew != 1024)
+    return MatchOperand_NoMatch;
+  getLexer().Lex();
+  if (getLexer().is(AsmToken::EndOfStatement)) {
+    Operands.push_back(RISCVOperand::createVTypeI(sew, lmul, ediv, S, isRV64()));
+    return MatchOperand_Success;
+  }
+  if(!getLexer().is(AsmToken::Comma))
+    return MatchOperand_NoMatch;
+  getLexer().Lex();
+  Name = getLexer().getTok().getIdentifier();
+  if (Name.consume_front("m")) {
+    lmul = APInt(16, Name, 10);
+    if (lmul != 1 && lmul != 2 && lmul != 4 && lmul != 8)
+      return MatchOperand_NoMatch;
+    getLexer().Lex();
+    if (getLexer().is(AsmToken::EndOfStatement)) {
+      Operands.push_back(RISCVOperand::createVTypeI(sew, lmul, ediv, S, isRV64()));
+      return MatchOperand_Success;
+    }
+    if(!getLexer().is(AsmToken::Comma))
+      return MatchOperand_NoMatch;
+    getLexer().Lex();
+    Name = getLexer().getTok().getIdentifier();
+  }
+  if (!Name.consume_front("d"))
+    return MatchOperand_NoMatch;
+  ediv = APInt(16, Name, 10);
+  if (ediv != 1 && ediv != 2 && ediv != 4 && ediv != 8)
+    return MatchOperand_NoMatch;
+  getLexer().Lex();
+  if (getLexer().getKind() != AsmToken::EndOfStatement)
+    return MatchOperand_NoMatch;
+  Operands.push_back(RISCVOperand::createVTypeI(sew, lmul, ediv, S, isRV64()));
   return MatchOperand_Success;
 }
 

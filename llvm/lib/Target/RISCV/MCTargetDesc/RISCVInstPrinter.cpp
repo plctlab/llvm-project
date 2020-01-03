@@ -149,6 +149,19 @@ void RISCVInstPrinter::printAtomicMemOp(const MCInst *MI, unsigned OpNo,
   return;
 }
 
+void RISCVInstPrinter::printVTypeI(const MCInst *MI, unsigned OpNo,
+                                   const MCSubtargetInfo &STI, raw_ostream &O) {
+  unsigned Imm = MI->getOperand(OpNo).getImm();
+  unsigned ediv = (Imm >> 5) & 0x3;
+  unsigned sew = (Imm >> 2) & 0x7;
+  unsigned lmul = Imm & 0x3;
+
+  ediv = 0x1 << ediv;
+  lmul = 0x1 << lmul;
+  sew = 0x1 << (sew + 3);
+  O << "e" << sew << ",m" << lmul << ",d" << ediv;
+}
+
 const char *RISCVInstPrinter::getRegisterName(unsigned RegNo) {
   return getRegisterName(RegNo, ArchRegNames ? RISCV::NoRegAltName
                                              : RISCV::ABIRegAltName);

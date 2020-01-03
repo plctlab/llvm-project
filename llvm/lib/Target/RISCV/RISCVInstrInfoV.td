@@ -49,6 +49,18 @@ def uimm11 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<11>(Imm);}]> {
   let DecoderMethod = "decodeUImmOperand<11>";
 }
 
+def VTypeImmOperand : AsmOperandClass {
+  let Name = "VTypeI";
+  let ParserMethod = "parseVTypeImmOperand";
+  let DiagnosticType = "InvalidVTypeIAsmOperand";
+}
+
+def vtypei : Operand<XLenVT> {
+  let ParserMatchClass = VTypeImmOperand;
+  let PrintMethod = "printVTypeI";
+  let DecoderMethod = "decodeUImmOperand<11>";
+}
+
 //===----------------------------------------------------------------------===//
 // Instruction class templates
 //===----------------------------------------------------------------------===//
@@ -581,10 +593,11 @@ let Predicates = [HasStdExtV] in {
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSETVLI: RVInstVSet<0b0, OPC_OP_V, 
-                      (outs VLR:$vl, GPR:$rd), (ins GPR:$rs1, uimm11:$vtypei),
-                      "vsetvli", "$rd, $rs1, $vtypei"> {
-  bits<11> vtypei;
-  let Inst{30-20} = vtypei;
+                      (outs VLR:$vl, GPR:$rd),
+                      (ins GPR:$rs1, vtypei:$vtyi),
+                      "vsetvli", "$rd, $rs1, $vtyi"> {
+  bits<11> vtyi;
+  let Inst{30-20} = vtyi;
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSETVL: RVInstVSet<0b1, OPC_OP_V, 
@@ -1464,6 +1477,10 @@ defm VFDOT_VV : VALU_OPFVV<0b111001, "vfdot.vv">;
 //===----------------------------------------------------------------------===//
 
 let EmitPriority = 0 in {
+
+
+def : InstAlias<"vsetvli $rd, $rs1, $uimm",
+                (VSETVLI  VL, GPR:$rd, GPR:$rs1, uimm11:$uimm)>;
 
 
 def : InstAlias<"vlb.v $vd, (${rs1})",
