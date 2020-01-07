@@ -1039,14 +1039,24 @@ defm VWMACCU_VX : VALU_OPMVX_MulAdd<0b111100, "vwmaccu.vx">;
 defm VWMACC_VV : VALU_OPMVV_MulAdd<0b111101, "vwmacc.vv">;
 defm VWMACC_VX : VALU_OPMVX_MulAdd<0b111101, "vwmacc.vx">;
 
-defm VWMACCSU_VV : VALU_OPMVV_MulAdd<0b111110, "vwmaccsu.vv">;
-defm VWMACCSU_VX : VALU_OPMVX_MulAdd<0b111110, "vwmaccsu.vx">;
+defm VWMACCSU_VV : VALU_OPMVV_MulAdd<0b111111, "vwmaccsu.vv">;
+defm VWMACCSU_VX : VALU_OPMVX_MulAdd<0b111111, "vwmaccsu.vx">;
 
-defm VWMACCUS_VX : VALU_OPMVX_MulAdd<0b111111, "vwmaccus.vx">;
+defm VWMACCUS_VX : VALU_OPMVX_MulAdd<0b111110, "vwmaccus.vx">;
 
 
 // Vector Quad-Widening Integer Multiply-Add Instructions
-// TODO
+
+defm VQMACCU_VV : VALU_OPIVV_MulAdd<0b111100, "vqmaccu.vv">;
+defm VQMACCU_VX : VALU_OPIVX_MulAdd<0b111100, "vqmaccu.vx">;
+
+defm VQMACC_VV : VALU_OPIVV_MulAdd<0b111101, "vqmacc.vv">;
+defm VQMACC_VX : VALU_OPIVX_MulAdd<0b111101, "vqmacc.vx">;
+
+defm VQMACCSU_VV : VALU_OPIVV_MulAdd<0b111111, "vqmaccsu.vv">;
+defm VQMACCSU_VX : VALU_OPIVX_MulAdd<0b111111, "vqmaccsu.vx">;
+
+defm VQMACCUS_VX : VALU_OPIVX_MulAdd<0b111110, "vqmaccus.vx">;
 
 
 // Vector Integer Merge Instructions

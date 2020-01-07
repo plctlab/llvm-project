@@ -2027,16 +2027,44 @@ vwmacc.vv v0, v0, v1
 vwmacc.vx v0, a0, v1
 
 # CHECK-ASM-AND-OBJ: vwmaccsu.vv v0, v0, v1
-# CHECK-ASM: encoding: [0x57,0x20,0x10,0xfa]
+# CHECK-ASM: encoding: [0x57,0x20,0x10,0xfe]
 vwmaccsu.vv v0, v0, v1
 
 # CHECK-ASM-AND-OBJ: vwmaccsu.vx v0, a0, v1
-# CHECK-ASM: encoding: [0x57,0x60,0x15,0xfa]
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xfe]
 vwmaccsu.vx v0, a0, v1
 
 # CHECK-ASM-AND-OBJ: vwmaccus.vx v0, a0, v1
-# CHECK-ASM: encoding: [0x57,0x60,0x15,0xfe]
+# CHECK-ASM: encoding: [0x57,0x60,0x15,0xfa]
 vwmaccus.vx v0, a0, v1
+
+# CHECK-ASM-AND-OBJ: vqmaccu.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xf2]
+vqmaccu.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vqmaccu.vx v0, a0, v1
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xf2]
+vqmaccu.vx v0, a0, v1
+
+# CHECK-ASM-AND-OBJ: vqmacc.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xf6]
+vqmacc.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vqmacc.vx v0, a0, v1
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xf6]
+vqmacc.vx v0, a0, v1
+
+# CHECK-ASM-AND-OBJ: vqmaccsu.vv v0, v0, v1
+# CHECK-ASM: encoding: [0x57,0x00,0x10,0xfe]
+vqmaccsu.vv v0, v0, v1
+
+# CHECK-ASM-AND-OBJ: vqmaccsu.vx v0, a0, v1
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xfe]
+vqmaccsu.vx v0, a0, v1
+
+# CHECK-ASM-AND-OBJ: vqmaccus.vx v0, a0, v1
+# CHECK-ASM: encoding: [0x57,0x40,0x15,0xfa]
+vqmaccus.vx v0, a0, v1
 
 # CHECK-ASM-AND-OBJ: vmerge.vvm v0, v1, v0, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0x5c]
