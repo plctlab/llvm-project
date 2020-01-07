@@ -490,6 +490,14 @@ class VALU_OPIVI_um<bits<6> funct6, string opcodestr>
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class VALU_OPIVI_VMVWholeReg<bits<5> simm, string opcodestr>
+    : RVInstVA<0b100111, 0b011, RVV_Unmasked, OPC_OP_V,
+               (outs VR:$vd), (ins VR:$vs2, VLR:$vl),
+               opcodestr, "$vd, $vs2"> {
+  let Inst{19-15} = simm;
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPIVX<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b100, RVV_Masked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl, VMR:$vm),
@@ -1481,8 +1489,11 @@ def VCOMPRESS_VM : RVInstVA<0b010111, 0b010, RVV_Unmasked, OPC_OP_V,
 }
 
 
-// Whole Vector Register Move
-// TODO
+// Whole Vector Register Move Instructions
+
+foreach nf = 1-8 in {
+  def VMV#nf#R_V : VALU_OPIVI_VMVWholeReg<!add(nf, -1), "vmv"#nf#"r.v">;
+}
 
 
 // Vector Integer Dot-Product Instructions

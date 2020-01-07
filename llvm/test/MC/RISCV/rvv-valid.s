@@ -2702,6 +2702,38 @@ vrgather.vi v0, v1, 0
 # CHECK-ASM: encoding: [0x57,0x20,0x10,0x5e]
 vcompress.vm v0, v1, v0
 
+# CHECK-ASM-AND-OBJ: vmv1r.v v0, v8
+# CHECK-ASM: encoding: [0x57,0x30,0x80,0x9e]
+vmv1r.v v0, v8
+
+# CHECK-ASM-AND-OBJ: vmv2r.v v0, v8
+# CHECK-ASM: encoding: [0x57,0xb0,0x80,0x9e]
+vmv2r.v v0, v8
+
+# CHECK-ASM-AND-OBJ: vmv3r.v v0, v8
+# CHECK-ASM: encoding: [0x57,0x30,0x81,0x9e]
+vmv3r.v v0, v8
+
+# CHECK-ASM-AND-OBJ: vmv4r.v v0, v8
+# CHECK-ASM: encoding: [0x57,0xb0,0x81,0x9e]
+vmv4r.v v0, v8
+
+# CHECK-ASM-AND-OBJ: vmv5r.v v0, v8
+# CHECK-ASM: encoding: [0x57,0x30,0x82,0x9e]
+vmv5r.v v0, v8
+
+# CHECK-ASM-AND-OBJ: vmv6r.v v0, v8
+# CHECK-ASM: encoding: [0x57,0xb0,0x82,0x9e]
+vmv6r.v v0, v8
+
+# CHECK-ASM-AND-OBJ: vmv7r.v v0, v8
+# CHECK-ASM: encoding: [0x57,0x30,0x83,0x9e]
+vmv7r.v v0, v8
+
+# CHECK-ASM-AND-OBJ: vmv8r.v v0, v8
+# CHECK-ASM: encoding: [0x57,0xb0,0x83,0x9e]
+vmv8r.v v0, v8
+
 # CHECK-ASM-AND-OBJ: vdotu.vv v0, v1, v0
 # CHECK-ASM: encoding: [0x57,0x00,0x10,0xe2]
 vdotu.vv v0, v1, v0
