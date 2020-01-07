@@ -1950,6 +1950,17 @@ foreach nf = 2-8 in {
 }
 
 
+foreach nf = 1-8 in {
+
+  def : InstAlias<"vl"#nf#"r.v $vd, (${rs1})",
+                  (!cast<RVInstVLoad>("VL"#nf#"R_V")
+                  VR:$vd, GPR:$rs1, VL, 0)>;
+  def : InstAlias<"vs"#nf#"r.v $vs3, (${rs1})",
+                  (!cast<RVInstVStore>("VS"#nf#"R_V")
+                  VR:$vs3, GPR:$rs1, VL, 0)>;
+}
+
+
 def : InstAlias<"vamoswapw.v $vd, (${rs1}), $vs2, $vd",
                 (VAMOSWAPW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
 def : InstAlias<"vamoswapw.v $vd, (${rs1}), $vs2, $vd, $vm",
