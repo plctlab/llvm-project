@@ -178,6 +178,22 @@ multiclass VStore_Indexed<bits<3> nf, bits<3> mop,
   }
 }
 
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class VLoad_WholeReg<bits<3> nf, string opcodestr>
+    : RVInstVLoad<nf, 0b000, 0b111, RVV_Unmasked, OPC_LOAD_FP,
+                  (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5),
+                  opcodestr, "$vd, ${imm5}(${rs1})"> {
+  let Inst{24-20} = 0b01000;
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+class VStore_WholeReg<bits<3> nf, string opcodestr>
+    : RVInstVStore<nf, 0b000, 0b111, RVV_Unmasked, OPC_STORE_FP,
+                   (outs), (ins VR:$vs3, GPR:$rs1, VLR:$vl, simm5:$imm5),
+                   opcodestr, "$vs3, ${imm5}(${rs1})"> {
+  let Inst{24-20} = 0b01000;
+}
+
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_AMO_W<bits<5> amoop, string opcodestr> {
   def _wd_m  : RVInstVAMO<amoop, 0b1, 0b110, RVV_Masked, OPC_AMO,
@@ -773,7 +789,11 @@ foreach nf = 2-8 in {
 
 
 // Vector Load/Store Whole Register Instructions
-// TODO
+
+foreach nf = 1-8 in {
+  def VL#nf#R_V : VLoad_WholeReg<!add(nf, -1), "vl"#nf#"r.v">;
+  def VS#nf#R_V : VStore_WholeReg<!add(nf, -1), "vs"#nf#"r.v">;
+}
 
 
 // Vector AMO Operations
