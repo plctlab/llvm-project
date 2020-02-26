@@ -1565,3 +1565,31 @@ vmset.m v0
 # CHECK-ASM-AND-OBJ: vmnand.mm v0, v1, v1
 # CHECK-ASM: encoding: [0x57,0xa0,0x10,0x76]
 vmnot.m v0, v1
+
+# CHECK-ASM-AND-OBJ: vmsle.vi v0, v1, 3
+# CHECK-ASM: encoding: [0x57,0xb0,0x11,0x76]
+vmslt.vi v0, v1, 4
+
+# CHECK-ASM-AND-OBJ: vmsleu.vi v0, v1, 3
+# CHECK-ASM: encoding: [0x57,0xb0,0x11,0x72]
+vmsltu.vi v0, v1, 4
+
+# CHECK-ASM-AND-OBJ: vmsgt.vi v0, v1, 3
+# CHECK-ASM: encoding: [0x57,0xb0,0x11,0x7e]
+vmsge.vi v0, v1, 4
+
+# CHECK-ASM-AND-OBJ: vmsgtu.vi v0, v1, 3
+# CHECK-ASM: encoding: [0x57,0xb0,0x11,0x7a]
+vmsgeu.vi v0, v1, 4
+
+# CHECK-ASM-AND-OBJ: addi   t0, a2, -1
+#                    vmsgt.vx v0, v1, t0
+# CHECK-ASM: encoding: [0x93,0x02,0xf6,0xff]
+#            encoding: [0x57,0xb0,0x11,0x7e]
+vmsge.vx v0, v1, a2
+
+# CHECK-ASM-AND-OBJ: addi   t0, a2, -1
+#                    vmsgtu.vx v0, v1, t0
+# CHECK-ASM: encoding: [0x93,0x02,0xf6,0xff]
+#            encoding: [0x57,0xb0,0x11,0x7a]
+vmsgeu.vx v0, v1, a2

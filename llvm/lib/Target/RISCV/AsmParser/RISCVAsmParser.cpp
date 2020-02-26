@@ -113,6 +113,19 @@ class RISCVAsmParser : public MCTargetAsmParser {
   // 'add' is an overloaded mnemonic.
   bool checkPseudoAddTPRel(MCInst &Inst, OperandVector &Operands);
 
+  void emitVMSLT_VI_um(MCInst &Inst, MCStreamer &Out);
+  void emitVMSLT_VI_m(MCInst &Inst, MCStreamer &Out);
+  void emitVMSLTU_VI_um(MCInst &Inst, MCStreamer &Out);
+  void emitVMSLTU_VI_m(MCInst &Inst, MCStreamer &Out);
+  void emitVMSGE_VI_um(MCInst &Inst, MCStreamer &Out);
+  void emitVMSGE_VI_m(MCInst &Inst, MCStreamer &Out);
+  void emitVMSGEU_VI_um(MCInst &Inst, MCStreamer &Out);
+  void emitVMSGEU_VI_m(MCInst &Inst, MCStreamer &Out);
+  void emitVMSGE_VX_um(MCInst &Inst, MCStreamer &Out);
+  void emitVMSGE_VX_m(MCInst &Inst, MCStreamer &Out);
+  void emitVMSGEU_VX_um(MCInst &Inst, MCStreamer &Out);
+  void emitVMSGEU_VX_m(MCInst &Inst, MCStreamer &Out);
+
   /// Helper for processing MC instructions that have been successfully matched
   /// by MatchAndEmitInstruction. Modifications to the emitted instructions,
   /// like the expansion of pseudo instructions (e.g., "li"), can be performed
@@ -1991,6 +2004,182 @@ bool RISCVAsmParser::checkPseudoAddTPRel(MCInst &Inst,
   return false;
 }
 
+void RISCVAsmParser::emitVMSLT_VI_um(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  int64_t Imm = Inst.getOperand(2).getImm() - 1;
+  Register VL = RISCV::VL;
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSLE_VI_um)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addImm(Imm)
+                            .addReg(VL));
+}
+
+void RISCVAsmParser::emitVMSLT_VI_m(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  int64_t Imm = Inst.getOperand(2).getImm() - 1;
+  Register VL = RISCV::VL;
+  Register VM = Inst.getOperand(3).getReg();
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSLE_VI_m)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addImm(Imm)
+                            .addReg(VL)
+                            .addReg(VM));
+}
+
+void RISCVAsmParser::emitVMSLTU_VI_um(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  int64_t Imm = Inst.getOperand(2).getImm() - 1;
+  Register VL = RISCV::VL;
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSLEU_VI_um)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addImm(Imm)
+                            .addReg(VL));
+}
+
+void RISCVAsmParser::emitVMSLTU_VI_m(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  int64_t Imm = Inst.getOperand(2).getImm() - 1;
+  Register VL = RISCV::VL;
+  Register VM = Inst.getOperand(3).getReg();
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSLEU_VI_m)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addImm(Imm)
+                            .addReg(VL)
+                            .addReg(VM));
+}
+
+void RISCVAsmParser::emitVMSGE_VI_um(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  int64_t Imm = Inst.getOperand(2).getImm() - 1;
+  Register VL = RISCV::VL;
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSGT_VI_um)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addImm(Imm)
+                            .addReg(VL));
+}
+
+void RISCVAsmParser::emitVMSGE_VI_m(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  int64_t Imm = Inst.getOperand(2).getImm() - 1;
+  Register VL = RISCV::VL;
+  Register VM = Inst.getOperand(3).getReg();
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSGT_VI_m)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addImm(Imm)
+                            .addReg(VL)
+                            .addReg(VM));
+}
+
+void RISCVAsmParser::emitVMSGEU_VI_um(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  int64_t Imm = Inst.getOperand(2).getImm() - 1;
+  Register VL = RISCV::VL;
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSGTU_VI_um)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addImm(Imm)
+                            .addReg(VL));
+}
+
+void RISCVAsmParser::emitVMSGEU_VI_m(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  int64_t Imm = Inst.getOperand(2).getImm() - 1;
+  Register VL = RISCV::VL;
+  Register VM = Inst.getOperand(3).getReg();
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSGTU_VI_m)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addImm(Imm)
+                            .addReg(VL)
+                            .addReg(VM));
+}
+
+void RISCVAsmParser::emitVMSGE_VX_um(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  Register X = Inst.getOperand(2).getReg();
+  Register VL = RISCV::VL;
+  Register TmpReg = RISCV::X5;
+  emitToStreamer(Out, MCInstBuilder(RISCV::ADDI)
+                            .addReg(TmpReg)
+                            .addReg(X)
+                            .addImm(-1));
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSGT_VX_um)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addReg(TmpReg)
+                            .addReg(VL));
+}
+
+void RISCVAsmParser::emitVMSGE_VX_m(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  Register X = Inst.getOperand(2).getReg();
+  Register VL = RISCV::VL;
+  Register VM = Inst.getOperand(3).getReg();
+  Register TmpReg = RISCV::X5;
+  emitToStreamer(Out, MCInstBuilder(RISCV::ADDI)
+                            .addReg(TmpReg)
+                            .addReg(X)
+                            .addImm(-1));
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSGT_VX_m)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addReg(TmpReg)
+                            .addReg(VL)
+                            .addReg(VM));
+}
+
+void RISCVAsmParser::emitVMSGEU_VX_um(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  Register X = Inst.getOperand(2).getReg();
+  Register VL = RISCV::VL;
+  Register TmpReg = RISCV::X5;
+  emitToStreamer(Out, MCInstBuilder(RISCV::ADDI)
+                            .addReg(TmpReg)
+                            .addReg(X)
+                            .addImm(-1));
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSGTU_VX_um)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addReg(TmpReg)
+                            .addReg(VL));
+}
+
+void RISCVAsmParser::emitVMSGEU_VX_m(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  Register X = Inst.getOperand(2).getReg();
+  Register VL = RISCV::VL;
+  Register VM = Inst.getOperand(3).getReg();
+  Register TmpReg = RISCV::X5;
+  emitToStreamer(Out, MCInstBuilder(RISCV::ADDI)
+                            .addReg(TmpReg)
+                            .addReg(X)
+                            .addImm(-1));
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSGTU_VX_m)
+                            .addReg(destReg)
+                            .addReg(Reg)
+                            .addReg(TmpReg)
+                            .addReg(VL)
+                            .addReg(VM));
+}
+
 bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
                                         OperandVector &Operands,
                                         MCStreamer &Out) {
@@ -2081,6 +2270,42 @@ bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
     if (checkPseudoAddTPRel(Inst, Operands))
       return true;
     break;
+  case RISCV::PseudoVMSLT_VI_um:
+    emitVMSLT_VI_um(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSLT_VI_m:
+    emitVMSLT_VI_m(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSLTU_VI_um:
+    emitVMSLTU_VI_um(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSLTU_VI_m:
+    emitVMSLTU_VI_m(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSGE_VI_um:
+    emitVMSGE_VI_um(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSGE_VI_m:
+    emitVMSGE_VI_m(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSGEU_VI_um:
+    emitVMSGEU_VI_um(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSGEU_VI_m:
+    emitVMSGEU_VI_m(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSGE_VX_um:
+    emitVMSGE_VX_um(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSGE_VX_m:
+    emitVMSGE_VX_m(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSGEU_VX_um:
+    emitVMSGEU_VX_um(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSGEU_VX_m:
+    emitVMSGEU_VX_m(Inst, Out);
+    return false;
   }
 
   emitToStreamer(Out, Inst);
