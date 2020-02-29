@@ -505,6 +505,16 @@ public:
            VK == RISCVMCExpr::VK_RISCV_None;
   }
 
+bool isSImm5PlusOne() const {
+    if (!isImm())
+      return false;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    int64_t Imm;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isInt<5>(Imm - 1) &&
+           VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
   bool isSImm5NonZero() const {
     if (!isImm())
       return false;

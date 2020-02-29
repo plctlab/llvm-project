@@ -43,6 +43,12 @@ def simm5 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<5>(Imm);}]> {
   let DecoderMethod = "decodeSImmOperand<5>";
 }
 
+def simm5PlusOne : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<5>(Imm - 1);}]> {
+  let ParserMatchClass = SImmAsmOperand<5, "PlusOne">;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeSImmOperand<5>";
+}
+
 def uimm11 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<11>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<11>;
   let EncoderMethod = "getImmOpValue";
@@ -2208,22 +2214,22 @@ let Predicates = [HasStdExtV] in {
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0,
     isCodeGenOnly = 0, isAsmParserOnly = 1 in {
-def PseudoVMSLT_VI_um : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5:$imm), [],
+def PseudoVMSLT_VI_um : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5PlusOne:$imm), [],
                       "vmslt.vi", "$vd, $vs2, $imm">;
-def PseudoVMSLT_VI_m : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5:$imm, VMR:$vm), [],
-                      "vmslt.vi", "$vd, $vs2, $imm, $vm">;
-def PseudoVMSLTU_VI_um : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5:$imm), [],
+def PseudoVMSLT_VI_m : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5PlusOne:$imm,
+                      VMR:$vm), [], "vmslt.vi", "$vd, $vs2, $imm, $vm">;
+def PseudoVMSLTU_VI_um : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5PlusOne:$imm), [],
                       "vmsltu.vi", "$vd, $vs2, $imm">;
-def PseudoVMSLTU_VI_m : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5:$imm, VMR:$vm), [],
-                      "vmsltu.vi", "$vd, $vs2, $imm, $vm">;
-def PseudoVMSGE_VI_um : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5:$imm), [],
+def PseudoVMSLTU_VI_m : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5PlusOne:$imm,
+                      VMR:$vm), [], "vmsltu.vi", "$vd, $vs2, $imm, $vm">;
+def PseudoVMSGE_VI_um : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5PlusOne:$imm), [],
                       "vmsge.vi", "$vd, $vs2, $imm">;
-def PseudoVMSGE_VI_m : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5:$imm, VMR:$vm), [],
-                      "vmsge.vi", "$vd, $vs2, $imm, $vm">;
-def PseudoVMSGEU_VI_um : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5:$imm), [],
+def PseudoVMSGE_VI_m : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5PlusOne:$imm,
+                      VMR:$vm), [], "vmsge.vi", "$vd, $vs2, $imm, $vm">;
+def PseudoVMSGEU_VI_um : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5PlusOne:$imm), [],
                       "vmsgeu.vi", "$vd, $vs2, $imm">;
-def PseudoVMSGEU_VI_m : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5:$imm, VMR:$vm), [],
-                      "vmsgeu.vi", "$vd, $vs2, $imm, $vm">;
+def PseudoVMSGEU_VI_m : Pseudo<(outs VR:$vd), (ins VR:$vs2, simm5PlusOne:$imm,
+                      VMR:$vm), [], "vmsgeu.vi", "$vd, $vs2, $imm, $vm">;
 def PseudoVMSGE_VX_um : Pseudo<(outs VR:$vd), (ins VR:$vs2, GPR:$rs1), [],
                       "vmsge.vx", "$vd, $vs2, $rs1">;
 def PseudoVMSGE_VX_m : Pseudo<(outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VMR:$vm), [],
