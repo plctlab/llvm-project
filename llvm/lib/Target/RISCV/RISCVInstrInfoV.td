@@ -2238,6 +2238,11 @@ def PseudoVMSGEU_VX_um : Pseudo<(outs VR:$vd), (ins VR:$vs2, GPR:$rs1), [],
                       "vmsgeu.vx", "$vd, $vs2, $rs1">;
 def PseudoVMSGEU_VX_m : Pseudo<(outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VMR:$vm), [],
                       "vmsgeu.vx", "$vd, $vs2, $rs1, $vm">;
+
+def PseudoVMSGE_VX_m_VT : Pseudo<(outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VMR:$vm,
+                      VR:$vt), [], "vmsge.vx", "$vd, $vs2, $rs1, $vm, $vt">;
+def PseudoVMSGEU_VX_m_VT : Pseudo<(outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VMR:$vm,
+                      VR:$vt), [], "vmsgeu.vx", "$vd, $vs2, $rs1, $vm, $vt">;
 }
 
 let hasSideEffects = 1, mayLoad = 0, mayStore = 0,

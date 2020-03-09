@@ -1506,3 +1506,15 @@ vmsge.vx v0, v1, a2, v0.t
 #            encoding: [0x57,0xb0,0x11,0x78]
 vmsgeu.vx v0, v1, a2, v0.t
 
+# CHECK-ASM-AND-OBJ: vmslt.vx  v3, v1, a2
+#                    vmandnot.mm  v0, v0, v3
+# CHECK-ASM: encoding: [0xd7,0x41,0x16,0x6e]
+#            encoding: [0x57,0xa0,0x01,0x62]
+vmsge.vx v0, v1, a2, v0.t, v3
+
+# CHECK-ASM-AND-OBJ: vmsltu.vx  v3, v1, a2
+#                    vmandnot.mm  v0, v0, v3
+# CHECK-ASM: encoding: [0xd7,0x41,0x16,0x6a]
+#            encoding: [0x57,0xa0,0x01,0x62]
+vmsgeu.vx v0, v1, a2, v0.t, v3
+

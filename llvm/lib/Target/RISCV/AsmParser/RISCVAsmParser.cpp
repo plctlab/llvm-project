@@ -125,6 +125,8 @@ class RISCVAsmParser : public MCTargetAsmParser {
   void emitVMSGE_VX_m(MCInst &Inst, MCStreamer &Out);
   void emitVMSGEU_VX_um(MCInst &Inst, MCStreamer &Out);
   void emitVMSGEU_VX_m(MCInst &Inst, MCStreamer &Out);
+  void emitVMSGE_VX_m_VT(MCInst &Inst, MCStreamer &Out);
+  void emitVMSGEU_VX_m_VT(MCInst &Inst, MCStreamer &Out);
 
   /// Helper for processing MC instructions that have been successfully matched
   /// by MatchAndEmitInstruction. Modifications to the emitted instructions,
@@ -2190,6 +2192,44 @@ void RISCVAsmParser::emitVMSGEU_VX_m(MCInst &Inst, MCStreamer &Out) {
                             .addReg(VM));
 }
 
+void RISCVAsmParser::emitVMSGE_VX_m_VT(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  Register X = Inst.getOperand(2).getReg();
+  Register VL = RISCV::VL;
+  Register VT = Inst.getOperand(4).getReg();
+  Register TmpReg = RISCV::X5;
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSLT_VX_um)
+                            .addReg(VT)
+                            .addReg(Reg)
+                            .addReg(X)
+                            .addReg(VL));
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMANDNOT_MM)
+                            .addReg(destReg)
+                            .addReg(destReg)
+                            .addReg(VT)
+                            .addReg(VL));
+}
+
+void RISCVAsmParser::emitVMSGEU_VX_m_VT(MCInst &Inst, MCStreamer &Out) {
+  Register destReg = Inst.getOperand(0).getReg();
+  Register Reg = Inst.getOperand(1).getReg();
+  Register X = Inst.getOperand(2).getReg();
+  Register VL = RISCV::VL;
+  Register VT = Inst.getOperand(4).getReg();
+  Register TmpReg = RISCV::X5;
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMSLTU_VX_um)
+                            .addReg(VT)
+                            .addReg(Reg)
+                            .addReg(X)
+                            .addReg(VL));
+  emitToStreamer(Out, MCInstBuilder(RISCV::VMANDNOT_MM)
+                            .addReg(destReg)
+                            .addReg(destReg)
+                            .addReg(VT)
+                            .addReg(VL));
+}
+
 bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
                                         OperandVector &Operands,
                                         MCStreamer &Out) {
@@ -2315,6 +2355,12 @@ bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
     return false;
   case RISCV::PseudoVMSGEU_VX_m:
     emitVMSGEU_VX_m(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSGE_VX_m_VT:
+    emitVMSGE_VX_m_VT(Inst, Out);
+    return false;
+  case RISCV::PseudoVMSGEU_VX_m_VT:
+    emitVMSGEU_VX_m_VT(Inst, Out);
     return false;
   }
 
