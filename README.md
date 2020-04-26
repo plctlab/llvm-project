@@ -6,7 +6,7 @@ The assembly instructions of RVV current stable release, v0.8, are now supported
 
 ## How to Build LLVM for RISC-V Target
 
-	$ git clone git@github.com:isrc-cas/rvv-llvm.git
+	$ git clone https://github.com/isrc-cas/rvv-llvm.git
 	$ cd rvv-llvm
 	$ mkdir build
 	$ cd build
