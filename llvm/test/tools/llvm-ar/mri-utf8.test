@@ -1,5 +1,6 @@
 # Test non-ascii archive members
 # XFAIL: system-darwin
+# UNSUPPORTED: -linux-
 
 RUN: rm -rf %t && mkdir -p %t/extracted
 
