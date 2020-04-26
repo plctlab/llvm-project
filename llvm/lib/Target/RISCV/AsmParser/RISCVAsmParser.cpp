@@ -150,6 +150,7 @@ class RISCVAsmParser : public MCTargetAsmParser {
   OperandMatchResultTy parseCallSymbol(OperandVector &Operands);
   OperandMatchResultTy parseJALOffset(OperandVector &Operands);
   OperandMatchResultTy parseVTypeImmOperand(OperandVector &Operands);
+  OperandMatchResultTy parseMaskRegister(OperandVector &Operands);
 
 
   bool parseOperand(OperandVector &Operands, StringRef Mnemonic);
@@ -186,6 +187,9 @@ class RISCVAsmParser : public MCTargetAsmParser {
 
     return false;
   }
+
+  std::unique_ptr<RISCVOperand> defaultRVVMaskRegOp() const;
+
 public:
   enum RISCVMatchResultTy {
     Match_Dummy = FIRST_TARGET_MATCH_RESULT_TY,
@@ -309,6 +313,9 @@ public:
 
   bool isToken() const override { return Kind == KindTy::Token; }
   bool isReg() const override { return Kind == KindTy::Register; }
+  bool isV0Reg() const {
+    return Kind == KindTy::Register && Reg.RegNum == RISCV::V0;
+  }
   bool isImm() const override { return Kind == KindTy::Immediate; }
   bool isMem() const override { return false; }
   bool isSystemRegister() const { return Kind == KindTy::SystemRegister; }
@@ -1625,6 +1632,31 @@ RISCVAsmParser::parseVTypeImmOperand(OperandVector &Operands) {
   return MatchOperand_Success;
 }
 
+OperandMatchResultTy
+RISCVAsmParser::parseMaskRegister(OperandVector &Operands) {
+  switch (getLexer().getKind()) {
+  default:
+    return MatchOperand_NoMatch;
+  case AsmToken::Identifier:
+    StringRef Name = getLexer().getTok().getIdentifier();
+    if (!Name.consume_back(".t"))
+      return MatchOperand_NoMatch;
+    Register RegNo;
+    matchRegisterNameHelper(isRV32E(), RegNo, Name);
+
+    if (RegNo == RISCV::NoRegister)
+      return MatchOperand_NoMatch;
+    if (RegNo != RISCV::V0)
+      return MatchOperand_NoMatch;
+    SMLoc S = getLoc();
+    SMLoc E = SMLoc::getFromPointer(S.getPointer() - 1);
+    getLexer().Lex();
+    Operands.push_back(RISCVOperand::createReg(RegNo, S, E, isRV64()));
+  }
+
+  return MatchOperand_Success;
+}
+
 /// Looks at a token type and creates the relevant operand from this
 /// information, adding to Operands. If operand was parsed, returns false, else
 /// true.
@@ -2016,6 +2048,11 @@ bool RISCVAsmParser::checkPseudoAddTPRel(MCInst &Inst,
   return false;
 }
 
+std::unique_ptr<RISCVOperand> RISCVAsmParser::defaultRVVMaskRegOp() const {
+  return RISCVOperand::createReg(RISCV::NoRegister, llvm::SMLoc(),
+                                 llvm::SMLoc(), isRV64());
+}
+
 void RISCVAsmParser::emitVMSLT_VI_um(MCInst &Inst, MCStreamer &Out) {
   Register destReg = Inst.getOperand(0).getReg();
   Register Reg = Inst.getOperand(1).getReg();
@@ -2198,7 +2235,6 @@ void RISCVAsmParser::emitVMSGE_VX_m_VT(MCInst &Inst, MCStreamer &Out) {
   Register X = Inst.getOperand(2).getReg();
   Register VL = RISCV::VL;
   Register VT = Inst.getOperand(4).getReg();
-  Register TmpReg = RISCV::X5;
   emitToStreamer(Out, MCInstBuilder(RISCV::VMSLT_VX_um)
                             .addReg(VT)
                             .addReg(Reg)
@@ -2217,7 +2253,6 @@ void RISCVAsmParser::emitVMSGEU_VX_m_VT(MCInst &Inst, MCStreamer &Out) {
   Register X = Inst.getOperand(2).getReg();
   Register VL = RISCV::VL;
   Register VT = Inst.getOperand(4).getReg();
-  Register TmpReg = RISCV::X5;
   emitToStreamer(Out, MCInstBuilder(RISCV::VMSLTU_VX_um)
                             .addReg(VT)
                             .addReg(Reg)

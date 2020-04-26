@@ -176,6 +176,22 @@ static DecodeStatus DecodeVRRegisterClass(MCInst &Inst, uint64_t RegNo,
   return MCDisassembler::Success;
 }
 
+static DecodeStatus decodeVMR(MCInst &Inst, uint64_t RegNo,
+                              uint64_t Address, const void *Decoder) {
+  Register Reg = RISCV::NoRegister;
+  switch (RegNo) {
+  default:
+    return MCDisassembler::Fail;
+  case 0:
+    Reg = RISCV::V0;
+    break;
+  case 1:
+    break;
+  }
+  Inst.addOperand(MCOperand::createReg(Reg));
+  return MCDisassembler::Success;
+}
+
 // Add implied SP operand for instructions *SP compressed instructions. The SP
 // operand isn't explicitly encoded in the instruction.
 static void addImplySP(MCInst &Inst, int64_t Address, const void *Decoder) {

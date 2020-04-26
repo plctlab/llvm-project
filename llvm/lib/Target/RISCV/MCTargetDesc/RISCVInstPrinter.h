@@ -41,6 +41,8 @@ public:
                    raw_ostream &O);
   void printVTypeI(const MCInst *MI, unsigned OpNo,
                    const MCSubtargetInfo &STI, raw_ostream &O);
+  void printVMR(const MCInst *MI, unsigned OpNo,
+                const MCSubtargetInfo &STI, raw_ostream &O);
   void printAtomicMemOp(const MCInst *MI, unsigned OpNo,
                         const MCSubtargetInfo &STI, raw_ostream &O);
 

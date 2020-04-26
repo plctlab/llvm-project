@@ -67,6 +67,23 @@ def vtypei : Operand<XLenVT> {
   let DecoderMethod = "decodeUImmOperand<11>";
 }
 
+def VRMaskAsmOperand : AsmOperandClass {
+  let Name = "RVVMaskRegOpOperand";
+  let RenderMethod = "addRegOperands";
+  let PredicateMethod = "isV0Reg";
+  let ParserMethod = "parseMaskRegister";
+  let IsOptional = 1;
+  let DefaultMethod = "defaultRVVMaskRegOp";
+  let DiagnosticType = "InvalidVRMaskAsmOperand";
+}
+
+def VMR: RegisterOperand<VRV0> {
+  let ParserMatchClass = VRMaskAsmOperand;
+  let PrintMethod = "printVMR";
+  let EncoderMethod = "getVMR";
+  let DecoderMethod = "decodeVMR";
+}
+
 //===----------------------------------------------------------------------===//
 // Instruction class templates
 //===----------------------------------------------------------------------===//

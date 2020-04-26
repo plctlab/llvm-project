@@ -162,6 +162,18 @@ void RISCVInstPrinter::printVTypeI(const MCInst *MI, unsigned OpNo,
   O << "e" << sew << ",m" << lmul << ",d" << ediv;
 }
 
+void RISCVInstPrinter::printVMR(const MCInst *MI, unsigned OpNo,
+                                const MCSubtargetInfo &STI,
+                                raw_ostream &O) {
+  const MCOperand &MO = MI->getOperand(OpNo);
+
+  assert(MO.isReg() && "printVRMaskOp can only print register operands");
+  if (MO.getReg() == RISCV::NoRegister)
+    return;
+  printRegName(O, MO.getReg());
+  O << ".t";
+}
+
 const char *RISCVInstPrinter::getRegisterName(unsigned RegNo) {
   return getRegisterName(RegNo, ArchRegNames ? RISCV::NoRegAltName
                                              : RISCV::ABIRegAltName);
