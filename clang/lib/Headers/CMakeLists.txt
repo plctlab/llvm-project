@@ -85,6 +85,7 @@ set(files
   prfchwintrin.h
   ptwriteintrin.h
   rdseedintrin.h
+  riscv_vector.h
   rtmintrin.h
   sgxintrin.h
   s390intrin.h
