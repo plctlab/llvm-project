@@ -128,10 +128,6 @@ set(files
   xtestintrin.h
   )
 
-set(rvv_files
-  riscv_vector.h
-)
-
 set(cuda_wrapper_files
   cuda_wrappers/algorithm
   cuda_wrappers/complex
@@ -183,7 +179,7 @@ endfunction(clang_generate_header)
 
 
 # Copy header files from the source directory to the build directory
-foreach( f ${files} ${rvv_files} ${cuda_wrapper_files} ${ppc_wrapper_files} ${openmp_wrapper_files})
+foreach( f ${files} ${cuda_wrapper_files} ${ppc_wrapper_files} ${openmp_wrapper_files})
   copy_header_to_output_dir(${CMAKE_CURRENT_SOURCE_DIR} ${f})
 endforeach( f )
 
@@ -205,16 +201,10 @@ set_target_properties(clang-resource-headers PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${output_dir}")
 
 set(header_install_dir lib${LLVM_LIBDIR_SUFFIX}/clang/${CLANG_VERSION}/include)
-set(rvv_header_install_dir {LLVM_BINARY_DIR}/tools/clang/lib/Headers)
 
 install(
   FILES ${files} ${generated_files}
   DESTINATION ${header_install_dir}
-  COMPONENT clang-resource-headers)
-
-install(
-  FILES ${rvv_files}
-  DESTINATION ${rvv_header_install_dir}
   COMPONENT clang-resource-headers)
 
 install(
