@@ -1,4 +1,4 @@
-//===-- GDBRemoteCommunicationReplayServer.cpp ------------------*- C++ -*-===//
+//===-- GDBRemoteCommunicationReplayServer.cpp ----------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -131,24 +131,35 @@ GDBRemoteCommunicationReplayServer::GetPacketAndSendResponse(
     GDBRemotePacket entry = m_packet_history.back();
     m_packet_history.pop_back();
 
+    // Decode run-length encoding.
+    const std::string expanded_data =
+        GDBRemoteCommunication::ExpandRLE(entry.packet.data);
+
     // We've handled the handshake implicitly before. Skip the packet and move
     // on.
     if (entry.packet.data == "+")
       continue;
 
     if (entry.type == GDBRemotePacket::ePacketTypeSend) {
-      if (unexpected(entry.packet.data, packet.GetStringRef())) {
+      if (unexpected(expanded_data, packet.GetStringRef())) {
         LLDB_LOG(log,
                  "GDBRemoteCommunicationReplayServer expected packet: '{0}'",
-                 entry.packet.data);
+                 expanded_data);
         LLDB_LOG(log, "GDBRemoteCommunicationReplayServer actual packet: '{0}'",
                  packet.GetStringRef());
-        assert(false && "Encountered unexpected packet during replay");
+#ifndef NDEBUG
+        // This behaves like a regular assert, but prints the expected and
+        // received packet before aborting.
+        printf("Reproducer expected packet: '%s'\n", expanded_data.c_str());
+        printf("Reproducer received packet: '%s'\n",
+               packet.GetStringRef().data());
+        llvm::report_fatal_error("Encountered unexpected packet during replay");
+#endif
         return PacketResult::ErrorSendFailed;
       }
 
       // Ignore QEnvironment packets as they're handled earlier.
-      if (entry.packet.data.find("QEnvironment") == 1) {
+      if (expanded_data.find("QEnvironment") == 1) {
         assert(m_packet_history.back().type ==
                GDBRemotePacket::ePacketTypeRecv);
         m_packet_history.pop_back();
@@ -204,9 +215,9 @@ bool GDBRemoteCommunicationReplayServer::StartAsyncThread() {
         "<lldb.gdb-replay.async>",
         GDBRemoteCommunicationReplayServer::AsyncThread, this);
     if (!async_thread) {
-      LLDB_LOG(lldb_private::GetLogIfAllCategoriesSet(LIBLLDB_LOG_HOST),
-               "failed to launch host thread: {}",
-               llvm::toString(async_thread.takeError()));
+      LLDB_LOG_ERROR(lldb_private::GetLogIfAllCategoriesSet(LIBLLDB_LOG_HOST),
+                     async_thread.takeError(),
+                     "failed to launch host thread: {}");
       return false;
     }
     m_async_thread = *async_thread;

@@ -19,10 +19,9 @@
 using namespace llvm;
 using namespace llvm::wasm;
 using namespace llvm::support::endian;
-using namespace lld;
-using namespace lld::wasm;
 
-StringRef lld::relocTypeToString(uint8_t relocType) {
+namespace lld {
+StringRef relocTypeToString(uint8_t relocType) {
   switch (relocType) {
 #define WASM_RELOC(NAME, REL)                                                  \
   case REL:                                                                    \
@@ -33,10 +32,11 @@ StringRef lld::relocTypeToString(uint8_t relocType) {
   llvm_unreachable("unknown reloc type");
 }
 
-std::string lld::toString(const InputChunk *c) {
+std::string toString(const wasm::InputChunk *c) {
   return (toString(c->file) + ":(" + c->getName() + ")").str();
 }
 
+namespace wasm {
 StringRef InputChunk::getComdatName() const {
   uint32_t index = getComdat();
   if (index == UINT32_MAX)
@@ -68,6 +68,7 @@ void InputChunk::verifyRelocTargets() const {
     case R_WASM_MEMORY_ADDR_I32:
     case R_WASM_FUNCTION_OFFSET_I32:
     case R_WASM_SECTION_OFFSET_I32:
+    case R_WASM_GLOBAL_INDEX_I32:
       existingValue = static_cast<uint32_t>(read32le(loc));
       break;
     default:
@@ -77,7 +78,8 @@ void InputChunk::verifyRelocTargets() const {
     if (bytesRead && bytesRead != 5)
       warn("expected LEB at relocation site be 5-byte padded");
 
-    if (rel.Type != R_WASM_GLOBAL_INDEX_LEB) {
+    if (rel.Type != R_WASM_GLOBAL_INDEX_LEB &&
+        rel.Type != R_WASM_GLOBAL_INDEX_I32) {
       uint32_t expectedValue = file->calcExpectedValue(rel);
       if (expectedValue != existingValue)
         warn("unexpected existing value for " + relocTypeToString(rel.Type) +
@@ -132,6 +134,7 @@ void InputChunk::writeTo(uint8_t *buf) const {
     case R_WASM_MEMORY_ADDR_I32:
     case R_WASM_FUNCTION_OFFSET_I32:
     case R_WASM_SECTION_OFFSET_I32:
+    case R_WASM_GLOBAL_INDEX_I32:
       write32le(loc, value);
       break;
     default:
@@ -346,3 +349,6 @@ void InputSegment::generateRelocationCode(raw_ostream &os) const {
     writeUleb128(os, 0, "offset");
   }
 }
+
+} // namespace wasm
+} // namespace lld

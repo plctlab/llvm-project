@@ -10,6 +10,7 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Lex/Lexer.h"
+#include "../utils/LexerUtils.h"
 
 using namespace clang::ast_matchers;
 
@@ -200,16 +201,13 @@ static bool bodyEmpty(const ASTContext *Context, const CompoundStmt *Body) {
 UseEqualsDefaultCheck::UseEqualsDefaultCheck(StringRef Name,
                                              ClangTidyContext *Context)
     : ClangTidyCheck(Name, Context),
-      IgnoreMacros(Options.getLocalOrGlobal("IgnoreMacros", true) != 0) {}
+      IgnoreMacros(Options.getLocalOrGlobal("IgnoreMacros", true)) {}
 
 void UseEqualsDefaultCheck::storeOptions(ClangTidyOptions::OptionMap &Opts) {
   Options.store(Opts, "IgnoreMacros", IgnoreMacros);
 }
 
 void UseEqualsDefaultCheck::registerMatchers(MatchFinder *Finder) {
-  if (!getLangOpts().CPlusPlus)
-    return;
-
   // Destructor.
   Finder->addMatcher(cxxDestructorDecl(isDefinition()).bind(SpecialFunction),
                      this);
@@ -302,9 +300,16 @@ void UseEqualsDefaultCheck::check(const MatchFinder::MatchResult &Result) {
   auto Diag = diag(Location, "use '= default' to define a trivial " +
                                  SpecialFunctionName);
 
-  if (ApplyFix)
-    Diag << FixItHint::CreateReplacement(Body->getSourceRange(), "= default;")
+  if (ApplyFix) {
+    // Skipping comments, check for a semicolon after Body->getSourceRange()
+    Optional<Token> Token = utils::lexer::findNextTokenSkippingComments(
+        Body->getSourceRange().getEnd().getLocWithOffset(1),
+        Result.Context->getSourceManager(), Result.Context->getLangOpts());
+    StringRef Replacement =
+        Token && Token->is(tok::semi) ? "= default" : "= default;";
+    Diag << FixItHint::CreateReplacement(Body->getSourceRange(), Replacement)
          << RemoveInitializers;
+  }
 }
 
 } // namespace modernize

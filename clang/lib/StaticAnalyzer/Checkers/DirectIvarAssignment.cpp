@@ -144,6 +144,8 @@ void DirectIvarAssignment::checkASTDecl(const ObjCImplementationDecl *D,
       continue;
 
     const Stmt *Body = M->getBody();
+    if (M->isSynthesizedAccessorStub())
+      continue;
     assert(Body);
 
     MethodCrawler MC(IvarToPropMap, M->getCanonicalDecl(), InterD, BR, this,
@@ -220,7 +222,7 @@ void ento::registerDirectIvarAssignment(CheckerManager &mgr) {
   mgr.registerChecker<DirectIvarAssignment>();
 }
 
-bool ento::shouldRegisterDirectIvarAssignment(const LangOptions &LO) {
+bool ento::shouldRegisterDirectIvarAssignment(const CheckerManager &mgr) {
   return true;
 }
 
@@ -230,6 +232,6 @@ void ento::registerDirectIvarAssignmentForAnnotatedFunctions(
 }
 
 bool ento::shouldRegisterDirectIvarAssignmentForAnnotatedFunctions(
-                                                        const LangOptions &LO) {
+                                                    const CheckerManager &mgr) {
   return true;
 }

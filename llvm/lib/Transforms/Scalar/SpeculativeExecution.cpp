@@ -67,6 +67,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Operator.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 
@@ -243,7 +244,7 @@ static unsigned ComputeSpeculationCost(const Instruction *I,
     case Instruction::FNeg:
     case Instruction::ICmp:
     case Instruction::FCmp:
-      return TTI.getUserCost(I);
+      return TTI.getUserCost(I, TargetTransformInfo::TCK_SizeAndLatency);
 
     default:
       return UINT_MAX; // Disallow anything not whitelisted.
@@ -277,9 +278,6 @@ bool SpeculativeExecutionPass::considerHoistingFromTo(
         return false; // too much left behind
     }
   }
-
-  if (TotalSpeculationCost == 0)
-    return false; // nothing to hoist
 
   for (auto I = FromBlock.begin(); I != FromBlock.end();) {
     // We have to increment I before moving Current as moving Current

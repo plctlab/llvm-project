@@ -37,7 +37,7 @@ test0:
     loop        i32      # label1:
     call        something1
     i64.const   1234
-    i32.call    something2
+    call        something2
     i32.const   0
     call_indirect (i32, f64) -> ()
     i32.const   1
@@ -55,6 +55,12 @@ test0:
     block       i64
     block       f32
     block       f64
+    block       () -> (i32, i32)
+    i32.const   1
+    i32.const   2
+    end_block
+    drop
+    drop
     br_table {0, 1, 2}   # 2 entries, default
     end_block            # first entry jumps here.
     i32.const   1
@@ -144,7 +150,7 @@ test0:
 # CHECK-NEXT:      loop        i32     # label1:
 # CHECK-NEXT:      call        something1
 # CHECK-NEXT:      i64.const   1234
-# CHECK-NEXT:      i32.call    something2
+# CHECK-NEXT:      call        something2
 # CHECK-NEXT:      i32.const   0
 # CHECK-NEXT:      call_indirect (i32, f64) -> ()
 # CHECK-NEXT:      i32.const   1
@@ -162,6 +168,12 @@ test0:
 # CHECK-NEXT:      block       i64
 # CHECK-NEXT:      block       f32
 # CHECK-NEXT:      block       f64
+# CHECK-NEXT:      block       () -> (i32, i32)
+# CHECK-NEXT:      i32.const   1
+# CHECK-NEXT:      i32.const   2
+# CHECK-NEXT:      end_block
+# CHECK-NEXT:      drop
+# CHECK-NEXT:      drop
 # CHECK-NEXT:      br_table {0, 1, 2}  # 1: down to label4
 # CHECK-NEXT:                          # 2: down to label3
 # CHECK-NEXT:      end_block           # label5:

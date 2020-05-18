@@ -6,6 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+// FILE_DEPENDENCIES: ../../Inputs/static_test_env
 // UNSUPPORTED: c++98, c++03
 
 // <filesystem>
@@ -66,7 +67,7 @@ TEST_CASE(test_signature_5) {
 
 TEST_CASE(test_signature_6) {
   // FIXME? If the trailing separator occurs in a part of the path that exists,
-  // it is ommitted. Otherwise it is added to the end of the result.
+  // it is omitted. Otherwise it is added to the end of the result.
   fs::path p(StaticEnv::SymlinkToDir / "dir2/./");
   const fs::path output = fs::weakly_canonical(p);
   TEST_CHECK(output == std::string(StaticEnv::Dir / "dir2"));

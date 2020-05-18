@@ -13,9 +13,9 @@
 // template<size_t Count>
 //  constexpr span<element_type, Count> first() const;
 //
-// constexpr span<element_type, dynamic_extent> first(index_type count) const;
+// constexpr span<element_type, dynamic_extent> first(size_type count) const;
 //
-//  Requires: 0 <= Count && Count <= size().
+//  Requires: Count <= size().
 
 
 #include <span>

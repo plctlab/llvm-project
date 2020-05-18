@@ -36,6 +36,8 @@ XPASS       = ResultCode('XPASS', True)
 UNRESOLVED  = ResultCode('UNRESOLVED', True)
 UNSUPPORTED = ResultCode('UNSUPPORTED', False)
 TIMEOUT     = ResultCode('TIMEOUT', True)
+SKIPPED     = ResultCode('SKIPPED', False)
+EXCLUDED    = ResultCode('EXCLUDED', False)
 
 # Test metric values.
 
@@ -220,29 +222,36 @@ class Test:
         # triple parts. All of them must be False for the test to run.
         self.unsupported = []
 
+        # An optional number of retries allowed before the test finally succeeds.
+        # The test is run at most once plus the number of retries specified here.
+        self.allowed_retries = getattr(config, 'test_retry_attempts', 0)
+
         # The test result, once complete.
         self.result = None
 
     def setResult(self, result):
-        if self.result is not None:
-            raise ValueError("test result already set")
-        if not isinstance(result, Result):
-            raise ValueError("unexpected result type")
-
+        assert self.result is None, "result already set"
+        assert isinstance(result, Result), "unexpected result type"
+        try:
+            expected_to_fail = self.isExpectedToFail()
+        except ValueError as err:
+            # Syntax error in an XFAIL line.
+            result.code = UNRESOLVED
+            result.output = str(err)
+        else:
+            if expected_to_fail:
+                # pass -> unexpected pass
+                if result.code is PASS:
+                    result.code = XPASS
+                # fail -> expected fail
+                elif result.code is FAIL:
+                    result.code = XFAIL
         self.result = result
 
-        # Apply the XFAIL handling to resolve the result exit code.
-        try:
-            if self.isExpectedToFail():
-                if self.result.code == PASS:
-                    self.result.code = XPASS
-                elif self.result.code == FAIL:
-                    self.result.code = XFAIL
-        except ValueError as e:
-            # Syntax error in an XFAIL line.
-            self.result.code = UNRESOLVED
-            self.result.output = str(e)
-        
+    def isFailure(self):
+        assert self.result
+        return self.result.code.isFailure
+
     def getFullName(self):
         return self.suite.config.name + ' :: ' + '/'.join(self.path_in_suite)
 
@@ -359,45 +368,3 @@ class Test:
         parallelism or where it is desirable to surface their failures early.
         """
         return self.suite.config.is_early
-
-    def writeJUnitXML(self, fil):
-        """Write the test's report xml representation to a file handle."""
-        test_name = quoteattr(self.path_in_suite[-1])
-        test_path = self.path_in_suite[:-1]
-        safe_test_path = [x.replace(".","_") for x in test_path]
-        safe_name = self.suite.name.replace(".","-")
-
-        if safe_test_path:
-            class_name = safe_name + "." + "/".join(safe_test_path) 
-        else:
-            class_name = safe_name + "." + safe_name
-        class_name = quoteattr(class_name)
-        testcase_template = '<testcase classname={class_name} name={test_name} time="{time:.2f}"'
-        elapsed_time = self.result.elapsed if self.result.elapsed is not None else 0.0
-        testcase_xml = testcase_template.format(class_name=class_name, test_name=test_name, time=elapsed_time)
-        fil.write(testcase_xml)
-        if self.result.code.isFailure:
-            fil.write(">\n\t<failure ><![CDATA[")
-            # In Python2, 'str' and 'unicode' are distinct types, but in Python3, the type 'unicode' does not exist
-            # and instead 'bytes' is distinct
-            # in Python3, there's no unicode
-            if isinstance(self.result.output, str):
-                encoded_output = self.result.output
-            elif isinstance(self.result.output, bytes):
-                encoded_output = self.result.output.decode("utf-8", 'ignore')
-            else:
-                encoded_output = self.result.output.encode("utf-8", 'ignore')
-            # In the unlikely case that the output contains the CDATA terminator
-            # we wrap it by creating a new CDATA block
-            fil.write(encoded_output.replace("]]>", "]]]]><![CDATA[>"))
-            fil.write("]]></failure>\n</testcase>")
-        elif self.result.code == UNSUPPORTED:
-            unsupported_features = self.getMissingRequiredFeatures()
-            if unsupported_features:
-                skip_message = "Skipping because of: " + ", ".join(unsupported_features)
-            else:
-                skip_message = "Skipping because of configuration."
-
-            fil.write(">\n\t<skipped message={} />\n</testcase>\n".format(quoteattr(skip_message)))
-        else:
-            fil.write("/>")

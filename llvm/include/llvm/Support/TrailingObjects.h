@@ -47,6 +47,7 @@
 #define LLVM_SUPPORT_TRAILINGOBJECTS_H
 
 #include "llvm/Support/AlignOf.h"
+#include "llvm/Support/Alignment.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/type_traits.h"
@@ -167,7 +168,7 @@ protected:
 
     if (requiresRealignment())
       return reinterpret_cast<const NextTy *>(
-          llvm::alignAddr(Ptr, alignof(NextTy)));
+          alignAddr(Ptr, Align::Of<NextTy>()));
     else
       return reinterpret_cast<const NextTy *>(Ptr);
   }
@@ -181,7 +182,7 @@ protected:
                     Obj, TrailingObjectsBase::OverloadToken<PrevTy>());
 
     if (requiresRealignment())
-      return reinterpret_cast<NextTy *>(llvm::alignAddr(Ptr, alignof(NextTy)));
+      return reinterpret_cast<NextTy *>(alignAddr(Ptr, Align::Of<NextTy>()));
     else
       return reinterpret_cast<NextTy *>(Ptr);
   }
@@ -325,8 +326,8 @@ public:
   /// used in the class; they are supplied here redundantly only so
   /// that it's clear what the counts are counting in callers.
   template <typename... Tys>
-  static constexpr typename std::enable_if<
-      std::is_same<Foo<TrailingTys...>, Foo<Tys...>>::value, size_t>::type
+  static constexpr std::enable_if_t<
+      std::is_same<Foo<TrailingTys...>, Foo<Tys...>>::value, size_t>
   additionalSizeToAlloc(typename trailing_objects_internal::ExtractSecondType<
                         TrailingTys, size_t>::type... Counts) {
     return ParentType::additionalSizeToAllocImpl(0, Counts...);
@@ -337,8 +338,8 @@ public:
   /// additionalSizeToAlloc, except it *does* include the size of the base
   /// object.
   template <typename... Tys>
-  static constexpr typename std::enable_if<
-      std::is_same<Foo<TrailingTys...>, Foo<Tys...>>::value, size_t>::type
+  static constexpr std::enable_if_t<
+      std::is_same<Foo<TrailingTys...>, Foo<Tys...>>::value, size_t>
   totalSizeToAlloc(typename trailing_objects_internal::ExtractSecondType<
                    TrailingTys, size_t>::type... Counts) {
     return sizeof(BaseTy) + ParentType::additionalSizeToAllocImpl(0, Counts...);

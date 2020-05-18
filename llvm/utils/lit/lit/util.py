@@ -12,13 +12,6 @@ import sys
 import threading
 
 
-def norm_path(path):
-    path = os.path.realpath(path)
-    path = os.path.normpath(path)
-    path = os.path.normcase(path)
-    return path
-
-
 def is_string(value):
     try:
         # Python 2 and Python 3 are different here.
@@ -116,6 +109,8 @@ def to_unicode(s):
     return s
 
 
+# TODO(yln): multiprocessing.cpu_count()
+# TODO(python3): len(os.sched_getaffinity(0)) and os.cpu_count()
 def detectCPUs():
     """Detects the number of CPUs on a system.
 
@@ -149,6 +144,10 @@ def mkdir(path):
             from ctypes import GetLastError, WinError
 
             path = os.path.abspath(path)
+            # Make sure that the path uses backslashes here, in case
+            # python would have happened to use forward slashes, as the
+            # NT path format only supports backslashes.
+            path = path.replace('/', '\\')
             NTPath = to_unicode(r'\\?\%s' % path)
             if not windll.kernel32.CreateDirectoryW(NTPath, None):
                 raise WinError(GetLastError())
@@ -283,9 +282,9 @@ def printHistogram(items, title='Items'):
 
     barW = 40
     hr = '-' * (barW + 34)
-    print('\nSlowest %s:' % title)
+    print('Slowest %s:' % title)
     print(hr)
-    for name, value in items[-20:]:
+    for name, value in reversed(items[-20:]):
         print('%.2fs: %s' % (value, name))
     print('\n%s Times:' % title)
     print(hr)
@@ -298,12 +297,13 @@ def printHistogram(items, title='Items'):
                                     'Percentage'.center(barW),
                                     'Count'.center(cDigits * 2 + 1)))
     print(hr)
-    for i, row in enumerate(histo):
+    for i, row in reversed(list(enumerate(histo))):
         pct = float(len(row)) / len(items)
         w = int(barW * pct)
         print('[%*.*fs,%*.*fs) :: [%s%s] :: [%*d/%*d]' % (
             pDigits, pfDigits, i * barH, pDigits, pfDigits, (i + 1) * barH,
             '*' * w, ' ' * (barW - w), cDigits, len(row), cDigits, len(items)))
+    print(hr)
 
 
 class ExecuteCommandTimeoutException(Exception):
@@ -473,17 +473,3 @@ def killProcessAndChildren(pid):
             psutilProc.kill()
         except psutil.NoSuchProcess:
             pass
-
-
-try:
-    import win32api
-except ImportError:
-    win32api = None
-
-def abort_now():
-    """Abort the current process without doing any exception teardown"""
-    sys.stdout.flush()
-    if win32api:
-        win32api.TerminateProcess(win32api.GetCurrentProcess(), 3)
-    else:
-        os.kill(0, 9)

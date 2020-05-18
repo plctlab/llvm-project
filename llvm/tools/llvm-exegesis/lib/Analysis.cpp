@@ -10,6 +10,7 @@
 #include "BenchmarkResult.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/MC/MCAsmInfo.h"
+#include "llvm/MC/MCTargetOptions.h"
 #include "llvm/Support/FormatVariadic.h"
 #include <limits>
 #include <unordered_set>
@@ -105,7 +106,7 @@ void Analysis::writeSnippet(raw_ostream &OS, ArrayRef<uint8_t> Bytes,
   while (!Bytes.empty()) {
     MCInst MI;
     uint64_t MISize = 0;
-    if (!Disasm_->getInstruction(MI, MISize, Bytes, 0, nulls(), nulls())) {
+    if (!Disasm_->getInstruction(MI, MISize, Bytes, 0, nulls())) {
       writeEscaped<Tag>(OS, join(Lines, Separator));
       writeEscaped<Tag>(OS, Separator);
       writeEscaped<Tag>(OS, "[error decoding asm snippet]");
@@ -113,7 +114,7 @@ void Analysis::writeSnippet(raw_ostream &OS, ArrayRef<uint8_t> Bytes,
     }
     SmallString<128> InstPrinterStr; // FIXME: magic number.
     raw_svector_ostream OSS(InstPrinterStr);
-    InstPrinter_->printInst(&MI, OSS, "", *SubtargetInfo_);
+    InstPrinter_->printInst(&MI, 0, "", *SubtargetInfo_, OSS);
     Bytes = Bytes.drop_front(MISize);
     Lines.emplace_back(StringRef(InstPrinterStr).trim());
   }
@@ -163,7 +164,9 @@ Analysis::Analysis(const Target &Target, std::unique_ptr<MCInstrInfo> InstrInfo,
 
   const InstructionBenchmark &FirstPoint = Clustering.getPoints().front();
   RegInfo_.reset(Target.createMCRegInfo(FirstPoint.LLVMTriple));
-  AsmInfo_.reset(Target.createMCAsmInfo(*RegInfo_, FirstPoint.LLVMTriple));
+  MCTargetOptions MCOptions;
+  AsmInfo_.reset(
+      Target.createMCAsmInfo(*RegInfo_, FirstPoint.LLVMTriple, MCOptions));
   SubtargetInfo_.reset(Target.createMCSubtargetInfo(FirstPoint.LLVMTriple,
                                                     FirstPoint.CpuName, ""));
   InstPrinter_.reset(Target.createMCInstPrinter(
@@ -241,9 +244,9 @@ Analysis::makePointsPerSchedClass() const {
   return Entries;
 }
 
-// Uops repeat the same opcode over again. Just show this opcode and show the
-// whole snippet only on hover.
-static void writeUopsSnippetHtml(raw_ostream &OS,
+// Parallel benchmarks repeat the same opcode multiple times. Just show this
+// opcode and show the whole snippet only on hover.
+static void writeParallelSnippetHtml(raw_ostream &OS,
                                  const std::vector<MCInst> &Instructions,
                                  const MCInstrInfo &InstrInfo) {
   if (Instructions.empty())
@@ -266,6 +269,27 @@ static void writeLatencySnippetHtml(raw_ostream &OS,
       OS << " &rarr; ";
     writeEscaped<kEscapeHtml>(OS, InstrInfo.getName(Instr.getOpcode()));
   }
+}
+
+void Analysis::printPointHtml(const InstructionBenchmark &Point,
+                              llvm::raw_ostream &OS) const {
+  OS << "<li><span class=\"mono\" title=\"";
+  writeSnippet<EscapeTag, kEscapeHtmlString>(OS, Point.AssembledSnippet, "\n");
+  OS << "\">";
+  switch (Point.Mode) {
+  case InstructionBenchmark::Latency:
+    writeLatencySnippetHtml(OS, Point.Key.Instructions, *InstrInfo_);
+    break;
+  case InstructionBenchmark::Uops:
+  case InstructionBenchmark::InverseThroughput:
+    writeParallelSnippetHtml(OS, Point.Key.Instructions, *InstrInfo_);
+    break;
+  default:
+    llvm_unreachable("invalid mode");
+  }
+  OS << "</span> <span class=\"mono\">";
+  writeEscaped<kEscapeHtml>(OS, Point.Key.Config);
+  OS << "</span></li>";
 }
 
 void Analysis::printSchedClassClustersHtml(
@@ -292,25 +316,7 @@ void Analysis::printSchedClassClustersHtml(
     writeClusterId<kEscapeHtml>(OS, Cluster.id());
     OS << "</td><td><ul>";
     for (const size_t PointId : Cluster.getPointIds()) {
-      const auto &Point = Points[PointId];
-      OS << "<li><span class=\"mono\" title=\"";
-      writeSnippet<EscapeTag, kEscapeHtmlString>(OS, Point.AssembledSnippet,
-                                                 "\n");
-      OS << "\">";
-      switch (Point.Mode) {
-      case InstructionBenchmark::Latency:
-        writeLatencySnippetHtml(OS, Point.Key.Instructions, *InstrInfo_);
-        break;
-      case InstructionBenchmark::Uops:
-      case InstructionBenchmark::InverseThroughput:
-        writeUopsSnippetHtml(OS, Point.Key.Instructions, *InstrInfo_);
-        break;
-      default:
-        llvm_unreachable("invalid mode");
-      }
-      OS << "</span> <span class=\"mono\">";
-      writeEscaped<kEscapeHtml>(OS, Point.Key.Config);
-      OS << "</span></li>";
+      printPointHtml(Points[PointId], OS);
     }
     OS << "</ul></td>";
     for (const auto &Stats : Cluster.getCentroid().getStats()) {
@@ -421,6 +427,43 @@ void Analysis::printSchedClassDescHtml(const ResolvedSchedClass &RSC,
   }
   OS << "</table>";
 }
+
+void Analysis::printClusterRawHtml(
+    const InstructionBenchmarkClustering::ClusterId &Id, StringRef display_name,
+    llvm::raw_ostream &OS) const {
+  const auto &Points = Clustering_.getPoints();
+  const auto &Cluster = Clustering_.getCluster(Id);
+  if (Cluster.PointIndices.empty())
+    return;
+
+  OS << "<div class=\"inconsistency\"><p>" << display_name << " Cluster ("
+     << Cluster.PointIndices.size() << " points)</p>";
+  OS << "<table class=\"sched-class-clusters\">";
+  // Table Header.
+  OS << "<tr><th>ClusterId</th><th>Opcode/Config</th>";
+  for (const auto &Measurement : Points[Cluster.PointIndices[0]].Measurements) {
+    OS << "<th>";
+    writeEscaped<kEscapeHtml>(OS, Measurement.Key);
+    OS << "</th>";
+  }
+  OS << "</tr>";
+
+  // Point data.
+  for (const auto &PointId : Cluster.PointIndices) {
+    OS << "<tr class=\"bad-cluster\"><td>" << display_name << "</td><td><ul>";
+    printPointHtml(Points[PointId], OS);
+    OS << "</ul></td>";
+    for (const auto &Measurement : Points[PointId].Measurements) {
+      OS << "<td class=\"measurement\">";
+      writeMeasurementValue<kEscapeHtml>(OS, Measurement.PerInstructionValue);
+    }
+    OS << "</tr>";
+  }
+  OS << "</table>";
+
+  OS << "</div>";
+
+} // namespace exegesis
 
 static constexpr const char kHtmlHead[] = R"(
 <head>
@@ -548,6 +591,9 @@ Error Analysis::run<Analysis::PrintSchedClassInconsistencies>(
     printSchedClassDescHtml(RSCAndPoints.RSC, OS);
     OS << "</div>";
   }
+
+  printClusterRawHtml(InstructionBenchmarkClustering::ClusterId::noise(),
+                      "[noise]", OS);
 
   OS << "</body></html>";
   return Error::success();

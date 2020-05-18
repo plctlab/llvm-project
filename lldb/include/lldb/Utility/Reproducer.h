@@ -27,6 +27,7 @@ class Reproducer;
 enum class ReproducerMode {
   Capture,
   Replay,
+  PassiveReplay,
   Off,
 };
 
@@ -98,6 +99,8 @@ public:
     return m_collector;
   }
 
+  void recordInterestingDirectory(const llvm::Twine &dir);
+
   void Keep() override {
     auto mapping = GetRoot().CopyByAppendingPathComponent(Info::file);
     // Temporary files that are removed during execution can cause copy errors.
@@ -132,11 +135,56 @@ public:
   static char ID;
 };
 
-class DataRecorder {
+/// Provider for the LLDB current working directory.
+///
+/// When the reproducer is kept, it writes lldb's current working directory to
+/// a file named cwd.txt in the reproducer root.
+class WorkingDirectoryProvider : public Provider<WorkingDirectoryProvider> {
 public:
-  DataRecorder(const FileSpec &filename, std::error_code &ec)
+  WorkingDirectoryProvider(const FileSpec &directory) : Provider(directory) {
+    llvm::SmallString<128> cwd;
+    if (std::error_code EC = llvm::sys::fs::current_path(cwd))
+      return;
+    m_cwd = std::string(cwd.str());
+  }
+
+  void Update(llvm::StringRef path) { m_cwd = std::string(path); }
+
+  struct Info {
+    static const char *name;
+    static const char *file;
+  };
+  void Keep() override;
+  std::string m_cwd;
+  static char ID;
+};
+
+class AbstractRecorder {
+protected:
+  AbstractRecorder(const FileSpec &filename, std::error_code &ec)
       : m_filename(filename.GetFilename().GetStringRef()),
         m_os(filename.GetPath(), ec, llvm::sys::fs::OF_Text), m_record(true) {}
+
+public:
+  const FileSpec &GetFilename() { return m_filename; }
+
+  void Stop() {
+    assert(m_record);
+    m_record = false;
+  }
+
+private:
+  FileSpec m_filename;
+
+protected:
+  llvm::raw_fd_ostream m_os;
+  bool m_record;
+};
+
+class DataRecorder : public AbstractRecorder {
+public:
+  DataRecorder(const FileSpec &filename, std::error_code &ec)
+      : AbstractRecorder(filename, ec) {}
 
   static llvm::Expected<std::unique_ptr<DataRecorder>>
   Create(const FileSpec &filename);
@@ -149,18 +197,6 @@ public:
       m_os << '\n';
     m_os.flush();
   }
-
-  const FileSpec &GetFilename() { return m_filename; }
-
-  void Stop() {
-    assert(m_record);
-    m_record = false;
-  }
-
-private:
-  FileSpec m_filename;
-  llvm::raw_fd_ostream m_os;
-  bool m_record;
 };
 
 class CommandProvider : public Provider<CommandProvider> {
@@ -183,32 +219,6 @@ private:
   std::vector<std::unique_ptr<DataRecorder>> m_data_recorders;
 };
 
-class ProcessGDBRemoteProvider
-    : public repro::Provider<ProcessGDBRemoteProvider> {
-public:
-  struct Info {
-    static const char *name;
-    static const char *file;
-  };
-
-  ProcessGDBRemoteProvider(const FileSpec &directory) : Provider(directory) {}
-
-  llvm::raw_ostream *GetHistoryStream();
-
-  void SetCallback(std::function<void()> callback) {
-    m_callback = std::move(callback);
-  }
-
-  void Keep() override { m_callback(); }
-  void Discard() override { m_callback(); }
-
-  static char ID;
-
-private:
-  std::function<void()> m_callback;
-  std::unique_ptr<llvm::raw_fd_ostream> m_stream_up;
-};
-
 /// The generator is responsible for the logic needed to generate a
 /// reproducer. For doing so it relies on providers, who serialize data that
 /// is necessary for reproducing  a failure.
@@ -226,6 +236,12 @@ public:
   /// unaffected by whether or not generation reproduction is enabled, as we
   /// might need to clean up files already written to disk.
   void Discard();
+
+  /// Enable or disable auto generate.
+  void SetAutoGenerate(bool b);
+
+  /// Return whether auto generate is enabled.
+  bool IsAutoGenerate() const;
 
   /// Create and register a new provider.
   template <typename T> T *Create() {
@@ -267,12 +283,15 @@ private:
   FileSpec m_root;
 
   /// Flag to ensure that we never call both keep and discard.
-  bool m_done;
+  bool m_done = false;
+
+  /// Flag to auto generate a reproducer when it would otherwise be discarded.
+  bool m_auto_generate = false;
 };
 
 class Loader final {
 public:
-  Loader(FileSpec root);
+  Loader(FileSpec root, bool passive = false);
 
   template <typename T> FileSpec GetFile() {
     if (!HasFile(T::file))
@@ -281,9 +300,20 @@ public:
     return GetRoot().CopyByAppendingPathComponent(T::file);
   }
 
+  template <typename T> llvm::Expected<std::string> LoadBuffer() {
+    FileSpec file = GetFile<typename T::Info>();
+    llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>> buffer =
+        llvm::vfs::getRealFileSystem()->getBufferForFile(file.GetPath());
+    if (!buffer)
+      return llvm::errorCodeToError(buffer.getError());
+    return (*buffer)->getBuffer().str();
+  }
+
   llvm::Error LoadIndex();
 
   const FileSpec &GetRoot() const { return m_root; }
+
+  bool IsPassiveReplay() const { return m_passive_replay; }
 
 private:
   bool HasFile(llvm::StringRef file);
@@ -291,6 +321,7 @@ private:
   FileSpec m_root;
   std::vector<std::string> m_files;
   bool m_loaded;
+  bool m_passive_replay;
 };
 
 /// The reproducer enables clients to obtain access to the Generator and
@@ -318,7 +349,7 @@ public:
 
 protected:
   llvm::Error SetCapture(llvm::Optional<FileSpec> root);
-  llvm::Error SetReplay(llvm::Optional<FileSpec> root);
+  llvm::Error SetReplay(llvm::Optional<FileSpec> root, bool passive = false);
 
 private:
   static llvm::Optional<Reproducer> &InstanceImpl();
@@ -329,13 +360,43 @@ private:
   mutable std::mutex m_mutex;
 };
 
-/// Helper class for replaying commands through the reproducer.
-class CommandLoader {
+template <typename T> class MultiLoader {
 public:
-  CommandLoader(std::vector<std::string> files) : m_files(files) {}
+  MultiLoader(std::vector<std::string> files) : m_files(files) {}
 
-  static std::unique_ptr<CommandLoader> Create(Loader *loader);
-  llvm::Optional<std::string> GetNextFile();
+  static std::unique_ptr<MultiLoader> Create(Loader *loader) {
+    if (!loader)
+      return {};
+
+    FileSpec file = loader->GetFile<typename T::Info>();
+    if (!file)
+      return {};
+
+    auto error_or_file = llvm::MemoryBuffer::getFile(file.GetPath());
+    if (auto err = error_or_file.getError())
+      return {};
+
+    std::vector<std::string> files;
+    llvm::yaml::Input yin((*error_or_file)->getBuffer());
+    yin >> files;
+
+    if (auto err = yin.error())
+      return {};
+
+    for (auto &file : files) {
+      FileSpec absolute_path =
+          loader->GetRoot().CopyByAppendingPathComponent(file);
+      file = absolute_path.GetPath();
+    }
+
+    return std::make_unique<MultiLoader<T>>(std::move(files));
+  }
+
+  llvm::Optional<std::string> GetNextFile() {
+    if (m_index >= m_files.size())
+      return {};
+    return m_files[m_index++];
+  }
 
 private:
   std::vector<std::string> m_files;

@@ -96,6 +96,11 @@ static cl::opt<bool> PollyAllowDereferenceOfAllFunctionParams(
         " their loads. "),
     cl::Hidden, cl::init(false), cl::cat(PollyCategory));
 
+static cl::opt<bool>
+    PollyIgnoreInbounds("polly-ignore-inbounds",
+                        cl::desc("Do not take inbounds assumptions at all"),
+                        cl::Hidden, cl::init(false), cl::cat(PollyCategory));
+
 static cl::opt<unsigned> RunTimeChecksMaxArraysPerGroup(
     "polly-rtc-max-arrays-per-group",
     cl::desc("The maximal number of arrays to compare in each alias group."),
@@ -344,7 +349,7 @@ __isl_give isl_pw_aff *
 ScopBuilder::getPwAff(BasicBlock *BB,
                       DenseMap<BasicBlock *, isl::set> &InvalidDomainMap,
                       const SCEV *E, bool NonNegative) {
-  PWACtx PWAC = scop->getPwAff(E, BB, NonNegative);
+  PWACtx PWAC = scop->getPwAff(E, BB, NonNegative, &RecordedAssumptions);
   InvalidDomainMap[BB] = InvalidDomainMap[BB].unite(PWAC.second);
   return PWAC.first.release();
 }
@@ -796,9 +801,8 @@ bool ScopBuilder::addLoopBoundsToHeaderDomain(
     return true;
 
   isl::set UnboundedCtx = Parts.first.params();
-  scop->recordAssumption(INFINITELOOP, UnboundedCtx,
-                         HeaderBB->getTerminator()->getDebugLoc(),
-                         AS_RESTRICTION);
+  recordAssumption(&RecordedAssumptions, INFINITELOOP, UnboundedCtx,
+                   HeaderBB->getTerminator()->getDebugLoc(), AS_RESTRICTION);
   return true;
 }
 
@@ -1019,9 +1023,8 @@ bool ScopBuilder::propagateInvalidStmtDomains(
     } else {
       InvalidDomain = Domain;
       isl::set DomPar = Domain.params();
-      scop->recordAssumption(ERRORBLOCK, DomPar,
-                             BB->getTerminator()->getDebugLoc(),
-                             AS_RESTRICTION);
+      recordAssumption(&RecordedAssumptions, ERRORBLOCK, DomPar,
+                       BB->getTerminator()->getDebugLoc(), AS_RESTRICTION);
       Domain = isl::set::empty(Domain.get_space());
     }
 
@@ -1488,7 +1491,7 @@ Value *ScopBuilder::findFADAllocationInvisible(MemAccInst Inst) {
 }
 
 void ScopBuilder::addRecordedAssumptions() {
-  for (auto &AS : llvm::reverse(scop->recorded_assumptions())) {
+  for (auto &AS : llvm::reverse(RecordedAssumptions)) {
 
     if (!AS.BB) {
       scop->addAssumption(AS.Kind, AS.Set, AS.Loc, AS.Sign,
@@ -1518,7 +1521,6 @@ void ScopBuilder::addRecordedAssumptions() {
 
     scop->addAssumption(AS.Kind, isl::manage(S), AS.Loc, AS_RESTRICTION, AS.BB);
   }
-  scop->clearRecordedAssumptions();
 }
 
 void ScopBuilder::addUserAssumptions(
@@ -1577,7 +1579,7 @@ void ScopBuilder::addUserAssumptions(
 
     // Project out newly introduced parameters as they are not otherwise useful.
     if (!NewParams.empty()) {
-      for (unsigned u = 0; u < isl_set_n_param(AssumptionCtx); u++) {
+      for (isl_size u = 0; u < isl_set_n_param(AssumptionCtx); u++) {
         auto *Id = isl_set_get_dim_id(AssumptionCtx, isl_dim_param, u);
         auto *Param = static_cast<const SCEV *>(isl_id_get_user(Id));
         isl_id_free(Id);
@@ -1627,9 +1629,9 @@ bool ScopBuilder::buildAccessMultiDimFixed(MemAccInst Inst, ScopStmt *Stmt) {
   if (!GEP)
     return false;
 
-  std::vector<const SCEV *> Subscripts;
-  std::vector<int> Sizes;
-  std::tie(Subscripts, Sizes) = getIndexExpressionsFromGEP(GEP, SE);
+  SmallVector<const SCEV *, 4> Subscripts;
+  SmallVector<int, 4> Sizes;
+  SE.getIndexExpressionsFromGEP(GEP, Subscripts, Sizes);
   auto *BasePtr = GEP->getOperand(0);
 
   if (auto *BasePtrCast = dyn_cast<BitCastInst>(BasePtr))
@@ -1807,16 +1809,21 @@ bool ScopBuilder::buildAccessCallInst(MemAccInst Inst, ScopStmt *Stmt) {
     llvm_unreachable("Unknown mod ref behaviour cannot be represented.");
   case FMRB_DoesNotAccessMemory:
     return true;
-  case FMRB_DoesNotReadMemory:
+  case FMRB_OnlyWritesMemory:
+  case FMRB_OnlyWritesInaccessibleMem:
+  case FMRB_OnlyWritesInaccessibleOrArgMem:
   case FMRB_OnlyAccessesInaccessibleMem:
   case FMRB_OnlyAccessesInaccessibleOrArgMem:
     return false;
   case FMRB_OnlyReadsMemory:
+  case FMRB_OnlyReadsInaccessibleMem:
+  case FMRB_OnlyReadsInaccessibleOrArgMem:
     GlobalReads.emplace_back(Stmt, CI);
     return true;
   case FMRB_OnlyReadsArgumentPointees:
     ReadOnly = true;
     LLVM_FALLTHROUGH;
+  case FMRB_OnlyWritesArgumentPointees:
   case FMRB_OnlyAccessesArgumentPointees: {
     auto AccType = ReadOnly ? MemoryAccess::READ : MemoryAccess::MAY_WRITE;
     Loop *L = LI.getLoopFor(Inst->getParent());
@@ -2119,14 +2126,27 @@ void ScopBuilder::buildEqivClassBlockStmts(BasicBlock *BB) {
   joinOrderedPHIs(UnionFind, ModeledInsts);
 
   // The list of instructions for statement (statement represented by the leader
-  // instruction). The order of statements instructions is reversed such that
-  // the epilogue is first. This makes it easier to ensure that the epilogue is
-  // the last statement.
+  // instruction).
   MapVector<Instruction *, std::vector<Instruction *>> LeaderToInstList;
+
+  // The order of statements must be preserved w.r.t. their ordered
+  // instructions. Without this explicit scan, we would also use non-ordered
+  // instructions (whose order is arbitrary) to determine statement order.
+  for (Instruction &Inst : *BB) {
+    if (!isOrderedInstruction(&Inst))
+      continue;
+
+    auto LeaderIt = UnionFind.findLeader(&Inst);
+    if (LeaderIt == UnionFind.member_end())
+      continue;
+
+    // Insert element for the leader instruction.
+    (void)LeaderToInstList[*LeaderIt];
+  }
 
   // Collect the instructions of all leaders. UnionFind's member iterator
   // unfortunately are not in any specific order.
-  for (Instruction &Inst : reverse(*BB)) {
+  for (Instruction &Inst : *BB) {
     auto LeaderIt = UnionFind.findLeader(&Inst);
     if (LeaderIt == UnionFind.member_end())
       continue;
@@ -2140,13 +2160,12 @@ void ScopBuilder::buildEqivClassBlockStmts(BasicBlock *BB) {
   // Finally build the statements.
   int Count = 0;
   long BBIdx = scop->getNextStmtIdx();
-  for (auto &Instructions : reverse(LeaderToInstList)) {
+  for (auto &Instructions : LeaderToInstList) {
     std::vector<Instruction *> &InstList = Instructions.second;
 
     // If there is no main instruction, make the first statement the main.
     bool IsMain = (MainInst ? MainLeader == Instructions.first : Count == 0);
 
-    std::reverse(InstList.begin(), InstList.end());
     std::string Name = makeStmtName(BB, BBIdx, Count, IsMain);
     scop->addScopStmt(BB, Name, L, std::move(InstList));
     Count += 1;
@@ -2490,9 +2509,17 @@ void ScopBuilder::foldAccessRelations() {
 }
 
 void ScopBuilder::assumeNoOutOfBounds() {
+  if (PollyIgnoreInbounds)
+    return;
   for (auto &Stmt : *scop)
-    for (auto &Access : Stmt)
-      Access->assumeNoOutOfBound();
+    for (auto &Access : Stmt) {
+      isl::set Outside = Access->assumeNoOutOfBound();
+      const auto &Loc = Access->getAccessInstruction()
+                            ? Access->getAccessInstruction()->getDebugLoc()
+                            : DebugLoc();
+      recordAssumption(&RecordedAssumptions, INBOUNDS, Outside, Loc,
+                       AS_ASSUMPTION);
+    }
 }
 
 void ScopBuilder::ensureValueWrite(Instruction *Inst) {
@@ -2878,7 +2905,7 @@ isl::set ScopBuilder::getNonHoistableCtx(MemoryAccess *Access,
 
   auto &DL = scop->getFunction().getParent()->getDataLayout();
   if (isSafeToLoadUnconditionally(LI->getPointerOperand(), LI->getType(),
-                                  LI->getAlignment(), DL)) {
+                                  LI->getAlign(), DL)) {
     SafeToLoad = isl::set::universe(AccessRelation.get_space().range());
   } else if (BB != LI->getParent()) {
     // Skip accesses in non-affine subregions as they might not be executed
@@ -2928,9 +2955,8 @@ bool ScopBuilder::canAlwaysBeHoisted(MemoryAccess *MA,
 
   // TODO: We can provide more information for better but more expensive
   //       results.
-  if (!isDereferenceableAndAlignedPointer(LInst->getPointerOperand(),
-                                          LInst->getType(),
-                                          LInst->getAlignment(), DL))
+  if (!isDereferenceableAndAlignedPointer(
+          LInst->getPointerOperand(), LInst->getType(), LInst->getAlign(), DL))
     return false;
 
   // If the location might be overwritten we do not hoist it unconditionally.
@@ -2947,8 +2973,8 @@ bool ScopBuilder::canAlwaysBeHoisted(MemoryAccess *MA,
   // Even if the statement is not modeled precisely we can hoist the load if it
   // does not involve any parameters that might have been specialized by the
   // statement domain.
-  for (unsigned u = 0, e = MA->getNumSubscripts(); u < e; u++)
-    if (!isa<SCEVConstant>(MA->getSubscript(u)))
+  for (const SCEV *Subscript : MA->subscripts())
+    if (!isa<SCEVConstant>(Subscript))
       return false;
   return true;
 }
@@ -3202,8 +3228,26 @@ void ScopBuilder::buildAccessRelations(ScopStmt &Stmt) {
     else
       Ty = MemoryKind::Array;
 
+    // Create isl::pw_aff for SCEVs which describe sizes. Collect all
+    // assumptions which are taken. isl::pw_aff objects are cached internally
+    // and they are used later by scop.
+    for (const SCEV *Size : Access->Sizes) {
+      if (!Size)
+        continue;
+      scop->getPwAff(Size, nullptr, false, &RecordedAssumptions);
+    }
     auto *SAI = scop->getOrCreateScopArrayInfo(Access->getOriginalBaseAddr(),
                                                ElementType, Access->Sizes, Ty);
+
+    // Create isl::pw_aff for SCEVs which describe subscripts. Collect all
+    // assumptions which are taken. isl::pw_aff objects are cached internally
+    // and they are used later by scop.
+    for (const SCEV *Subscript : Access->subscripts()) {
+      if (!Access->isAffine() || !Subscript)
+        continue;
+      scop->getPwAff(Subscript, Stmt.getEntryBlock(), false,
+                     &RecordedAssumptions);
+    }
     Access->buildAccessRelation(SAI);
     scop->addAccessData(Access);
   }
@@ -3240,7 +3284,8 @@ static bool buildMinMaxAccess(isl::set Set,
   //           11          |     6.78
   //           12          |    30.38
   //
-  if (isl_set_n_param(Set.get()) > RunTimeChecksMaxParameters) {
+  if (isl_set_n_param(Set.get()) >
+      static_cast<isl_size>(RunTimeChecksMaxParameters)) {
     unsigned InvolvedParams = 0;
     for (unsigned u = 0, e = isl_set_n_param(Set.get()); u < e; u++)
       if (Set.involves_dims(isl::dim::param, u, 1))
@@ -3585,7 +3630,8 @@ static void verifyUses(Scop *S, LoopInfo &LI, DominatorTree &DT) {
 #endif
 
 void ScopBuilder::buildScop(Region &R, AssumptionCache &AC) {
-  scop.reset(new Scop(R, SE, LI, DT, *SD.getDetectionContext(&R), ORE));
+  scop.reset(new Scop(R, SE, LI, DT, *SD.getDetectionContext(&R), ORE,
+                      SD.getNextID()));
 
   buildStmts(R);
 
@@ -3756,6 +3802,7 @@ ScopBuilder::ScopBuilder(Region *R, AssumptionCache &AC, AliasAnalysis &AA,
     InfeasibleScops++;
     Msg = "SCoP ends here but was dismissed.";
     LLVM_DEBUG(dbgs() << "SCoP detected but dismissed\n");
+    RecordedAssumptions.clear();
     scop.reset();
   } else {
     Msg = "SCoP ends here.";

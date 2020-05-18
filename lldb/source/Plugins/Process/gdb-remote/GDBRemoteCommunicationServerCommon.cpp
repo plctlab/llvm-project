@@ -1,4 +1,4 @@
-//===-- GDBRemoteCommunicationServerCommon.cpp ------------------*- C++ -*-===//
+//===-- GDBRemoteCommunicationServerCommon.cpp ----------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -231,6 +231,7 @@ GDBRemoteCommunicationServerCommon::Handle_qHostInfo(
 
 #else
   if (host_arch.GetMachine() == llvm::Triple::aarch64 ||
+      host_arch.GetMachine() == llvm::Triple::aarch64_32 ||
       host_arch.GetMachine() == llvm::Triple::aarch64_be ||
       host_arch.GetMachine() == llvm::Triple::arm ||
       host_arch.GetMachine() == llvm::Triple::armeb || host_arch.IsMIPS())
@@ -333,7 +334,7 @@ GDBRemoteCommunication::PacketResult
 GDBRemoteCommunicationServerCommon::Handle_qfProcessInfo(
     StringExtractorGDBRemote &packet) {
   m_proc_infos_index = 0;
-  m_proc_infos.Clear();
+  m_proc_infos.clear();
 
   ProcessInstanceInfoMatch match_info;
   packet.SetFilePos(::strlen("qfProcessInfo"));
@@ -415,10 +416,9 @@ GDBRemoteCommunicationServerCommon::Handle_qfProcessInfo(
 GDBRemoteCommunication::PacketResult
 GDBRemoteCommunicationServerCommon::Handle_qsProcessInfo(
     StringExtractorGDBRemote &packet) {
-  if (m_proc_infos_index < m_proc_infos.GetSize()) {
+  if (m_proc_infos_index < m_proc_infos.size()) {
     StreamString response;
-    CreateProcessInfoResponse(
-        m_proc_infos.GetProcessInfoAtIndex(m_proc_infos_index), response);
+    CreateProcessInfoResponse(m_proc_infos[m_proc_infos_index], response);
     ++m_proc_infos_index;
     return SendPacketNoLock(response.GetString());
   }
@@ -428,7 +428,7 @@ GDBRemoteCommunicationServerCommon::Handle_qsProcessInfo(
 GDBRemoteCommunication::PacketResult
 GDBRemoteCommunicationServerCommon::Handle_qUserName(
     StringExtractorGDBRemote &packet) {
-#if !defined(LLDB_DISABLE_POSIX)
+#if LLDB_ENABLE_POSIX
   Log *log(GetLogIfAnyCategoriesSet(LIBLLDB_LOG_PROCESS));
   LLDB_LOGF(log, "GDBRemoteCommunicationServerCommon::%s begin", __FUNCTION__);
 
@@ -451,7 +451,7 @@ GDBRemoteCommunicationServerCommon::Handle_qUserName(
 GDBRemoteCommunication::PacketResult
 GDBRemoteCommunicationServerCommon::Handle_qGroupName(
     StringExtractorGDBRemote &packet) {
-#if !defined(LLDB_DISABLE_POSIX)
+#if LLDB_ENABLE_POSIX
   // Packet format: "qGroupName:%i" where %i is the gid
   packet.SetFilePos(::strlen("qGroupName:"));
   uint32_t gid = packet.GetU32(UINT32_MAX);
@@ -507,7 +507,11 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_Open(
   packet.GetHexByteStringTerminatedBy(path, ',');
   if (!path.empty()) {
     if (packet.GetChar() == ',') {
-      uint32_t flags = packet.GetHexMaxU32(false, 0);
+      // FIXME
+      // The flag values for OpenOptions do not match the values used by GDB
+      // * https://sourceware.org/gdb/onlinedocs/gdb/Open-Flags.html#Open-Flags
+      // * rdar://problem/46788934
+      auto flags = File::OpenOptions(packet.GetHexMaxU32(false, 0));
       if (packet.GetChar() == ',') {
         mode_t mode = packet.GetHexMaxU32(false, 0600);
         FileSpec path_spec(path);
@@ -546,7 +550,7 @@ GDBRemoteCommunicationServerCommon::Handle_vFile_Close(
   int err = -1;
   int save_errno = 0;
   if (fd >= 0) {
-    NativeFile file(fd, 0, true);
+    NativeFile file(fd, File::OpenOptions(0), true);
     Status error = file.Close();
     err = 0;
     save_errno = error.GetError();
@@ -838,6 +842,7 @@ GDBRemoteCommunicationServerCommon::Handle_qSupported(
   response.PutCString(";QThreadSuffixSupported+");
   response.PutCString(";QListThreadsInStopReply+");
   response.PutCString(";qEcho+");
+  response.PutCString(";qXfer:features:read+");
 #if defined(__linux__) || defined(__NetBSD__)
   response.PutCString(";QPassSignals+");
   response.PutCString(";qXfer:auxv:read+");
@@ -1181,6 +1186,15 @@ void GDBRemoteCommunicationServerCommon::CreateProcessInfoResponse(
       proc_info.GetEffectiveUserID(), proc_info.GetEffectiveGroupID());
   response.PutCString("name:");
   response.PutStringAsRawHex8(proc_info.GetExecutableFile().GetCString());
+
+  response.PutChar(';');
+  response.PutCString("args:");
+  response.PutStringAsRawHex8(proc_info.GetArg0());
+  for (auto &arg : proc_info.GetArguments()) {
+    response.PutChar('-');
+    response.PutStringAsRawHex8(arg.ref());
+  }
+
   response.PutChar(';');
   const ArchSpec &proc_arch = proc_info.GetArchitecture();
   if (proc_arch.IsValid()) {
@@ -1214,7 +1228,7 @@ void GDBRemoteCommunicationServerCommon::
     if (cpu_subtype != 0)
       response.Printf("cpusubtype:%" PRIx32 ";", cpu_subtype);
 
-    const std::string vendor = proc_triple.getVendorName();
+    const std::string vendor = proc_triple.getVendorName().str();
     if (!vendor.empty())
       response.Printf("vendor:%s;", vendor.c_str());
 #else
@@ -1223,13 +1237,14 @@ void GDBRemoteCommunicationServerCommon::
     response.PutStringAsRawHex8(proc_triple.getTriple());
     response.PutChar(';');
 #endif
-    std::string ostype = proc_triple.getOSName();
+    std::string ostype = std::string(proc_triple.getOSName());
     // Adjust so ostype reports ios for Apple/ARM and Apple/ARM64.
     if (proc_triple.getVendor() == llvm::Triple::Apple) {
       switch (proc_triple.getArch()) {
       case llvm::Triple::arm:
       case llvm::Triple::thumb:
       case llvm::Triple::aarch64:
+      case llvm::Triple::aarch64_32:
         ostype = "ios";
         break;
       default:

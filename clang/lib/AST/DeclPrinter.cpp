@@ -105,11 +105,13 @@ namespace {
     void VisitOMPDeclareReductionDecl(OMPDeclareReductionDecl *D);
     void VisitOMPDeclareMapperDecl(OMPDeclareMapperDecl *D);
     void VisitOMPCapturedExprDecl(OMPCapturedExprDecl *D);
+    void VisitTemplateTypeParmDecl(const TemplateTypeParmDecl *TTP);
+    void VisitNonTypeTemplateParmDecl(const NonTypeTemplateParmDecl *NTTP);
 
     void printTemplateParameters(const TemplateParameterList *Params,
                                  bool OmitTemplateKW = false);
-    void printTemplateArguments(const TemplateArgumentList &Args,
-                                const TemplateParameterList *Params = nullptr);
+    void printTemplateArguments(llvm::ArrayRef<TemplateArgument> Args);
+    void printTemplateArguments(llvm::ArrayRef<TemplateArgumentLoc> Args);
     void prettyPrintAttributes(Decl *D);
     void prettyPrintPragmas(Decl *D);
     void printDeclType(QualType T, StringRef DeclName, bool Pack = false);
@@ -530,7 +532,7 @@ void DeclPrinter::VisitEnumDecl(EnumDecl *D) {
 
   Out << ' ' << *D;
 
-  if (D->isFixed() && D->getASTContext().getLangOpts().CPlusPlus11)
+  if (D->isFixed())
     Out << " : " << D->getIntegerType().stream(Policy);
 
   if (D->isCompleteDefinition()) {
@@ -625,21 +627,26 @@ void DeclPrinter::VisitFunctionDecl(FunctionDecl *D) {
   if (Policy.FullyQualifiedName) {
     Proto += D->getQualifiedNameAsString();
   } else {
+    llvm::raw_string_ostream OS(Proto);
     if (!Policy.SuppressScope) {
       if (const NestedNameSpecifier *NS = D->getQualifier()) {
-        llvm::raw_string_ostream OS(Proto);
         NS->print(OS, Policy);
       }
     }
-    Proto += D->getNameInfo().getAsString();
+    D->getNameInfo().printName(OS, Policy);
   }
 
   if (GuideDecl)
     Proto = GuideDecl->getDeducedTemplate()->getDeclName().getAsString();
-  if (const TemplateArgumentList *TArgs = D->getTemplateSpecializationArgs()) {
+  if (D->isFunctionTemplateSpecialization()) {
     llvm::raw_string_ostream POut(Proto);
     DeclPrinter TArgPrinter(POut, SubPolicy, Context, Indentation);
-    TArgPrinter.printTemplateArguments(*TArgs);
+    const auto *TArgAsWritten = D->getTemplateSpecializationArgsAsWritten();
+    if (TArgAsWritten && !Policy.PrintCanonicalTypes)
+      TArgPrinter.printTemplateArguments(TArgAsWritten->arguments());
+    else if (const TemplateArgumentList *TArgs =
+                 D->getTemplateSpecializationArgs())
+      TArgPrinter.printTemplateArguments(TArgs->asArray());
   }
 
   QualType Ty = D->getType();
@@ -735,6 +742,11 @@ void DeclPrinter::VisitFunctionDecl(FunctionDecl *D) {
       Proto.clear();
     }
     Out << Proto;
+
+    if (Expr *TrailingRequiresClause = D->getTrailingRequiresClause()) {
+      Out << " requires ";
+      TrailingRequiresClause->printPretty(Out, nullptr, SubPolicy, Indentation);
+    }
   } else {
     Ty.print(Out, Policy, Proto);
   }
@@ -957,10 +969,15 @@ void DeclPrinter::VisitCXXRecordDecl(CXXRecordDecl *D) {
   if (D->getIdentifier()) {
     Out << ' ' << *D;
 
-    if (auto S = dyn_cast<ClassTemplatePartialSpecializationDecl>(D))
-      printTemplateArguments(S->getTemplateArgs(), S->getTemplateParameters());
-    else if (auto S = dyn_cast<ClassTemplateSpecializationDecl>(D))
-      printTemplateArguments(S->getTemplateArgs());
+    if (auto S = dyn_cast<ClassTemplateSpecializationDecl>(D)) {
+      ArrayRef<TemplateArgument> Args = S->getTemplateArgs().asArray();
+      if (!Policy.PrintCanonicalTypes)
+        if (const auto* TSI = S->getTypeAsWritten())
+          if (const auto *TST =
+                  dyn_cast<TemplateSpecializationType>(TSI->getType()))
+            Args = TST->template_arguments();
+      printTemplateArguments(Args);
+    }
   }
 
   if (D->isCompleteDefinition()) {
@@ -1001,19 +1018,12 @@ void DeclPrinter::VisitCXXRecordDecl(CXXRecordDecl *D) {
 
 void DeclPrinter::VisitLinkageSpecDecl(LinkageSpecDecl *D) {
   const char *l;
-  switch (D->getLanguage()) {
-  case LinkageSpecDecl::lang_c:
+  if (D->getLanguage() == LinkageSpecDecl::lang_c)
     l = "C";
-    break;
-  case LinkageSpecDecl::lang_cxx_14:
-    l = "C++14";
-    break;
-  case LinkageSpecDecl::lang_cxx_11:
-    l = "C++11";
-    break;
-  case LinkageSpecDecl::lang_cxx:
+  else {
+    assert(D->getLanguage() == LinkageSpecDecl::lang_cxx &&
+           "unknown language in linkage specification");
     l = "C++";
-    break;
   }
 
   Out << "extern \"" << l << "\" ";
@@ -1043,35 +1053,10 @@ void DeclPrinter::printTemplateParameters(const TemplateParameterList *Params,
     else
       NeedComma = true;
 
-    if (auto TTP = dyn_cast<TemplateTypeParmDecl>(Param)) {
-
-      if (TTP->wasDeclaredWithTypename())
-        Out << "typename";
-      else
-        Out << "class";
-
-      if (TTP->isParameterPack())
-        Out << " ...";
-      else if (!TTP->getName().empty())
-        Out << ' ';
-
-      Out << *TTP;
-
-      if (TTP->hasDefaultArgument()) {
-        Out << " = ";
-        Out << TTP->getDefaultArgument().getAsString(Policy);
-      };
+    if (const auto *TTP = dyn_cast<TemplateTypeParmDecl>(Param)) {
+      VisitTemplateTypeParmDecl(TTP);
     } else if (auto NTTP = dyn_cast<NonTypeTemplateParmDecl>(Param)) {
-      StringRef Name;
-      if (IdentifierInfo *II = NTTP->getIdentifier())
-        Name = II->getName();
-      printDeclType(NTTP->getType(), Name, NTTP->isParameterPack());
-
-      if (NTTP->hasDefaultArgument()) {
-        Out << " = ";
-        NTTP->getDefaultArgument()->printPretty(Out, nullptr, Policy,
-                                                Indentation);
-      }
+      VisitNonTypeTemplateParmDecl(NTTP);
     } else if (auto TTPD = dyn_cast<TemplateTemplateParmDecl>(Param)) {
       VisitTemplateDecl(TTPD);
       // FIXME: print the default argument, if present.
@@ -1083,40 +1068,22 @@ void DeclPrinter::printTemplateParameters(const TemplateParameterList *Params,
     Out << ' ';
 }
 
-void DeclPrinter::printTemplateArguments(const TemplateArgumentList &Args,
-                                         const TemplateParameterList *Params) {
+void DeclPrinter::printTemplateArguments(ArrayRef<TemplateArgument> Args) {
   Out << "<";
   for (size_t I = 0, E = Args.size(); I < E; ++I) {
-    const TemplateArgument &A = Args[I];
     if (I)
       Out << ", ";
-    if (Params) {
-      if (A.getKind() == TemplateArgument::Type)
-        if (auto T = A.getAsType()->getAs<TemplateTypeParmType>()) {
-          auto P = cast<TemplateTypeParmDecl>(Params->getParam(T->getIndex()));
-          Out << *P;
-          continue;
-        }
-      if (A.getKind() == TemplateArgument::Template) {
-        if (auto T = A.getAsTemplate().getAsTemplateDecl())
-          if (auto TD = dyn_cast<TemplateTemplateParmDecl>(T)) {
-            auto P = cast<TemplateTemplateParmDecl>(
-                                              Params->getParam(TD->getIndex()));
-            Out << *P;
-            continue;
-          }
-      }
-      if (A.getKind() == TemplateArgument::Expression) {
-        if (auto E = dyn_cast<DeclRefExpr>(A.getAsExpr()))
-          if (auto N = dyn_cast<NonTypeTemplateParmDecl>(E->getDecl())) {
-            auto P = cast<NonTypeTemplateParmDecl>(
-                                               Params->getParam(N->getIndex()));
-            Out << *P;
-            continue;
-          }
-      }
-    }
-    A.print(Policy, Out);
+    Args[I].print(Policy, Out);
+  }
+  Out << ">";
+}
+
+void DeclPrinter::printTemplateArguments(ArrayRef<TemplateArgumentLoc> Args) {
+  Out << "<";
+  for (size_t I = 0, E = Args.size(); I < E; ++I) {
+    if (I)
+      Out << ", ";
+    Args[I].getArgument().print(Policy, Out);
   }
   Out << ">";
 }
@@ -1461,80 +1428,83 @@ void DeclPrinter::VisitObjCPropertyDecl(ObjCPropertyDecl *PDecl) {
   QualType T = PDecl->getType();
 
   Out << "@property";
-  if (PDecl->getPropertyAttributes() != ObjCPropertyDecl::OBJC_PR_noattr) {
+  if (PDecl->getPropertyAttributes() != ObjCPropertyAttribute::kind_noattr) {
     bool first = true;
     Out << "(";
-    if (PDecl->getPropertyAttributes() & ObjCPropertyDecl::OBJC_PR_class) {
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_class) {
       Out << (first ? "" : ", ") << "class";
       first = false;
     }
 
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_direct) {
+      Out << (first ? "" : ", ") << "direct";
+      first = false;
+    }
+
     if (PDecl->getPropertyAttributes() &
-        ObjCPropertyDecl::OBJC_PR_nonatomic) {
+        ObjCPropertyAttribute::kind_nonatomic) {
       Out << (first ? "" : ", ") << "nonatomic";
       first = false;
     }
-    if (PDecl->getPropertyAttributes() &
-        ObjCPropertyDecl::OBJC_PR_atomic) {
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_atomic) {
       Out << (first ? "" : ", ") << "atomic";
       first = false;
     }
 
-    if (PDecl->getPropertyAttributes() & ObjCPropertyDecl::OBJC_PR_assign) {
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_assign) {
       Out << (first ? "" : ", ") << "assign";
       first = false;
     }
-    if (PDecl->getPropertyAttributes() & ObjCPropertyDecl::OBJC_PR_retain) {
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_retain) {
       Out << (first ? "" : ", ") << "retain";
       first = false;
     }
 
-    if (PDecl->getPropertyAttributes() & ObjCPropertyDecl::OBJC_PR_strong) {
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_strong) {
       Out << (first ? "" : ", ") << "strong";
       first = false;
     }
-    if (PDecl->getPropertyAttributes() & ObjCPropertyDecl::OBJC_PR_copy) {
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_copy) {
       Out << (first ? "" : ", ") << "copy";
       first = false;
     }
-    if (PDecl->getPropertyAttributes() & ObjCPropertyDecl::OBJC_PR_weak) {
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_weak) {
       Out << (first ? "" : ", ") << "weak";
       first = false;
     }
-    if (PDecl->getPropertyAttributes()
-        & ObjCPropertyDecl::OBJC_PR_unsafe_unretained) {
+    if (PDecl->getPropertyAttributes() &
+        ObjCPropertyAttribute::kind_unsafe_unretained) {
       Out << (first ? "" : ", ") << "unsafe_unretained";
       first = false;
     }
 
     if (PDecl->getPropertyAttributes() &
-        ObjCPropertyDecl::OBJC_PR_readwrite) {
+        ObjCPropertyAttribute::kind_readwrite) {
       Out << (first ? "" : ", ") << "readwrite";
       first = false;
     }
-    if (PDecl->getPropertyAttributes() &
-        ObjCPropertyDecl::OBJC_PR_readonly) {
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_readonly) {
       Out << (first ? "" : ", ") << "readonly";
       first = false;
     }
 
-    if (PDecl->getPropertyAttributes() & ObjCPropertyDecl::OBJC_PR_getter) {
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_getter) {
       Out << (first ? "" : ", ") << "getter = ";
       PDecl->getGetterName().print(Out);
       first = false;
     }
-    if (PDecl->getPropertyAttributes() & ObjCPropertyDecl::OBJC_PR_setter) {
+    if (PDecl->getPropertyAttributes() & ObjCPropertyAttribute::kind_setter) {
       Out << (first ? "" : ", ") << "setter = ";
       PDecl->getSetterName().print(Out);
       first = false;
     }
 
     if (PDecl->getPropertyAttributes() &
-        ObjCPropertyDecl::OBJC_PR_nullability) {
+        ObjCPropertyAttribute::kind_nullability) {
       if (auto nullability = AttributedType::stripOuterNullability(T)) {
         if (*nullability == NullabilityKind::Unspecified &&
             (PDecl->getPropertyAttributes() &
-               ObjCPropertyDecl::OBJC_PR_null_resettable)) {
+             ObjCPropertyAttribute::kind_null_resettable)) {
           Out << (first ? "" : ", ") << "null_resettable";
         } else {
           Out << (first ? "" : ", ")
@@ -1708,3 +1678,36 @@ void DeclPrinter::VisitOMPCapturedExprDecl(OMPCapturedExprDecl *D) {
   D->getInit()->printPretty(Out, nullptr, Policy, Indentation);
 }
 
+void DeclPrinter::VisitTemplateTypeParmDecl(const TemplateTypeParmDecl *TTP) {
+  if (const TypeConstraint *TC = TTP->getTypeConstraint())
+    TC->print(Out, Policy);
+  else if (TTP->wasDeclaredWithTypename())
+    Out << "typename";
+  else
+    Out << "class";
+
+  if (TTP->isParameterPack())
+    Out << " ...";
+  else if (!TTP->getName().empty())
+    Out << ' ';
+
+  Out << *TTP;
+
+  if (TTP->hasDefaultArgument()) {
+    Out << " = ";
+    Out << TTP->getDefaultArgument().getAsString(Policy);
+  }
+}
+
+void DeclPrinter::VisitNonTypeTemplateParmDecl(
+    const NonTypeTemplateParmDecl *NTTP) {
+  StringRef Name;
+  if (IdentifierInfo *II = NTTP->getIdentifier())
+    Name = II->getName();
+  printDeclType(NTTP->getType(), Name, NTTP->isParameterPack());
+
+  if (NTTP->hasDefaultArgument()) {
+    Out << " = ";
+    NTTP->getDefaultArgument()->printPretty(Out, nullptr, Policy, Indentation);
+  }
+}

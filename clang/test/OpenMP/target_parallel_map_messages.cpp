@@ -1,6 +1,6 @@
-// RUN: %clang_cc1 -verify -fopenmp -ferror-limit 100 %s -Wno-openmp-target -Wuninitialized
+// RUN: %clang_cc1 -verify -fopenmp -ferror-limit 100 %s -Wno-openmp-mapping -Wuninitialized
 
-// RUN: %clang_cc1 -verify -fopenmp-simd -ferror-limit 100 %s -Wno-openmp-target -Wuninitialized
+// RUN: %clang_cc1 -verify -fopenmp-simd -ferror-limit 100 %s -Wno-openmp-mapping -Wuninitialized
 
 void foo() {
 }
@@ -286,6 +286,10 @@ int main(int argc, char **argv) {
 #pragma omp target parallel map(always, tofrom: always, tofrom, x)
   foo();
 #pragma omp target parallel map(tofrom j) // expected-error {{expected ',' or ')' in 'map' clause}}
+  foo();
+#pragma omp target parallel map(delete: j) // expected-error {{map type 'delete' is not allowed for '#pragma omp target parallel'}}
+  foo();
+#pragma omp target parallel map(release: j) // expected-error {{map type 'release' is not allowed for '#pragma omp target parallel'}}
   foo();
 
   return tmain<int, 3>(argc)+tmain<from, 4>(argc); // expected-note {{in instantiation of function template specialization 'tmain<int, 3>' requested here}} expected-note {{in instantiation of function template specialization 'tmain<int, 4>' requested here}}

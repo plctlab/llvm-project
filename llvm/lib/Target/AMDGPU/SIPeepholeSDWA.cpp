@@ -26,6 +26,7 @@
 #include "SIRegisterInfo.h"
 #include "MCTargetDesc/AMDGPUMCTargetDesc.h"
 #include "Utils/AMDGPUBaseInfo.h"
+#include "llvm/ADT/MapVector.h"
 #include "llvm/ADT/None.h"
 #include "llvm/ADT/Optional.h"
 #include "llvm/ADT/STLExtras.h"
@@ -73,8 +74,8 @@ private:
   const SIRegisterInfo *TRI;
   const SIInstrInfo *TII;
 
-  std::unordered_map<MachineInstr *, std::unique_ptr<SDWAOperand>> SDWAOperands;
-  std::unordered_map<MachineInstr *, SDWAOperandsVector> PotentialMatches;
+  MapVector<MachineInstr *, std::unique_ptr<SDWAOperand>> SDWAOperands;
+  MapVector<MachineInstr *, SDWAOperandsVector> PotentialMatches;
   SmallVector<MachineInstr *, 8> ConvertedInstructions;
 
   Optional<int64_t> foldToImm(const MachineOperand &Op) const;
@@ -240,11 +241,6 @@ static raw_ostream& operator<<(raw_ostream &OS, const DstUnused &Un) {
   case UNUSED_SEXT: OS << "UNUSED_SEXT"; break;
   case UNUSED_PRESERVE: OS << "UNUSED_PRESERVE"; break;
   }
-  return OS;
-}
-
-static raw_ostream& operator<<(raw_ostream &OS, const SDWAOperand &Operand) {
-  Operand.print(OS);
   return OS;
 }
 
@@ -848,6 +844,13 @@ SIPeepholeSDWA::matchSDWAOperand(MachineInstr &MI) {
 
   return std::unique_ptr<SDWAOperand>(nullptr);
 }
+
+#if !defined(NDEBUG)
+static raw_ostream& operator<<(raw_ostream &OS, const SDWAOperand &Operand) {
+  Operand.print(OS);
+  return OS;
+}
+#endif
 
 void SIPeepholeSDWA::matchSDWAOperands(MachineBasicBlock &MBB) {
   for (MachineInstr &MI : MBB) {

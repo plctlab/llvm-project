@@ -27,6 +27,7 @@ def RawFrmDstSrc  : Format<6>;
 def RawFrmImm8    : Format<7>;
 def RawFrmImm16   : Format<8>;
 def AddCCFrm      : Format<9>;
+def PrefixByte    : Format<10>;
 def MRMDestMem     : Format<32>;
 def MRMSrcMem      : Format<33>;
 def MRMSrcMem4VOp3 : Format<34>;
@@ -227,6 +228,7 @@ class EVEX_V512 { bit hasEVEX_L2 = 1; bit hasVEX_L = 0; }
 class EVEX_V256 { bit hasEVEX_L2 = 0; bit hasVEX_L = 1; }
 class EVEX_V128 { bit hasEVEX_L2 = 0; bit hasVEX_L = 0; }
 class NOTRACK { bit hasNoTrackPrefix = 1; }
+class SIMD_EXC { list<Register> Uses = [MXCSR]; bit mayRaiseFPException = 1; }
 
 // Specify AVX512 8-bit compressed displacement encoding based on the vector
 // element size in bits (8, 16, 32, 64) and the CDisp8 form.
@@ -441,12 +443,15 @@ class Ii32PCRel<bits<8> o, Format f, dag outs, dag ins, string asm,
 // FPStack Instruction Templates:
 // FPI - Floating Point Instruction template.
 class FPI<bits<8> o, Format F, dag outs, dag ins, string asm>
-  : I<o, F, outs, ins, asm, []> {}
+  : I<o, F, outs, ins, asm, []> {
+  let Defs = [FPSW];
+}
 
 // FpI_ - Floating Point Pseudo Instruction template. Not Predicated.
 class FpI_<dag outs, dag ins, FPFormat fp, list<dag> pattern>
   : PseudoI<outs, ins, pattern> {
   let FPForm = fp;
+  let Defs = [FPSW];
 }
 
 // Templates for instructions that use a 16- or 32-bit segmented address as

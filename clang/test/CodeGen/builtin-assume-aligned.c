@@ -44,13 +44,14 @@ int test4(int *a, int b) {
 
 int *m1() __attribute__((assume_aligned(64)));
 
-// CHECK-LABEL: @test5
+// CHECK-LABEL: @test5(
+// CHECK-NEXT:  entry:
+// CHECK-NEXT:    [[CALL:%.*]] = call align 64 i32* (...) @m1()
+// CHECK-NEXT:    [[TMP0:%.*]] = load i32, i32* [[CALL]], align 4
+// CHECK-NEXT:    ret i32 [[TMP0]]
+//
 int test5() {
   return *m1();
-// CHECK: [[PTRINT5:%.+]] = ptrtoint
-// CHECK: [[MASKEDPTR5:%.+]] = and i64 [[PTRINT5]], 63
-// CHECK: [[MASKCOND5:%.+]] = icmp eq i64 [[MASKEDPTR5]], 0
-// CHECK: call void @llvm.assume(i1 [[MASKCOND5]])
 }
 
 int *m2() __attribute__((assume_aligned(64, 12)));
@@ -65,3 +66,12 @@ int test6() {
 // CHECK: call void @llvm.assume(i1 [[MASKCOND6]])
 }
 
+// CHECK-LABEL: @pr43638
+int pr43638(int *a) {
+  a = __builtin_assume_aligned(a, 4294967296);
+return a[0];
+// CHECK: [[PTRINT7:%.+]] = ptrtoint
+// CHECK: [[MASKEDPTR7:%.+]] = and i64 [[PTRINT7]], 536870911
+// CHECK: [[MASKCOND7:%.+]] = icmp eq i64 [[MASKEDPTR7]], 0
+// CHECK: call void @llvm.assume(i1 [[MASKCOND7]])
+}

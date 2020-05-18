@@ -148,7 +148,7 @@ class LLVM_LIBRARY_VISIBILITY CodeViewDebug : public DebugHandlerBase {
     SmallVector<LexicalBlock *, 1> ChildBlocks;
 
     std::vector<std::pair<MCSymbol *, MDNode *>> Annotations;
-    std::vector<std::tuple<MCSymbol *, MCSymbol *, const DIType *>>
+    std::vector<std::tuple<const MCSymbol *, const MCSymbol *, const DIType *>>
         HeapAllocSites;
 
     const MCSymbol *Begin = nullptr;
@@ -442,6 +442,15 @@ class LLVM_LIBRARY_VISIBILITY CodeViewDebug : public DebugHandlerBase {
   codeview::TypeIndex recordTypeIndexForDINode(const DINode *Node,
                                                codeview::TypeIndex TI,
                                                const DIType *ClassTy = nullptr);
+
+  /// Collect the names of parent scopes, innermost to outermost. Return the
+  /// innermost subprogram scope if present. Ensure that parent type scopes are
+  /// inserted into the type table.
+  const DISubprogram *
+  collectParentScopeNames(const DIScope *Scope,
+                          SmallVectorImpl<StringRef> &ParentScopeNames);
+  std::string getFullyQualifiedName(const DIScope *Scope, StringRef Name);
+  std::string getFullyQualifiedName(const DIScope *Scope);
 
   unsigned getPointerSizeInBytes();
 

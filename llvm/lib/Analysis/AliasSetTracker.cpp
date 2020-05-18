@@ -27,6 +27,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/PatternMatch.h"
 #include "llvm/IR/Value.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/AtomicOrdering.h"
 #include "llvm/Support/Casting.h"
@@ -676,7 +677,7 @@ void AliasSet::print(raw_ostream &OS) const {
       I.getPointer()->printAsOperand(OS << "(");
       if (I.getSize() == LocationSize::unknown())
         OS << ", unknown)";
-      else 
+      else
         OS << ", " << I.getSize() << ")";
     }
   }

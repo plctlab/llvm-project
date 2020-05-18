@@ -10,16 +10,17 @@
 #include "Config.h"
 #include "DLL.h"
 #include "InputFiles.h"
+#include "LLDMapFile.h"
 #include "MapFile.h"
 #include "PDB.h"
 #include "SymbolTable.h"
 #include "Symbols.h"
 #include "lld/Common/ErrorHandler.h"
 #include "lld/Common/Memory.h"
-#include "lld/Common/Threads.h"
 #include "lld/Common/Timer.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/StringSet.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/BinaryStreamReader.h"
 #include "llvm/Support/Debug.h"
@@ -90,7 +91,8 @@ namespace {
 
 class DebugDirectoryChunk : public NonSectionChunk {
 public:
-  DebugDirectoryChunk(const std::vector<Chunk *> &r, bool writeRepro)
+  DebugDirectoryChunk(const std::vector<std::pair<COFF::DebugType, Chunk *>> &r,
+                      bool writeRepro)
       : records(r), writeRepro(writeRepro) {}
 
   size_t getSize() const override {
@@ -100,11 +102,11 @@ public:
   void writeTo(uint8_t *b) const override {
     auto *d = reinterpret_cast<debug_directory *>(b);
 
-    for (const Chunk *record : records) {
-      OutputSection *os = record->getOutputSection();
-      uint64_t offs = os->getFileOff() + (record->getRVA() - os->getRVA());
-      fillEntry(d, COFF::IMAGE_DEBUG_TYPE_CODEVIEW, record->getSize(),
-                record->getRVA(), offs);
+    for (const std::pair<COFF::DebugType, Chunk *>& record : records) {
+      Chunk *c = record.second;
+      OutputSection *os = c->getOutputSection();
+      uint64_t offs = os->getFileOff() + (c->getRVA() - os->getRVA());
+      fillEntry(d, record.first, c->getSize(), c->getRVA(), offs);
       ++d;
     }
 
@@ -139,7 +141,7 @@ private:
   }
 
   mutable std::vector<support::ulittle32_t *> timeDateStamps;
-  const std::vector<Chunk *> &records;
+  const std::vector<std::pair<COFF::DebugType, Chunk *>> &records;
   bool writeRepro;
 };
 
@@ -162,6 +164,17 @@ public:
   }
 
   mutable codeview::DebugInfo *buildId = nullptr;
+};
+
+class ExtendedDllCharacteristicsChunk : public NonSectionChunk {
+public:
+  ExtendedDllCharacteristicsChunk(uint32_t c) : characteristics(c) {}
+
+  size_t getSize() const override { return 4; }
+
+  void writeTo(uint8_t *buf) const override { write32le(buf, characteristics); }
+
+  uint32_t characteristics = 0;
 };
 
 // PartialSection represents a group of chunks that contribute to an
@@ -249,7 +262,7 @@ private:
   bool setNoSEHCharacteristic = false;
 
   DebugDirectoryChunk *debugDirectory = nullptr;
-  std::vector<Chunk *> debugRecords;
+  std::vector<std::pair<COFF::DebugType, Chunk *>> debugRecords;
   CVDebugRecordChunk *buildId = nullptr;
   ArrayRef<uint8_t> sectionTable;
 
@@ -285,13 +298,10 @@ private:
 };
 } // anonymous namespace
 
-namespace lld {
-namespace coff {
-
 static Timer codeLayoutTimer("Code Layout", Timer::root());
 static Timer diskCommitTimer("Commit Output File", Timer::root());
 
-void writeResult() { Writer().run(); }
+void lld::coff::writeResult() { Writer().run(); }
 
 void OutputSection::addChunk(Chunk *c) {
   chunks.push_back(c);
@@ -332,9 +342,6 @@ void OutputSection::writeHeaderTo(uint8_t *buf) {
 void OutputSection::addContributingPartialSection(PartialSection *sec) {
   contribSections.push_back(sec);
 }
-
-} // namespace coff
-} // namespace lld
 
 // Check whether the target address S is in range from a relocation
 // of type relType at address P.
@@ -626,6 +633,7 @@ void Writer::run() {
   }
   writeBuildId();
 
+  writeLLDMapFile(outputSections);
   writeMapFile(outputSections);
 
   if (errorCount())
@@ -925,8 +933,9 @@ void Writer::createMiscChunks() {
 
   // Create Debug Information Chunks
   OutputSection *debugInfoSec = config->mingw ? buildidSec : rdataSec;
-  if (config->debug || config->repro) {
+  if (config->debug || config->repro || config->cetCompat) {
     debugDirectory = make<DebugDirectoryChunk>(debugRecords, config->repro);
+    debugDirectory->setAlignment(4);
     debugInfoSec->addChunk(debugDirectory);
   }
 
@@ -936,10 +945,20 @@ void Writer::createMiscChunks() {
     // allowing a debugger to match a PDB and an executable.  So we need it even
     // if we're ultimately not going to write CodeView data to the PDB.
     buildId = make<CVDebugRecordChunk>();
-    debugRecords.push_back(buildId);
+    debugRecords.push_back({COFF::IMAGE_DEBUG_TYPE_CODEVIEW, buildId});
+  }
 
-    for (Chunk *c : debugRecords)
-      debugInfoSec->addChunk(c);
+  if (config->cetCompat) {
+    ExtendedDllCharacteristicsChunk *extendedDllChars =
+        make<ExtendedDllCharacteristicsChunk>(
+            IMAGE_DLL_CHARACTERISTICS_EX_CET_COMPAT);
+    debugRecords.push_back(
+        {COFF::IMAGE_DEBUG_TYPE_EX_DLLCHARACTERISTICS, extendedDllChars});
+  }
+
+  if (debugRecords.size() > 0) {
+    for (std::pair<COFF::DebugType, Chunk *> r : debugRecords)
+      debugInfoSec->addChunk(r.second);
   }
 
   // Create SEH table. x86-only.
@@ -1153,6 +1172,11 @@ void Writer::createSymbolAndStringTable() {
       continue;
     if ((sec->header.Characteristics & IMAGE_SCN_MEM_DISCARDABLE) == 0)
       continue;
+    if (config->warnLongSectionNames) {
+      warn("section name " + sec->name +
+           " is longer than 8 characters and will use a non-standard string "
+           "table");
+    }
     sec->setStringTableOff(addEntryToStringTable(sec->name));
   }
 
@@ -1304,6 +1328,8 @@ template <typename PEHeaderTy> void Writer::writeHeader() {
     coff->Characteristics |= IMAGE_FILE_32BIT_MACHINE;
   if (config->dll)
     coff->Characteristics |= IMAGE_FILE_DLL;
+  if (config->driverUponly)
+    coff->Characteristics |= IMAGE_FILE_UP_SYSTEM_ONLY;
   if (!config->relocatable)
     coff->Characteristics |= IMAGE_FILE_RELOCS_STRIPPED;
   if (config->swaprunCD)
@@ -1351,6 +1377,8 @@ template <typename PEHeaderTy> void Writer::writeHeader() {
   pe->SizeOfHeapCommit = config->heapCommit;
   if (config->appContainer)
     pe->DLLCharacteristics |= IMAGE_DLL_CHARACTERISTICS_APPCONTAINER;
+  if (config->driverWdm)
+    pe->DLLCharacteristics |= IMAGE_DLL_CHARACTERISTICS_WDM_DRIVER;
   if (config->dynamicBase)
     pe->DLLCharacteristics |= IMAGE_DLL_CHARACTERISTICS_DYNAMIC_BASE;
   if (config->highEntropyVA)
@@ -1839,7 +1867,7 @@ void Writer::sortExceptionTable() {
         [](const Entry &a, const Entry &b) { return a.begin < b.begin; });
     return;
   }
-  errs() << "warning: don't know how to handle .pdata.\n";
+  lld::errs() << "warning: don't know how to handle .pdata.\n";
 }
 
 // The CRT section contains, among other things, the array of function

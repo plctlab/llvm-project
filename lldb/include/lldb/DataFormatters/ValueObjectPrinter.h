@@ -7,9 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef lldb_ValueObjectPrinter_h_
-#define lldb_ValueObjectPrinter_h_
-
+#ifndef LLDB_DATAFORMATTERS_VALUEOBJECTPRINTER_H
+#define LLDB_DATAFORMATTERS_VALUEOBJECTPRINTER_H
 
 #include "lldb/lldb-private.h"
 #include "lldb/lldb-public.h"
@@ -62,8 +61,6 @@ protected:
 
   bool ShouldPrintValueObject();
 
-  bool ShouldPrintValidation();
-
   bool IsNil();
 
   bool IsUninitialized();
@@ -75,10 +72,6 @@ protected:
   bool IsInstancePointer();
 
   bool IsAggregate();
-
-  bool PrintValidationMarkerIfNeeded();
-
-  bool PrintValidationErrorIfNeeded();
 
   bool PrintLocationIfNeeded();
 
@@ -145,7 +138,6 @@ private:
   std::string m_summary;
   std::string m_error;
   bool m_val_summary_ok;
-  std::pair<TypeValidatorResult, std::string> m_validation;
 
   friend struct StringSummaryFormat;
 
@@ -154,4 +146,4 @@ private:
 
 } // namespace lldb_private
 
-#endif // lldb_ValueObjectPrinter_h_
+#endif // LLDB_DATAFORMATTERS_VALUEOBJECTPRINTER_H

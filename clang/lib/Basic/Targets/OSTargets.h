@@ -538,6 +538,7 @@ protected:
     Builder.defineMacro("__KPRINTF_ATTRIBUTE__");
     DefineStd(Builder, "unix", Opts);
     Builder.defineMacro("__ELF__");
+    Builder.defineMacro("__SCE__");
     Builder.defineMacro("__ORBIS__");
   }
 
@@ -705,6 +706,8 @@ protected:
 public:
   AIXTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
       : OSTargetInfo<Target>(Triple, Opts) {
+    this->TheCXXABI.set(TargetCXXABI::XL);
+
     if (this->PointerWidth == 64) {
       this->WCharType = this->UnsignedInt;
     } else {
@@ -808,6 +811,7 @@ public:
   FuchsiaTargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
       : OSTargetInfo<Target>(Triple, Opts) {
     this->MCountName = "__mcount";
+    this->TheCXXABI.set(TargetCXXABI::Fuchsia);
   }
 };
 

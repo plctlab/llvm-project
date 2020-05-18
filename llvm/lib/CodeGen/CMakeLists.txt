@@ -1,4 +1,4 @@
-add_llvm_library(LLVMCodeGen
+add_llvm_component_library(LLVMCodeGen
   AggressiveAntiDepBreaker.cpp
   AllocationOrder.cpp
   Analysis.cpp
@@ -8,11 +8,14 @@ add_llvm_library(LLVMCodeGen
   BranchRelaxation.cpp
   BreakFalseDeps.cpp
   BuiltinGCs.cpp
+  BBSectionsPrepare.cpp
   CalcSpillWeights.cpp
   CallingConvLower.cpp
+  CFGuardLongjmp.cpp
   CFIInstrInserter.cpp
   CodeGen.cpp
   CodeGenPrepare.cpp
+  CommandFlags.cpp
   CriticalAntiDepBreaker.cpp
   DeadMachineInstructionElim.cpp
   DetectDeadLanes.cpp
@@ -27,6 +30,7 @@ add_llvm_library(LLVMCodeGen
   FaultMaps.cpp
   FEntryInserter.cpp
   FinalizeISel.cpp
+  FixupStatepointCallerSaved.cpp
   FuncletLayout.cpp
   GCMetadata.cpp
   GCMetadataPrinter.cpp
@@ -52,6 +56,7 @@ add_llvm_library(LLVMCodeGen
   LiveIntervalUnion.cpp
   LivePhysRegs.cpp
   LiveRangeCalc.cpp
+  LiveIntervalCalc.cpp
   LiveRangeEdit.cpp
   LiveRangeShrink.cpp
   LiveRegMatrix.cpp
@@ -70,6 +75,7 @@ add_llvm_library(LLVMCodeGen
   MachineCombiner.cpp
   MachineCopyPropagation.cpp
   MachineCSE.cpp
+  MachineDebugify.cpp
   MachineDominanceFrontier.cpp
   MachineDominators.cpp
   MachineFrameInfo.cpp
@@ -92,14 +98,18 @@ add_llvm_library(LLVMCodeGen
   MachineRegisterInfo.cpp
   MachineScheduler.cpp
   MachineSink.cpp
+  MachineSizeOpts.cpp
   MachineSSAUpdater.cpp
+  MachineStripDebug.cpp
   MachineTraceMetrics.cpp
   MachineVerifier.cpp
   ModuloSchedule.cpp
   PatchableFunction.cpp
+  MBFIWrapper.cpp
   MIRPrinter.cpp
   MIRPrintingPass.cpp
   MacroFusion.cpp
+  NonRelocatableStringpool.cpp
   OptimizePHIs.cpp
   ParallelCG.cpp
   PeepholeOptimizer.cpp
@@ -111,6 +121,9 @@ add_llvm_library(LLVMCodeGen
   ProcessImplicitDefs.cpp
   PrologEpilogInserter.cpp
   PseudoSourceValue.cpp
+  RDFGraph.cpp
+  RDFLiveness.cpp
+  RDFRegisters.cpp
   ReachingDefAnalysis.cpp
   RegAllocBase.cpp
   RegAllocBasic.cpp
@@ -161,6 +174,7 @@ add_llvm_library(LLVMCodeGen
   TargetRegisterInfo.cpp
   TargetSchedule.cpp
   TargetSubtargetInfo.cpp
+  TypePromotion.cpp
   TwoAddressInstructionPass.cpp
   UnreachableBlockElim.cpp
   ValueTypes.cpp

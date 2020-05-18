@@ -20,17 +20,19 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/Analysis/CFG.h"
 #include "llvm/Analysis/EHPersonalities.h"
-#include "llvm/Transforms/Utils/Local.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/CodeGen/WinEHFuncInfo.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/Pass.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/Cloning.h"
+#include "llvm/Transforms/Utils/Local.h"
 #include "llvm/Transforms/Utils/SSAUpdater.h"
 
 using namespace llvm;
@@ -232,6 +234,9 @@ static const BasicBlock *getEHPadFromPredecessor(const BasicBlock *BB,
   return CleanupPad->getParent();
 }
 
+// Starting from a EHPad, Backward walk through control-flow graph
+// to produce two primary outputs:
+//      FuncInfo.EHPadStateMap[] and FuncInfo.CxxUnwindMap[]
 static void calculateCXXStateNumbers(WinEHFuncInfo &FuncInfo,
                                      const Instruction *FirstNonPHI,
                                      int ParentState) {
@@ -334,6 +339,9 @@ static int addSEHFinally(WinEHFuncInfo &FuncInfo, int ParentState,
   return FuncInfo.SEHUnwindMap.size() - 1;
 }
 
+// Starting from a EHPad, Backward walk through control-flow graph
+// to produce two primary outputs:
+//      FuncInfo.EHPadStateMap[] and FuncInfo.SEHUnwindMap[]
 static void calculateSEHStateNumbers(WinEHFuncInfo &FuncInfo,
                                      const Instruction *FirstNonPHI,
                                      int ParentState) {
@@ -940,12 +948,12 @@ void WinEHPrepare::removeImplausibleInstructions(Function &F) {
 
     for (BasicBlock *BB : BlocksInFunclet) {
       for (Instruction &I : *BB) {
-        CallSite CS(&I);
-        if (!CS)
+        auto *CB = dyn_cast<CallBase>(&I);
+        if (!CB)
           continue;
 
         Value *FuncletBundleOperand = nullptr;
-        if (auto BU = CS.getOperandBundle(LLVMContext::OB_funclet))
+        if (auto BU = CB->getOperandBundle(LLVMContext::OB_funclet))
           FuncletBundleOperand = BU->Inputs.front();
 
         if (FuncletBundleOperand == FuncletPad)
@@ -953,13 +961,13 @@ void WinEHPrepare::removeImplausibleInstructions(Function &F) {
 
         // Skip call sites which are nounwind intrinsics or inline asm.
         auto *CalledFn =
-            dyn_cast<Function>(CS.getCalledValue()->stripPointerCasts());
-        if (CalledFn && ((CalledFn->isIntrinsic() && CS.doesNotThrow()) ||
-                         CS.isInlineAsm()))
+            dyn_cast<Function>(CB->getCalledOperand()->stripPointerCasts());
+        if (CalledFn && ((CalledFn->isIntrinsic() && CB->doesNotThrow()) ||
+                         CB->isInlineAsm()))
           continue;
 
         // This call site was not part of this funclet, remove it.
-        if (CS.isInvoke()) {
+        if (isa<InvokeInst>(CB)) {
           // Remove the unwind edge if it was an invoke.
           removeUnwindEdge(BB);
           // Get a pointer to the new call.

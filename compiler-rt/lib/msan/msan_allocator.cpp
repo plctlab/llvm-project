@@ -93,6 +93,20 @@ struct AP64 {  // Allocator64 parameters. Deliberately using a short name.
 };
 
 typedef SizeClassAllocator64<AP64> PrimaryAllocator;
+#elif defined(__s390x__)
+static const uptr kMaxAllowedMallocSize = 2UL << 30;  // 2G
+
+struct AP64 {  // Allocator64 parameters. Deliberately using a short name.
+  static const uptr kSpaceBeg = 0x440000000000;
+  static const uptr kSpaceSize = 0x020000000000;  // 2T.
+  static const uptr kMetadataSize = sizeof(Metadata);
+  typedef DefaultSizeClassMap SizeClassMap;
+  typedef MsanMapUnmapCallback MapUnmapCallback;
+  static const uptr kFlags = 0;
+  using AddressSpaceView = LocalAddressSpaceView;
+};
+
+typedef SizeClassAllocator64<AP64> PrimaryAllocator;
 #elif defined(__aarch64__)
 static const uptr kMaxAllowedMallocSize = 2UL << 30;  // 2G
 
@@ -115,9 +129,16 @@ static Allocator allocator;
 static AllocatorCache fallback_allocator_cache;
 static StaticSpinMutex fallback_mutex;
 
+static uptr max_malloc_size;
+
 void MsanAllocatorInit() {
   SetAllocatorMayReturnNull(common_flags()->allocator_may_return_null);
   allocator.Init(common_flags()->allocator_release_to_os_interval_ms);
+  if (common_flags()->max_allocation_size_mb)
+    max_malloc_size = Min(common_flags()->max_allocation_size_mb << 20,
+                          kMaxAllowedMallocSize);
+  else
+    max_malloc_size = kMaxAllowedMallocSize;
 }
 
 AllocatorCache *GetAllocatorCache(MsanThreadLocalMallocStorage *ms) {
@@ -132,12 +153,12 @@ void MsanThreadLocalMallocStorage::CommitBack() {
 
 static void *MsanAllocate(StackTrace *stack, uptr size, uptr alignment,
                           bool zeroise) {
-  if (size > kMaxAllowedMallocSize) {
+  if (size > max_malloc_size) {
     if (AllocatorMayReturnNull()) {
       Report("WARNING: MemorySanitizer failed to allocate 0x%zx bytes\n", size);
       return nullptr;
     }
-    ReportAllocationSizeTooBig(size, kMaxAllowedMallocSize, stack);
+    ReportAllocationSizeTooBig(size, max_malloc_size, stack);
   }
   MsanThread *t = GetCurrentThread();
   void *allocated;

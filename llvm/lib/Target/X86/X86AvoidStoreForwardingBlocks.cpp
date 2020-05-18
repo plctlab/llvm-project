@@ -33,8 +33,10 @@
 // transformation done here is correct regardless to other memory accesses.
 //===----------------------------------------------------------------------===//
 
+#include "X86.h"
 #include "X86InstrInfo.h"
 #include "X86Subtarget.h"
+#include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
@@ -45,6 +47,7 @@
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/Function.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/MC/MCInstrDesc.h"
 
 using namespace llvm;
@@ -82,13 +85,13 @@ public:
   }
 
 private:
-  MachineRegisterInfo *MRI;
-  const X86InstrInfo *TII;
-  const X86RegisterInfo *TRI;
+  MachineRegisterInfo *MRI = nullptr;
+  const X86InstrInfo *TII = nullptr;
+  const X86RegisterInfo *TRI = nullptr;
   SmallVector<std::pair<MachineInstr *, MachineInstr *>, 2>
       BlockedLoadsStoresPairs;
   SmallVector<MachineInstr *, 2> ForRemoval;
-  AliasAnalysis *AA;
+  AliasAnalysis *AA = nullptr;
 
   /// Returns couples of Load then Store to memory which look
   ///  like a memcpy.
@@ -408,9 +411,8 @@ void X86AvoidSFBPass::buildCopy(MachineInstr *LoadInst, unsigned NLoadOpcode,
   // If the load and store are consecutive, use the loadInst location to
   // reduce register pressure.
   MachineInstr *StInst = StoreInst;
-  auto PrevInstrIt = skipDebugInstructionsBackward(
-      std::prev(MachineBasicBlock::instr_iterator(StoreInst)),
-      MBB->instr_begin());
+  auto PrevInstrIt = prev_nodbg(MachineBasicBlock::instr_iterator(StoreInst),
+                                MBB->instr_begin());
   if (PrevInstrIt.getNodePtr() == LoadInst)
     StInst = LoadInst;
   MachineInstr *NewStore =
@@ -496,9 +498,10 @@ void X86AvoidSFBPass::buildCopies(int Size, MachineInstr *LoadInst,
 static void updateKillStatus(MachineInstr *LoadInst, MachineInstr *StoreInst) {
   MachineOperand &LoadBase = getBaseOperand(LoadInst);
   MachineOperand &StoreBase = getBaseOperand(StoreInst);
-  auto StorePrevNonDbgInstr = skipDebugInstructionsBackward(
-          std::prev(MachineBasicBlock::instr_iterator(StoreInst)),
-          LoadInst->getParent()->instr_begin()).getNodePtr();
+  auto StorePrevNonDbgInstr =
+      prev_nodbg(MachineBasicBlock::instr_iterator(StoreInst),
+                 LoadInst->getParent()->instr_begin())
+          .getNodePtr();
   if (LoadBase.isReg()) {
     MachineInstr *LastLoad = LoadInst->getPrevNode();
     // If the original load and store to xmm/ymm were consecutive

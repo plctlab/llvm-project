@@ -527,6 +527,9 @@ public:
   void VisitCXXConstructExpr(const CXXConstructExpr *E, ExplodedNode *Pred,
                              ExplodedNodeSet &Dst);
 
+  void VisitCXXInheritedCtorInitExpr(const CXXInheritedCtorInitExpr *E,
+                                     ExplodedNode *Pred, ExplodedNodeSet &Dst);
+
   void VisitCXXDestructor(QualType ObjectType, const MemRegion *Dest,
                           const Stmt *S, bool IsBaseDtor,
                           ExplodedNode *Pred, ExplodedNodeSet &Dst,
@@ -613,10 +616,16 @@ protected:
                 const ProgramPoint *PP = nullptr);
 
   /// Call PointerEscape callback when a value escapes as a result of bind.
-  ProgramStateRef processPointerEscapedOnBind(ProgramStateRef State,
-                                              SVal Loc,
-                                              SVal Val,
-                                              const LocationContext *LCtx) override;
+  ProgramStateRef processPointerEscapedOnBind(
+      ProgramStateRef State, ArrayRef<std::pair<SVal, SVal>> LocAndVals,
+      const LocationContext *LCtx, PointerEscapeKind Kind,
+      const CallEvent *Call) override;
+
+  ProgramStateRef
+  processPointerEscapedOnBind(ProgramStateRef State,
+                              SVal Loc, SVal Val,
+                              const LocationContext *LCtx);
+
   /// Call PointerEscape callback when a value escapes as a result of
   /// region invalidation.
   /// \param[in] ITraits Specifies invalidation traits for regions/symbols.
@@ -628,9 +637,10 @@ protected:
                            RegionAndSymbolInvalidationTraits &ITraits) override;
 
   /// A simple wrapper when you only need to notify checkers of pointer-escape
-  /// of a single value.
-  ProgramStateRef escapeValue(ProgramStateRef State, SVal V,
-                              PointerEscapeKind K) const;
+  /// of some values.
+  ProgramStateRef escapeValues(ProgramStateRef State, ArrayRef<SVal> Vs,
+                               PointerEscapeKind K,
+                               const CallEvent *Call = nullptr) const;
 
 public:
   // FIXME: 'tag' should be removed, and a LocationContext should be used
@@ -800,9 +810,14 @@ private:
   /// or unusable for any reason, a dummy temporary region is returned, and the
   /// IsConstructorWithImproperlyModeledTargetRegion flag is set in \p CallOpts.
   /// Returns the updated program state and the new object's this-region.
-  std::pair<ProgramStateRef, SVal> prepareForObjectConstruction(
+  std::pair<ProgramStateRef, SVal> handleConstructionContext(
       const Expr *E, ProgramStateRef State, const LocationContext *LCtx,
       const ConstructionContext *CC, EvalCallOptions &CallOpts);
+
+  /// Common code that handles either a CXXConstructExpr or a
+  /// CXXInheritedCtorInitExpr.
+  void handleConstructor(const Expr *E, ExplodedNode *Pred,
+                         ExplodedNodeSet &Dst);
 
   /// Store the location of a C++ object corresponding to a statement
   /// until the statement is actually encountered. For example, if a DeclStmt

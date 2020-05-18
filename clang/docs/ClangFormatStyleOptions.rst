@@ -395,6 +395,21 @@ the configuration (without a prefix: ``Auto``).
                                               return;
                                             }
 
+**AllowShortEnumsOnASingleLine** (``bool``)
+  Allow short enums on a single line.
+
+  .. code-block:: c++
+
+    true:
+    enum { A, B } myEnum;
+
+    false:
+    enum
+    {
+      A,
+      B
+    } myEnum;
+
 **AllowShortFunctionsOnASingleLine** (``ShortFunctionStyle``)
   Dependent on the value, ``int f() { return 0; }`` can be put on a
   single line.
@@ -819,6 +834,7 @@ the configuration (without a prefix: ``Auto``).
         for (int i = 0; i < 10; ++i)
         {}
 
+
   * ``bool AfterEnum`` Wrap enum definitions.
 
     .. code-block:: c++
@@ -947,6 +963,24 @@ the configuration (without a prefix: ``Auto``).
       } else {
       }
 
+  * ``bool BeforeLambdaBody`` Wrap lambda block.
+
+    .. code-block:: c++
+
+      true:
+      connect(
+        []()
+        {
+          foo();
+          bar();
+        });
+
+      false:
+      connect([]() {
+        foo();
+        bar();
+      });
+
   * ``bool IndentBraces`` Indent the wrapped braces themselves.
 
   * ``bool SplitEmptyFunction`` If ``false``, empty function body can be put on a single line.
@@ -957,7 +991,7 @@ the configuration (without a prefix: ``Auto``).
 
     .. code-block:: c++
 
-      int f()   vs.   inf f()
+      int f()   vs.   int f()
       {}              {
                       }
 
@@ -1321,6 +1355,17 @@ the configuration (without a prefix: ``Auto``).
 **BreakStringLiterals** (``bool``)
   Allow breaking string literals when formatting.
 
+  .. code-block:: c++
+
+     true:
+     const char* x = "veryVeryVeryVeryVeryVe"
+                     "ryVeryVeryVeryVeryVery"
+                     "VeryLongString";
+
+     false:
+     const char* x =
+       "veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongString";
+
 **ColumnLimit** (``unsigned``)
   The column limit.
 
@@ -1419,6 +1464,10 @@ the configuration (without a prefix: ``Auto``).
      vector<T> x{{}, {}, {}, {}};           vector<T> x{ {}, {}, {}, {} };
      f(MyMap[{composite, key}]);            f(MyMap[{ composite, key }]);
      new int[3]{1, 2, 3};                   new int[3]{ 1, 2, 3 };
+
+**DeriveLineEnding** (``bool``)
+  Analyze the formatted file for the most used line ending (``\r\n``
+  or ``\n``). ``UseCRLF`` is only used as a fallback if none can be derived.
 
 **DerivePointerAlignment** (``bool``)
   If ``true``, analyze the formatted file for the most common
@@ -1569,11 +1618,56 @@ the configuration (without a prefix: ``Auto``).
   For example, if configured to "(_test)?$", then a header a.h would be seen
   as the "main" include in both a.cc and a_test.cc.
 
+**IncludeIsMainSourceRegex** (``std::string``)
+  Specify a regular expression for files being formatted
+  that are allowed to be considered "main" in the
+  file-to-main-include mapping.
+
+  By default, clang-format considers files as "main" only when they end
+  with: ``.c``, ``.cc``, ``.cpp``, ``.c++``, ``.cxx``, ``.m`` or ``.mm``
+  extensions.
+  For these files a guessing of "main" include takes place
+  (to assign category 0, see above). This config option allows for
+  additional suffixes and extensions for files to be considered as "main".
+
+  For example, if this option is configured to ``(Impl\.hpp)$``,
+  then a file ``ClassImpl.hpp`` is considered "main" (in addition to
+  ``Class.c``, ``Class.cc``, ``Class.cpp`` and so on) and "main
+  include file" logic will be executed (with *IncludeIsMainRegex* setting
+  also being respected in later phase). Without this option set,
+  ``ClassImpl.hpp`` would not have the main include file put on top
+  before any other include.
+
+**IndentCaseBlocks** (``bool``)
+  Indent case label blocks one level from the case label.
+
+  When ``false``, the block following the case label uses the same
+  indentation level as for the case label, treating the case label the same
+  as an if-statement.
+  When ``true``, the block gets indented as a scope block.
+
+  .. code-block:: c++
+
+     false:                                 true:
+     switch (fool) {                vs.     switch (fool) {
+     case 1: {                              case 1:
+       bar();                                 {
+     } break;                                   bar();
+     default: {                               }
+       plop();                                break;
+     }                                      default:
+     }                                        {
+                                                plop();
+                                              }
+                                            }
+
 **IndentCaseLabels** (``bool``)
   Indent case labels one level from the switch statement.
 
-  When ``false``, use the same indentation level as for the switch statement.
-  Switch statement body is always indented one level more than case labels.
+  When ``false``, use the same indentation level as for the switch
+  statement. Switch statement body is always indented one level more than
+  case labels (except the first block following the case label, which
+  itself indents the code - unless IndentCaseBlocks is enabled).
 
   .. code-block:: c++
 
@@ -1670,6 +1764,38 @@ the configuration (without a prefix: ``Auto``).
      false:
      LoooooooooooooooooooooooooooooooooooooooongReturnType
      LoooooooooooooooooooooooooooooooongFunctionDeclaration();
+
+**InsertTrailingCommas** (``TrailingCommaStyle``)
+  If set to ``TCS_Wrapped`` will insert trailing commas in container
+  literals (arrays and objects) that wrap across multiple lines.
+  It is currently only available for JavaScript
+  and disabled by default ``TCS_None``.
+  ``InsertTrailingCommas`` cannot be used together with ``BinPackArguments``
+  as inserting the comma disables bin-packing.
+
+  .. code-block:: c++
+
+    TSC_Wrapped:
+    const someArray = [
+    aaaaaaaaaaaaaaaaaaaaaaaaaa,
+    aaaaaaaaaaaaaaaaaaaaaaaaaa,
+    aaaaaaaaaaaaaaaaaaaaaaaaaa,
+    //                        ^ inserted
+    ]
+
+  Possible values:
+
+  * ``TCS_None`` (in configuration: ``None``)
+    Do not insert trailing commas.
+
+  * ``TCS_Wrapped`` (in configuration: ``Wrapped``)
+    Insert trailing commas in container literals that were wrapped over
+    multiple lines. Note that this is conceptually incompatible with
+    bin-packing, because the trailing comma is used as an indicator
+    that a container should be formatted one-per-line (i.e. not bin-packed).
+    So inserting a trailing comma counteracts bin-packing.
+
+
 
 **JavaImportGroups** (``std::vector<std::string>``)
   A vector of prefixes ordered by the desired groups for Java imports.
@@ -1956,6 +2082,30 @@ the configuration (without a prefix: ``Auto``).
          [self onOperationDone];
      }];
 
+**ObjCBreakBeforeNestedBlockParam** (``bool``)
+  Break parameters list into lines when there is nested block
+  parameters in a fuction call.
+
+  .. code-block:: c++
+
+    false:
+     - (void)_aMethod
+     {
+         [self.test1 t:self w:self callback:^(typeof(self) self, NSNumber
+         *u, NSNumber *v) {
+             u = c;
+         }]
+     }
+     true:
+     - (void)_aMethod
+     {
+        [self.test1 t:self
+                     w:self
+            callback:^(typeof(self) self, NSNumber *u, NSNumber *v) {
+                 u = c;
+             }]
+     }
+
 **ObjCSpaceAfterProperty** (``bool``)
   Add a space after ``@property`` in Objective-C, i.e. use
   ``@property (readonly)`` instead of ``@property(readonly)``.
@@ -2186,6 +2336,19 @@ the configuration (without a prefix: ``Auto``).
          }
        }
 
+  * ``SBPO_ControlStatementsExceptForEachMacros`` (in configuration: ``ControlStatementsExceptForEachMacros``)
+    Same as ``SBPO_ControlStatements`` except this option doesn't apply to
+    ForEach macros. This is useful in projects where ForEach macros are
+    treated as function calls instead of control statements.
+
+    .. code-block:: c++
+
+       void f() {
+         Q_FOREACH(...) {
+           f();
+         }
+       }
+
   * ``SBPO_NonEmptyParentheses`` (in configuration: ``NonEmptyParentheses``)
     Put a space before opening parentheses only if the parentheses are not
     empty i.e. '()'
@@ -2223,6 +2386,16 @@ the configuration (without a prefix: ``Auto``).
 
      true:                                  false:
      for (auto v : values) {}       vs.     for(auto v: values) {}
+
+**SpaceBeforeSquareBrackets** (``bool``)
+  If ``true``, spaces will be before  ``[``.
+  Lambdas will not be affected. Only the first ``[`` will get a space added.
+
+  .. code-block:: c++
+
+     true:                                  false:
+     int a [5];                    vs.      int a[5];
+     int a [5][5];                 vs.      int a[5][5];
 
 **SpaceInEmptyBlock** (``bool``)
   If ``true``, spaces will be inserted into ``{}``.
@@ -2281,6 +2454,16 @@ the configuration (without a prefix: ``Auto``).
      true:                                  false:
      x = ( int32 )y                 vs.     x = (int32)y
 
+**SpacesInConditionalStatement** (``bool``)
+  If ``true``, spaces will be inserted around if/for/switch/while
+  conditions.
+
+  .. code-block:: c++
+
+     true:                                  false:
+     if ( a )  { ... }              vs.     if (a) { ... }
+     while ( i < 5 )  { ... }               while (i < 5) { ... }
+
 **SpacesInContainerLiterals** (``bool``)
   If ``true``, spaces are inserted inside container literals (e.g.
   ObjC and Javascript array and dict literals).
@@ -2301,8 +2484,8 @@ the configuration (without a prefix: ``Auto``).
 
 **SpacesInSquareBrackets** (``bool``)
   If ``true``, spaces will be inserted after ``[`` and before ``]``.
-  Lambdas without arguments or unspecified size array declarations will not be
-  affected.
+  Lambdas without arguments or unspecified size array declarations will not
+  be affected.
 
   .. code-block:: c++
 
@@ -2321,29 +2504,29 @@ the configuration (without a prefix: ``Auto``).
   Possible values:
 
   * ``LS_Cpp03`` (in configuration: ``c++03``)
-    Use C++03-compatible syntax.
+    Parse and format as C++03.
+    ``Cpp03`` is a deprecated alias for ``c++03``
 
   * ``LS_Cpp11`` (in configuration: ``c++11``)
-    Use C++11-compatible syntax.
+    Parse and format as C++11.
 
   * ``LS_Cpp14`` (in configuration: ``c++14``)
-    Use C++14-compatible syntax.
+    Parse and format as C++14.
 
   * ``LS_Cpp17`` (in configuration: ``c++17``)
-    Use C++17-compatible syntax.
+    Parse and format as C++17.
 
   * ``LS_Cpp20`` (in configuration: ``c++20``)
-    Use C++20-compatible syntax.
+    Parse and format as C++20.
 
   * ``LS_Latest`` (in configuration: ``Latest``)
     Parse and format using the latest supported language version.
+    ``Cpp11`` is a deprecated alias for ``Latest``
 
   * ``LS_Auto`` (in configuration: ``Auto``)
     Automatic detection based on the input.
 
-  * ``Cpp03``: deprecated alias for ``c++03``
 
-  * ``Cpp11``: deprecated alias for ``Latest``
 
 **StatementMacros** (``std::vector<std::string>``)
   A vector of macros that should be interpreted as complete
@@ -2376,6 +2559,10 @@ the configuration (without a prefix: ``Auto``).
 
   For example: OpenSSL STACK_OF, BSD LIST_ENTRY.
 
+**UseCRLF** (``bool``)
+  Use ``\r\n`` instead of ``\n`` for line breaks.
+  Also used as fallback if ``DeriveLineEnding`` is true.
+
 **UseTab** (``UseTabStyle``)
   The way to use tab characters in the resulting file.
 
@@ -2388,7 +2575,12 @@ the configuration (without a prefix: ``Auto``).
     Use tabs only for indentation.
 
   * ``UT_ForContinuationAndIndentation`` (in configuration: ``ForContinuationAndIndentation``)
-    Use tabs only for line continuation and indentation.
+    Fill all leading whitespace with tabs, and use spaces for alignment that
+    appears within a line (e.g. consecutive assignments and declarations).
+
+  * ``UT_AlignWithSpaces`` (in configuration: ``AlignWithSpaces``)
+    Use tabs for line continuation and indentation, and spaces for
+    alignment.
 
   * ``UT_Always`` (in configuration: ``Always``)
     Use tabs whenever we need to fill whitespace that spans at least from

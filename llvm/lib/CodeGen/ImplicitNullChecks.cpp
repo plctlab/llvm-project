@@ -50,6 +50,7 @@
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/MC/MCInstrDesc.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/Pass.h"
@@ -363,15 +364,21 @@ ImplicitNullChecks::isSuitableMemoryOp(const MachineInstr &MI,
                                        unsigned PointerReg,
                                        ArrayRef<MachineInstr *> PrevInsts) {
   int64_t Offset;
+  bool OffsetIsScalable;
   const MachineOperand *BaseOp;
 
-  if (!TII->getMemOperandWithOffset(MI, BaseOp, Offset, TRI) ||
+
+  if (!TII->getMemOperandWithOffset(MI, BaseOp, Offset, OffsetIsScalable, TRI) ||
       !BaseOp->isReg() || BaseOp->getReg() != PointerReg)
+    return SR_Unsuitable;
+
+  // FIXME: This algorithm assumes instructions have fixed-size offsets.
+  if (OffsetIsScalable)
     return SR_Unsuitable;
 
   // We want the mem access to be issued at a sane offset from PointerReg,
   // so that if PointerReg is null then the access reliably page faults.
-  if (!((MI.mayLoad() || MI.mayStore()) && !MI.isPredicable() &&
+  if (!(MI.mayLoadOrStore() && !MI.isPredicable() &&
         -PageSize < Offset && Offset < PageSize))
     return SR_Unsuitable;
 
@@ -697,7 +704,7 @@ void ImplicitNullChecks::rewriteNullChecks(
 
     if (auto *DepMI = NC.getOnlyDependency()) {
       for (auto &MO : DepMI->operands()) {
-        if (!MO.isReg() || !MO.getReg() || !MO.isDef())
+        if (!MO.isReg() || !MO.getReg() || !MO.isDef() || MO.isDead())
           continue;
         if (!NC.getNotNullSucc()->isLiveIn(MO.getReg()))
           NC.getNotNullSucc()->addLiveIn(MO.getReg());

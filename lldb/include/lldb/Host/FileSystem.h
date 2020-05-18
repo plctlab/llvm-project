@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_Host_FileSystem_h
-#define liblldb_Host_FileSystem_h
+#ifndef LLDB_HOST_FILESYSTEM_H
+#define LLDB_HOST_FILESYSTEM_H
 
 #include "lldb/Host/File.h"
 #include "lldb/Utility/DataBufferLLVM.h"
@@ -64,7 +64,7 @@ public:
   int Open(const char *path, int flags, int mode);
 
   llvm::Expected<std::unique_ptr<File>>
-  Open(const FileSpec &file_spec, uint32_t options,
+  Open(const FileSpec &file_spec, File::OpenOptions options,
        uint32_t permissions = lldb::eFilePermissionsFileDefault,
        bool should_close_fd = true);
 
@@ -185,6 +185,9 @@ public:
   llvm::IntrusiveRefCntPtr<llvm::vfs::FileSystem> GetVirtualFileSystem() {
     return m_fs;
   }
+
+  void Collect(const FileSpec &file_spec);
+  void Collect(const llvm::Twine &file);
 
 private:
   static llvm::Optional<FileSystem> &InstanceImpl();

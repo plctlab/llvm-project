@@ -52,17 +52,32 @@ public:
     unsigned Reg;
     int Offset; // Offset relative to stack pointer on function entry.
   };
+
+  struct DwarfFrameBase {
+    // The frame base may be either a register (the default), the CFA,
+    // or a WebAssembly-specific location description.
+    enum FrameBaseKind { Register, CFA, WasmFrameBase } Kind;
+    struct WasmFrameBase {
+      unsigned Kind; // Wasm local, global, or value stack
+      unsigned Index;
+    };
+    union {
+      unsigned Reg;
+      struct WasmFrameBase WasmLoc;
+    } Location;
+  };
+
 private:
   StackDirection StackDir;
-  unsigned StackAlignment;
-  unsigned TransientStackAlignment;
+  Align StackAlignment;
+  Align TransientStackAlignment;
   int LocalAreaOffset;
   bool StackRealignable;
 public:
-  TargetFrameLowering(StackDirection D, unsigned StackAl, int LAO,
-                      unsigned TransAl = 1, bool StackReal = true)
-    : StackDir(D), StackAlignment(StackAl), TransientStackAlignment(TransAl),
-      LocalAreaOffset(LAO), StackRealignable(StackReal) {}
+  TargetFrameLowering(StackDirection D, Align StackAl, int LAO,
+                      Align TransAl = Align(1), bool StackReal = true)
+      : StackDir(D), StackAlignment(StackAl), TransientStackAlignment(TransAl),
+        LocalAreaOffset(LAO), StackRealignable(StackReal) {}
 
   virtual ~TargetFrameLowering();
 
@@ -77,7 +92,12 @@ public:
   /// stack pointer must be aligned on entry to a function.  Typically, this
   /// is the largest alignment for any data object in the target.
   ///
-  unsigned getStackAlignment() const { return StackAlignment; }
+  unsigned getStackAlignment() const { return StackAlignment.value(); }
+  /// getStackAlignment - This method returns the number of bytes to which the
+  /// stack pointer must be aligned on entry to a function.  Typically, this
+  /// is the largest alignment for any data object in the target.
+  ///
+  Align getStackAlign() const { return StackAlignment; }
 
   /// alignSPAdjust - This method aligns the stack adjustment to the correct
   /// alignment.
@@ -95,9 +115,15 @@ public:
   /// which the stack pointer must be aligned at all times, even between
   /// calls.
   ///
-  unsigned getTransientStackAlignment() const {
-    return TransientStackAlignment;
+  LLVM_ATTRIBUTE_DEPRECATED(unsigned getTransientStackAlignment() const,
+                            "Use getTransientStackAlign instead") {
+    return TransientStackAlignment.value();
   }
+  /// getTransientStackAlignment - This method returns the number of bytes to
+  /// which the stack pointer must be aligned at all times, even between
+  /// calls.
+  ///
+  Align getTransientStackAlign() const { return TransientStackAlignment; }
 
   /// isStackRealignable - This method returns whether the stack can be
   /// realigned.
@@ -198,7 +224,7 @@ public:
   /// storeRegToStackSlot(). Returns false otherwise.
   virtual bool spillCalleeSavedRegisters(MachineBasicBlock &MBB,
                                          MachineBasicBlock::iterator MI,
-                                        const std::vector<CalleeSavedInfo> &CSI,
+                                         ArrayRef<CalleeSavedInfo> CSI,
                                          const TargetRegisterInfo *TRI) const {
     return false;
   }
@@ -209,10 +235,11 @@ public:
   /// If it returns true, and any of the registers in CSI is not restored,
   /// it sets the corresponding Restored flag in CSI to false.
   /// Returns false otherwise.
-  virtual bool restoreCalleeSavedRegisters(MachineBasicBlock &MBB,
-                                           MachineBasicBlock::iterator MI,
-                                           std::vector<CalleeSavedInfo> &CSI,
-                                        const TargetRegisterInfo *TRI) const {
+  virtual bool
+  restoreCalleeSavedRegisters(MachineBasicBlock &MBB,
+                              MachineBasicBlock::iterator MI,
+                              MutableArrayRef<CalleeSavedInfo> CSI,
+                              const TargetRegisterInfo *TRI) const {
     return false;
   }
 
@@ -256,7 +283,7 @@ public:
   /// and offset used to reference a frame index location. The offset is
   /// returned directly, and the base register is returned via FrameReg.
   virtual int getFrameIndexReference(const MachineFunction &MF, int FI,
-                                     unsigned &FrameReg) const;
+                                     Register &FrameReg) const;
 
   /// Same as \c getFrameIndexReference, except that the stack pointer (as
   /// opposed to the frame pointer) will be the preferred value for \p
@@ -265,7 +292,7 @@ public:
   /// offset is only guaranteed to be valid with respect to the value of SP at
   /// the end of the prologue.
   virtual int getFrameIndexReferencePreferSP(const MachineFunction &MF, int FI,
-                                             unsigned &FrameReg,
+                                             Register &FrameReg,
                                              bool IgnoreSPUpdates) const {
     // Always safe to dispatch to getFrameIndexReference.
     return getFrameIndexReference(MF, FI, FrameReg);
@@ -278,9 +305,14 @@ public:
                                        int FI) const {
     // By default, dispatch to getFrameIndexReference. Interested targets can
     // override this.
-    unsigned FrameReg;
+    Register FrameReg;
     return getFrameIndexReference(MF, FI, FrameReg);
   }
+
+  /// Returns the callee-saved registers as computed by determineCalleeSaves
+  /// in the BitVector \p SavedRegs.
+  virtual void getCalleeSaves(const MachineFunction &MF,
+                                  BitVector &SavedRegs) const;
 
   /// This method determines which of the registers reported by
   /// TargetRegisterInfo::getCalleeSavedRegs() should actually get saved.
@@ -289,6 +321,9 @@ public:
   /// this function to save additional registers.
   /// This method also sets up the register scavenger ensuring there is a free
   /// register or a frameindex available.
+  /// This method should not be called by any passes outside of PEI, because
+  /// it may change state passed in by \p MF and \p RS. The preferred
+  /// interface outside PEI is getCalleeSaves.
   virtual void determineCalleeSaves(MachineFunction &MF, BitVector &SavedRegs,
                                     RegScavenger *RS = nullptr) const;
 
@@ -300,6 +335,13 @@ public:
   virtual void processFunctionBeforeFrameFinalized(MachineFunction &MF,
                                              RegScavenger *RS = nullptr) const {
   }
+
+  /// processFunctionBeforeFrameIndicesReplaced - This method is called
+  /// immediately before MO_FrameIndex operands are eliminated, but after the
+  /// frame is finalized. This method is optional.
+  virtual void
+  processFunctionBeforeFrameIndicesReplaced(MachineFunction &MF,
+                                            RegScavenger *RS = nullptr) const {}
 
   virtual unsigned getWinEHParentFrameOffset(const MachineFunction &MF) const {
     report_fatal_error("WinEH not implemented for this target");
@@ -355,6 +397,11 @@ public:
     return true;
   }
 
+  /// Returns the StackID that scalable vectors should be associated with.
+  virtual TargetStackID::Value getStackIDForScalableVectors() const {
+    return TargetStackID::Default;
+  }
+
   virtual bool isSupportedStackID(TargetStackID::Value ID) const {
     switch (ID) {
     default:
@@ -367,17 +414,7 @@ public:
 
   /// Check if given function is safe for not having callee saved registers.
   /// This is used when interprocedural register allocation is enabled.
-  static bool isSafeForNoCSROpt(const Function &F) {
-    if (!F.hasLocalLinkage() || F.hasAddressTaken() ||
-        !F.hasFnAttribute(Attribute::NoRecurse))
-      return false;
-    // Function should not be optimized as tail call.
-    for (const User *U : F.users())
-      if (auto CS = ImmutableCallSite(U))
-        if (CS.isTailCall())
-          return false;
-    return true;
-  }
+  static bool isSafeForNoCSROpt(const Function &F);
 
   /// Check if the no-CSR optimisation is profitable for the given function.
   virtual bool isProfitableForNoCSROpt(const Function &F) const {
@@ -390,7 +427,11 @@ public:
 
   /// Return initial CFA register value i.e. the one valid at the beginning of
   /// the function (before any stack operations).
-  virtual unsigned getInitialCFARegister(const MachineFunction &MF) const;
+  virtual Register getInitialCFARegister(const MachineFunction &MF) const;
+
+  /// Return the frame base information to be encoded in the DWARF subprogram
+  /// debug info.
+  virtual DwarfFrameBase getDwarfFrameBase(const MachineFunction &MF) const;
 };
 
 } // End llvm namespace

@@ -423,7 +423,7 @@ static bool tryDiagnoseOverloadedCast(Sema &S, CastType CT,
 
   case OR_Ambiguous:
     msg = diag::err_ovl_ambiguous_conversion_in_cast;
-    howManyCandidates = OCD_ViableCandidates;
+    howManyCandidates = OCD_AmbiguousCandidates;
     break;
 
   case OR_Deleted:
@@ -740,7 +740,7 @@ void CastOperation::CheckDynamicCast() {
     assert(DestPointer && "Reference to void is not possible");
   } else if (DestRecord) {
     if (Self.RequireCompleteType(OpRange.getBegin(), DestPointee,
-                                 diag::err_bad_dynamic_cast_incomplete,
+                                 diag::err_bad_cast_incomplete,
                                  DestRange)) {
       SrcExpr = ExprError();
       return;
@@ -763,7 +763,7 @@ void CastOperation::CheckDynamicCast() {
       SrcPointee = SrcPointer->getPointeeType();
     } else {
       Self.Diag(OpRange.getBegin(), diag::err_bad_dynamic_cast_not_ptr)
-        << OrigSrcType << SrcExpr.get()->getSourceRange();
+          << OrigSrcType << this->DestType << SrcExpr.get()->getSourceRange();
       SrcExpr = ExprError();
       return;
     }
@@ -785,7 +785,7 @@ void CastOperation::CheckDynamicCast() {
   const RecordType *SrcRecord = SrcPointee->getAs<RecordType>();
   if (SrcRecord) {
     if (Self.RequireCompleteType(OpRange.getBegin(), SrcPointee,
-                                 diag::err_bad_dynamic_cast_incomplete,
+                                 diag::err_bad_cast_incomplete,
                                  SrcExpr.get())) {
       SrcExpr = ExprError();
       return;
@@ -1182,6 +1182,11 @@ static TryCastResult TryStaticCast(Sema &Self, ExprResult &SrcExpr,
   // The same goes for reverse floating point promotion/conversion and
   // floating-integral conversions. Again, only floating->enum is relevant.
   if (DestType->isEnumeralType()) {
+    if (Self.RequireCompleteType(OpRange.getBegin(), DestType,
+                                 diag::err_bad_cast_incomplete)) {
+      SrcExpr = ExprError();
+      return TC_Failed;
+    }
     if (SrcType->isIntegralOrEnumerationType()) {
       Kind = CK_IntegralCast;
       return TC_Success;
@@ -1301,9 +1306,6 @@ TryCastResult TryLValueToRValueCast(Sema &Self, Expr *SrcExpr,
   // Because we try the reference downcast before this function, from now on
   // this is the only cast possibility, so we issue an error if we fail now.
   // FIXME: Should allow casting away constness if CStyle.
-  bool DerivedToBase;
-  bool ObjCConversion;
-  bool ObjCLifetimeConversion;
   QualType FromType = SrcExpr->getType();
   QualType ToType = R->getPointeeType();
   if (CStyle) {
@@ -1311,9 +1313,9 @@ TryCastResult TryLValueToRValueCast(Sema &Self, Expr *SrcExpr,
     ToType = ToType.getUnqualifiedType();
   }
 
+  Sema::ReferenceConversions RefConv;
   Sema::ReferenceCompareResult RefResult = Self.CompareReferenceRelationship(
-      SrcExpr->getBeginLoc(), ToType, FromType, DerivedToBase, ObjCConversion,
-      ObjCLifetimeConversion);
+      SrcExpr->getBeginLoc(), ToType, FromType, &RefConv);
   if (RefResult != Sema::Ref_Compatible) {
     if (CStyle || RefResult == Sema::Ref_Incompatible)
       return TC_NotApplicable;
@@ -1325,7 +1327,7 @@ TryCastResult TryLValueToRValueCast(Sema &Self, Expr *SrcExpr,
     return TC_Failed;
   }
 
-  if (DerivedToBase) {
+  if (RefConv & Sema::ReferenceConversions::DerivedToBase) {
     Kind = CK_DerivedToBase;
     CXXBasePaths Paths(/*FindAmbiguities=*/true, /*RecordPaths=*/true,
                        /*DetectVirtual=*/true);
@@ -1650,7 +1652,7 @@ TryStaticImplicitCast(Sema &Self, ExprResult &SrcExpr, QualType DestType,
                       CastKind &Kind, bool ListInitialization) {
   if (DestType->isRecordType()) {
     if (Self.RequireCompleteType(OpRange.getBegin(), DestType,
-                                 diag::err_bad_dynamic_cast_incomplete) ||
+                                 diag::err_bad_cast_incomplete) ||
         Self.RequireNonAbstractType(OpRange.getBegin(), DestType,
                                     diag::err_allocation_of_abstract_type)) {
       msg = 0;
@@ -1959,7 +1961,7 @@ static void DiagnoseCallingConvCast(Sema &Self, const ExprResult &SrcExpr,
       << FD << DstCCName << FixItHint::CreateInsertion(NameLoc, CCAttrText);
 }
 
-static void checkIntToPointerCast(bool CStyle, SourceLocation Loc,
+static void checkIntToPointerCast(bool CStyle, const SourceRange &OpRange,
                                   const Expr *SrcExpr, QualType DestType,
                                   Sema &Self) {
   QualType SrcType = SrcExpr->getType();
@@ -1981,7 +1983,7 @@ static void checkIntToPointerCast(bool CStyle, SourceLocation Loc,
     unsigned Diag = DestType->isVoidPointerType() ?
                       diag::warn_int_to_void_pointer_cast
                     : diag::warn_int_to_pointer_cast;
-    Self.Diag(Loc, Diag) << SrcType << DestType;
+    Self.Diag(OpRange.getBegin(), Diag) << SrcType << DestType << OpRange;
   }
 }
 
@@ -2006,7 +2008,7 @@ static bool fixOverloadedReinterpretCastExpr(Sema &Self, QualType DestType,
   // No guarantees that ResolveAndFixSingleFunctionTemplateSpecialization
   // preserves Result.
   Result = E;
-  if (!Self.resolveAndFixAddressOfOnlyViableOverloadCandidate(
+  if (!Self.resolveAndFixAddressOfSingleOverloadCandidate(
           Result, /*DoFunctionPointerConversion=*/true))
     return false;
   return Result.isUsable();
@@ -2202,13 +2204,19 @@ static TryCastResult TryReinterpretCast(Sema &Self, ExprResult &SrcExpr,
     // C++ 5.2.10p4: A pointer can be explicitly converted to any integral
     //   type large enough to hold it; except in Microsoft mode, where the
     //   integral type size doesn't matter (except we don't allow bool).
-    bool MicrosoftException = Self.getLangOpts().MicrosoftExt &&
-                              !DestType->isBooleanType();
     if ((Self.Context.getTypeSize(SrcType) >
-         Self.Context.getTypeSize(DestType)) &&
-         !MicrosoftException) {
-      msg = diag::err_bad_reinterpret_cast_small_int;
-      return TC_Failed;
+         Self.Context.getTypeSize(DestType))) {
+      bool MicrosoftException =
+          Self.getLangOpts().MicrosoftExt && !DestType->isBooleanType();
+      if (MicrosoftException) {
+        unsigned Diag = SrcType->isVoidPointerType()
+                            ? diag::warn_void_pointer_to_int_cast
+                            : diag::warn_pointer_to_int_cast;
+        Self.Diag(OpRange.getBegin(), Diag) << SrcType << DestType << OpRange;
+      } else {
+        msg = diag::err_bad_reinterpret_cast_small_int;
+        return TC_Failed;
+      }
     }
     Kind = CK_PointerToIntegral;
     return TC_Success;
@@ -2216,8 +2224,7 @@ static TryCastResult TryReinterpretCast(Sema &Self, ExprResult &SrcExpr,
 
   if (SrcType->isIntegralOrEnumerationType()) {
     assert(destIsPtr && "One type must be a pointer");
-    checkIntToPointerCast(CStyle, OpRange.getBegin(), SrcExpr.get(), DestType,
-                          Self);
+    checkIntToPointerCast(CStyle, OpRange, SrcExpr.get(), DestType, Self);
     // C++ 5.2.10p5: A value of integral or enumeration type can be explicitly
     //   converted to a pointer.
     // C++ 5.2.10p9: [Note: ...a null pointer constant of integral type is not
@@ -2307,6 +2314,24 @@ static TryCastResult TryReinterpretCast(Sema &Self, ExprResult &SrcExpr,
                 diag::warn_cxx98_compat_cast_fn_obj : diag::ext_cast_fn_obj)
       << OpRange;
     return SuccessResult;
+  }
+
+  // Diagnose address space conversion in nested pointers.
+  QualType DestPtee = DestType->getPointeeType().isNull()
+                          ? DestType->getPointeeType()
+                          : DestType->getPointeeType()->getPointeeType();
+  QualType SrcPtee = SrcType->getPointeeType().isNull()
+                         ? SrcType->getPointeeType()
+                         : SrcType->getPointeeType()->getPointeeType();
+  while (!DestPtee.isNull() && !SrcPtee.isNull()) {
+    if (DestPtee.getAddressSpace() != SrcPtee.getAddressSpace()) {
+      Self.Diag(OpRange.getBegin(),
+                diag::warn_bad_cxx_cast_nested_pointer_addr_space)
+          << CStyle << SrcType << DestType << SrcExpr.get()->getSourceRange();
+      break;
+    }
+    DestPtee = DestPtee->getPointeeType();
+    SrcPtee = SrcPtee->getPointeeType();
   }
 
   // C++ 5.2.10p7: A pointer to an object can be explicitly converted to
@@ -2627,6 +2652,13 @@ void CastOperation::CheckCStyleCast() {
     return;
   }
 
+  // Allow casting a sizeless built-in type to itself.
+  if (DestType->isSizelessBuiltinType() &&
+      Self.Context.hasSameUnqualifiedType(DestType, SrcType)) {
+    Kind = CK_NoOp;
+    return;
+  }
+
   if (!DestType->isScalarType() && !DestType->isVectorType()) {
     const RecordType *DestRecordTy = DestType->getAs<RecordType>();
 
@@ -2732,8 +2764,8 @@ void CastOperation::CheckCStyleCast() {
       SrcExpr = ExprError();
       return;
     }
-    checkIntToPointerCast(/* CStyle */ true, OpRange.getBegin(), SrcExpr.get(),
-                          DestType, Self);
+    checkIntToPointerCast(/* CStyle */ true, OpRange, SrcExpr.get(), DestType,
+                          Self);
   } else if (!SrcType->isArithmeticType()) {
     if (!DestType->isIntegralType(Self.Context) &&
         DestType->isArithmeticType()) {
@@ -2742,6 +2774,25 @@ void CastOperation::CheckCStyleCast() {
           << DestType << SrcExpr.get()->getSourceRange();
       SrcExpr = ExprError();
       return;
+    }
+
+    if ((Self.Context.getTypeSize(SrcType) >
+         Self.Context.getTypeSize(DestType)) &&
+        !DestType->isBooleanType()) {
+      // C 6.3.2.3p6: Any pointer type may be converted to an integer type.
+      // Except as previously specified, the result is implementation-defined.
+      // If the result cannot be represented in the integer type, the behavior
+      // is undefined. The result need not be in the range of values of any
+      // integer type.
+      unsigned Diag;
+      if (SrcType->isVoidPointerType())
+        Diag = DestType->isEnumeralType() ? diag::warn_void_pointer_to_enum_cast
+                                          : diag::warn_void_pointer_to_int_cast;
+      else if (DestType->isEnumeralType())
+        Diag = diag::warn_pointer_to_enum_cast;
+      else
+        Diag = diag::warn_pointer_to_int_cast;
+      Self.Diag(OpRange.getBegin(), Diag) << SrcType << DestType << OpRange;
     }
   }
 

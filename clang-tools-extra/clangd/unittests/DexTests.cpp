@@ -687,14 +687,18 @@ TEST(DexTests, Refs) {
   Req.Filter = RefKind::Declaration | RefKind::Definition;
 
   std::vector<std::string> Files;
-  Dex(std::vector<Symbol>{Foo, Bar}, Refs, RelationSlab())
-      .refs(Req, [&](const Ref &R) { Files.push_back(R.Location.FileURI); });
+  EXPECT_FALSE(Dex(std::vector<Symbol>{Foo, Bar}, Refs, RelationSlab())
+                   .refs(Req, [&](const Ref &R) {
+                     Files.push_back(R.Location.FileURI);
+                   }));
   EXPECT_THAT(Files, UnorderedElementsAre("foo.h", "foo.cc"));
 
   Req.Limit = 1;
   Files.clear();
-  Dex(std::vector<Symbol>{Foo, Bar}, Refs, RelationSlab())
-      .refs(Req, [&](const Ref &R) { Files.push_back(R.Location.FileURI); });
+  EXPECT_TRUE(Dex(std::vector<Symbol>{Foo, Bar}, Refs, RelationSlab())
+                  .refs(Req, [&](const Ref &R) {
+                    Files.push_back(R.Location.FileURI);
+                  }));
   EXPECT_THAT(Files, ElementsAre(AnyOf("foo.h", "foo.cc")));
 }
 
@@ -705,16 +709,15 @@ TEST(DexTests, Relations) {
 
   std::vector<Symbol> Symbols{Parent, Child1, Child2};
 
-  std::vector<Relation> Relations{
-      {Parent.ID, index::SymbolRole::RelationBaseOf, Child1.ID},
-      {Parent.ID, index::SymbolRole::RelationBaseOf, Child2.ID}};
+  std::vector<Relation> Relations{{Parent.ID, RelationKind::BaseOf, Child1.ID},
+                                  {Parent.ID, RelationKind::BaseOf, Child2.ID}};
 
   Dex I{Symbols, RefSlab(), Relations};
 
   std::vector<SymbolID> Results;
   RelationsRequest Req;
   Req.Subjects.insert(Parent.ID);
-  Req.Predicate = index::SymbolRole::RelationBaseOf;
+  Req.Predicate = RelationKind::BaseOf;
   I.relations(Req, [&](const SymbolID &Subject, const Symbol &Object) {
     Results.push_back(Object.ID);
   });
@@ -736,10 +739,10 @@ TEST(DexTest, PreferredTypesBoosting) {
   // The best candidate can change depending on the preferred type.
   Req.Limit = 1;
 
-  Req.PreferredTypes = {Sym1.Type};
+  Req.PreferredTypes = {std::string(Sym1.Type)};
   EXPECT_THAT(match(I, Req), ElementsAre("t1"));
 
-  Req.PreferredTypes = {Sym2.Type};
+  Req.PreferredTypes = {std::string(Sym2.Type)};
   EXPECT_THAT(match(I, Req), ElementsAre("t2"));
 }
 

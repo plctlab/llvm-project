@@ -18,6 +18,7 @@
 #include "clang/Basic/LLVM.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/IntrusiveRefCntPtr.h"
+#include "llvm/ADT/PointerUnion.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
@@ -222,8 +223,8 @@ class FileManager : public RefCountedBase<FileManager> {
                   llvm::BumpPtrAllocator>
       SeenFileEntries;
 
-  /// The canonical names of directories.
-  llvm::DenseMap<const DirectoryEntry *, llvm::StringRef> CanonicalDirNames;
+  /// The canonical names of files and directories .
+  llvm::DenseMap<const void *, llvm::StringRef> CanonicalNames;
 
   /// Storage for canonical names that we have computed.
   llvm::BumpPtrAllocator CanonicalNameStorage;
@@ -231,10 +232,6 @@ class FileManager : public RefCountedBase<FileManager> {
   /// Each FileEntry we create is assigned a unique ID #.
   ///
   unsigned NextFileUID;
-
-  // Statistics.
-  unsigned NumDirLookups, NumFileLookups;
-  unsigned NumDirCacheMisses, NumFileCacheMisses;
 
   // Caching.
   std::unique_ptr<FileSystemStatCache> StatCache;
@@ -382,15 +379,19 @@ public:
   /// Open the specified file as a MemoryBuffer, returning a new
   /// MemoryBuffer if successful, otherwise returning null.
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
-  getBufferForFile(const FileEntry *Entry, bool isVolatile = false);
+  getBufferForFile(const FileEntry *Entry, bool isVolatile = false,
+                   bool RequiresNullTerminator = true);
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
-  getBufferForFile(StringRef Filename, bool isVolatile = false) {
-    return getBufferForFileImpl(Filename, /*FileSize=*/-1, isVolatile);
+  getBufferForFile(StringRef Filename, bool isVolatile = false,
+                   bool RequiresNullTerminator = true) {
+    return getBufferForFileImpl(Filename, /*FileSize=*/-1, isVolatile,
+                                RequiresNullTerminator);
   }
 
 private:
   llvm::ErrorOr<std::unique_ptr<llvm::MemoryBuffer>>
-  getBufferForFileImpl(StringRef Filename, int64_t FileSize, bool isVolatile);
+  getBufferForFileImpl(StringRef Filename, int64_t FileSize, bool isVolatile,
+                       bool RequiresNullTerminator);
 
 public:
   /// Get the 'stat' information for the given \p Path.
@@ -424,6 +425,13 @@ public:
   /// and should only be used when the physical layout of the file system is
   /// required, which is (almost) never.
   StringRef getCanonicalName(const DirectoryEntry *Dir);
+
+  /// Retrieve the canonical name for a given file.
+  ///
+  /// This is a very expensive operation, despite its results being cached,
+  /// and should only be used when the physical layout of the file system is
+  /// required, which is (almost) never.
+  StringRef getCanonicalName(const FileEntry *File);
 
   void PrintStats() const;
 };

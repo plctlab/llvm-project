@@ -346,14 +346,8 @@ class SmallPtrSetImpl : public SmallPtrSetImplBase {
   using ConstPtrTraits = PointerLikeTypeTraits<ConstPtrType>;
 
 protected:
-  // Constructors that forward to the base.
-  SmallPtrSetImpl(const void **SmallStorage, const SmallPtrSetImpl &that)
-      : SmallPtrSetImplBase(SmallStorage, that) {}
-  SmallPtrSetImpl(const void **SmallStorage, unsigned SmallSize,
-                  SmallPtrSetImpl &&that)
-      : SmallPtrSetImplBase(SmallStorage, SmallSize, std::move(that)) {}
-  explicit SmallPtrSetImpl(const void **SmallStorage, unsigned SmallSize)
-      : SmallPtrSetImplBase(SmallStorage, SmallSize) {}
+  // Forward constructors to the base.
+  using SmallPtrSetImplBase::SmallPtrSetImplBase;
 
 public:
   using iterator = SmallPtrSetIterator<PtrType>;
@@ -408,6 +402,32 @@ private:
     return iterator(P, EndPointer(), *this);
   }
 };
+
+/// Equality comparison for SmallPtrSet.
+///
+/// Iterates over elements of LHS confirming that each value from LHS is also in
+/// RHS, and that no additional values are in RHS.
+template <typename PtrType>
+bool operator==(const SmallPtrSetImpl<PtrType> &LHS,
+                const SmallPtrSetImpl<PtrType> &RHS) {
+  if (LHS.size() != RHS.size())
+    return false;
+
+  for (const auto *KV : LHS)
+    if (!RHS.count(KV))
+      return false;
+
+  return true;
+}
+
+/// Inequality comparison for SmallPtrSet.
+///
+/// Equivalent to !(LHS == RHS).
+template <typename PtrType>
+bool operator!=(const SmallPtrSetImpl<PtrType> &LHS,
+                const SmallPtrSetImpl<PtrType> &RHS) {
+  return !(LHS == RHS);
+}
 
 /// SmallPtrSet - This class implements a set which is optimized for holding
 /// SmallSize or less elements.  This internally rounds up SmallSize to the next

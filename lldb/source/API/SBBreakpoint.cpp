@@ -1,4 +1,4 @@
-//===-- SBBreakpoint.cpp ----------------------------------------*- C++ -*-===//
+//===-- SBBreakpoint.cpp --------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -14,6 +14,7 @@
 #include "lldb/API/SBProcess.h"
 #include "lldb/API/SBStream.h"
 #include "lldb/API/SBStringList.h"
+#include "lldb/API/SBStructuredData.h"
 #include "lldb/API/SBThread.h"
 
 #include "lldb/Breakpoint/Breakpoint.h"
@@ -25,6 +26,7 @@
 #include "lldb/Core/Address.h"
 #include "lldb/Core/Debugger.h"
 #include "lldb/Core/StreamFile.h"
+#include "lldb/Core/StructuredDataImpl.h"
 #include "lldb/Interpreter/CommandInterpreter.h"
 #include "lldb/Interpreter/ScriptInterpreter.h"
 #include "lldb/Target/Process.h"
@@ -590,22 +592,38 @@ void SBBreakpoint ::SetCallback(SBBreakpointHitCallback callback, void *baton) {
 }
 
 void SBBreakpoint::SetScriptCallbackFunction(
-    const char *callback_function_name) {
-  LLDB_RECORD_METHOD(void, SBBreakpoint, SetScriptCallbackFunction,
-                     (const char *), callback_function_name);
+  const char *callback_function_name) {
+LLDB_RECORD_METHOD(void, SBBreakpoint, SetScriptCallbackFunction,
+                   (const char *), callback_function_name);
+  SBStructuredData empty_args;
+  SetScriptCallbackFunction(callback_function_name, empty_args);
+}
 
+SBError SBBreakpoint::SetScriptCallbackFunction(
+    const char *callback_function_name,
+    SBStructuredData &extra_args) {
+  LLDB_RECORD_METHOD(SBError, SBBreakpoint, SetScriptCallbackFunction,
+  (const char *, SBStructuredData &), callback_function_name, extra_args);
+  SBError sb_error;
   BreakpointSP bkpt_sp = GetSP();
 
   if (bkpt_sp) {
+    Status error;
     std::lock_guard<std::recursive_mutex> guard(
         bkpt_sp->GetTarget().GetAPIMutex());
     BreakpointOptions *bp_options = bkpt_sp->GetOptions();
-    bkpt_sp->GetTarget()
+    error = bkpt_sp->GetTarget()
         .GetDebugger()
         .GetScriptInterpreter()
         ->SetBreakpointCommandCallbackFunction(bp_options,
-                                               callback_function_name);
-  }
+                                               callback_function_name,
+                                               extra_args.m_impl_up
+                                                   ->GetObjectSP());
+    sb_error.SetError(error);
+  } else
+    sb_error.SetErrorString("invalid breakpoint");
+  
+  return LLDB_RECORD_RESULT(sb_error);
 }
 
 SBError SBBreakpoint::SetScriptCallbackBody(const char *callback_body_text) {
@@ -855,7 +873,7 @@ SBBreakpointList::SBBreakpointList(SBTarget &target)
   LLDB_RECORD_CONSTRUCTOR(SBBreakpointList, (lldb::SBTarget &), target);
 }
 
-SBBreakpointList::~SBBreakpointList() {}
+SBBreakpointList::~SBBreakpointList() = default;
 
 size_t SBBreakpointList::GetSize() const {
   LLDB_RECORD_METHOD_CONST_NO_ARGS(size_t, SBBreakpointList, GetSize);
@@ -992,6 +1010,8 @@ void RegisterMethods<SBBreakpoint>(Registry &R) {
                        (lldb::SBAddress &));
   LLDB_REGISTER_METHOD(void, SBBreakpoint, SetScriptCallbackFunction,
                        (const char *));
+  LLDB_REGISTER_METHOD(lldb::SBError, SBBreakpoint, SetScriptCallbackFunction,
+                       (const char *, SBStructuredData &));
   LLDB_REGISTER_METHOD(lldb::SBError, SBBreakpoint, SetScriptCallbackBody,
                        (const char *));
   LLDB_REGISTER_METHOD(bool, SBBreakpoint, AddName, (const char *));

@@ -1,4 +1,4 @@
-//===-- SBStream.cpp ----------------------------------------*- C++ -*-===//
+//===-- SBStream.cpp ------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -9,6 +9,7 @@
 #include "lldb/API/SBStream.h"
 
 #include "SBReproducerPrivate.h"
+#include "lldb/API/SBFile.h"
 #include "lldb/Core/StreamFile.h"
 #include "lldb/Host/FileSystem.h"
 #include "lldb/Utility/Status.h"
@@ -25,7 +26,7 @@ SBStream::SBStream() : m_opaque_up(new StreamString()), m_is_file(false) {
 SBStream::SBStream(SBStream &&rhs)
     : m_opaque_up(std::move(rhs.m_opaque_up)), m_is_file(rhs.m_is_file) {}
 
-SBStream::~SBStream() {}
+SBStream::~SBStream() = default;
 
 bool SBStream::IsValid() const {
   LLDB_RECORD_METHOD_CONST_NO_ARGS(bool, SBStream, IsValid);
@@ -80,9 +81,10 @@ void SBStream::RedirectToFile(const char *path, bool append) {
     // See if we have any locally backed data. If so, copy it so we can then
     // redirect it to the file so we don't lose the data
     if (!m_is_file)
-      local_data = static_cast<StreamString *>(m_opaque_up.get())->GetString();
+      local_data = std::string(
+          static_cast<StreamString *>(m_opaque_up.get())->GetString());
   }
-  uint32_t open_options = File::eOpenOptionWrite | File::eOpenOptionCanCreate;
+  auto open_options = File::eOpenOptionWrite | File::eOpenOptionCanCreate;
   if (append)
     open_options |= File::eOpenOptionAppend;
   else
@@ -108,8 +110,19 @@ void SBStream::RedirectToFile(const char *path, bool append) {
 void SBStream::RedirectToFileHandle(FILE *fh, bool transfer_fh_ownership) {
   LLDB_RECORD_METHOD(void, SBStream, RedirectToFileHandle, (FILE *, bool), fh,
                      transfer_fh_ownership);
+  FileSP file = std::make_unique<NativeFile>(fh, transfer_fh_ownership);
+  return RedirectToFile(file);
+}
 
-  if (fh == nullptr)
+void SBStream::RedirectToFile(SBFile file) {
+  LLDB_RECORD_METHOD(void, SBStream, RedirectToFile, (SBFile), file)
+  RedirectToFile(file.GetFile());
+}
+
+void SBStream::RedirectToFile(FileSP file_sp) {
+  LLDB_RECORD_METHOD(void, SBStream, RedirectToFile, (FileSP), file_sp);
+
+  if (!file_sp || !file_sp->IsValid())
     return;
 
   std::string local_data;
@@ -117,10 +130,11 @@ void SBStream::RedirectToFileHandle(FILE *fh, bool transfer_fh_ownership) {
     // See if we have any locally backed data. If so, copy it so we can then
     // redirect it to the file so we don't lose the data
     if (!m_is_file)
-      local_data = static_cast<StreamString *>(m_opaque_up.get())->GetString();
+      local_data = std::string(
+          static_cast<StreamString *>(m_opaque_up.get())->GetString());
   }
 
-  m_opaque_up = std::make_unique<StreamFile>(fh, transfer_fh_ownership);
+  m_opaque_up = std::make_unique<StreamFile>(file_sp);
   m_is_file = true;
 
   // If we had any data locally in our StreamString, then pass that along to
@@ -138,7 +152,8 @@ void SBStream::RedirectToFileDescriptor(int fd, bool transfer_fh_ownership) {
     // See if we have any locally backed data. If so, copy it so we can then
     // redirect it to the file so we don't lose the data
     if (!m_is_file)
-      local_data = static_cast<StreamString *>(m_opaque_up.get())->GetString();
+      local_data = std::string(
+          static_cast<StreamString *>(m_opaque_up.get())->GetString());
   }
 
   m_opaque_up = std::make_unique<StreamFile>(fd, transfer_fh_ownership);
@@ -184,6 +199,8 @@ void RegisterMethods<SBStream>(Registry &R) {
   LLDB_REGISTER_METHOD(const char *, SBStream, GetData, ());
   LLDB_REGISTER_METHOD(size_t, SBStream, GetSize, ());
   LLDB_REGISTER_METHOD(void, SBStream, RedirectToFile, (const char *, bool));
+  LLDB_REGISTER_METHOD(void, SBStream, RedirectToFile, (FileSP));
+  LLDB_REGISTER_METHOD(void, SBStream, RedirectToFile, (SBFile));
   LLDB_REGISTER_METHOD(void, SBStream, RedirectToFileHandle, (FILE *, bool));
   LLDB_REGISTER_METHOD(void, SBStream, RedirectToFileDescriptor, (int, bool));
   LLDB_REGISTER_METHOD(void, SBStream, Clear, ());

@@ -1,4 +1,7 @@
-set(LLVM_LINK_COMPONENTS support)
+set(LLVM_LINK_COMPONENTS
+  FrontendOpenMP
+  Support
+  )
 
 add_clang_library(clangTidyPerformanceModule
   FasterStringFindCheck.cpp
@@ -9,8 +12,10 @@ add_clang_library(clangTidyPerformanceModule
   InefficientVectorOperationCheck.cpp
   MoveConstArgCheck.cpp
   MoveConstructorInitCheck.cpp
+  NoAutomaticMoveCheck.cpp
   NoexceptMoveConstructorCheck.cpp
   PerformanceTidyModule.cpp
+  TriviallyDestructibleCheck.cpp
   TypePromotionInMathFnCheck.cpp
   UnnecessaryCopyInitialization.cpp
   UnnecessaryValueParamCheck.cpp

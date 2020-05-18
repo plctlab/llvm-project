@@ -19,11 +19,12 @@
 
 #include "llvm/CodeGen/LivePhysRegs.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
+#include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/ReachingDefAnalysis.h"
 #include "llvm/CodeGen/RegisterClassInfo.h"
-#include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/TargetInstrInfo.h"
-
+#include "llvm/InitializePasses.h"
+#include "llvm/Support/Debug.h"
 
 using namespace llvm;
 
@@ -105,8 +106,17 @@ FunctionPass *llvm::createBreakFalseDeps() { return new BreakFalseDeps(); }
 
 bool BreakFalseDeps::pickBestRegisterForUndef(MachineInstr *MI, unsigned OpIdx,
   unsigned Pref) {
+
+  // We can't change tied operands.
+  if (MI->isRegTiedToDefOperand(OpIdx))
+    return false;
+
   MachineOperand &MO = MI->getOperand(OpIdx);
   assert(MO.isUndef() && "Expected undef machine operand");
+
+  // We can't change registers that aren't renamable.
+  if (!MO.isRenamable())
+    return false;
 
   Register OriginalReg = MO.getReg();
 

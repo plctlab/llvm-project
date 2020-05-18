@@ -19,18 +19,17 @@
 //    good amount of the text will
 //    disappear.  It's still in the buffer, just invisible.
 // b) The prompt printing logic for dealing with ANSI formatting characters is
-// broken, which is why we're
-//    working around it here.
-// c) When resizing the terminal window, if the cursor moves between rows
-// libedit will get confused. d) The incremental search uses escape to cancel
-// input, so it's confused by
+// broken, which is why we're working around it here.
+// c) The incremental search uses escape to cancel input, so it's confused by
 // ANSI sequences starting with escape.
-// e) Emoji support is fairly terrible, presumably it doesn't understand
+// d) Emoji support is fairly terrible, presumably it doesn't understand
 // composed characters?
 
-#ifndef liblldb_Editline_h_
-#define liblldb_Editline_h_
+#ifndef LLDB_HOST_EDITLINE_H
+#define LLDB_HOST_EDITLINE_H
 #if defined(__cplusplus)
+
+#include "lldb/Host/Config.h"
 
 #if LLDB_EDITLINE_USE_WCHAR
 #include <codecvt>
@@ -48,6 +47,7 @@
 #include <histedit.h>
 #endif
 
+#include <csignal>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -133,6 +133,15 @@ enum class CursorLocation {
   /// session
   BlockEnd
 };
+
+/// Operation for the history.
+enum class HistoryOperation {
+  Oldest,
+  Older,
+  Current,
+  Newer,
+  Newest
+};
 }
 
 using namespace line_editor;
@@ -160,9 +169,7 @@ public:
   /// editing scenarios.
   void SetContinuationPrompt(const char *continuation_prompt);
 
-  /// Required to update the width of the terminal registered for I/O.  It is
-  /// critical that this
-  /// be correct at all times.
+  /// Call when the terminal size changes
   void TerminalSizeChanged();
 
   /// Returns the prompt established by SetPrompt()
@@ -258,11 +265,7 @@ private:
   StringList GetInputAsStringList(int line_count = UINT32_MAX);
 
   /// Replaces the current multi-line session with the next entry from history.
-  /// When the parameter is
-  /// true it will take the next earlier entry from history, when it is false it
-  /// takes the next most
-  /// recent.
-  unsigned char RecallHistory(bool earlier);
+  unsigned char RecallHistory(HistoryOperation op);
 
   /// Character reading implementation for EditLine that supports our multi-line
   /// editing trickery.
@@ -321,6 +324,8 @@ private:
 
   bool CompleteCharacter(char ch, EditLineGetCharType &out);
 
+  void ApplyTerminalSizeChange();
+
 private:
 #if LLDB_EDITLINE_USE_WCHAR
   std::wstring_convert<std::codecvt_utf8<wchar_t>> m_utf8conv;
@@ -343,6 +348,7 @@ private:
   std::string m_set_continuation_prompt;
   std::string m_current_prompt;
   bool m_needs_prompt_repaint = false;
+  volatile std::sig_atomic_t m_terminal_size_has_changed = 0;
   std::string m_editor_name;
   FILE *m_input_file;
   FILE *m_output_file;
@@ -361,4 +367,4 @@ private:
 }
 
 #endif // #if defined(__cplusplus)
-#endif // liblldb_Editline_h_
+#endif // LLDB_HOST_EDITLINE_H

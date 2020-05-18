@@ -17,6 +17,7 @@
 #include "llvm/CodeGen/SelectionDAGISel.h"
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/Function.h" // To access function attributes.
+#include "llvm/IR/IntrinsicsWebAssembly.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/KnownBits.h"
 #include "llvm/Support/MathExtras.h"
@@ -35,12 +36,10 @@ class WebAssemblyDAGToDAGISel final : public SelectionDAGISel {
   /// right decision when generating code for different targets.
   const WebAssemblySubtarget *Subtarget;
 
-  bool ForCodeSize;
-
 public:
   WebAssemblyDAGToDAGISel(WebAssemblyTargetMachine &TM,
                           CodeGenOpt::Level OptLevel)
-      : SelectionDAGISel(TM, OptLevel), Subtarget(nullptr), ForCodeSize(false) {
+      : SelectionDAGISel(TM, OptLevel), Subtarget(nullptr) {
   }
 
   StringRef getPassName() const override {
@@ -52,7 +51,6 @@ public:
                          "********** Function: "
                       << MF.getName() << '\n');
 
-    ForCodeSize = MF.getFunction().hasOptSize();
     Subtarget = &MF.getSubtarget<WebAssemblySubtarget>();
 
     // Wasm64 is not fully supported right now (and is not specified)
@@ -208,6 +206,35 @@ void WebAssemblyDAGToDAGISel::Select(SDNode *Node) {
     }
     break;
   }
+  case WebAssemblyISD::CALL:
+  case WebAssemblyISD::RET_CALL: {
+    // CALL has both variable operands and variable results, but ISel only
+    // supports one or the other. Split calls into two nodes glued together, one
+    // for the operands and one for the results. These two nodes will be
+    // recombined in a custom inserter hook into a single MachineInstr.
+    SmallVector<SDValue, 16> Ops;
+    for (size_t i = 1; i < Node->getNumOperands(); ++i) {
+      SDValue Op = Node->getOperand(i);
+      if (i == 1 && Op->getOpcode() == WebAssemblyISD::Wrapper)
+        Op = Op->getOperand(0);
+      Ops.push_back(Op);
+    }
+
+    // Add the chain last
+    Ops.push_back(Node->getOperand(0));
+    MachineSDNode *CallParams =
+        CurDAG->getMachineNode(WebAssembly::CALL_PARAMS, DL, MVT::Glue, Ops);
+
+    unsigned Results = Node->getOpcode() == WebAssemblyISD::CALL
+                           ? WebAssembly::CALL_RESULTS
+                           : WebAssembly::RET_CALL_RESULTS;
+
+    SDValue Link(CallParams, 0);
+    MachineSDNode *CallResults =
+        CurDAG->getMachineNode(Results, DL, Node->getVTList(), Link);
+    ReplaceNode(Node, CallResults);
+    return;
+  }
 
   default:
     break;
@@ -220,7 +247,6 @@ void WebAssemblyDAGToDAGISel::Select(SDNode *Node) {
 bool WebAssemblyDAGToDAGISel::SelectInlineAsmMemoryOperand(
     const SDValue &Op, unsigned ConstraintID, std::vector<SDValue> &OutOps) {
   switch (ConstraintID) {
-  case InlineAsm::Constraint_i:
   case InlineAsm::Constraint_m:
     // We just support simple memory operands that just have a single address
     // operand and need no special handling.

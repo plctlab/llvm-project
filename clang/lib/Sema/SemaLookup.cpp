@@ -215,6 +215,7 @@ static inline unsigned getIDNS(Sema::LookupNameKind NameKind,
   case Sema::LookupOrdinaryName:
   case Sema::LookupRedeclarationWithLinkage:
   case Sema::LookupLocalFriendName:
+  case Sema::LookupDestructorName:
     IDNS = Decl::IDNS_Ordinary;
     if (CPlusPlus) {
       IDNS |= Decl::IDNS_Tag | Decl::IDNS_Member | Decl::IDNS_Namespace;
@@ -378,11 +379,14 @@ static bool isPreferredLookupResult(Sema &S, Sema::LookupNameKind Kind,
   // type), per a generous reading of C++ [dcl.typedef]p3 and p4. The typedef
   // might carry additional semantic information, such as an alignment override.
   // However, per C++ [dcl.typedef]p5, when looking up a tag name, prefer a tag
-  // declaration over a typedef.
+  // declaration over a typedef. Also prefer a tag over a typedef for
+  // destructor name lookup because in some contexts we only accept a
+  // class-name in a destructor declaration.
   if (DUnderlying->getCanonicalDecl() != EUnderlying->getCanonicalDecl()) {
     assert(isa<TypeDecl>(DUnderlying) && isa<TypeDecl>(EUnderlying));
     bool HaveTag = isa<TagDecl>(EUnderlying);
-    bool WantTag = Kind == Sema::LookupTagName;
+    bool WantTag =
+        Kind == Sema::LookupTagName || Kind == Sema::LookupDestructorName;
     return HaveTag != WantTag;
   }
 
@@ -739,6 +743,18 @@ static void GetOpenCLBuiltinFctOverloads(
   }
 }
 
+/// Add extensions to the function declaration.
+/// \param S (in/out) The Sema instance.
+/// \param BIDecl (in) Description of the builtin.
+/// \param FDecl (in/out) FunctionDecl instance.
+static void AddOpenCLExtensions(Sema &S, const OpenCLBuiltinStruct &BIDecl,
+                                FunctionDecl *FDecl) {
+  // Fetch extension associated with a function prototype.
+  StringRef E = FunctionExtensionTable[BIDecl.Extension];
+  if (E != "")
+    S.setOpenCLExtensionForDecl(FDecl, E);
+}
+
 /// When trying to resolve a function name, if isOpenCLBuiltin() returns a
 /// non-null <Index, Len> pair, then the name is referencing an OpenCL
 /// builtin function.  Add all candidate signatures to the LookUpResult.
@@ -765,10 +781,13 @@ static void InsertOCLBuiltinDeclarationsFromTable(Sema &S, LookupResult &LR,
     ASTContext &Context = S.Context;
 
     // Ignore this BIF if its version does not match the language options.
-    if (Context.getLangOpts().OpenCLVersion < OpenCLBuiltin.MinVersion)
+    unsigned OpenCLVersion = Context.getLangOpts().OpenCLVersion;
+    if (Context.getLangOpts().OpenCLCPlusPlus)
+      OpenCLVersion = 200;
+    if (OpenCLVersion < OpenCLBuiltin.MinVersion)
       continue;
     if ((OpenCLBuiltin.MaxVersion != 0) &&
-        (Context.getLangOpts().OpenCLVersion >= OpenCLBuiltin.MaxVersion))
+        (OpenCLVersion >= OpenCLBuiltin.MaxVersion))
       continue;
 
     SmallVector<QualType, 1> RetTypes;
@@ -812,9 +831,20 @@ static void InsertOCLBuiltinDeclarationsFromTable(Sema &S, LookupResult &LR,
         }
         NewOpenCLBuiltin->setParams(ParmList);
       }
-      if (!S.getLangOpts().OpenCLCPlusPlus) {
+
+      // Add function attributes.
+      if (OpenCLBuiltin.IsPure)
+        NewOpenCLBuiltin->addAttr(PureAttr::CreateImplicit(Context));
+      if (OpenCLBuiltin.IsConst)
+        NewOpenCLBuiltin->addAttr(ConstAttr::CreateImplicit(Context));
+      if (OpenCLBuiltin.IsConv)
+        NewOpenCLBuiltin->addAttr(ConvergentAttr::CreateImplicit(Context));
+
+      if (!S.getLangOpts().OpenCLCPlusPlus)
         NewOpenCLBuiltin->addAttr(OverloadableAttr::CreateImplicit(Context));
-      }
+
+      AddOpenCLExtensions(S, OpenCLBuiltin, NewOpenCLBuiltin);
+
       LR.addDecl(NewOpenCLBuiltin);
     }
   }
@@ -826,7 +856,7 @@ static void InsertOCLBuiltinDeclarationsFromTable(Sema &S, LookupResult &LR,
 
 /// Lookup a builtin function, when name lookup would otherwise
 /// fail.
-static bool LookupBuiltin(Sema &S, LookupResult &R) {
+bool Sema::LookupBuiltin(LookupResult &R) {
   Sema::LookupNameKind NameKind = R.getLookupKind();
 
   // If we didn't find a use of this identifier, and if the identifier
@@ -836,21 +866,21 @@ static bool LookupBuiltin(Sema &S, LookupResult &R) {
       NameKind == Sema::LookupRedeclarationWithLinkage) {
     IdentifierInfo *II = R.getLookupName().getAsIdentifierInfo();
     if (II) {
-      if (S.getLangOpts().CPlusPlus && NameKind == Sema::LookupOrdinaryName) {
-        if (II == S.getASTContext().getMakeIntegerSeqName()) {
-          R.addDecl(S.getASTContext().getMakeIntegerSeqDecl());
+      if (getLangOpts().CPlusPlus && NameKind == Sema::LookupOrdinaryName) {
+        if (II == getASTContext().getMakeIntegerSeqName()) {
+          R.addDecl(getASTContext().getMakeIntegerSeqDecl());
           return true;
-        } else if (II == S.getASTContext().getTypePackElementName()) {
-          R.addDecl(S.getASTContext().getTypePackElementDecl());
+        } else if (II == getASTContext().getTypePackElementName()) {
+          R.addDecl(getASTContext().getTypePackElementDecl());
           return true;
         }
       }
 
       // Check if this is an OpenCL Builtin, and if so, insert its overloads.
-      if (S.getLangOpts().OpenCL && S.getLangOpts().DeclareOpenCLBuiltins) {
+      if (getLangOpts().OpenCL && getLangOpts().DeclareOpenCLBuiltins) {
         auto Index = isOpenCLBuiltin(II->getName());
         if (Index.first) {
-          InsertOCLBuiltinDeclarationsFromTable(S, R, II, Index.first - 1,
+          InsertOCLBuiltinDeclarationsFromTable(*this, R, II, Index.first - 1,
                                                 Index.second);
           return true;
         }
@@ -860,14 +890,14 @@ static bool LookupBuiltin(Sema &S, LookupResult &R) {
       if (unsigned BuiltinID = II->getBuiltinID()) {
         // In C++ and OpenCL (spec v1.2 s6.9.f), we don't have any predefined
         // library functions like 'malloc'. Instead, we'll just error.
-        if ((S.getLangOpts().CPlusPlus || S.getLangOpts().OpenCL) &&
-            S.Context.BuiltinInfo.isPredefinedLibFunction(BuiltinID))
+        if ((getLangOpts().CPlusPlus || getLangOpts().OpenCL) &&
+            Context.BuiltinInfo.isPredefinedLibFunction(BuiltinID))
           return false;
 
-        if (NamedDecl *D = S.LazilyCreateBuiltin((IdentifierInfo *)II,
-                                                 BuiltinID, S.TUScope,
-                                                 R.isForRedeclaration(),
-                                                 R.getNameLoc())) {
+        if (NamedDecl *D = LazilyCreateBuiltin((IdentifierInfo *)II,
+                                               BuiltinID, TUScope,
+                                               R.isForRedeclaration(),
+                                               R.getNameLoc())) {
           R.addDecl(D);
           return true;
         }
@@ -1013,7 +1043,7 @@ static bool LookupDirect(Sema &S, LookupResult &R, const DeclContext *DC) {
     }
   }
 
-  if (!Found && DC->isTranslationUnit() && LookupBuiltin(S, R))
+  if (!Found && DC->isTranslationUnit() && S.LookupBuiltin(R))
     return true;
 
   if (R.getLookupName().getNameKind()
@@ -1549,7 +1579,9 @@ llvm::DenseSet<Module*> &Sema::getLookupModules() {
   unsigned N = CodeSynthesisContexts.size();
   for (unsigned I = CodeSynthesisContextLookupModules.size();
        I != N; ++I) {
-    Module *M = getDefiningModule(*this, CodeSynthesisContexts[I].Entity);
+    Module *M = CodeSynthesisContexts[I].Entity ?
+                getDefiningModule(*this, CodeSynthesisContexts[I].Entity) :
+                nullptr;
     if (M && !LookupModulesCache.insert(M).second)
       M = nullptr;
     CodeSynthesisContextLookupModules.push_back(M);
@@ -2011,7 +2043,7 @@ bool Sema::LookupName(LookupResult &R, Scope *S, bool AllowBuiltinCreation) {
   // If we didn't find a use of this identifier, and if the identifier
   // corresponds to a compiler builtin, create the decl object for the builtin
   // now, injecting it into translation unit scope, and return it.
-  if (AllowBuiltinCreation && LookupBuiltin(*this, R))
+  if (AllowBuiltinCreation && LookupBuiltin(R))
     return true;
 
   // If we didn't find a use of this identifier, the ExternalSource
@@ -2269,6 +2301,7 @@ bool Sema::LookupQualifiedName(LookupResult &R, DeclContext *LookupCtx,
     case LookupMemberName:
     case LookupRedeclarationWithLinkage:
     case LookupLocalFriendName:
+    case LookupDestructorName:
       BaseCallback = &CXXRecordDecl::FindOrdinaryMember;
       break;
 
@@ -2933,7 +2966,9 @@ addAssociatedClassesAndNamespaces(AssociatedLookup &Result, QualType Ty) {
     // These are fundamental types.
     case Type::Vector:
     case Type::ExtVector:
+    case Type::ConstantMatrix:
     case Type::Complex:
+    case Type::ExtInt:
       break;
 
     // Non-deduced auto types only get here for error cases.
@@ -3101,11 +3136,10 @@ Sema::SpecialMemberOverloadResult Sema::LookupSpecialMember(CXXRecordDecl *RD,
       });
     }
     CXXDestructorDecl *DD = RD->getDestructor();
-    assert(DD && "record without a destructor");
     Result->setMethod(DD);
-    Result->setKind(DD->isDeleted() ?
-                    SpecialMemberOverloadResult::NoMemberOrDeleted :
-                    SpecialMemberOverloadResult::Success);
+    Result->setKind(DD && !DD->isDeleted()
+                        ? SpecialMemberOverloadResult::Success
+                        : SpecialMemberOverloadResult::NoMemberOrDeleted);
     return *Result;
   }
 
@@ -5317,9 +5351,8 @@ void Sema::diagnoseMissingImport(SourceLocation Loc, NamedDecl *Decl,
 
 /// Get a "quoted.h" or <angled.h> include path to use in a diagnostic
 /// suggesting the addition of a #include of the specified file.
-static std::string getIncludeStringForHeader(Preprocessor &PP,
-                                             const FileEntry *E,
-                                             llvm::StringRef IncludingFile) {
+static std::string getHeaderNameForHeader(Preprocessor &PP, const FileEntry *E,
+                                          llvm::StringRef IncludingFile) {
   bool IsSystem = false;
   auto Path = PP.getHeaderSearchInfo().suggestPathToFileForDiagnostics(
       E, IncludingFile, &IsSystem);
@@ -5333,25 +5366,10 @@ void Sema::diagnoseMissingImport(SourceLocation UseLoc, NamedDecl *Decl,
   assert(!Modules.empty());
 
   auto NotePrevious = [&] {
-    unsigned DiagID;
-    switch (MIK) {
-    case MissingImportKind::Declaration:
-      DiagID = diag::note_previous_declaration;
-      break;
-    case MissingImportKind::Definition:
-      DiagID = diag::note_previous_definition;
-      break;
-    case MissingImportKind::DefaultArgument:
-      DiagID = diag::note_default_argument_declared_here;
-      break;
-    case MissingImportKind::ExplicitSpecialization:
-      DiagID = diag::note_explicit_specialization_declared_here;
-      break;
-    case MissingImportKind::PartialSpecialization:
-      DiagID = diag::note_partial_specialization_declared_here;
-      break;
-    }
-    Diag(DeclLoc, DiagID);
+    // FIXME: Suppress the note backtrace even under
+    // -fdiagnostics-show-note-include-stack. We don't care how this
+    // declaration was previously reached.
+    Diag(DeclLoc, diag::note_unreachable_entity) << (int)MIK;
   };
 
   // Weed out duplicates from module list.
@@ -5364,26 +5382,24 @@ void Sema::diagnoseMissingImport(SourceLocation UseLoc, NamedDecl *Decl,
       UniqueModules.push_back(M);
   }
 
-  llvm::StringRef IncludingFile;
-  if (const FileEntry *FE =
-          SourceMgr.getFileEntryForID(SourceMgr.getFileID(UseLoc)))
-    IncludingFile = FE->tryGetRealPathName();
+  // Try to find a suitable header-name to #include.
+  std::string HeaderName;
+  if (const FileEntry *Header =
+          PP.getHeaderToIncludeForDiagnostics(UseLoc, DeclLoc)) {
+    if (const FileEntry *FE =
+            SourceMgr.getFileEntryForID(SourceMgr.getFileID(UseLoc)))
+      HeaderName = getHeaderNameForHeader(PP, Header, FE->tryGetRealPathName());
+  }
 
-  if (UniqueModules.empty()) {
-    // All candidates were global module fragments. Try to suggest a #include.
-    const FileEntry *E =
-        PP.getModuleHeaderToIncludeForDiagnostics(UseLoc, Modules[0], DeclLoc);
+  // If we have a #include we should suggest, or if all definition locations
+  // were in global module fragments, don't suggest an import.
+  if (!HeaderName.empty() || UniqueModules.empty()) {
     // FIXME: Find a smart place to suggest inserting a #include, and add
     // a FixItHint there.
-    Diag(UseLoc, diag::err_module_unimported_use_global_module_fragment)
-        << (int)MIK << Decl << !!E
-        << (E ? getIncludeStringForHeader(PP, E, IncludingFile) : "");
-    // Produce a "previous" note if it will point to a header rather than some
-    // random global module fragment.
-    // FIXME: Suppress the note backtrace even under
-    // -fdiagnostics-show-note-include-stack.
-    if (E)
-      NotePrevious();
+    Diag(UseLoc, diag::err_module_unimported_use_header)
+        << (int)MIK << Decl << !HeaderName.empty() << HeaderName;
+    // Produce a note showing where the entity was declared.
+    NotePrevious();
     if (Recover)
       createImplicitModuleImportForErrorRecovery(UseLoc, Modules[0]);
     return;
@@ -5405,16 +5421,6 @@ void Sema::diagnoseMissingImport(SourceLocation UseLoc, NamedDecl *Decl,
 
     Diag(UseLoc, diag::err_module_unimported_use_multiple)
       << (int)MIK << Decl << ModuleList;
-  } else if (const FileEntry *E = PP.getModuleHeaderToIncludeForDiagnostics(
-                 UseLoc, Modules[0], DeclLoc)) {
-    // The right way to make the declaration visible is to include a header;
-    // suggest doing so.
-    //
-    // FIXME: Find a smart place to suggest inserting a #include, and add
-    // a FixItHint there.
-    Diag(UseLoc, diag::err_module_unimported_use_header)
-        << (int)MIK << Decl << Modules[0]->getFullModuleName()
-        << getIncludeStringForHeader(PP, E, IncludingFile);
   } else {
     // FIXME: Add a FixItHint that imports the corresponding module.
     Diag(UseLoc, diag::err_module_unimported_use)

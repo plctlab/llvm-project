@@ -17,8 +17,6 @@
 // XFAIL: availability=macosx10.11
 // XFAIL: availability=macosx10.10
 // XFAIL: availability=macosx10.9
-// XFAIL: availability=macosx10.8
-// XFAIL: availability=macosx10.7
 
 #include <new>
 
@@ -29,6 +27,6 @@
 #   error "libc++ should have aligned allocation in C++17 and up when targeting a platform that supports it"
 #endif
 
-int main(int, char**) { 
+int main(int, char**) {
   return 0;
 }

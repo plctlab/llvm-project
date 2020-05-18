@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import print_function
 
 # System modules
 from distutils.version import LooseVersion
@@ -159,7 +158,8 @@ def _decorateTest(mode,
                   debug_info=None,
                   swig_version=None, py_version=None,
                   macos_version=None,
-                  remote=None, dwarf_version=None):
+                  remote=None, dwarf_version=None,
+                  setting=None):
     def fn(self):
         skip_for_os = _match_decorator_property(
             lldbplatform.translate(oslist), self.getPlatform())
@@ -173,7 +173,7 @@ def _decorateTest(mode,
         skip_for_debug_info = _match_decorator_property(
             debug_info, self.getDebugInfo())
         skip_for_triple = _match_decorator_property(
-            triple, lldb.DBG.GetSelectedPlatform().GetTriple())
+            triple, lldb.selected_platform.GetTriple())
         skip_for_remote = _match_decorator_property(
             remote, lldb.remote_platform is not None)
 
@@ -197,6 +197,8 @@ def _decorateTest(mode,
         skip_for_dwarf_version = (dwarf_version is None) or (
             _check_expected_version(dwarf_version[0], dwarf_version[1],
                                     self.getDwarfVersion()))
+        skip_for_setting = (setting is None) or (
+            setting in configuration.settings)
 
         # For the test to be skipped, all specified (e.g. not None) parameters must be True.
         # An unspecified parameter means "any", so those are marked skip by default.  And we skip
@@ -211,7 +213,8 @@ def _decorateTest(mode,
                       (py_version, skip_for_py_version, "python version"),
                       (macos_version, skip_for_macos_version, "macOS version"),
                       (remote, skip_for_remote, "platform locality (remote/local)"),
-                      (dwarf_version, skip_for_dwarf_version, "dwarf version")]
+                      (dwarf_version, skip_for_dwarf_version, "dwarf version"),
+                      (setting, skip_for_setting, "setting")]
         reasons = []
         final_skip_result = True
         for this_condition in conditions:
@@ -255,7 +258,8 @@ def expectedFailureAll(bugnumber=None,
                        debug_info=None,
                        swig_version=None, py_version=None,
                        macos_version=None,
-                       remote=None, dwarf_version=None):
+                       remote=None, dwarf_version=None,
+                       setting=None):
     return _decorateTest(DecorateMode.Xfail,
                          bugnumber=bugnumber,
                          oslist=oslist, hostoslist=hostoslist,
@@ -264,7 +268,8 @@ def expectedFailureAll(bugnumber=None,
                          debug_info=debug_info,
                          swig_version=swig_version, py_version=py_version,
                          macos_version=None,
-                         remote=remote,dwarf_version=dwarf_version)
+                         remote=remote,dwarf_version=dwarf_version,
+                         setting=setting)
 
 
 # provide a function to skip on defined oslist, compiler version, and archs
@@ -280,7 +285,8 @@ def skipIf(bugnumber=None,
            debug_info=None,
            swig_version=None, py_version=None,
            macos_version=None,
-           remote=None, dwarf_version=None):
+           remote=None, dwarf_version=None,
+           setting=None):
     return _decorateTest(DecorateMode.Skip,
                          bugnumber=bugnumber,
                          oslist=oslist, hostoslist=hostoslist,
@@ -289,7 +295,8 @@ def skipIf(bugnumber=None,
                          debug_info=debug_info,
                          swig_version=swig_version, py_version=py_version,
                          macos_version=macos_version,
-                         remote=remote, dwarf_version=dwarf_version)
+                         remote=remote, dwarf_version=dwarf_version,
+                         setting=setting)
 
 
 def _skip_for_android(reason, api_levels, archs):
@@ -364,7 +371,7 @@ def apple_simulator_test(platform):
             else:
                 return "%s simulator is not supported on this system." % platform
         except subprocess.CalledProcessError:
-            return "%s is not supported on this system (xcodebuild failed)." % feature
+            return "Simulators are unsupported on this system (xcodebuild failed)"
 
     return skipTestIfFn(should_skip_simulator_test)
 
@@ -517,6 +524,9 @@ def skipIfRemote(func):
 def skipIfNoSBHeaders(func):
     """Decorate the item to mark tests that should be skipped when LLDB is built with no SB API headers."""
     def are_sb_headers_missing():
+        if lldb.remote_platform:
+            return "skip because SBHeaders tests make no sense remotely"
+
         if lldbplatformutil.getHostPlatform() == 'darwin':
             header = os.path.join(
                 os.environ["LLDB_LIB_DIR"],
@@ -692,7 +702,7 @@ def skipUnlessHasCallSiteInfo(func):
 
         f = tempfile.NamedTemporaryFile()
         cmd = "echo 'int main() {}' | " \
-              "%s -g -glldb -O1 -Xclang -femit-debug-entry-values -S -emit-llvm -x c -o %s -" % (compiler_path, f.name)
+              "%s -g -glldb -O1 -S -emit-llvm -x c -o %s -" % (compiler_path, f.name)
         if os.popen(cmd).close() is not None:
             return "Compiler can't compile with call site info enabled"
 
@@ -806,6 +816,9 @@ def skipIfCursesSupportMissing(func):
 def skipIfXmlSupportMissing(func):
     return _get_bool_config_skip_if_decorator("xml")(func)
 
+def skipIfEditlineSupportMissing(func):
+    return _get_bool_config_skip_if_decorator("editline")(func)
+
 def skipIfLLVMTargetMissing(target):
     config = lldb.SBDebugger.GetBuildConfiguration()
     targets = config.GetValueForKey("targets").GetValueForKey("value")
@@ -841,3 +854,11 @@ def skipIfAsan(func):
             return "ASAN unsupported"
         return None
     return skipTestIfFn(is_asan)(func)
+
+def skipIfReproducer(func):
+    """Skip this test if the environment is set up to run LLDB with reproducers."""
+    def is_reproducer():
+        if configuration.capture_path or configuration.replay_path:
+            return "reproducers unsupported"
+        return None
+    return skipTestIfFn(is_reproducer)(func)

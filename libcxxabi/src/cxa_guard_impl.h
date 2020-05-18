@@ -50,7 +50,7 @@
 #include <stdlib.h>
 #include <__threading_support>
 #ifndef _LIBCXXABI_HAS_NO_THREADS
-#if defined(__unix__) && !defined(__ANDROID__) && defined(__ELF__) && defined(_LIBCXXABI_HAS_COMMENT_LIB_PRAGMA)
+#if defined(__ELF__) && defined(_LIBCXXABI_LINK_PTHREAD_LIB)
 #pragma comment(lib, "pthread")
 #endif
 #endif
@@ -106,6 +106,32 @@ struct LazyValue {
  private:
   T value;
   bool is_init = false;
+};
+
+template <class IntType>
+class AtomicInt {
+public:
+  using MemoryOrder = std::__libcpp_atomic_order;
+
+  explicit AtomicInt(IntType *b) : b(b) {}
+  AtomicInt(AtomicInt const&) = delete;
+  AtomicInt& operator=(AtomicInt const&) = delete;
+
+  IntType load(MemoryOrder ord) {
+    return std::__libcpp_atomic_load(b, ord);
+  }
+  void store(IntType val, MemoryOrder ord) {
+    std::__libcpp_atomic_store(b, val, ord);
+  }
+  IntType exchange(IntType new_val, MemoryOrder ord) {
+    return std::__libcpp_atomic_exchange(b, new_val, ord);
+  }
+  bool compare_exchange(IntType *expected, IntType desired, MemoryOrder ord_success, MemoryOrder ord_failure) {
+    return std::__libcpp_atomic_compare_exchange(b, expected, desired, ord_success, ord_failure);
+  }
+
+private:
+  IntType *b;
 };
 
 //===----------------------------------------------------------------------===//
@@ -195,7 +221,7 @@ public:
 public:
   /// base_address - the address of the original guard object.
   void* const base_address;
-  /// The address of the guord byte at offset 0.
+  /// The address of the guard byte at offset 0.
   uint8_t* const guard_byte_address;
   /// The address of the byte used by the implementation during initialization.
   uint8_t* const init_byte_address;

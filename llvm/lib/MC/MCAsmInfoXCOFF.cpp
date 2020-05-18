@@ -14,22 +14,28 @@ void MCAsmInfoXCOFF::anchor() {}
 
 MCAsmInfoXCOFF::MCAsmInfoXCOFF() {
   IsLittleEndian = false;
-  HasDotTypeDotSizeDirective = false;
-  COMMDirectiveAlignmentIsInBytes = false;
-  LCOMMDirectiveAlignmentType = LCOMM::Log2Alignment;
+  SupportsQuotedNames = false;
   UseDotAlignForAlignment = true;
+  ZeroDirective = "\t.space\t";
+  ZeroDirectiveSupportsNonZeroValue = false;
   AsciiDirective = nullptr; // not supported
   AscizDirective = nullptr; // not supported
-  NeedsFunctionDescriptors = true;
-  HasDotLGloblDirective = true;
   Data64bitsDirective = "\t.llong\t";
-  SupportsQuotedNames = false;
+  COMMDirectiveAlignmentIsInBytes = false;
+  LCOMMDirectiveAlignmentType = LCOMM::Log2Alignment;
+  HasDotTypeDotSizeDirective = false;
+  HasDotExternDirective = true;
+  HasDotLGloblDirective = true;
+  SymbolsHaveSMC = true;
+  UseIntegratedAssembler = false;
+  NeedsFunctionDescriptors = true;
 }
 
-bool MCAsmInfoXCOFF::isValidUnquotedName(StringRef Name) const {
-  // FIXME: Remove this function when we stop using "TOC[TC0]" as a symbol name.
-  if (Name.equals("TOC[TC0]"))
+bool MCAsmInfoXCOFF::isAcceptableChar(char C) const {
+  // QualName is allowed for a MCSymbolXCOFF, and
+  // QualName contains '[' and ']'.
+  if (C == '[' || C == ']')
     return true;
 
-  return MCAsmInfo::isValidUnquotedName(Name);
+  return MCAsmInfo::isAcceptableChar(C);
 }

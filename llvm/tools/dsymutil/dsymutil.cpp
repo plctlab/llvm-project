@@ -148,6 +148,11 @@ static Expected<std::vector<std::string>> getInputs(opt::InputArgList &Args,
 
 // Verify that the given combination of options makes sense.
 static Error verifyOptions(const DsymutilOptions &Options) {
+  if (Options.InputFiles.empty()) {
+    return make_error<StringError>("no input files specified",
+                                   errc::invalid_argument);
+  }
+
   if (Options.LinkOpts.Update &&
       std::find(Options.InputFiles.begin(), Options.InputFiles.end(), "-") !=
           Options.InputFiles.end()) {
@@ -215,6 +220,7 @@ static Expected<DsymutilOptions> getOptions(opt::InputArgList &Args) {
   Options.LinkOpts.NoTimestamp = Args.hasArg(OPT_no_swiftmodule_timestamp);
   Options.LinkOpts.Update = Args.hasArg(OPT_update);
   Options.LinkOpts.Verbose = Args.hasArg(OPT_verbose);
+  Options.LinkOpts.Statistics = Args.hasArg(OPT_statistics);
 
   if (Expected<AccelTableKind> AccelKind = getAccelTableKind(Args)) {
     Options.LinkOpts.TheAccelTableKind = *AccelKind;
@@ -241,6 +247,12 @@ static Expected<DsymutilOptions> getOptions(opt::InputArgList &Args) {
   if (opt::Arg *OsoPrependPath = Args.getLastArg(OPT_oso_prepend_path))
     Options.LinkOpts.PrependPath = OsoPrependPath->getValue();
 
+  for (const auto &Arg : Args.getAllArgValues(OPT_object_prefix_map)) {
+    auto Split = StringRef(Arg).split('=');
+    Options.LinkOpts.ObjectPrefixMap.insert(
+        {std::string(Split.first), std::string(Split.second)});
+  }
+
   if (opt::Arg *OutputFile = Args.getLastArg(OPT_output))
     Options.OutputFile = OutputFile->getValue();
 
@@ -253,13 +265,25 @@ static Expected<DsymutilOptions> getOptions(opt::InputArgList &Args) {
   if (opt::Arg *NumThreads = Args.getLastArg(OPT_threads))
     Options.LinkOpts.Threads = atoi(NumThreads->getValue());
   else
-    Options.LinkOpts.Threads = thread::hardware_concurrency();
+    Options.LinkOpts.Threads = 0; // Use all available hardware threads
 
   if (Options.DumpDebugMap || Options.LinkOpts.Verbose)
     Options.LinkOpts.Threads = 1;
 
   if (getenv("RC_DEBUG_OPTIONS"))
     Options.PaperTrailWarnings = true;
+
+  if (opt::Arg *RemarksPrependPath = Args.getLastArg(OPT_remarks_prepend_path))
+    Options.LinkOpts.RemarksPrependPath = RemarksPrependPath->getValue();
+
+  if (opt::Arg *RemarksOutputFormat =
+          Args.getLastArg(OPT_remarks_output_format)) {
+    if (Expected<remarks::Format> FormatOrErr =
+            remarks::parseFormat(RemarksOutputFormat->getValue()))
+      Options.LinkOpts.RemarksFormat = *FormatOrErr;
+    else
+      return FormatOrErr.takeError();
+  }
 
   if (Error E = verifyOptions(Options))
     return std::move(E);
@@ -282,9 +306,9 @@ static Error createPlistFile(StringRef Bin, StringRef BundleRoot,
   if (BI.IDStr.empty()) {
     StringRef BundleID = *sys::path::rbegin(BundleRoot);
     if (sys::path::extension(BundleRoot) == ".dSYM")
-      BI.IDStr = sys::path::stem(BundleID);
+      BI.IDStr = std::string(sys::path::stem(BundleID));
     else
-      BI.IDStr = BundleID;
+      BI.IDStr = std::string(BundleID);
   }
 
   // Print out information to the plist file.
@@ -388,7 +412,7 @@ getOutputFileName(StringRef InputFile, const DsymutilOptions &Options) {
   // When updating, do in place replacement.
   if (Options.OutputFile.empty() &&
       (Options.LinkOpts.Update || !Options.SymbolMap.empty()))
-    return OutputLocation(InputFile);
+    return OutputLocation(std::string(InputFile));
 
   // If a flat dSYM has been requested, things are pretty simple.
   if (Options.Flat) {
@@ -409,7 +433,8 @@ getOutputFileName(StringRef InputFile, const DsymutilOptions &Options) {
   //          Resources/
   //             DWARF/
   //                <DWARF file(s)>
-  std::string DwarfFile = InputFile == "-" ? StringRef("a.out") : InputFile;
+  std::string DwarfFile =
+      std::string(InputFile == "-" ? StringRef("a.out") : InputFile);
   SmallString<128> Path(Options.OutputFile);
   if (Path.empty())
     Path = DwarfFile + ".dSYM";
@@ -421,9 +446,9 @@ getOutputFileName(StringRef InputFile, const DsymutilOptions &Options) {
   }
 
   sys::path::append(Path, "Contents", "Resources");
-  std::string ResourceDir = Path.str();
+  std::string ResourceDir = std::string(Path.str());
   sys::path::append(Path, "DWARF", sys::path::filename(DwarfFile));
-  return OutputLocation(Path.str(), ResourceDir);
+  return OutputLocation(std::string(Path.str()), ResourceDir);
 }
 
 int main(int argc, char **argv) {
@@ -438,7 +463,12 @@ int main(int argc, char **argv) {
 
   void *P = (void *)(intptr_t)getOutputFileName;
   std::string SDKPath = sys::fs::getMainExecutable(argv[0], P);
-  SDKPath = sys::path::parent_path(SDKPath);
+  SDKPath = std::string(sys::path::parent_path(SDKPath));
+
+  for (auto *Arg : Args.filtered(OPT_UNKNOWN)) {
+    WithColor::warning() << "ignoring unknown option: " << Arg->getSpelling()
+                         << '\n';
+  }
 
   if (Args.hasArg(OPT_help)) {
     T.PrintHelp(
@@ -481,21 +511,26 @@ int main(int argc, char **argv) {
   for (auto &InputFile : Options.InputFiles) {
     // Dump the symbol table for each input file and requested arch
     if (Options.DumpStab) {
-      if (!dumpStab(InputFile, Options.Archs, Options.LinkOpts.PrependPath))
+      if (!dumpStab(Options.LinkOpts.VFS, InputFile, Options.Archs,
+                    Options.LinkOpts.PrependPath))
         return 1;
       continue;
     }
 
     auto DebugMapPtrsOrErr =
-        parseDebugMap(InputFile, Options.Archs, Options.LinkOpts.PrependPath,
-                      Options.PaperTrailWarnings, Options.LinkOpts.Verbose,
-                      Options.InputIsYAMLDebugMap);
+        parseDebugMap(Options.LinkOpts.VFS, InputFile, Options.Archs,
+                      Options.LinkOpts.PrependPath, Options.PaperTrailWarnings,
+                      Options.LinkOpts.Verbose, Options.InputIsYAMLDebugMap);
 
     if (auto EC = DebugMapPtrsOrErr.getError()) {
       WithColor::error() << "cannot parse the debug map for '" << InputFile
                          << "': " << EC.message() << '\n';
       return 1;
     }
+
+    // Remember the number of debug maps that are being processed to decide how
+    // to name the remark files.
+    Options.LinkOpts.NumDebugMaps = DebugMapPtrsOrErr->size();
 
     if (Options.LinkOpts.Update) {
       // The debug map should be empty. Add one object file corresponding to
@@ -512,11 +547,20 @@ int main(int argc, char **argv) {
     }
 
     // Shared a single binary holder for all the link steps.
-    BinaryHolder BinHolder;
+    BinaryHolder BinHolder(Options.LinkOpts.VFS);
 
-    unsigned ThreadCount =
-        std::min<unsigned>(Options.LinkOpts.Threads, DebugMapPtrsOrErr->size());
-    ThreadPool Threads(ThreadCount);
+    // Statistics only require different architectures to be processed
+    // sequentially, the link itself can still happen in parallel. Change the
+    // thread pool strategy here instead of modifying LinkOpts.Threads.
+    ThreadPoolStrategy S = hardware_concurrency(
+        Options.LinkOpts.Statistics ? 1 : Options.LinkOpts.Threads);
+    if (Options.LinkOpts.Threads == 0) {
+      // If NumThreads is not specified, create one thread for each input, up to
+      // the number of hardware threads.
+      S.ThreadsRequested = DebugMapPtrsOrErr->size();
+      S.Limit = true;
+    }
+    ThreadPool Threads(S);
 
     // If there is more than one link to execute, we need to generate
     // temporary files.
@@ -591,7 +635,7 @@ int main(int argc, char **argv) {
       // FIXME: The DwarfLinker can have some very deep recursion that can max
       // out the (significantly smaller) stack when using threads. We don't
       // want this limitation when we only have a single thread.
-      if (ThreadCount == 1)
+      if (S.ThreadsRequested == 1)
         LinkLambda(OS, Options.LinkOpts);
       else
         Threads.async(LinkLambda, OS, Options.LinkOpts);

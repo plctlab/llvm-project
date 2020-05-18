@@ -20,7 +20,7 @@
 // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
 // CHECK-SAME: "-emit-llvm-bc"
 // CHECK-SAME: {{.*}} "-main-file-name" "a.cu" {{.*}} "-target-cpu" "gfx803"
-// CHECK-SAME: "-fcuda-is-device" "-fvisibility" "hidden"
+// CHECK-SAME: "-fcuda-is-device" "-fcuda-allow-variadic-functions" "-fvisibility" "hidden"
 // CHECK-SAME: "-fapply-global-visibility-to-externs"
 // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
 // CHECK-SAME: {{.*}} "-o" [[A_BC_803:".*bc"]] "-x" "hip"
@@ -34,10 +34,11 @@
 // CHECK-SAME: "-o" [[OPT_BC_DEV_A_803:".*-gfx803-optimized.*bc"]]
 
 // CHECK: [[LLC: ".*llc"]] [[OPT_BC_DEV_A_803]] "-mtriple=amdgcn-amd-amdhsa"
+// CHECK-SAME: "-mcpu=gfx803"
 // CHECK-SAME: "-filetype=obj"
-// CHECK-SAME: "-mcpu=gfx803" "-o" [[OBJ_DEV_A_803:".*-gfx803-.*o"]]
+// CHECK-SAME: "-o" [[OBJ_DEV_A_803:".*-gfx803-.*o"]]
 
-// CHECK: [[LLD: ".*lld"]] "-flavor" "gnu" "-shared"
+// CHECK: [[LLD: ".*lld.*"]] "-flavor" "gnu" "--no-undefined" "-shared"
 // CHECK-SAME: "-o" "[[IMG_DEV_A_803:.*out]]" [[OBJ_DEV_A_803]]
 
 //
@@ -48,7 +49,7 @@
 // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
 // CHECK-SAME: "-emit-llvm-bc"
 // CHECK-SAME: {{.*}} "-main-file-name" "a.cu" {{.*}} "-target-cpu" "gfx900"
-// CHECK-SAME: "-fcuda-is-device" "-fvisibility" "hidden"
+// CHECK-SAME: "-fcuda-is-device" "-fcuda-allow-variadic-functions" "-fvisibility" "hidden"
 // CHECK-SAME: "-fapply-global-visibility-to-externs"
 // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
 // CHECK-SAME: {{.*}} "-o" [[A_BC_900:".*bc"]] "-x" "hip"
@@ -62,10 +63,11 @@
 // CHECK-SAME: "-o" [[OPT_BC_DEV_A_900:".*-gfx900-optimized.*bc"]]
 
 // CHECK: [[LLC: ".*llc"]] [[OPT_BC_DEV_A_900]] "-mtriple=amdgcn-amd-amdhsa"
+// CHECK-SAME: "-mcpu=gfx900"
 // CHECK-SAME: "-filetype=obj"
-// CHECK-SAME: "-mcpu=gfx900" "-o" [[OBJ_DEV_A_900:".*-gfx900-.*o"]]
+// CHECK-SAME: "-o" [[OBJ_DEV_A_900:".*-gfx900-.*o"]]
 
-// CHECK: [[LLD: ".*lld"]] "-flavor" "gnu" "-shared"
+// CHECK: [[LLD]] "-flavor" "gnu" "--no-undefined" "-shared"
 // CHECK-SAME: "-o" "[[IMG_DEV_A_900:.*out]]" [[OBJ_DEV_A_900]]
 
 //
@@ -92,7 +94,7 @@
 // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
 // CHECK-SAME: "-emit-llvm-bc"
 // CHECK-SAME: {{.*}} "-main-file-name" "b.hip" {{.*}} "-target-cpu" "gfx803"
-// CHECK-SAME: "-fcuda-is-device" "-fvisibility" "hidden"
+// CHECK-SAME: "-fcuda-is-device" "-fcuda-allow-variadic-functions" "-fvisibility" "hidden"
 // CHECK-SAME: "-fapply-global-visibility-to-externs"
 // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
 // CHECK-SAME: {{.*}} "-o" [[B_BC_803:".*bc"]] "-x" "hip"
@@ -106,10 +108,11 @@
 // CHECK-SAME: "-o" [[OPT_BC_DEV_B_803:".*-gfx803-optimized.*bc"]]
 
 // CHECK: [[LLC: ".*llc"]] [[OPT_BC_DEV_B_803]] "-mtriple=amdgcn-amd-amdhsa"
+// CHECK-SAME: "-mcpu=gfx803"
 // CHECK-SAME: "-filetype=obj"
-// CHECK-SAME: "-mcpu=gfx803" "-o" [[OBJ_DEV_B_803:".*-gfx803-.*o"]]
+// CHECK-SAME: "-o" [[OBJ_DEV_B_803:".*-gfx803-.*o"]]
 
-// CHECK: [[LLD: ".*lld"]] "-flavor" "gnu" "-shared"
+// CHECK: [[LLD]] "-flavor" "gnu" "--no-undefined" "-shared"
 // CHECK-SAME: "-o" "[[IMG_DEV_B_803:.*out]]" [[OBJ_DEV_B_803]]
 
 //
@@ -120,7 +123,7 @@
 // CHECK-SAME: "-aux-triple" "x86_64-unknown-linux-gnu"
 // CHECK-SAME: "-emit-llvm-bc"
 // CHECK-SAME: {{.*}} "-main-file-name" "b.hip" {{.*}} "-target-cpu" "gfx900"
-// CHECK-SAME: "-fcuda-is-device" "-fvisibility" "hidden"
+// CHECK-SAME: "-fcuda-is-device" "-fcuda-allow-variadic-functions" "-fvisibility" "hidden"
 // CHECK-SAME: "-fapply-global-visibility-to-externs"
 // CHECK-SAME: "{{.*}}lib1.bc" "{{.*}}lib2.bc"
 // CHECK-SAME: {{.*}} "-o" [[B_BC_900:".*bc"]] "-x" "hip"
@@ -134,10 +137,11 @@
 // CHECK-SAME: "-o" [[OPT_BC_DEV_B_900:".*-gfx900-optimized.*bc"]]
 
 // CHECK: [[LLC: ".*llc"]] [[OPT_BC_DEV_B_900]] "-mtriple=amdgcn-amd-amdhsa"
+// CHECk-SAME: "-mcpu=gfx900"
 // CHECK-SAME: "-filetype=obj"
-// CHECK-SAME: "-mcpu=gfx900" "-o" [[OBJ_DEV_B_900:".*-gfx900-.*o"]]
+// CHECK-SAME: "-o" [[OBJ_DEV_B_900:".*-gfx900-.*o"]]
 
-// CHECK: [[LLD: ".*lld"]] "-flavor" "gnu" "-shared"
+// CHECK: [[LLD]] "-flavor" "gnu" "--no-undefined" "-shared"
 // CHECK-SAME: "-o" "[[IMG_DEV_B_900:.*out]]" [[OBJ_DEV_B_900]]
 
 //

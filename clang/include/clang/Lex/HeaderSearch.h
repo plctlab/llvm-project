@@ -250,12 +250,6 @@ class HeaderSearch {
   /// Entity used to look up stored header file information.
   ExternalHeaderFileInfoSource *ExternalSource = nullptr;
 
-  // Various statistics we track for performance analysis.
-  unsigned NumIncluded = 0;
-  unsigned NumMultiIncludeFileOptzn = 0;
-  unsigned NumFrameworkLookups = 0;
-  unsigned NumSubFrameworkLookups = 0;
-
 public:
   HeaderSearch(std::shared_ptr<HeaderSearchOptions> HSOpts,
                SourceManager &SourceMgr, DiagnosticsEngine &Diags,
@@ -308,7 +302,7 @@ public:
   void AddIncludeAlias(StringRef Source, StringRef Dest) {
     if (!IncludeAliases)
       IncludeAliases.reset(new IncludeAliasMap);
-    (*IncludeAliases)[Source] = Dest;
+    (*IncludeAliases)[Source] = std::string(Dest);
   }
 
   /// Maps one header file name to a different header
@@ -327,7 +321,7 @@ public:
 
   /// Set the path to the module cache.
   void setModuleCachePath(StringRef CachePath) {
-    ModuleCachePath = CachePath;
+    ModuleCachePath = std::string(CachePath);
   }
 
   /// Retrieve the path to the module cache.
@@ -482,6 +476,13 @@ public:
   /// This routine does not consider the effect of \#import
   bool isFileMultipleIncludeGuarded(const FileEntry *File);
 
+  /// Determine whether the given file is known to have ever been \#imported
+  /// (or if it has been \#included and we've encountered a \#pragma once).
+  bool hasFileBeenImported(const FileEntry *File) {
+    const HeaderFileInfo *FI = getExistingFileInfo(File);
+    return FI && FI->isImport;
+  }
+
   /// This method returns a HeaderMap for the specified
   /// FileEntry, uniquing them through the 'HeaderMaps' datastructure.
   const HeaderMap *CreateHeaderMap(const FileEntry *FE);
@@ -544,8 +545,6 @@ public:
   const FileEntry *lookupModuleMapFile(const DirectoryEntry *Dir,
                                        bool IsFramework);
 
-  void IncrementFrameworkLookupCount() { ++NumFrameworkLookups; }
-
   /// Determine whether there is a module map that may map the header
   /// with the given file name to a (sub)module.
   /// Always returns false if modules are disabled.
@@ -566,6 +565,12 @@ public:
   /// \param AllowTextual Whether we want to find textual headers too.
   ModuleMap::KnownHeader findModuleForHeader(const FileEntry *File,
                                              bool AllowTextual = false) const;
+
+  /// Retrieve all the modules corresponding to the given file.
+  ///
+  /// \ref findModuleForHeader should typically be used instead of this.
+  ArrayRef<ModuleMap::KnownHeader>
+  findAllModulesForHeader(const FileEntry *File) const;
 
   /// Read the contents of the given module map file.
   ///

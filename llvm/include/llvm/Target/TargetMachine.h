@@ -237,10 +237,16 @@ public:
   void setSupportsDefaultOutlining(bool Enable) {
     Options.SupportsDefaultOutlining = Enable;
   }
+  void setSupportsDebugEntryValues(bool Enable) {
+    Options.SupportsDebugEntryValues = Enable;
+  }
 
   bool shouldPrintMachineCode() const { return Options.PrintMachineCode; }
 
   bool getUniqueSectionNames() const { return Options.UniqueSectionNames; }
+
+  /// Return true if unique basic block section names must be generated.
+  bool getUniqueBBSectionNames() const { return Options.UniqueBBSectionNames; }
 
   /// Return true if data objects should be emitted into their own section,
   /// corresponds to -fdata-sections.
@@ -252,6 +258,17 @@ public:
   /// corresponding to -ffunction-sections.
   bool getFunctionSections() const {
     return Options.FunctionSections;
+  }
+
+  /// If basic blocks should be emitted into their own section,
+  /// corresponding to -fbasicblock-sections.
+  llvm::BasicBlockSection getBBSectionsType() const {
+    return Options.BBSections;
+  }
+
+  /// Get the list of functions and basic block ids that need unique sections.
+  const MemoryBuffer *getBBSectionsFuncListBuf() const {
+    return Options.BBSectionsFuncListBuf.get();
   }
 
   /// Get a \c TargetIRAnalysis appropriate for the target.
@@ -270,15 +287,6 @@ public:
   /// Allow the target to modify the pass manager, e.g. by calling
   /// PassManagerBuilder::addExtension.
   virtual void adjustPassManager(PassManagerBuilder &) {}
-
-  /// These enums are meant to be passed into addPassesToEmitFile to indicate
-  /// what type of file to emit, and returned by it to indicate what type of
-  /// file could actually be made.
-  enum CodeGenFileType {
-    CGFT_AssemblyFile,
-    CGFT_ObjectFile,
-    CGFT_Null         // Do not emit any output.
-  };
 
   /// Add passes to the specified pass manager to get the specified file
   /// emitted.  Typically this will involve several steps of code generation.
@@ -315,6 +323,10 @@ public:
   void getNameWithPrefix(SmallVectorImpl<char> &Name, const GlobalValue *GV,
                          Mangler &Mang, bool MayAlwaysUsePrivate = false) const;
   MCSymbol *getSymbol(const GlobalValue *GV) const;
+
+  /// The integer bit size to use for SjLj based exception handling.
+  static constexpr unsigned DefaultSjLjDataSize = 32;
+  virtual unsigned getSjLjDataSize() const { return DefaultSjLjDataSize; }
 };
 
 /// This class describes a target machine that is implemented with the LLVM
@@ -370,11 +382,13 @@ public:
                      raw_pwrite_stream *DwoOut, CodeGenFileType FileType,
                      MCContext &Context);
 
-  /// True if the target uses physical regs at Prolog/Epilog insertion
-  /// time. If true (most machines), all vregs must be allocated before
-  /// PEI. If false (virtual-register machines), then callee-save register
-  /// spilling and scavenging are not needed or used.
-  virtual bool usesPhysRegsForPEI() const { return true; }
+  /// True if the target uses physical regs (as nearly all targets do). False
+  /// for stack machines such as WebAssembly and other virtual-register
+  /// machines. If true, all vregs must be allocated before PEI. If false, then
+  /// callee-save register spilling and scavenging are not needed or used. If
+  /// false, implicitly defined registers will still be assumed to be physical
+  /// registers, except that variadic defs will be allocated vregs.
+  virtual bool usesPhysRegsForValues() const { return true; }
 
   /// True if the target wants to use interprocedural register allocation by
   /// default. The -enable-ipra flag can be used to override this.

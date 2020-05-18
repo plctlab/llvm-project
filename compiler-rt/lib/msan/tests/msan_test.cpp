@@ -3275,11 +3275,9 @@ static void *SmallStackThread_threadfn(void* data) {
 }
 
 #ifdef PTHREAD_STACK_MIN
-# define SMALLSTACKSIZE    PTHREAD_STACK_MIN
-# define SMALLPRESTACKSIZE PTHREAD_STACK_MIN
+constexpr int kThreadStackMin = PTHREAD_STACK_MIN;
 #else
-# define SMALLSTACKSIZE    64 * 1024
-# define SMALLPRESTACKSIZE 16 * 1024
+constexpr int kThreadStackMin = 0;
 #endif
 
 TEST(MemorySanitizer, SmallStackThread) {
@@ -3289,7 +3287,7 @@ TEST(MemorySanitizer, SmallStackThread) {
   int res;
   res = pthread_attr_init(&attr);
   ASSERT_EQ(0, res);
-  res = pthread_attr_setstacksize(&attr, SMALLSTACKSIZE);
+  res = pthread_attr_setstacksize(&attr, std::max(kThreadStackMin, 64 * 1024));
   ASSERT_EQ(0, res);
   res = pthread_create(&t, &attr, SmallStackThread_threadfn, NULL);
   ASSERT_EQ(0, res);
@@ -3306,7 +3304,7 @@ TEST(MemorySanitizer, SmallPreAllocatedStackThread) {
   res = pthread_attr_init(&attr);
   ASSERT_EQ(0, res);
   void *stack;
-  const size_t kStackSize = SMALLPRESTACKSIZE;
+  const size_t kStackSize = std::max(kThreadStackMin, 32 * 1024);
   res = posix_memalign(&stack, 4096, kStackSize);
   ASSERT_EQ(0, res);
   res = pthread_attr_setstack(&attr, stack, kStackSize);
@@ -4798,3 +4796,32 @@ TEST(MemorySanitizer, Bmi) {
   }
 }
 #endif // defined(__x86_64__)
+
+namespace {
+volatile long z;
+
+__attribute__((noinline,optnone)) void f(long a, long b, long c, long d, long e, long f) {
+  z = a + b + c + d + e + f;
+}
+
+__attribute__((noinline,optnone)) void throw_stuff() {
+  throw 5;
+}
+
+TEST(MemorySanitizer, throw_catch) {
+  long x;
+  // Poison __msan_param_tls.
+  __msan_poison(&x, sizeof(x));
+  f(x, x, x, x, x, x);
+  try {
+    // This calls __gxx_personality_v0 through some libgcc_s function.
+    // __gxx_personality_v0 is instrumented, libgcc_s is not; as a result,
+    // __msan_param_tls is not updated and __gxx_personality_v0 can find
+    // leftover poison from the previous call.
+    // A suppression in msan_blacklist.txt makes it work.
+    throw_stuff();
+  } catch (const int &e) {
+    // pass
+  }
+}
+} // namespace

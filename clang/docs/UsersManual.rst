@@ -80,7 +80,7 @@ Basic Usage
 Intro to how to use a C compiler for newbies.
 
 compile + link compile then link debug info enabling optimizations
-picking a language to use, defaults to C11 by default. Autosenses based
+picking a language to use, defaults to C17 by default. Autosenses based
 on extension. using a makefile
 
 Command Line Options
@@ -324,9 +324,10 @@ output format of the diagnostics that it generates.
 
 .. _opt_fsave-optimization-record:
 
-.. option:: -fsave-optimization-record[=<format>]
+.. option:: -f[no-]save-optimization-record[=<format>]
 
-   Write optimization remarks to a separate file.
+   Enable optimization remarks during compilation and write them to a separate
+   file.
 
    This option, which defaults to off, controls whether Clang writes
    optimization reports to a separate file. By recording diagnostics in a file,
@@ -340,20 +341,69 @@ output format of the diagnostics that it generates.
 
       ``-fsave-optimization-record=yaml``: A structured YAML format.
 
+   -  .. _opt_fsave_optimization_record_bitstream:
+
+      ``-fsave-optimization-record=bitstream``: A binary format based on LLVM
+      Bitstream.
+
+   The output file is controlled by :ref:`-foptimization-record-file <opt_foptimization-record-file>`.
+
+   In the absence of an explicit output file, the file is chosen using the
+   following scheme:
+
+   ``<base>.opt.<format>``
+
+   where ``<base>`` is based on the output file of the compilation (whether
+   it's explicitly specified through `-o` or not) when used with `-c` or `-S`.
+   For example:
+
+   * ``clang -fsave-optimization-record -c in.c -o out.o`` will generate
+     ``out.opt.yaml``
+
+   * ``clang -fsave-optimization-record -c in.c `` will generate
+     ``in.opt.yaml``
+
+   When targeting (Thin)LTO, the base is derived from the output filename, and
+   the extension is not dropped.
+
+   When targeting ThinLTO, the following scheme is used:
+
+   ``<base>.opt.<format>.thin.<num>.<format>``
+
+   Darwin-only: when used for generating a linked binary from a source file
+   (through an intermediate object file), the driver will invoke `cc1` to
+   generate a temporary object file. The temporary remark file will be emitted
+   next to the object file, which will then be picked up by `dsymutil` and
+   emitted in the .dSYM bundle. This is available for all formats except YAML.
+
+   For example:
+
+   ``clang -fsave-optimization-record=bitstream in.c -o out`` will generate
+
+   * ``/var/folders/43/9y164hh52tv_2nrdxrj31nyw0000gn/T/a-9be59b.o``
+
+   * ``/var/folders/43/9y164hh52tv_2nrdxrj31nyw0000gn/T/a-9be59b.opt.bitstream``
+
+   * ``out``
+
+   * ``out.dSYM/Contents/Resources/Remarks/out``
+
+   Darwin-only: compiling for multiple architectures will use the following
+   scheme:
+
+   ``<base>-<arch>.opt.<format>``
+
+   Note that this is incompatible with passing the
+   :ref:`-foptimization-record-file <opt_foptimization-record-file>` option.
+
 .. _opt_foptimization-record-file:
 
 **-foptimization-record-file**
-   Control the file to which optimization reports are written.
+   Control the file to which optimization reports are written. This implies
+   :ref:`-fsave-optimization-record <opt_fsave-optimization-record>`.
 
-   When optimization reports are being output (see
-   :ref:`-fsave-optimization-record <opt_fsave-optimization-record>`), this
-   option controls the file to which those reports are written.
-
-   If this option is not used, optimization records are output to a file named
-   after the primary file being compiled. If that's "foo.c", for example,
-   optimization records are output to "foo.opt.yaml". If a specific
-   serialization format is specified, the file will be named
-   "foo.opt.<format>".
+    On Darwin platforms, this is incompatible with passing multiple
+    ``-arch <arch>`` options.
 
 .. _opt_foptimization-record-passes:
 
@@ -700,6 +750,13 @@ Current limitations
 Other Options
 -------------
 Clang options that don't fit neatly into other categories.
+
+.. option:: -fgnuc-version=
+
+  This flag controls the value of ``__GNUC__`` and related macros. This flag
+  does not enable or disable any GCC extensions implemented in Clang. Setting
+  the version to zero causes Clang to leave ``__GNUC__`` and other
+  GNU-namespaced macros, such as ``__GXX_WEAK__``, undefined.
 
 .. option:: -MV
 
@@ -1219,10 +1276,10 @@ are listed below.
 
 **-f[no-]trapping-math**
 
-   ``-fno-trapping-math`` allows optimizations that assume that
-   floating point operations cannot generate traps such as divide-by-zero,
-   overflow and underflow. Defaults to ``-ftrapping-math``.
-   Currently this option has no effect.
+   Control floating point exception behavior. ``-fno-trapping-math`` allows optimizations that assume that floating point operations cannot generate traps such as divide-by-zero, overflow and underflow.
+
+- The option ``-ftrapping-math`` behaves identically to ``-ffp-exception-behavior=strict``.
+- The option ``-fno-trapping-math`` behaves identically to ``-ffp-exception-behavior=ignore``.   This is the default.
 
 .. option:: -ffp-contract=<value>
 
@@ -1307,6 +1364,52 @@ are listed below.
 
    Defaults to ``-fno-finite-math``.
 
+.. _opt_frounding-math:
+
+**-f[no-]rounding-math**
+
+Force floating-point operations to honor the dynamically-set rounding mode by default.
+
+The result of a floating-point operation often cannot be exactly represented in the result type and therefore must be rounded.  IEEE 754 describes different rounding modes that control how to perform this rounding, not all of which are supported by all implementations.  C provides interfaces (``fesetround`` and ``fesetenv``) for dynamically controlling the rounding mode, and while it also recommends certain conventions for changing the rounding mode, these conventions are not typically enforced in the ABI.  Since the rounding mode changes the numerical result of operations, the compiler must understand something about it in order to optimize floating point operations.
+
+Note that floating-point operations performed as part of constant initialization are formally performed prior to the start of the program and are therefore not subject to the current rounding mode.  This includes the initialization of global variables and local ``static`` variables.  Floating-point operations in these contexts will be rounded using ``FE_TONEAREST``.
+
+- The option ``-fno-rounding-math`` allows the compiler to assume that the rounding mode is set to ``FE_TONEAREST``.  This is the default.
+- The option ``-frounding-math`` forces the compiler to honor the dynamically-set rounding mode.  This prevents optimizations which might affect results if the rounding mode changes or is different from the default; for example, it prevents floating-point operations from being reordered across most calls and prevents constant-folding when the result is not exactly representable.
+
+.. option:: -ffp-model=<value>
+
+   Specify floating point behavior. ``-ffp-model`` is an umbrella
+   option that encompasses functionality provided by other, single
+   purpose, floating point options.  Valid values are: ``precise``, ``strict``,
+   and ``fast``.
+   Details:
+
+   * ``precise`` Disables optimizations that are not value-safe on floating-point data, although FP contraction (FMA) is enabled (``-ffp-contract=fast``).  This is the default behavior.
+   * ``strict`` Enables ``-frounding-math`` and ``-ffp-exception-behavior=strict``, and disables contractions (FMA).  All of the ``-ffast-math`` enablements are disabled.
+   * ``fast`` Behaves identically to specifying both ``-ffast-math`` and ``ffp-contract=fast``
+
+   Note: If your command line specifies multiple instances
+   of the ``-ffp-model`` option, or if your command line option specifies
+   ``-ffp-model`` and later on the command line selects a floating point
+   option that has the effect of negating part of the  ``ffp-model`` that
+   has been selected, then the compiler will issue a diagnostic warning
+   that the override has occurred.
+
+.. option:: -ffp-exception-behavior=<value>
+
+   Specify the floating-point exception behavior.
+
+   Valid values are: ``ignore``, ``maytrap``, and ``strict``.
+   The default value is ``ignore``.  Details:
+
+   * ``ignore`` The compiler assumes that the exception status flags will not be read and that floating point exceptions will be masked.
+   * ``maytrap`` The compiler avoids transformations that may raise exceptions that would not have been raised by the original code. Constant folding performed by the compiler is exempt from this option.
+   * ``strict`` The compiler ensures that all transformations strictly preserve the floating point exception semantics of the original code.
+
+
+
+
 .. _controlling-code-generation:
 
 Controlling Code Generation
@@ -1363,7 +1466,7 @@ are listed below.
 
 **-f[no-]sanitize-recover=check1,check2,...**
 
-**-f[no-]sanitize-recover=all**
+**-f[no-]sanitize-recover[=all]**
 
    Controls which checks enabled by ``-fsanitize=`` flag are non-fatal.
    If the check is fatal, program will halt after the first error
@@ -1389,6 +1492,8 @@ are listed below.
 
 **-f[no-]sanitize-trap=check1,check2,...**
 
+**-f[no-]sanitize-trap[=all]**
+
    Controls which checks enabled by the ``-fsanitize=`` flag trap. This
    option is intended for use in cases where the sanitizer runtime cannot
    be used (for instance, when building libc or a kernel module), or where
@@ -1396,9 +1501,7 @@ are listed below.
 
    This flag is only compatible with :doc:`control flow integrity
    <ControlFlowIntegrity>` schemes and :doc:`UndefinedBehaviorSanitizer`
-   checks other than ``vptr``. If this flag
-   is supplied together with ``-fsanitize=undefined``, the ``vptr`` sanitizer
-   will be implicitly disabled.
+   checks other than ``vptr``.
 
    This flag is enabled by default for sanitizers in the ``cfi`` group.
 
@@ -1573,6 +1676,27 @@ are listed below.
    relocation scanning. Address-significance tables are enabled by default
    on ELF targets when using the integrated assembler. This flag currently
    only has an effect on ELF targets.
+
+**-f[no]-unique-internal-linkage-names**
+
+   Controls whether Clang emits a unique (best-effort) symbol name for internal
+   linkage symbols.  When this option is set, compiler hashes the main source
+   file path from the command line and appends it to all internal symbols. If a
+   program contains multiple objects compiled with the same command-line source
+   file path, the symbols are not guaranteed to be unique.  This option is
+   particularly useful in attributing profile information to the correct
+   function when multiple functions with the same private linkage name exist
+   in the binary.
+
+   It should be noted that this option cannot guarantee uniqueness and the
+   following is an example where it is not unique when two modules contain
+   symbols with the same private linkage name:
+
+   .. code-block:: console
+
+     $ cd $P/foo && clang -c -funique-internal-linkage-names name_conflict.c
+     $ cd $P/bar && clang -c -funique-internal-linkage-names name_conflict.c
+     $ cd $P && clang foo/name_conflict.o && bar/name_conflict.o
 
 Profile Guided Optimization
 ---------------------------
@@ -2296,10 +2420,10 @@ See :doc:`LanguageExtensions`.
 Differences between various standard modes
 ------------------------------------------
 
-clang supports the -std option, which changes what language mode clang
-uses. The supported modes for C are c89, gnu89, c99, gnu99, c11, gnu11,
-c17, gnu17, and various aliases for those modes. If no -std option is
-specified, clang defaults to gnu11 mode. Many C99 and C11 features are
+clang supports the -std option, which changes what language mode clang uses.
+The supported modes for C are c89, gnu89, c99, gnu99, c11, gnu11, c17, gnu17,
+c2x, gnu2x, and various aliases for those modes. If no -std option is
+specified, clang defaults to gnu17 mode. Many C99 and C11 features are
 supported in earlier modes as a conforming extension, with a warning. Use
 ``-pedantic-errors`` to request an error if a feature from a later standard
 revision is used in an earlier mode.
@@ -2558,7 +2682,8 @@ This will produce a generic test.bc file that can be used in vendor toolchains
 to perform machine code generation.
 
 Clang currently supports OpenCL C language standards up to v2.0. Starting from
-clang 9 a C++ mode is available for OpenCL (see :ref:`C++ for OpenCL <opencl_cpp>`).
+clang 9 a C++ mode is available for OpenCL (see
+:ref:`C++ for OpenCL <cxx_for_opencl>`).
 
 OpenCL Specific Options
 -----------------------
@@ -2753,6 +2878,10 @@ function to the custom ``my_ext`` extension.
 
 Declaring the same types in different vendor extensions is disallowed.
 
+Clang also supports language extensions documented in `The OpenCL C Language
+Extensions Documentation
+<https://github.com/KhronosGroup/Khronosdotorg/blob/master/api/opencl/assets/OpenCL_LangExt.pdf>`_.
+
 OpenCL Metadata
 ---------------
 
@@ -2917,7 +3046,7 @@ There are some standard OpenCL functions that are implemented as Clang builtins:
   enqueue query functions from `section 6.13.17.5
   <https://www.khronos.org/registry/cl/specs/opencl-2.0-openclc.pdf#171>`_.
 
-.. _opencl_cpp:
+.. _cxx_for_opencl:
 
 C++ for OpenCL
 --------------
@@ -2928,8 +3057,9 @@ implementation of `OpenCL C++
 <https://www.khronos.org/registry/OpenCL/specs/2.2/pdf/OpenCL_Cxx.pdf>`_ and
 there is no plan to support it in clang in any new releases in the near future.
 
-For detailed information about restrictions to allowed C++ features please
-refer to :doc:`LanguageExtensions`.
+For detailed information about this language refer to `The C++ for OpenCL
+Programming Language Documentation
+<https://github.com/KhronosGroup/Khronosdotorg/blob/master/api/opencl/assets/CXX_for_OpenCL.pdf>`_.
 
 Since C++ features are to be used on top of OpenCL C functionality, all existing
 restrictions from OpenCL C v2.0 will inherently apply. All OpenCL C builtin types
@@ -2956,6 +3086,35 @@ compiling ``.cl`` file ``-cl-std=clc++``, ``-cl-std=CLC++``, ``-std=clc++`` or
    .. code-block:: console
 
      clang -cl-std=clc++ test.cl
+
+Constructing and destroying global objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Global objects must be constructed before the first kernel using the global objects
+is executed and destroyed just after the last kernel using the program objects is
+executed. In OpenCL v2.0 drivers there is no specific API for invoking global
+constructors. However, an easy workaround would be to enqueue a constructor
+initialization kernel that has a name ``@_GLOBAL__sub_I_<compiled file name>``.
+This kernel is only present if there are any global objects to be initialized in
+the compiled binary. One way to check this is by passing ``CL_PROGRAM_KERNEL_NAMES``
+to ``clGetProgramInfo`` (OpenCL v2.0 s5.8.7).
+
+Note that if multiple files are compiled and linked into libraries, multiple kernels
+that initialize global objects for multiple modules would have to be invoked.
+
+Applications are currently required to run initialization of global objects manually
+before running any kernels in which the objects are used.
+
+   .. code-block:: console
+
+     clang -cl-std=clc++ test.cl
+
+If there are any global objects to be initialized, the final binary will contain
+the ``@_GLOBAL__sub_I_test.cl`` kernel to be enqueued.
+
+Global destructors can not be invoked in OpenCL v2.0 drivers. However, all memory used
+for program scope objects is released on ``clReleaseProgram``.
+
 
 .. _target_features:
 
@@ -3530,3 +3689,56 @@ This option is intended to be used as a temporary means to build projects where
 clang-cl cannot successfully compile all the files. clang-cl may fail to compile
 a file either because it cannot generate code for some C++ feature, or because
 it cannot parse some Microsoft language extension.
+
+Finding Clang runtime libraries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+clang-cl supports several features that require runtime library support:
+
+- Address Sanitizer (ASan): ``-fsanitize=address``
+- Undefined Behavior Sanitizer (UBSan): ``-fsanitize=undefined``
+- Code coverage: ``-fprofile-instr-generate -fcoverage-mapping``
+- Profile Guided Optimization (PGO): ``-fprofile-instr-generate``
+- Certain math operations (int128 division) require the builtins library
+
+In order to use these features, the user must link the right runtime libraries
+into their program. These libraries are distributed alongside Clang in the
+library resource directory. Clang searches for the resource directory by
+searching relative to the Clang executable. For example, if LLVM is installed
+in ``C:\Program Files\LLVM``, then the profile runtime library will be located
+at the path
+``C:\Program Files\LLVM\lib\clang\11.0.0\lib\windows\clang_rt.profile-x86_64.lib``.
+
+For UBSan, PGO, and coverage, Clang will emit object files that auto-link the
+appropriate runtime library, but the user generally needs to help the linker
+(whether it is ``lld-link.exe`` or MSVC ``link.exe``) find the library resource
+directory. Using the example installation above, this would mean passing
+``/LIBPATH:C:\Program Files\LLVM\lib\clang\11.0.0\lib\windows`` to the linker.
+If the user links the program with the ``clang`` or ``clang-cl`` drivers, the
+driver will pass this flag for them.
+
+If the linker cannot find the appropriate library, it will emit an error like
+this::
+
+  $ clang-cl -c -fsanitize=undefined t.cpp
+
+  $ lld-link t.obj -dll
+  lld-link: error: could not open 'clang_rt.ubsan_standalone-x86_64.lib': no such file or directory
+  lld-link: error: could not open 'clang_rt.ubsan_standalone_cxx-x86_64.lib': no such file or directory
+
+  $ link t.obj -dll -nologo
+  LINK : fatal error LNK1104: cannot open file 'clang_rt.ubsan_standalone-x86_64.lib'
+
+To fix the error, add the appropriate ``/libpath:`` flag to the link line.
+
+For ASan, as of this writing, the user is also responsible for linking against
+the correct ASan libraries.
+
+If the user is using the dynamic CRT (``/MD``), then they should add
+``clang_rt.asan_dynamic-x86_64.lib`` to the link line as a regular input. For
+other architectures, replace x86_64 with the appropriate name here and below.
+
+If the user is using the static CRT (``/MT``), then different runtimes are used
+to produce DLLs and EXEs. To link a DLL, pass
+``clang_rt.asan_dll_thunk-x86_64.lib``. To link an EXE, pass
+``-wholearchive:clang_rt.asan-x86_64.lib``.

@@ -1,4 +1,4 @@
-//===-- DynamicLoaderDarwin.cpp -----------------------------*- C++ -*-===//
+//===-- DynamicLoaderDarwin.cpp -------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -16,7 +16,6 @@
 #include "lldb/Core/Section.h"
 #include "lldb/Expression/DiagnosticManager.h"
 #include "lldb/Host/FileSystem.h"
-#include "lldb/Symbol/ClangASTContext.h"
 #include "lldb/Symbol/Function.h"
 #include "lldb/Symbol/ObjectFile.h"
 #include "lldb/Target/ABI.h"
@@ -32,6 +31,7 @@
 #include "lldb/Utility/State.h"
 
 #include "Plugins/LanguageRuntime/ObjC/ObjCLanguageRuntime.h"
+#include "Plugins/TypeSystem/Clang/TypeSystemClang.h"
 
 //#define ENABLE_DEBUG_PRINTF // COMMENT THIS LINE OUT PRIOR TO CHECKIN
 #ifdef ENABLE_DEBUG_PRINTF
@@ -383,9 +383,10 @@ bool DynamicLoaderDarwin::JSONImageInformationIntoImageInfo(
         mh->GetValueForKey("filetype")->GetAsInteger()->GetValue();
 
     if (image->HasKey("min_version_os_name")) {
-      std::string os_name = image->GetValueForKey("min_version_os_name")
-                                ->GetAsString()
-                                ->GetValue();
+      std::string os_name =
+          std::string(image->GetValueForKey("min_version_os_name")
+                          ->GetAsString()
+                          ->GetValue());
       if (os_name == "macosx")
         image_infos[i].os_type = llvm::Triple::MacOSX;
       else if (os_name == "ios" || os_name == "iphoneos")
@@ -399,13 +400,22 @@ bool DynamicLoaderDarwin::JSONImageInformationIntoImageInfo(
       else if (os_name == "maccatalyst") {
         image_infos[i].os_type = llvm::Triple::IOS;
         image_infos[i].os_env = llvm::Triple::MacABI;
+      } else if (os_name == "iossimulator") {
+        image_infos[i].os_type = llvm::Triple::IOS;
+        image_infos[i].os_env = llvm::Triple::Simulator;
+      } else if (os_name == "tvossimulator") {
+        image_infos[i].os_type = llvm::Triple::TvOS;
+        image_infos[i].os_env = llvm::Triple::Simulator;
+      } else if (os_name == "watchossimulator") {
+        image_infos[i].os_type = llvm::Triple::WatchOS;
+        image_infos[i].os_env = llvm::Triple::Simulator;
       }
     }
     if (image->HasKey("min_version_os_sdk")) {
       image_infos[i].min_version_os_sdk =
-          image->GetValueForKey("min_version_os_sdk")
-              ->GetAsString()
-              ->GetValue();
+          std::string(image->GetValueForKey("min_version_os_sdk")
+                          ->GetAsString()
+                          ->GetValue());
     }
 
     // Fields that aren't used by DynamicLoaderDarwin so debugserver doesn't
@@ -671,7 +681,7 @@ bool DynamicLoaderDarwin::AddModulesUsingImageInfos(
         loaded_module_list.AppendIfNeeded(image_module_sp);
       }
 
-      // macCataylst support:
+      // macCatalyst support:
       // Update the module's platform with the DYLD info.
       ArchSpec dyld_spec = image_infos[idx].GetArchitecture();
       if (dyld_spec.GetTriple().getOS() == llvm::Triple::IOS &&
@@ -838,8 +848,8 @@ DynamicLoaderDarwin::GetStepThroughTrampolinePlan(Thread &thread,
     std::vector<Address> addresses;
 
     if (current_symbol->IsTrampoline()) {
-      ConstString trampoline_name = current_symbol->GetMangled().GetName(
-          current_symbol->GetLanguage(), Mangled::ePreferMangled);
+      ConstString trampoline_name =
+          current_symbol->GetMangled().GetName(Mangled::ePreferMangled);
 
       if (trampoline_name) {
         const ModuleList &images = target_sp->GetImages();
@@ -977,15 +987,13 @@ DynamicLoaderDarwin::GetStepThroughTrampolinePlan(Thread &thread,
   return thread_plan_sp;
 }
 
-size_t DynamicLoaderDarwin::FindEquivalentSymbols(
+void DynamicLoaderDarwin::FindEquivalentSymbols(
     lldb_private::Symbol *original_symbol, lldb_private::ModuleList &images,
     lldb_private::SymbolContextList &equivalent_symbols) {
-  ConstString trampoline_name = original_symbol->GetMangled().GetName(
-      original_symbol->GetLanguage(), Mangled::ePreferMangled);
+  ConstString trampoline_name =
+      original_symbol->GetMangled().GetName(Mangled::ePreferMangled);
   if (!trampoline_name)
-    return 0;
-
-  size_t initial_size = equivalent_symbols.GetSize();
+    return;
 
   static const char *resolver_name_regex = "(_gc|_non_gc|\\$[A-Za-z0-9\\$]+)$";
   std::string equivalent_regex_buf("^");
@@ -993,11 +1001,9 @@ size_t DynamicLoaderDarwin::FindEquivalentSymbols(
   equivalent_regex_buf.append(resolver_name_regex);
 
   RegularExpression equivalent_name_regex(equivalent_regex_buf);
-  const bool append = true;
   images.FindSymbolsMatchingRegExAndType(equivalent_name_regex, eSymbolTypeCode,
-                                         equivalent_symbols, append);
+                                         equivalent_symbols);
 
-  return equivalent_symbols.GetSize() - initial_size;
 }
 
 lldb::ModuleSP DynamicLoaderDarwin::GetPThreadLibraryModule() {
@@ -1008,8 +1014,8 @@ lldb::ModuleSP DynamicLoaderDarwin::GetPThreadLibraryModule() {
     module_spec.GetFileSpec().GetFilename().SetCString(
         "libsystem_pthread.dylib");
     ModuleList module_list;
-    if (m_process->GetTarget().GetImages().FindModules(module_spec,
-                                                       module_list)) {
+    m_process->GetTarget().GetImages().FindModules(module_spec, module_list);
+    if (!module_list.IsEmpty()) {
       if (module_list.GetSize() == 1) {
         module_sp = module_list.GetModuleAtIndex(0);
         if (module_sp)
@@ -1076,8 +1082,8 @@ DynamicLoaderDarwin::GetThreadLocalData(const lldb::ModuleSP module_sp,
         }
         StackFrameSP frame_sp = thread_sp->GetStackFrameAtIndex(0);
         if (frame_sp) {
-          ClangASTContext *clang_ast_context =
-              target.GetScratchClangASTContext();
+          TypeSystemClang *clang_ast_context =
+              TypeSystemClang::GetScratch(target);
 
           if (!clang_ast_context)
             return LLDB_INVALID_ADDRESS;

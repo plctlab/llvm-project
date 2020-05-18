@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_FileSpec_h_
-#define liblldb_FileSpec_h_
+#ifndef LLDB_UTILITY_FILESPEC_H
+#define LLDB_UTILITY_FILESPEC_H
 
 #include <functional>
 #include <string>
@@ -18,6 +18,7 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/Path.h"
+#include "llvm/Support/YAMLTraits.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -75,32 +76,9 @@ public:
 
   explicit FileSpec(llvm::StringRef path, const llvm::Triple &triple);
 
-  /// Copy constructor
-  ///
-  /// Makes a copy of the uniqued directory and filename strings from \a rhs
-  /// if it is not nullptr.
-  ///
-  /// \param[in] rhs
-  ///     A const FileSpec object pointer to copy if non-nullptr.
-  FileSpec(const FileSpec *rhs);
-
-  /// Destructor.
-  ~FileSpec();
-
   bool DirectoryEquals(const FileSpec &other) const;
 
   bool FileEquals(const FileSpec &other) const;
-
-  /// Assignment operator.
-  ///
-  /// Makes a copy of the uniqued directory and filename strings from \a rhs.
-  ///
-  /// \param[in] rhs
-  ///     A const FileSpec object reference to assign to this object.
-  ///
-  /// \return
-  ///     A const reference to this object.
-  const FileSpec &operator=(const FileSpec &rhs);
 
   /// Equal to operator
   ///
@@ -206,6 +184,12 @@ public:
 
   static bool Equal(const FileSpec &a, const FileSpec &b, bool full);
 
+  /// Match FileSpec \a pattern against FileSpec \a file. If \a pattern has a
+  /// directory component, then the \a file must have the same directory
+  /// component. Otherwise, just it matches just the filename. An empty \a
+  /// pattern matches everything.
+  static bool Match(const FileSpec &pattern, const FileSpec &file);
+
   /// Attempt to guess path style for a given path string. It returns a style,
   /// if it was able to make a reasonable guess, or None if it wasn't. The guess
   /// will be correct if the input path was a valid absolute path on the system
@@ -228,7 +212,7 @@ public:
   ///
   /// \param[in] s
   ///     The stream to which to dump the object description.
-  void Dump(Stream *s) const;
+  void Dump(llvm::raw_ostream &s) const;
 
   Style GetPathStyle() const;
 
@@ -414,6 +398,8 @@ public:
   ConstString GetLastPathComponent() const;
 
 protected:
+  friend struct llvm::yaml::MappingTraits<FileSpec>;
+
   // Convenience method for setting the file without changing the style.
   void SetFile(llvm::StringRef path);
 
@@ -427,6 +413,8 @@ protected:
 /// Dump a FileSpec object to a stream
 Stream &operator<<(Stream &s, const FileSpec &f);
 
+/// Prevent ODR violations with traits for llvm::sys::path::Style.
+LLVM_YAML_STRONG_TYPEDEF(FileSpec::Style, FileSpecStyle)
 } // namespace lldb_private
 
 namespace llvm {
@@ -453,6 +441,16 @@ template <> struct format_provider<lldb_private::FileSpec> {
   static void format(const lldb_private::FileSpec &F, llvm::raw_ostream &Stream,
                      StringRef Style);
 };
+
+namespace yaml {
+template <> struct ScalarEnumerationTraits<lldb_private::FileSpecStyle> {
+  static void enumeration(IO &io, lldb_private::FileSpecStyle &style);
+};
+
+template <> struct MappingTraits<lldb_private::FileSpec> {
+  static void mapping(IO &io, lldb_private::FileSpec &f);
+};
+} // namespace yaml
 } // namespace llvm
 
-#endif // liblldb_FileSpec_h_
+#endif // LLDB_UTILITY_FILESPEC_H

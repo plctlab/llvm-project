@@ -1,4 +1,4 @@
-//===-- CommandObjectPlatform.cpp -------------------------------*- C++ -*-===//
+//===-- CommandObjectPlatform.cpp -----------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -6,7 +6,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <mutex>
 #include "CommandObjectPlatform.h"
 #include "lldb/Core/Debugger.h"
 #include "lldb/Core/Module.h"
@@ -22,10 +21,8 @@
 #include "lldb/Target/Platform.h"
 #include "lldb/Target/Process.h"
 #include "lldb/Utility/Args.h"
-#include "lldb/Utility/DataExtractor.h"
 
 #include "llvm/ADT/SmallString.h"
-#include "llvm/Support/Threading.h"
 
 using namespace lldb;
 using namespace lldb_private;
@@ -712,7 +709,7 @@ protected:
                                          option_arg.str().c_str());
         break;
       case 'd':
-        m_data.assign(option_arg);
+        m_data.assign(std::string(option_arg));
         break;
       default:
         llvm_unreachable("Unimplemented option");
@@ -1131,7 +1128,7 @@ protected:
               ProcessInstanceInfo::DumpTableHeader(ostrm, m_options.show_args,
                                                    m_options.verbose);
               for (uint32_t i = 0; i < matches; ++i) {
-                proc_infos.GetProcessInfoAtIndex(i).DumpAsTableRow(
+                proc_infos[i].DumpAsTableRow(
                     ostrm, platform_sp->GetUserIDResolver(),
                     m_options.show_args, m_options.verbose);
               }
@@ -1152,8 +1149,7 @@ protected:
   class CommandOptions : public Options {
   public:
     CommandOptions()
-        : Options(), match_info(), show_args(false), verbose(false) {
-    }
+        : Options(), match_info(), show_args(false), verbose(false) {}
 
     ~CommandOptions() override = default;
 
@@ -1262,6 +1258,10 @@ protected:
 
       case 'v':
         verbose = true;
+        break;
+
+      case 'x':
+        match_info.SetMatchAllUsers(true);
         break;
 
       default:
@@ -1462,12 +1462,12 @@ public:
         match_info.SetNameMatchType(NameMatch::StartsWith);
       }
       platform_sp->FindProcesses(match_info, process_infos);
-      const uint32_t num_matches = process_infos.GetSize();
+      const uint32_t num_matches = process_infos.size();
       if (num_matches == 0)
         return;
 
       for (uint32_t i = 0; i < num_matches; ++i) {
-        request.AddCompletion(process_infos.GetProcessNameAtIndex(i));
+        request.AddCompletion(process_infos[i].GetNameAsStringRef());
       }
       return;
     }
@@ -1602,7 +1602,6 @@ public:
                  CommandReturnObject &result) override {
     ExecutionContext exe_ctx = GetCommandInterpreter().GetExecutionContext();
     m_options.NotifyOptionParsingStarting(&exe_ctx);
-
 
     // Print out an usage syntax on an empty command line.
     if (raw_command_line.empty()) {

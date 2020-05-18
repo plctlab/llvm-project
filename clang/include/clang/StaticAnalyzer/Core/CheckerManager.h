@@ -14,6 +14,7 @@
 #define LLVM_CLANG_STATICANALYZER_CORE_CHECKERMANAGER_H
 
 #include "clang/Analysis/ProgramPoint.h"
+#include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/LangOptions.h"
 #include "clang/StaticAnalyzer/Core/PathSensitive/ProgramState_Fwd.h"
 #include "clang/StaticAnalyzer/Core/PathSensitive/Store.h"
@@ -85,6 +86,11 @@ enum PointerEscapeKind {
   /// argument to a function.
   PSK_IndirectEscapeOnCall,
 
+
+  /// Escape for a new symbol that was generated into a region
+  /// that the analyzer cannot follow during a conservative call.
+  PSK_EscapeOutParameters,
+
   /// The reason for pointer escape is unknown. For example,
   /// a region containing this pointer is invalidated.
   PSK_EscapeOther
@@ -116,14 +122,38 @@ enum class ObjCMessageVisitKind {
 };
 
 class CheckerManager {
-  ASTContext &Context;
+  ASTContext *Context = nullptr;
   const LangOptions LangOpts;
-  AnalyzerOptions &AOptions;
+  const AnalyzerOptions &AOptions;
+  const Preprocessor *PP = nullptr;
   CheckerNameRef CurrentCheckerName;
+  DiagnosticsEngine &Diags;
+  std::unique_ptr<CheckerRegistry> Registry;
 
 public:
-  CheckerManager(ASTContext &Context, AnalyzerOptions &AOptions)
-      : Context(Context), LangOpts(Context.getLangOpts()), AOptions(AOptions) {}
+  // These constructors are defined in the Frontend library, because
+  // CheckerRegistry, a crucial component of the initialization is in there.
+  // CheckerRegistry cannot be moved to the Core library, because the checker
+  // registration functions are defined in the Checkers library, and the library
+  // dependencies look like this: Core -> Checkers -> Frontend.
+
+  CheckerManager(
+      ASTContext &Context, AnalyzerOptions &AOptions, const Preprocessor &PP,
+      ArrayRef<std::string> plugins,
+      ArrayRef<std::function<void(CheckerRegistry &)>> checkerRegistrationFns);
+
+  /// Constructs a CheckerManager that ignores all non TblGen-generated
+  /// checkers. Useful for unit testing, unless the checker infrastructure
+  /// itself is tested.
+  CheckerManager(ASTContext &Context, AnalyzerOptions &AOptions,
+                 const Preprocessor &PP)
+      : CheckerManager(Context, AOptions, PP, {}, {}) {}
+
+  /// Constructs a CheckerManager without requiring an AST. No checker
+  /// registration will take place. Only useful for retrieving the
+  /// CheckerRegistry and print for help flags where the AST is unavalaible.
+  CheckerManager(AnalyzerOptions &AOptions, const LangOptions &LangOpts,
+                 DiagnosticsEngine &Diags, ArrayRef<std::string> plugins);
 
   ~CheckerManager();
 
@@ -135,14 +165,23 @@ public:
   void finishedCheckerRegistration();
 
   const LangOptions &getLangOpts() const { return LangOpts; }
-  AnalyzerOptions &getAnalyzerOptions() { return AOptions; }
-  ASTContext &getASTContext() { return Context; }
+  const AnalyzerOptions &getAnalyzerOptions() const { return AOptions; }
+  const Preprocessor &getPreprocessor() const {
+    assert(PP);
+    return *PP;
+  }
+  const CheckerRegistry &getCheckerRegistry() const { return *Registry; }
+  DiagnosticsEngine &getDiagnostics() const { return Diags; }
+  ASTContext &getASTContext() const {
+    assert(Context);
+    return *Context;
+  }
 
   /// Emits an error through a DiagnosticsEngine about an invalid user supplied
   /// checker option value.
   void reportInvalidCheckerOptionValue(const CheckerBase *C,
                                        StringRef OptionName,
-                                       StringRef ExpectedValueDesc);
+                                       StringRef ExpectedValueDesc) const;
 
   using CheckerRef = CheckerBase *;
   using CheckerTag = const void *;
@@ -567,7 +606,7 @@ public:
     if (I == Events.end())
       return;
     const EventInfo &info = I->second;
-    for (const auto Checker : info.Checkers)
+    for (const auto &Checker : info.Checkers)
       Checker(&event);
   }
 
@@ -615,7 +654,7 @@ private:
   /// Returns the checkers that have registered for callbacks of the
   /// given \p Kind.
   const std::vector<CheckObjCMessageFunc> &
-  getObjCMessageCheckers(ObjCMessageVisitKind Kind);
+  getObjCMessageCheckers(ObjCMessageVisitKind Kind) const;
 
   std::vector<CheckObjCMessageFunc> PreObjCMessageCheckers;
   std::vector<CheckObjCMessageFunc> PostObjCMessageCheckers;

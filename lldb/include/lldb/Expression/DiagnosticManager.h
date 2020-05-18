@@ -6,12 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef lldb_DiagnosticManager_h
-#define lldb_DiagnosticManager_h
+#ifndef LLDB_EXPRESSION_DIAGNOSTICMANAGER_H
+#define LLDB_EXPRESSION_DIAGNOSTICMANAGER_H
 
 #include "lldb/lldb-defines.h"
 #include "lldb/lldb-types.h"
 
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
 
 #include <string>
@@ -77,7 +78,7 @@ public:
                      bool precede_with_newline = true) {
     if (precede_with_newline)
       m_message.push_back('\n');
-    m_message.append(message);
+    m_message += message;
   }
 
 protected:
@@ -87,7 +88,7 @@ protected:
   uint32_t m_compiler_id; // Compiler-specific diagnostic ID
 };
 
-typedef std::vector<Diagnostic *> DiagnosticList;
+typedef std::vector<std::unique_ptr<Diagnostic>> DiagnosticList;
 
 class DiagnosticManager {
 public:
@@ -96,33 +97,24 @@ public:
     m_fixed_expression.clear();
   }
 
-  // The diagnostic manager holds a list of diagnostics, which are owned by the
-  // manager.
   const DiagnosticList &Diagnostics() { return m_diagnostics; }
 
-  ~DiagnosticManager() {
-    for (Diagnostic *diag : m_diagnostics) {
-      delete diag;
-    }
-  }
-
   bool HasFixIts() const {
-    for (Diagnostic *diag : m_diagnostics) {
-      if (diag->HasFixIts())
-        return true;
-    }
-    return false;
+    return llvm::any_of(m_diagnostics,
+                        [](const std::unique_ptr<Diagnostic> &diag) {
+                          return diag->HasFixIts();
+                        });
   }
 
   void AddDiagnostic(llvm::StringRef message, DiagnosticSeverity severity,
                      DiagnosticOrigin origin,
                      uint32_t compiler_id = LLDB_INVALID_COMPILER_ID) {
-    m_diagnostics.push_back(
-        new Diagnostic(message, severity, origin, compiler_id));
+    m_diagnostics.emplace_back(
+        std::make_unique<Diagnostic>(message, severity, origin, compiler_id));
   }
 
-  void AddDiagnostic(Diagnostic *diagnostic) {
-    m_diagnostics.push_back(diagnostic);
+  void AddDiagnostic(std::unique_ptr<Diagnostic> diagnostic) {
+    m_diagnostics.push_back(std::move(diagnostic));
   }
 
   size_t Printf(DiagnosticSeverity severity, const char *format, ...)
@@ -156,4 +148,4 @@ protected:
 };
 }
 
-#endif /* lldb_DiagnosticManager_h */
+#endif // LLDB_EXPRESSION_DIAGNOSTICMANAGER_H

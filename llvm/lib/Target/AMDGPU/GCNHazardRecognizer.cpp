@@ -185,7 +185,7 @@ GCNHazardRecognizer::getHazardType(SUnit *SU, int Stalls) {
   if (SIInstrInfo::isMAI(*MI) && checkMAIHazards(MI) > 0)
     return NoopHazard;
 
-  if ((MI->mayLoad() || MI->mayStore()) && checkMAILdStHazards(MI) > 0)
+  if (MI->mayLoadOrStore() && checkMAILdStHazards(MI) > 0)
     return NoopHazard;
 
   if (MI->isInlineAsm() && checkInlineAsmHazards(MI) > 0)
@@ -226,11 +226,6 @@ void GCNHazardRecognizer::processBundle() {
     EmittedInstrs.resize(MaxLookAhead);
   }
   CurrCycleInstr = nullptr;
-}
-
-unsigned GCNHazardRecognizer::PreEmitNoops(SUnit *SU) {
-  IsHazardRecognizerMode = false;
-  return PreEmitNoopsCommon(SU->getInstr());
 }
 
 unsigned GCNHazardRecognizer::PreEmitNoops(MachineInstr *MI) {
@@ -296,7 +291,7 @@ unsigned GCNHazardRecognizer::PreEmitNoopsCommon(MachineInstr *MI) {
   if (SIInstrInfo::isMAI(*MI))
     return std::max(WaitStates, checkMAIHazards(MI));
 
-  if (MI->mayLoad() || MI->mayStore())
+  if (MI->mayLoadOrStore())
     return std::max(WaitStates, checkMAILdStHazards(MI));
 
   return WaitStates;
@@ -486,6 +481,14 @@ void GCNHazardRecognizer::addClauseInst(const MachineInstr &MI) {
   addRegsToSet(TRI, MI.uses(), ClauseUses);
 }
 
+static bool breaksSMEMSoftClause(MachineInstr *MI) {
+  return !SIInstrInfo::isSMRD(*MI);
+}
+
+static bool breaksVMEMSoftClause(MachineInstr *MI) {
+  return !SIInstrInfo::isVMEM(*MI) && !SIInstrInfo::isFLAT(*MI);
+}
+
 int GCNHazardRecognizer::checkSoftClauseHazards(MachineInstr *MEM) {
   // SMEM soft clause are only present on VI+, and only matter if xnack is
   // enabled.
@@ -512,7 +515,7 @@ int GCNHazardRecognizer::checkSoftClauseHazards(MachineInstr *MEM) {
     if (!MI)
       break;
 
-    if (IsSMRD != SIInstrInfo::isSMRD(*MI))
+    if (IsSMRD ? breaksSMEMSoftClause(MI) : breaksVMEMSoftClause(MI))
       break;
 
     addClauseInst(*MI);
@@ -952,6 +955,7 @@ bool GCNHazardRecognizer::fixSMEMtoVectorWriteHazards(MachineInstr *MI) {
   unsigned SDSTName;
   switch (MI->getOpcode()) {
   case AMDGPU::V_READLANE_B32:
+  case AMDGPU::V_READLANE_B32_gfx10:
   case AMDGPU::V_READFIRSTLANE_B32:
     SDSTName = AMDGPU::OpName::vdst;
     break;

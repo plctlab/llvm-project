@@ -21,6 +21,7 @@
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/Config/llvm-config.h"
 #include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/Function.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compiler.h"
@@ -290,9 +291,15 @@ void LexicalScopes::getMachineBasicBlocks(
     return;
   }
 
+  // The scope ranges can cover multiple basic blocks in each span. Iterate over
+  // all blocks (in the order they are in the function) until we reach the one
+  // containing the end of the span.
   SmallVectorImpl<InsnRange> &InsnRanges = Scope->getRanges();
   for (auto &R : InsnRanges)
-    MBBs.insert(R.first->getParent());
+    for (auto CurMBBIt = R.first->getParent()->getIterator(),
+              EndBBIt = std::next(R.second->getParent()->getIterator());
+         CurMBBIt != EndBBIt; CurMBBIt++)
+      MBBs.insert(&*CurMBBIt);
 }
 
 /// dominates - Return true if DebugLoc's lexical scope dominates at least one
@@ -307,14 +314,12 @@ bool LexicalScopes::dominates(const DILocation *DL, MachineBasicBlock *MBB) {
   if (Scope == CurrentFnLexicalScope && MBB->getParent() == MF)
     return true;
 
-  bool Result = false;
-  for (auto &I : *MBB) {
-    if (const DILocation *IDL = I.getDebugLoc())
-      if (LexicalScope *IScope = getOrCreateLexicalScope(IDL))
-        if (Scope->dominates(IScope))
-          return true;
-  }
-  return Result;
+  // Fetch all the blocks in DLs scope. Because the range / block list also
+  // contain any subscopes, any instruction that DL dominates can be found
+  // in the block set.
+  SmallPtrSet<const MachineBasicBlock *, 32> Set;
+  getMachineBasicBlocks(DL, Set);
+  return Set.count(MBB) != 0;
 }
 
 #if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)

@@ -48,8 +48,8 @@ void LLVMTargetMachine::initAsmInfo() {
   STI.reset(TheTarget.createMCSubtargetInfo(
       getTargetTriple().str(), getTargetCPU(), getTargetFeatureString()));
 
-  MCAsmInfo *TmpAsmInfo =
-      TheTarget.createMCAsmInfo(*MRI, getTargetTriple().str());
+  MCAsmInfo *TmpAsmInfo = TheTarget.createMCAsmInfo(
+      *MRI, getTargetTriple().str(), Options.MCOptions);
   // TargetSelect.h moved to a different directory between LLVM 2.9 and 3.0,
   // and if the old one gets included then MCAsmInfo will be NULL and
   // we'll crash later.
@@ -156,9 +156,6 @@ bool LLVMTargetMachine::addAsmPrinter(PassManagerBase &PM,
         getTarget().createMCAsmBackend(STI, MRI, Options.MCOptions);
     if (!MCE || !MAB)
       return true;
-
-    // Don't waste memory on names of temp labels.
-    Context.setUseNamesOnTempLabels(false);
 
     Triple T(getTargetTriple().str());
     AsmStreamer.reset(getTarget().createMCObjectStreamer(

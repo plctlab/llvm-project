@@ -172,6 +172,10 @@ FileOutputBuffer::create(StringRef Path, size_t Size, unsigned Flags) {
   if (Flags & F_executable)
     Mode |= fs::all_exe;
 
+  // If Size is zero, don't use mmap which will fail with EINVAL.
+  if (Size == 0)
+    return createInMemoryBuffer(Path, Size, Mode);
+
   fs::file_status Stat;
   fs::status(Path, Stat);
 
@@ -189,7 +193,10 @@ FileOutputBuffer::create(StringRef Path, size_t Size, unsigned Flags) {
   case fs::file_type::regular_file:
   case fs::file_type::file_not_found:
   case fs::file_type::status_error:
-    return createOnDiskBuffer(Path, Size, Mode);
+    if (Flags & F_no_mmap)
+      return createInMemoryBuffer(Path, Size, Mode);
+    else
+      return createOnDiskBuffer(Path, Size, Mode);
   default:
     return createInMemoryBuffer(Path, Size, Mode);
   }

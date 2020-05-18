@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_BreakpointLocation_h_
-#define liblldb_BreakpointLocation_h_
+#ifndef LLDB_BREAKPOINT_BREAKPOINTLOCATION_H
+#define LLDB_BREAKPOINT_BREAKPOINTLOCATION_H
 
 #include <memory>
 #include <mutex>
@@ -93,7 +93,7 @@ public:
 
   /// Set the breakpoint to ignore the next \a count breakpoint hits.
   ///
-  /// \param[in] count
+  /// \param[in] n
   ///    The number of breakpoint hits to ignore.
   void SetIgnoreCount(uint32_t n);
 
@@ -224,9 +224,6 @@ public:
   /// \param[in] context
   ///    Described the breakpoint event.
   ///
-  /// \param[in] bp_loc_id
-  ///    Which breakpoint location hit this breakpoint.
-  ///
   /// \return
   ///     \b true if the target should stop at this breakpoint and \b
   ///     false not.
@@ -353,4 +350,4 @@ private:
 
 } // namespace lldb_private
 
-#endif // liblldb_BreakpointLocation_h_
+#endif // LLDB_BREAKPOINT_BREAKPOINTLOCATION_H

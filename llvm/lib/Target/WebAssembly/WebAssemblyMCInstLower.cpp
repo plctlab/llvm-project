@@ -56,7 +56,8 @@ WebAssemblyMCInstLower::GetGlobalAddressSymbol(const MachineOperand &MO) const {
 
     SmallVector<MVT, 1> ResultMVTs;
     SmallVector<MVT, 4> ParamMVTs;
-    computeSignatureVTs(FuncTy, CurrentFunc, TM, ParamMVTs, ResultMVTs);
+    const auto *const F = dyn_cast<Function>(Global);
+    computeSignatureVTs(FuncTy, F, CurrentFunc, TM, ParamMVTs, ResultMVTs);
 
     auto Signature = signatureFromMVTs(ResultMVTs, ParamMVTs);
     WasmSym->setSignature(Signature.get());
@@ -163,6 +164,21 @@ MCOperand WebAssemblyMCInstLower::lowerSymbolOperand(const MachineOperand &MO,
   return MCOperand::createExpr(Expr);
 }
 
+MCOperand WebAssemblyMCInstLower::lowerTypeIndexOperand(
+    SmallVector<wasm::ValType, 1> &&Returns,
+    SmallVector<wasm::ValType, 4> &&Params) const {
+  auto Signature = std::make_unique<wasm::WasmSignature>(std::move(Returns),
+                                                         std::move(Params));
+  MCSymbol *Sym = Printer.createTempSymbol("typeindex");
+  auto *WasmSym = cast<MCSymbolWasm>(Sym);
+  WasmSym->setSignature(Signature.get());
+  Printer.addSignature(std::move(Signature));
+  WasmSym->setType(wasm::WASM_SYMBOL_TYPE_FUNCTION);
+  const MCExpr *Expr =
+      MCSymbolRefExpr::create(WasmSym, MCSymbolRefExpr::VK_WASM_TYPEINDEX, Ctx);
+  return MCOperand::createExpr(Expr);
+}
+
 // Return the WebAssembly type associated with the given register class.
 static wasm::ValType getType(const TargetRegisterClass *RC) {
   if (RC == &WebAssembly::I32RegClass)
@@ -178,11 +194,22 @@ static wasm::ValType getType(const TargetRegisterClass *RC) {
   llvm_unreachable("Unexpected register class");
 }
 
+static void getFunctionReturns(const MachineInstr *MI,
+                               SmallVectorImpl<wasm::ValType> &Returns) {
+  const Function &F = MI->getMF()->getFunction();
+  const TargetMachine &TM = MI->getMF()->getTarget();
+  Type *RetTy = F.getReturnType();
+  SmallVector<MVT, 4> CallerRetTys;
+  computeLegalValueVTs(F, TM, RetTy, CallerRetTys);
+  valTypesFromMVTs(CallerRetTys, Returns);
+}
+
 void WebAssemblyMCInstLower::lower(const MachineInstr *MI,
                                    MCInst &OutMI) const {
   OutMI.setOpcode(MI->getOpcode());
 
   const MCInstrDesc &Desc = MI->getDesc();
+  unsigned NumVariadicDefs = MI->getNumExplicitDefs() - Desc.getNumDefs();
   for (unsigned I = 0, E = MI->getNumOperands(); I != E; ++I) {
     const MachineOperand &MO = MI->getOperand(I);
 
@@ -204,12 +231,11 @@ void WebAssemblyMCInstLower::lower(const MachineInstr *MI,
       MCOp = MCOperand::createReg(WAReg);
       break;
     }
-    case MachineOperand::MO_Immediate:
-      if (I < Desc.NumOperands) {
-        const MCOperandInfo &Info = Desc.OpInfo[I];
+    case MachineOperand::MO_Immediate: {
+      unsigned DescIndex = I - NumVariadicDefs;
+      if (DescIndex < Desc.NumOperands) {
+        const MCOperandInfo &Info = Desc.OpInfo[DescIndex];
         if (Info.OperandType == WebAssembly::OPERAND_TYPEINDEX) {
-          MCSymbol *Sym = Printer.createTempSymbol("typeindex");
-
           SmallVector<wasm::ValType, 4> Returns;
           SmallVector<wasm::ValType, 4> Params;
 
@@ -228,30 +254,26 @@ void WebAssemblyMCInstLower::lower(const MachineInstr *MI,
 
           // return_call_indirect instructions have the return type of the
           // caller
-          if (MI->getOpcode() == WebAssembly::RET_CALL_INDIRECT) {
-            const Function &F = MI->getMF()->getFunction();
-            const TargetMachine &TM = MI->getMF()->getTarget();
-            Type *RetTy = F.getReturnType();
-            SmallVector<MVT, 4> CallerRetTys;
-            computeLegalValueVTs(F, TM, RetTy, CallerRetTys);
-            valTypesFromMVTs(CallerRetTys, Returns);
-          }
+          if (MI->getOpcode() == WebAssembly::RET_CALL_INDIRECT)
+            getFunctionReturns(MI, Returns);
 
-          auto *WasmSym = cast<MCSymbolWasm>(Sym);
-          auto Signature = std::make_unique<wasm::WasmSignature>(std::move(Returns),
-                                                            std::move(Params));
-          WasmSym->setSignature(Signature.get());
-          Printer.addSignature(std::move(Signature));
-          WasmSym->setType(wasm::WASM_SYMBOL_TYPE_FUNCTION);
-
-          const MCExpr *Expr = MCSymbolRefExpr::create(
-              WasmSym, MCSymbolRefExpr::VK_WASM_TYPEINDEX, Ctx);
-          MCOp = MCOperand::createExpr(Expr);
+          MCOp = lowerTypeIndexOperand(std::move(Returns), std::move(Params));
           break;
+        } else if (Info.OperandType == WebAssembly::OPERAND_SIGNATURE) {
+          auto BT = static_cast<WebAssembly::BlockType>(MO.getImm());
+          assert(BT != WebAssembly::BlockType::Invalid);
+          if (BT == WebAssembly::BlockType::Multivalue) {
+            SmallVector<wasm::ValType, 1> Returns;
+            getFunctionReturns(MI, Returns);
+            MCOp = lowerTypeIndexOperand(std::move(Returns),
+                                         SmallVector<wasm::ValType, 4>());
+            break;
+          }
         }
       }
       MCOp = MCOperand::createImm(MO.getImm());
       break;
+    }
     case MachineOperand::MO_FPImmediate: {
       // TODO: MC converts all floating point immediate operands to double.
       // This is fine for numeric values, but may cause NaNs to change bits.
@@ -288,6 +310,8 @@ void WebAssemblyMCInstLower::lower(const MachineInstr *MI,
 
   if (!WasmKeepRegisters)
     removeRegisterOperands(MI, OutMI);
+  else if (Desc.variadicOpsAreDefs())
+    OutMI.insert(OutMI.begin(), MCOperand::createImm(MI->getNumExplicitDefs()));
 }
 
 static void removeRegisterOperands(const MachineInstr *MI, MCInst &OutMI) {

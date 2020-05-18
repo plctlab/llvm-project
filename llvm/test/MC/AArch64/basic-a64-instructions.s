@@ -1,4 +1,4 @@
-// RUN: llvm-mc -triple aarch64-none-linux-gnu -show-encoding -mattr=+fp-armv8 < %s | FileCheck %s
+// RUN: llvm-mc -triple aarch64-none-linux-gnu -show-encoding -mattr=+fp-armv8 %s | FileCheck %s
   .globl _func
 
 // Check that the assembler can handle the documented syntax from the ARM ARM.
@@ -3465,12 +3465,14 @@ _func:
         wfi
         sev
         sevl
+        dgh
 // CHECK: nop                             // encoding: [0x1f,0x20,0x03,0xd5]
 // CHECK: yield                           // encoding: [0x3f,0x20,0x03,0xd5]
 // CHECK: wfe                             // encoding: [0x5f,0x20,0x03,0xd5]
 // CHECK: wfi                             // encoding: [0x7f,0x20,0x03,0xd5]
 // CHECK: sev                             // encoding: [0x9f,0x20,0x03,0xd5]
 // CHECK: sevl                            // encoding: [0xbf,0x20,0x03,0xd5]
+// CHECK: dgh                             // encoding: [0xdf,0x20,0x03,0xd5]
 
         clrex
         clrex #0
@@ -3804,7 +3806,6 @@ _func:
 	msr SPSel, x12
 	msr NZCV, x12
 	msr DAIF, x12
-	msr CurrentEL, x12
 	msr SPSR_irq, x12
 	msr SPSR_abt, x12
 	msr SPSR_und, x12
@@ -4058,7 +4059,6 @@ _func:
 // CHECK: msr      {{SPSel|SPSEL}}, x12                 // encoding: [0x0c,0x42,0x18,0xd5]
 // CHECK: msr      {{nzcv|NZCV}}, x12                  // encoding: [0x0c,0x42,0x1b,0xd5]
 // CHECK: msr      {{daif|DAIF}}, x12                  // encoding: [0x2c,0x42,0x1b,0xd5]
-// CHECK: msr      {{CurrentEL|CURRENTEL}}, x12             // encoding: [0x4c,0x42,0x18,0xd5]
 // CHECK: msr      {{SPSR_irq|SPSR_IRQ}}, x12              // encoding: [0x0c,0x43,0x1c,0xd5]
 // CHECK: msr      {{SPSR_abt|SPSR_ABT}}, x12              // encoding: [0x2c,0x43,0x1c,0xd5]
 // CHECK: msr      {{SPSR_und|SPSR_UND}}, x12              // encoding: [0x4c,0x43,0x1c,0xd5]
@@ -4295,6 +4295,7 @@ _func:
 	mrs x9, ID_MMFR2_EL1
 	mrs x9, ID_MMFR3_EL1
 	mrs x9, ID_MMFR4_EL1
+	mrs x9, ID_MMFR5_EL1
 	mrs x9, ID_ISAR0_EL1
 	mrs x9, ID_ISAR1_EL1
 	mrs x9, ID_ISAR2_EL1
@@ -4596,6 +4597,7 @@ _func:
 // CHECK: mrs      x9, {{id_mmfr2_el1|ID_MMFR2_EL1}}           // encoding: [0xc9,0x01,0x38,0xd5]
 // CHECK: mrs      x9, {{id_mmfr3_el1|ID_MMFR3_EL1}}           // encoding: [0xe9,0x01,0x38,0xd5]
 // CHECK: mrs      x9, {{id_mmfr4_el1|ID_MMFR4_EL1}}           // encoding: [0xc9,0x02,0x38,0xd5]
+// CHECK: mrs      x9, {{id_mmfr5_el1|ID_MMFR5_EL1}}           // encoding: [0xc9,0x03,0x38,0xd5]
 // CHECK: mrs      x9, {{id_isar0_el1|ID_ISAR0_EL1}}           // encoding: [0x09,0x02,0x38,0xd5]
 // CHECK: mrs      x9, {{id_isar1_el1|ID_ISAR1_EL1}}           // encoding: [0x29,0x02,0x38,0xd5]
 // CHECK: mrs      x9, {{id_isar2_el1|ID_ISAR2_EL1}}           // encoding: [0x49,0x02,0x38,0xd5]

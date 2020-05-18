@@ -198,13 +198,10 @@ ErrorOr<WasmYAML::Object *> WasmDumper::dump() {
       for (const auto &FunctionSig : Obj.types()) {
         WasmYAML::Signature Sig;
         Sig.Index = Index++;
-        Sig.ReturnType = wasm::WASM_TYPE_NORESULT;
-        assert(FunctionSig.Returns.size() <= 1 &&
-               "Functions with multiple returns are not supported");
-        if (FunctionSig.Returns.size())
-          Sig.ReturnType = static_cast<uint32_t>(FunctionSig.Returns[0]);
         for (const auto &ParamType : FunctionSig.Params)
           Sig.ParamTypes.emplace_back(static_cast<uint32_t>(ParamType));
+        for (const auto &ReturnType : FunctionSig.Returns)
+          Sig.ReturnTypes.emplace_back(static_cast<uint32_t>(ReturnType));
         TypeSec->Signatures.push_back(Sig);
       }
       S = std::move(TypeSec);
@@ -265,6 +262,18 @@ ErrorOr<WasmYAML::Object *> WasmDumper::dump() {
       S = std::move(MemorySec);
       break;
     }
+    case wasm::WASM_SEC_EVENT: {
+      auto EventSec = std::make_unique<WasmYAML::EventSection>();
+      for (auto &Event : Obj.events()) {
+        WasmYAML::Event E;
+        E.Index = Event.Index;
+        E.Attribute = Event.Type.Attribute;
+        E.SigIndex = Event.Type.SigIndex;
+        EventSec->Events.push_back(E);
+      }
+      S = std::move(EventSec);
+      break;
+    }
     case wasm::WASM_SEC_GLOBAL: {
       auto GlobalSec = std::make_unique<WasmYAML::GlobalSection>();
       for (auto &Global : Obj.globals()) {
@@ -276,18 +285,6 @@ ErrorOr<WasmYAML::Object *> WasmDumper::dump() {
         GlobalSec->Globals.push_back(G);
       }
       S = std::move(GlobalSec);
-      break;
-    }
-    case wasm::WASM_SEC_EVENT: {
-      auto EventSec = std::make_unique<WasmYAML::EventSection>();
-      for (auto &Event : Obj.events()) {
-        WasmYAML::Event E;
-        E.Index = Event.Index;
-        E.Attribute = Event.Type.Attribute;
-        E.SigIndex = Event.Type.SigIndex;
-        EventSec->Events.push_back(E);
-      }
-      S = std::move(EventSec);
       break;
     }
     case wasm::WASM_SEC_START: {

@@ -272,12 +272,11 @@ static bool isInInlineFunction(const DeclContext *DC) {
   return false;
 }
 
-MangleNumberingContext *
-Sema::getCurrentMangleNumberContext(const DeclContext *DC,
-                                    Decl *&ManglingContextDecl) {
+std::tuple<MangleNumberingContext *, Decl *>
+Sema::getCurrentMangleNumberContext(const DeclContext *DC) {
   // Compute the context for allocating mangling numbers in the current
   // expression, if the ABI requires them.
-  ManglingContextDecl = ExprEvalContexts.back().ManglingContextDecl;
+  Decl *ManglingContextDecl = ExprEvalContexts.back().ManglingContextDecl;
 
   enum ContextKind {
     Normal,
@@ -325,22 +324,18 @@ Sema::getCurrentMangleNumberContext(const DeclContext *DC,
     if ((IsInNonspecializedTemplate &&
          !(ManglingContextDecl && isa<ParmVarDecl>(ManglingContextDecl))) ||
         isInInlineFunction(CurContext)) {
-      ManglingContextDecl = nullptr;
       while (auto *CD = dyn_cast<CapturedDecl>(DC))
         DC = CD->getParent();
-      return &Context.getManglingNumberContext(DC);
+      return std::make_tuple(&Context.getManglingNumberContext(DC), nullptr);
     }
 
-    ManglingContextDecl = nullptr;
-    return nullptr;
+    return std::make_tuple(nullptr, nullptr);
   }
 
   case StaticDataMember:
     //  -- the initializers of nonspecialized static members of template classes
-    if (!IsInNonspecializedTemplate) {
-      ManglingContextDecl = nullptr;
-      return nullptr;
-    }
+    if (!IsInNonspecializedTemplate)
+      return std::make_tuple(nullptr, ManglingContextDecl);
     // Fall through to get the current context.
     LLVM_FALLTHROUGH;
 
@@ -352,21 +347,25 @@ Sema::getCurrentMangleNumberContext(const DeclContext *DC,
     //  -- the initializers of inline variables
   case VariableTemplate:
     //  -- the initializers of templated variables
-    return &Context.getManglingNumberContext(ASTContext::NeedExtraManglingDecl,
-                                             ManglingContextDecl);
+    return std::make_tuple(
+        &Context.getManglingNumberContext(ASTContext::NeedExtraManglingDecl,
+                                          ManglingContextDecl),
+        ManglingContextDecl);
   }
 
   llvm_unreachable("unexpected context");
 }
 
-CXXMethodDecl *Sema::startLambdaDefinition(
-    CXXRecordDecl *Class, SourceRange IntroducerRange,
-    TypeSourceInfo *MethodTypeInfo, SourceLocation EndLoc,
-    ArrayRef<ParmVarDecl *> Params, ConstexprSpecKind ConstexprKind,
-    Optional<std::pair<unsigned, Decl *>> Mangling) {
+CXXMethodDecl *Sema::startLambdaDefinition(CXXRecordDecl *Class,
+                                           SourceRange IntroducerRange,
+                                           TypeSourceInfo *MethodTypeInfo,
+                                           SourceLocation EndLoc,
+                                           ArrayRef<ParmVarDecl *> Params,
+                                           ConstexprSpecKind ConstexprKind,
+                                           Expr *TrailingRequiresClause) {
   QualType MethodType = MethodTypeInfo->getType();
   TemplateParameterList *TemplateParams =
-            getGenericLambdaTemplateParameterList(getCurLambda(), *this);
+      getGenericLambdaTemplateParameterList(getCurLambda(), *this);
   // If a lambda appears in a dependent context or is a generic lambda (has
   // template parameters) and has an 'auto' return type, deduce it to a
   // dependent type.
@@ -397,7 +396,7 @@ CXXMethodDecl *Sema::startLambdaDefinition(
       DeclarationNameInfo(MethodName, IntroducerRange.getBegin(),
                           MethodNameLoc),
       MethodType, MethodTypeInfo, SC_None,
-      /*isInline=*/true, ConstexprKind, EndLoc);
+      /*isInline=*/true, ConstexprKind, EndLoc, TrailingRequiresClause);
   Method->setAccess(AS_public);
   if (!TemplateParams)
     Class->addDecl(Method);
@@ -428,19 +427,56 @@ CXXMethodDecl *Sema::startLambdaDefinition(
       P->setOwningFunction(Method);
   }
 
+  return Method;
+}
+
+void Sema::handleLambdaNumbering(
+    CXXRecordDecl *Class, CXXMethodDecl *Method,
+    Optional<std::tuple<unsigned, bool, Decl *>> Mangling) {
   if (Mangling) {
-    Class->setLambdaMangling(Mangling->first, Mangling->second);
-  } else {
+    unsigned ManglingNumber;
+    bool HasKnownInternalLinkage;
     Decl *ManglingContextDecl;
-    if (MangleNumberingContext *MCtx =
-            getCurrentMangleNumberContext(Class->getDeclContext(),
-                                          ManglingContextDecl)) {
-      unsigned ManglingNumber = MCtx->getManglingNumber(Method);
-      Class->setLambdaMangling(ManglingNumber, ManglingContextDecl);
-    }
+    std::tie(ManglingNumber, HasKnownInternalLinkage, ManglingContextDecl) =
+        Mangling.getValue();
+    Class->setLambdaMangling(ManglingNumber, ManglingContextDecl,
+                             HasKnownInternalLinkage);
+    return;
   }
 
-  return Method;
+  auto getMangleNumberingContext =
+      [this](CXXRecordDecl *Class,
+             Decl *ManglingContextDecl) -> MangleNumberingContext * {
+    // Get mangle numbering context if there's any extra decl context.
+    if (ManglingContextDecl)
+      return &Context.getManglingNumberContext(
+          ASTContext::NeedExtraManglingDecl, ManglingContextDecl);
+    // Otherwise, from that lambda's decl context.
+    auto DC = Class->getDeclContext();
+    while (auto *CD = dyn_cast<CapturedDecl>(DC))
+      DC = CD->getParent();
+    return &Context.getManglingNumberContext(DC);
+  };
+
+  MangleNumberingContext *MCtx;
+  Decl *ManglingContextDecl;
+  std::tie(MCtx, ManglingContextDecl) =
+      getCurrentMangleNumberContext(Class->getDeclContext());
+  bool HasKnownInternalLinkage = false;
+  if (!MCtx && getLangOpts().CUDA) {
+    // Force lambda numbering in CUDA/HIP as we need to name lambdas following
+    // ODR. Both device- and host-compilation need to have a consistent naming
+    // on kernel functions. As lambdas are potential part of these `__global__`
+    // function names, they needs numbering following ODR.
+    MCtx = getMangleNumberingContext(Class, ManglingContextDecl);
+    assert(MCtx && "Retrieving mangle numbering context failed!");
+    HasKnownInternalLinkage = true;
+  }
+  if (MCtx) {
+    unsigned ManglingNumber = MCtx->getManglingNumber(Method);
+    Class->setLambdaMangling(ManglingNumber, ManglingContextDecl,
+                             HasKnownInternalLinkage);
+  }
 }
 
 void Sema::buildLambdaScope(LambdaScopeInfo *LSI,
@@ -755,7 +791,8 @@ QualType Sema::buildLambdaInitCaptureInitialization(
   // deduce against.
   QualType DeductType = Context.getAutoDeductType();
   TypeLocBuilder TLB;
-  TLB.pushTypeSpec(DeductType).setNameLoc(Loc);
+  AutoTypeLoc TL = TLB.push<AutoTypeLoc>(DeductType);
+  TL.setNameLoc(Loc);
   if (ByRef) {
     DeductType = BuildReferenceType(DeductType, true, Loc, Id);
     assert(!DeductType.isNull() && "can't build reference to auto");
@@ -763,7 +800,7 @@ QualType Sema::buildLambdaInitCaptureInitialization(
   }
   if (EllipsisLoc.isValid()) {
     if (Init->containsUnexpandedParameterPack()) {
-      Diag(EllipsisLoc, getLangOpts().CPlusPlus2a
+      Diag(EllipsisLoc, getLangOpts().CPlusPlus20
                             ? diag::warn_cxx17_compat_init_capture_pack
                             : diag::ext_init_capture_pack);
       DeductType = Context.getPackExpansionType(DeductType, NumExpansions);
@@ -882,6 +919,10 @@ void Sema::ActOnStartOfLambdaDefinition(LambdaIntroducer &Intro,
         /*IsVariadic=*/false, /*IsCXXMethod=*/true));
     EPI.HasTrailingReturn = true;
     EPI.TypeQuals.addConst();
+    LangAS AS = getDefaultCXXMethodAddrSpace();
+    if (AS != LangAS::Default)
+      EPI.TypeQuals.addAddressSpace(AS);
+
     // C++1y [expr.prim.lambda]:
     //   The lambda return type is 'auto', which is replaced by the
     //   trailing-return type if provided and/or deduced from 'return'
@@ -933,7 +974,8 @@ void Sema::ActOnStartOfLambdaDefinition(LambdaIntroducer &Intro,
                                                  KnownDependent, Intro.Default);
   CXXMethodDecl *Method =
       startLambdaDefinition(Class, Intro.Range, MethodTyInfo, EndLoc, Params,
-                            ParamInfo.getDeclSpec().getConstexprSpecifier());
+                            ParamInfo.getDeclSpec().getConstexprSpecifier(),
+                            ParamInfo.getTrailingRequiresClause());
   if (ExplicitParams)
     CheckCXXDefaultArguments(Method);
 
@@ -952,6 +994,9 @@ void Sema::ActOnStartOfLambdaDefinition(LambdaIntroducer &Intro,
   // declared.
   if (getLangOpts().CUDA)
     CUDASetLambdaAttrs(Method);
+
+  // Number the lambda for linkage purposes if necessary.
+  handleLambdaNumbering(Class, Method);
 
   // Introduce the function call operator as the current declaration context.
   PushDeclContext(CurScope, Method);
@@ -1008,8 +1053,8 @@ void Sema::ActOnStartOfLambdaDefinition(LambdaIntroducer &Intro,
       //  "&identifier", "this", or "* this". [ Note: The form [&,this] is
       //  redundant but accepted for compatibility with ISO C++14. --end note ]
       if (Intro.Default == LCD_ByCopy && C->Kind != LCK_StarThis)
-        Diag(C->Loc, !getLangOpts().CPlusPlus2a
-                         ? diag::ext_equals_this_lambda_capture_cxx2a
+        Diag(C->Loc, !getLangOpts().CPlusPlus20
+                         ? diag::ext_equals_this_lambda_capture_cxx20
                          : diag::warn_cxx17_compat_equals_this_lambda_capture);
 
       // C++11 [expr.prim.lambda]p12:
@@ -1189,7 +1234,9 @@ void Sema::ActOnStartOfLambdaDefinition(LambdaIntroducer &Intro,
   // Enter a new evaluation context to insulate the lambda from any
   // cleanups from the enclosing full-expression.
   PushExpressionEvaluationContext(
-      ExpressionEvaluationContext::PotentiallyEvaluated);
+      LSI->CallOperator->isConsteval()
+          ? ExpressionEvaluationContext::ConstantEvaluated
+          : ExpressionEvaluationContext::PotentiallyEvaluated);
 }
 
 void Sema::ActOnLambdaError(SourceLocation StartLoc, Scope *CurScope,
@@ -1210,7 +1257,7 @@ void Sema::ActOnLambdaError(SourceLocation StartLoc, Scope *CurScope,
   SmallVector<Decl*, 4> Fields(Class->fields());
   ActOnFields(nullptr, Class->getLocation(), Class, Fields, SourceLocation(),
               SourceLocation(), ParsedAttributesView());
-  CheckCompletedCXXClass(Class);
+  CheckCompletedCXXClass(nullptr, Class);
 
   PopFunctionScopeInfo();
 }
@@ -1582,7 +1629,8 @@ FieldDecl *Sema::BuildCaptureField(RecordDecl *RD,
   // If the variable being captured has an invalid type, mark the class as
   // invalid as well.
   if (!FieldType->isDependentType()) {
-    if (RequireCompleteType(Loc, FieldType, diag::err_field_incomplete)) {
+    if (RequireCompleteSizedType(Loc, FieldType,
+                                 diag::err_field_incomplete_or_sizeless)) {
       RD->setInvalidDecl();
       Field->setInvalidDecl();
     } else {
@@ -1700,7 +1748,7 @@ ExprResult Sema::BuildLambdaExpr(SourceLocation StartLoc, SourceLocation EndLoc,
           // Capturing 'this' implicitly with a default of '[=]' is deprecated,
           // because it results in a reference capture. Don't warn prior to
           // C++2a; there's nothing that can be done about it before then.
-          if (getLangOpts().CPlusPlus2a && IsImplicit &&
+          if (getLangOpts().CPlusPlus20 && IsImplicit &&
               CaptureDefault == LCD_ByCopy) {
             Diag(From.getLocation(), diag::warn_deprecated_this_capture);
             Diag(CaptureDefaultLoc, diag::note_deprecated_this_capture)
@@ -1756,7 +1804,7 @@ ExprResult Sema::BuildLambdaExpr(SourceLocation StartLoc, SourceLocation EndLoc,
     SmallVector<Decl*, 4> Fields(Class->fields());
     ActOnFields(nullptr, Class->getLocation(), Class, Fields, SourceLocation(),
                 SourceLocation(), ParsedAttributesView());
-    CheckCompletedCXXClass(Class);
+    CheckCompletedCXXClass(nullptr, Class);
   }
 
   Cleanup.mergeFrom(LambdaCleanup);

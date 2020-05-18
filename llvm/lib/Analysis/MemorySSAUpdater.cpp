@@ -44,11 +44,15 @@ MemoryAccess *MemorySSAUpdater::getPreviousDefRecursive(
   // First, do a cache lookup. Without this cache, certain CFG structures
   // (like a series of if statements) take exponential time to visit.
   auto Cached = CachedPreviousDef.find(BB);
-  if (Cached != CachedPreviousDef.end()) {
+  if (Cached != CachedPreviousDef.end())
     return Cached->second;
-  }
 
-  if (BasicBlock *Pred = BB->getSinglePredecessor()) {
+  // If this method is called from an unreachable block, return LoE.
+  if (!MSSA->DT->isReachableFromEntry(BB))
+    return MSSA->getLiveOnEntryDef();
+
+  if (BasicBlock *Pred = BB->getUniquePredecessor()) {
+    VisitedBlocks.insert(BB);
     // Single predecessor case, just recurse, we can only have one definition.
     MemoryAccess *Result = getPreviousDefFromEnd(Pred, CachedPreviousDef);
     CachedPreviousDef.insert({BB, Result});
@@ -92,9 +96,15 @@ MemoryAccess *MemorySSAUpdater::getPreviousDefRecursive(
     // See if we can avoid the phi by simplifying it.
     auto *Result = tryRemoveTrivialPhi(Phi, PhiOps);
     // If we couldn't simplify, we may have to create a phi
-    if (Result == Phi && UniqueIncomingAccess && SingleAccess)
+    if (Result == Phi && UniqueIncomingAccess && SingleAccess) {
+      // A concrete Phi only exists if we created an empty one to break a cycle.
+      if (Phi) {
+        assert(Phi->operands().empty() && "Expected empty Phi");
+        Phi->replaceAllUsesWith(SingleAccess);
+        removeMemoryAccess(Phi);
+      }
       Result = SingleAccess;
-    else if (Result == Phi && !(UniqueIncomingAccess && SingleAccess)) {
+    } else if (Result == Phi && !(UniqueIncomingAccess && SingleAccess)) {
       if (!Phi)
         Phi = MSSA->createMemoryPhi(BB);
 
@@ -233,6 +243,7 @@ MemoryAccess *MemorySSAUpdater::tryRemoveTrivialPhi(MemoryPhi *Phi,
 void MemorySSAUpdater::insertUse(MemoryUse *MU, bool RenameUses) {
   InsertedPHIs.clear();
   MU->setDefiningAccess(getPreviousDef(MU));
+
   // In cases without unreachable blocks, because uses do not create new
   // may-defs, there are only two cases:
   // 1. There was a def already below us, and therefore, we should not have
@@ -770,24 +781,24 @@ void MemorySSAUpdater::updateExitBlocksForClonedLoop(
 
 void MemorySSAUpdater::applyUpdates(ArrayRef<CFGUpdate> Updates,
                                     DominatorTree &DT) {
-  SmallVector<CFGUpdate, 4> RevDeleteUpdates;
+  SmallVector<CFGUpdate, 4> DeleteUpdates;
   SmallVector<CFGUpdate, 4> InsertUpdates;
   for (auto &Update : Updates) {
     if (Update.getKind() == DT.Insert)
       InsertUpdates.push_back({DT.Insert, Update.getFrom(), Update.getTo()});
     else
-      RevDeleteUpdates.push_back({DT.Insert, Update.getFrom(), Update.getTo()});
+      DeleteUpdates.push_back({DT.Delete, Update.getFrom(), Update.getTo()});
   }
 
-  if (!RevDeleteUpdates.empty()) {
+  if (!DeleteUpdates.empty()) {
     // Update for inserted edges: use newDT and snapshot CFG as if deletes had
     // not occurred.
     // FIXME: This creates a new DT, so it's more expensive to do mix
     // delete/inserts vs just inserts. We can do an incremental update on the DT
     // to revert deletes, than re-delete the edges. Teaching DT to do this, is
     // part of a pending cleanup.
-    DominatorTree NewDT(DT, RevDeleteUpdates);
-    GraphDiff<BasicBlock *> GD(RevDeleteUpdates);
+    DominatorTree NewDT(DT, DeleteUpdates);
+    GraphDiff<BasicBlock *> GD(DeleteUpdates, /*ReverseApplyUpdates=*/true);
     applyInsertUpdates(InsertUpdates, NewDT, &GD);
   } else {
     GraphDiff<BasicBlock *> GD;
@@ -795,7 +806,7 @@ void MemorySSAUpdater::applyUpdates(ArrayRef<CFGUpdate> Updates,
   }
 
   // Update for deleted edges
-  for (auto &Update : RevDeleteUpdates)
+  for (auto &Update : DeleteUpdates)
     removeEdge(Update.getFrom(), Update.getTo());
 }
 
@@ -1148,7 +1159,13 @@ void MemorySSAUpdater::moveAfter(MemoryUseOrDef *What, MemoryUseOrDef *Where) {
 
 void MemorySSAUpdater::moveToPlace(MemoryUseOrDef *What, BasicBlock *BB,
                                    MemorySSA::InsertionPlace Where) {
-  return moveTo(What, BB, Where);
+  if (Where != MemorySSA::InsertionPlace::BeforeTerminator)
+    return moveTo(What, BB, Where);
+
+  if (auto *Where = MSSA->getMemoryAccess(BB->getTerminator()))
+    return moveBefore(What, Where);
+  else
+    return moveTo(What, BB, MemorySSA::InsertionPlace::End);
 }
 
 // All accesses in To used to be in From. Move to end and update access lists.

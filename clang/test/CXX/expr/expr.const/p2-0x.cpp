@@ -424,8 +424,26 @@ namespace PseudoDtor {
   int k;
   typedef int I;
   struct T {
-    int n : (k.~I(), 1); // cxx11-warning {{constant expression}} cxx11-note {{pseudo-destructor}}
+    int n : (k.~I(), 1); // expected-error {{constant expression}} expected-note {{visible outside that expression}}
   };
+
+  // FIXME: It's unclear whether this should be accepted in C++20 mode. The parameter is destroyed twice here.
+  constexpr int f(int a = 1) { // cxx11-error {{constant expression}}
+    return (
+        a.~I(), // cxx11-note 2{{pseudo-destructor}}
+        0);
+  }
+  static_assert(f() == 0, ""); // cxx11-error {{constant expression}} cxx11-note {{in call}}
+
+  // This is OK in C++20: the union has no active member after the
+  // pseudo-destructor call, so the union destructor has no effect.
+  union U { int x; };
+  constexpr int g(U u = {1}) { // cxx11-error {{constant expression}}
+    return (
+        u.x.~I(), // cxx11-note 2{{pseudo-destructor}}
+        0);
+  }
+  static_assert(g() == 0, ""); // cxx11-error {{constant expression}} cxx11-note {{in call}}
 }
 
 // - increment or decrement operations (5.2.6, 5.3.2);
@@ -472,22 +490,22 @@ namespace UnspecifiedRelations {
   // different objects that are not members of the same array or to different
   // functions, or if only one of them is null, the results of p<q, p>q, p<=q,
   // and p>=q are unspecified.
-  constexpr bool u1 = p < q; // expected-error {{constant expression}}
-  constexpr bool u2 = p > q; // expected-error {{constant expression}}
-  constexpr bool u3 = p <= q; // expected-error {{constant expression}}
-  constexpr bool u4 = p >= q; // expected-error {{constant expression}}
-  constexpr bool u5 = p < (int*)0; // expected-error {{constant expression}}
-  constexpr bool u6 = p <= (int*)0; // expected-error {{constant expression}}
-  constexpr bool u7 = p > (int*)0; // expected-error {{constant expression}}
-  constexpr bool u8 = p >= (int*)0; // expected-error {{constant expression}}
-  constexpr bool u9 = (int*)0 < q; // expected-error {{constant expression}}
-  constexpr bool u10 = (int*)0 <= q; // expected-error {{constant expression}}
-  constexpr bool u11 = (int*)0 > q; // expected-error {{constant expression}}
-  constexpr bool u12 = (int*)0 >= q; // expected-error {{constant expression}}
+  constexpr bool u1 = p < q; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u2 = p > q; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u3 = p <= q; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u4 = p >= q; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u5 = p < (int*)0; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u6 = p <= (int*)0; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u7 = p > (int*)0; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u8 = p >= (int*)0; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u9 = (int*)0 < q; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u10 = (int*)0 <= q; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u11 = (int*)0 > q; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
+  constexpr bool u12 = (int*)0 >= q; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
   void f(), g();
 
   constexpr void (*pf)() = &f, (*pg)() = &g;
-  constexpr bool u13 = pf < pg; // expected-error {{constant expression}}
+  constexpr bool u13 = pf < pg; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
   constexpr bool u14 = pf == pg;
 
   // If two pointers point to non-static data members of the same object with
@@ -538,11 +556,11 @@ namespace UnspecifiedRelations {
   constexpr void *pv = (void*)&s.a;
   constexpr void *qv = (void*)&s.b;
   constexpr bool v1 = null < (int*)0;
-  constexpr bool v2 = null < pv; // expected-error {{constant expression}}
+  constexpr bool v2 = null < pv; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
   constexpr bool v3 = null == pv; // ok
   constexpr bool v4 = qv == pv; // ok
   constexpr bool v5 = qv >= pv; // expected-error {{constant expression}} expected-note {{unequal pointers to void}}
-  constexpr bool v6 = qv > null; // expected-error {{constant expression}}
+  constexpr bool v6 = qv > null; // expected-error {{constant expression}} expected-note {{comparison has unspecified value}}
   constexpr bool v7 = qv <= (void*)&s.b; // ok
   constexpr bool v8 = qv > (void*)&s.a; // expected-error {{constant expression}} expected-note {{unequal pointers to void}}
 }

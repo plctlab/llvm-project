@@ -1,4 +1,4 @@
-//===-- AddressResolverName.cpp ---------------------------------*- C++ -*-===//
+//===-- AddressResolverName.cpp -------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -67,8 +67,7 @@ AddressResolverName::~AddressResolverName() = default;
 
 Searcher::CallbackReturn
 AddressResolverName::SearchCallback(SearchFilter &filter,
-                                    SymbolContext &context, Address *addr,
-                                    bool containing) {
+                                    SymbolContext &context, Address *addr) {
   SymbolContextList func_list;
   SymbolContextList sym_list;
 
@@ -87,15 +86,14 @@ AddressResolverName::SearchCallback(SearchFilter &filter,
 
   const bool include_symbols = false;
   const bool include_inlines = true;
-  const bool append = false;
   switch (m_match_type) {
   case AddressResolver::Exact:
     if (context.module_sp) {
       context.module_sp->FindSymbolsWithNameAndType(m_func_name,
                                                     eSymbolTypeCode, sym_list);
-      context.module_sp->FindFunctions(m_func_name, nullptr,
+      context.module_sp->FindFunctions(m_func_name, CompilerDeclContext(),
                                        eFunctionNameTypeAuto, include_symbols,
-                                       include_inlines, append, func_list);
+                                       include_inlines, func_list);
     }
     break;
 
@@ -104,7 +102,7 @@ AddressResolverName::SearchCallback(SearchFilter &filter,
       context.module_sp->FindSymbolsMatchingRegExAndType(
           m_regex, eSymbolTypeCode, sym_list);
       context.module_sp->FindFunctions(m_regex, include_symbols,
-                                       include_inlines, append, func_list);
+                                       include_inlines, func_list);
     }
     break;
 

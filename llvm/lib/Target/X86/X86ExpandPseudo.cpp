@@ -41,11 +41,11 @@ public:
     MachineFunctionPass::getAnalysisUsage(AU);
   }
 
-  const X86Subtarget *STI;
-  const X86InstrInfo *TII;
-  const X86RegisterInfo *TRI;
-  const X86MachineFunctionInfo *X86FI;
-  const X86FrameLowering *X86FL;
+  const X86Subtarget *STI = nullptr;
+  const X86InstrInfo *TII = nullptr;
+  const X86RegisterInfo *TRI = nullptr;
+  const X86MachineFunctionInfo *X86FI = nullptr;
+  const X86FrameLowering *X86FL = nullptr;
 
   bool runOnMachineFunction(MachineFunction &Fn) override;
 
@@ -275,7 +275,10 @@ bool X86ExpandPseudo::ExpandMI(MachineBasicBlock &MBB,
 
     MachineInstr &NewMI = *std::prev(MBBI);
     NewMI.copyImplicitOps(*MBBI->getParent()->getParent(), *MBBI);
-    MBB.getParent()->moveCallSiteInfo(&*MBBI, &NewMI);
+
+    // Update the call site info.
+    if (MBBI->isCandidateForCallSiteEntry())
+      MBB.getParent()->moveCallSiteInfo(&*MBBI, &NewMI);
 
     // Delete the pseudo instruction TCRETURN.
     MBB.erase(MBBI);
@@ -329,14 +332,6 @@ bool X86ExpandPseudo::ExpandMI(MachineBasicBlock &MBB,
     for (unsigned I = 1, E = MBBI->getNumOperands(); I != E; ++I)
       MIB.add(MBBI->getOperand(I));
     MBB.erase(MBBI);
-    return true;
-  }
-  case X86::EH_RESTORE: {
-    // Restore ESP and EBP, and optionally ESI if required.
-    bool IsSEH = isAsynchronousEHPersonality(classifyEHPersonality(
-        MBB.getParent()->getFunction().getPersonalityFn()));
-    X86FL->restoreWin32EHStackPointers(MBB, MBBI, DL, /*RestoreSP=*/IsSEH);
-    MBBI->eraseFromParent();
     return true;
   }
   case X86::LCMPXCHG8B_SAVE_EBX:

@@ -18,8 +18,12 @@ namespace {
 
 template<typename T> std::string printToString(const T &Value) {
   std::string res;
-  llvm::raw_string_ostream(res) << Value;
-  return res;    
+  {
+    llvm::raw_string_ostream OS(res);
+    OS.SetBuffered();
+    OS << Value;
+  }
+  return res;
 }
 
 /// printToString - Print the given value to a stream which only has \arg
@@ -36,7 +40,7 @@ template<typename T> std::string printToString(const T &Value,
   for (unsigned i = 0; i != StartIndex; ++i)
     OS << '?';
   OS << Value;
-  return OS.str().substr(StartIndex);
+  return std::string(OS.str().substr(StartIndex));
 }
 
 template<typename T> std::string printToStringUnbuffered(const T &Value) {
@@ -46,6 +50,10 @@ template<typename T> std::string printToStringUnbuffered(const T &Value) {
   OS << Value;
   return res;
 }
+
+struct X {};
+
+raw_ostream &operator<<(raw_ostream &OS, const X &) { return OS << 'X'; }
 
 TEST(raw_ostreamTest, Types_Buffered) {
   // Char
@@ -76,6 +84,9 @@ TEST(raw_ostreamTest, Types_Buffered) {
   // Min and max.
   EXPECT_EQ("18446744073709551615", printToString(UINT64_MAX));
   EXPECT_EQ("-9223372036854775808", printToString(INT64_MIN));
+
+  // X, checking free operator<<().
+  EXPECT_EQ("X", printToString(X{}));
 }
 
 TEST(raw_ostreamTest, Types_Unbuffered) {  
@@ -107,6 +118,9 @@ TEST(raw_ostreamTest, Types_Unbuffered) {
   // Min and max.
   EXPECT_EQ("18446744073709551615", printToStringUnbuffered(UINT64_MAX));
   EXPECT_EQ("-9223372036854775808", printToStringUnbuffered(INT64_MIN));
+
+  // X, checking free operator<<().
+  EXPECT_EQ("X", printToString(X{}));
 }
 
 TEST(raw_ostreamTest, BufferEdge) {  

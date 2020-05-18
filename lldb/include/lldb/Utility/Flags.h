@@ -29,20 +29,9 @@ public:
   /// Constructs this object with \a mask as the initial value for all of the
   /// flags.
   ///
-  /// \param[in] mask
+  /// \param[in] flags
   ///     The initial value for all flags.
   Flags(ValueType flags = 0) : m_flags(flags) {}
-
-  /// Copy constructor.
-  ///
-  /// Construct and copy the flags from \a rhs.
-  ///
-  /// \param[in] rhs
-  ///     A const Flags object reference to copy.
-  Flags(const Flags &rhs) : m_flags(rhs.m_flags) {}
-
-  /// Destructor.
-  ~Flags() {}
 
   /// Get accessor for all flags.
   ///
@@ -127,4 +116,4 @@ protected:
 
 } // namespace lldb_private
 
-#endif // liblldb_Flags_h_
+#endif // LLDB_UTILITY_FLAGS_H

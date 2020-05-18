@@ -1,4 +1,4 @@
-# RUN: %clang %p/Inputs/stop-hook.c -g -o %t
+# RUN: %clang_host %p/Inputs/stop-hook.c -g -o %t
 # Test setting stop-hook per-function
 # RUN: %lldb -b -s %p/Inputs/stop-hook-1.lldbinit -s %s -f %t \
 # RUN:      | FileCheck --check-prefix=CHECK --check-prefix=CHECK-FUNC %s
@@ -46,12 +46,12 @@ target stop-hook list
 run
 # Stopping inside of the stop hook range
 # CHECK: (lldb) run
-# CHECK-NEXT: (void *) $0 = 0x
+# CHECK-NEXT: (void *) ${{.*}} = 0x
 
 thread step-over
 # Stepping inside of the stop hook range
 # CHECK: (lldb) thread step-over
-# CHECK-NEXT: (void *) $1 = 0x
+# CHECK-NEXT: (void *) ${{.*}} = 0x
 # CHECK: ->{{.*}} // We should stop here after stepping.
 
 process continue

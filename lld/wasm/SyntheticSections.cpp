@@ -22,10 +22,10 @@
 using namespace llvm;
 using namespace llvm::wasm;
 
-using namespace lld;
-using namespace lld::wasm;
+namespace lld {
+namespace wasm {
 
-OutStruct lld::wasm::out;
+OutStruct out;
 
 namespace {
 
@@ -156,11 +156,11 @@ void ImportSection::writeBody() {
   for (const Symbol *sym : importedSymbols) {
     WasmImport import;
     if (auto *f = dyn_cast<UndefinedFunction>(sym)) {
-      import.Field = f->importName;
-      import.Module = f->importModule;
+      import.Field = f->importName ? *f->importName : sym->getName();
+      import.Module = f->importModule ? *f->importModule : defaultModule;
     } else if (auto *g = dyn_cast<UndefinedGlobal>(sym)) {
-      import.Field = g->importName;
-      import.Module = g->importModule;
+      import.Field = g->importName ? *g->importName : sym->getName();
+      import.Module = g->importModule ? *g->importModule : defaultModule;
     } else {
       import.Field = sym->getName();
       import.Module = defaultModule;
@@ -240,6 +240,26 @@ void MemorySection::writeBody() {
     writeUleb128(os, maxMemoryPages, "max pages");
 }
 
+void EventSection::writeBody() {
+  raw_ostream &os = bodyOutputStream;
+
+  writeUleb128(os, inputEvents.size(), "event count");
+  for (InputEvent *e : inputEvents) {
+    e->event.Type.SigIndex = out.typeSec->lookupType(e->signature);
+    writeEvent(os, e->event);
+  }
+}
+
+void EventSection::addEvent(InputEvent *event) {
+  if (!event->live)
+    return;
+  uint32_t eventIndex =
+      out.importSec->getNumImportedEvents() + inputEvents.size();
+  LLVM_DEBUG(dbgs() << "addEvent: " << eventIndex << "\n");
+  event->setEventIndex(eventIndex);
+  inputEvents.push_back(event);
+}
+
 void GlobalSection::assignIndexes() {
   uint32_t globalIndex = out.importSec->getNumImportedGlobals();
   for (InputGlobal *g : inputGlobals)
@@ -273,8 +293,12 @@ void GlobalSection::writeBody() {
     global.InitExpr.Opcode = WASM_OPCODE_I32_CONST;
     if (auto *d = dyn_cast<DefinedData>(sym))
       global.InitExpr.Value.Int32 = d->getVirtualAddress();
-    else if (auto *f = cast<FunctionSymbol>(sym))
+    else if (auto *f = dyn_cast<FunctionSymbol>(sym))
       global.InitExpr.Value.Int32 = f->getTableIndex();
+    else {
+      assert(isa<UndefinedData>(sym));
+      global.InitExpr.Value.Int32 = 0;
+    }
     writeGlobal(os, global);
   }
   for (const DefinedData *sym : dataAddressGlobals) {
@@ -291,26 +315,6 @@ void GlobalSection::addGlobal(InputGlobal *global) {
   if (!global->live)
     return;
   inputGlobals.push_back(global);
-}
-
-void EventSection::writeBody() {
-  raw_ostream &os = bodyOutputStream;
-
-  writeUleb128(os, inputEvents.size(), "event count");
-  for (InputEvent *e : inputEvents) {
-    e->event.Type.SigIndex = out.typeSec->lookupType(e->signature);
-    writeEvent(os, e->event);
-  }
-}
-
-void EventSection::addEvent(InputEvent *event) {
-  if (!event->live)
-    return;
-  uint32_t eventIndex =
-      out.importSec->getNumImportedEvents() + inputEvents.size();
-  LLVM_DEBUG(dbgs() << "addEvent: " << eventIndex << "\n");
-  event->setEventIndex(eventIndex);
-  inputEvents.push_back(event);
 }
 
 void ExportSection::writeBody() {
@@ -361,6 +365,12 @@ void ElemSection::writeBody() {
   }
 }
 
+DataCountSection::DataCountSection(ArrayRef<OutputSegment *> segments)
+    : SyntheticSection(llvm::wasm::WASM_SEC_DATACOUNT),
+      numSegments(std::count_if(
+          segments.begin(), segments.end(),
+          [](OutputSegment *const segment) { return !segment->isBss; })) {}
+
 void DataCountSection::writeBody() {
   writeUleb128(bodyOutputStream, numSegments, "data count");
 }
@@ -381,7 +391,7 @@ void LinkingSection::writeBody() {
     for (const Symbol *sym : symtabEntries) {
       assert(sym->isDefined() || sym->isUndefined());
       WasmSymbolType kind = sym->getWasmType();
-      uint32_t flags = sym->getFlags();
+      uint32_t flags = sym->flags;
 
       writeU8(sub.os, kind, "sym kind");
       writeUleb128(sub.os, flags, "sym flags");
@@ -567,3 +577,6 @@ void RelocSection::writeBody() {
   writeUleb128(bodyOutputStream, count, "reloc count");
   sec->writeRelocations(bodyOutputStream);
 }
+
+} // namespace wasm
+} // namespace lld

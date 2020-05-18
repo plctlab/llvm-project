@@ -221,9 +221,7 @@ class apply_variadic {
   static StringRef apply_one(StringRef S) { return S.drop_back(); }
 
 public:
-  template <typename... Ts>
-  auto operator()(Ts &&... Items)
-      -> decltype(std::make_tuple(apply_one(Items)...)) {
+  template <typename... Ts> auto operator()(Ts &&... Items) {
     return std::make_tuple(apply_one(Items)...);
   }
 };
@@ -378,6 +376,19 @@ TEST(STLExtrasTest, EmptyTest) {
   EXPECT_TRUE(llvm::empty(R0));
   auto R1 = make_range(V.begin(), V.end());
   EXPECT_FALSE(llvm::empty(R1));
+}
+
+TEST(STLExtrasTest, DropBeginTest) {
+  SmallVector<int, 5> vec{0, 1, 2, 3, 4};
+
+  for (int n = 0; n < 5; ++n) {
+    int i = n;
+    for (auto &v : drop_begin(vec, n)) {
+      EXPECT_EQ(v, i);
+      i += 1;
+    }
+    EXPECT_EQ(i, 5);
+  }
 }
 
 TEST(STLExtrasTest, EarlyIncrementTest) {

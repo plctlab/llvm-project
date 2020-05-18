@@ -348,6 +348,8 @@ CCAssignFn *AArch64FastISel::CCAssignFnForCall(CallingConv::ID CC) const {
     return CC_AArch64_WebKit_JS;
   if (CC == CallingConv::GHC)
     return CC_AArch64_GHC;
+  if (CC == CallingConv::CFGuard_Check)
+    return CC_AArch64_Win64_CFGuard_Check;
   return Subtarget->isTargetDarwin() ? CC_AArch64_DarwinPCS : CC_AArch64_AAPCS;
 }
 
@@ -432,11 +434,9 @@ unsigned AArch64FastISel::materializeFP(const ConstantFP *CFP, MVT VT) {
 
   // Materialize via constant pool.  MachineConstantPool wants an explicit
   // alignment.
-  unsigned Align = DL.getPrefTypeAlignment(CFP->getType());
-  if (Align == 0)
-    Align = DL.getTypeAllocSize(CFP->getType());
+  Align Alignment = DL.getPrefTypeAlign(CFP->getType());
 
-  unsigned CPI = MCP.getConstantPoolIndex(cast<Constant>(CFP), Align);
+  unsigned CPI = MCP.getConstantPoolIndex(cast<Constant>(CFP), Alignment);
   unsigned ADRPReg = createResultReg(&AArch64::GPR64commonRegClass);
   BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(AArch64::ADRP),
           ADRPReg).addConstantPoolIndex(CPI, 0, AArch64II::MO_PAGE);
@@ -1128,7 +1128,7 @@ void AArch64FastISel::addLoadStoreOperands(Address &Addr,
     // and alignment should be based on the VT.
     MMO = FuncInfo.MF->getMachineMemOperand(
         MachinePointerInfo::getFixedStack(*FuncInfo.MF, FI, Offset), Flags,
-        MFI.getObjectSize(FI), MFI.getObjectAlignment(FI));
+        MFI.getObjectSize(FI), MFI.getObjectAlign(FI));
     // Now add the rest of the operands.
     MIB.addFrameIndex(FI).addImm(Offset);
   } else {
@@ -3135,7 +3135,7 @@ bool AArch64FastISel::processCallArgs(CallLoweringInfo &CLI,
       Addr.setReg(AArch64::SP);
       Addr.setOffset(VA.getLocMemOffset() + BEAlign);
 
-      unsigned Alignment = DL.getABITypeAlignment(ArgVal->getType());
+      Align Alignment = DL.getABITypeAlign(ArgVal->getType());
       MachineMemOperand *MMO = FuncInfo.MF->getMachineMemOperand(
           MachinePointerInfo::getStack(*FuncInfo.MF, Addr.getOffset()),
           MachineMemOperand::MOStore, ArgVT.getStoreSize(), Alignment);
@@ -3249,6 +3249,13 @@ bool AArch64FastISel::fastLowerCall(CallLoweringInfo &CLI) {
 
   Address Addr;
   if (Callee && !computeCallAddress(Callee, Addr))
+    return false;
+
+  // The weak function target may be zero; in that case we must use indirect
+  // addressing via a stub on windows as it may be out of range for a
+  // PC-relative jump.
+  if (Subtarget->isTargetWindows() && Addr.getGlobalValue() &&
+      Addr.getGlobalValue()->hasExternalWeakLinkage())
     return false;
 
   // Handle the arguments now that we've gotten them.
@@ -3836,11 +3843,6 @@ bool AArch64FastISel::selectRet(const Instruction *I) {
   if (!FuncInfo.CanLowerReturn)
     return false;
 
-  // FIXME: in principle it could. Mostly just a case of zero extending outgoing
-  // pointers.
-  if (Subtarget->isTargetILP32())
-    return false;
-
   if (F.isVarArg())
     return false;
 
@@ -3919,6 +3921,11 @@ bool AArch64FastISel::selectRet(const Instruction *I) {
       if (SrcReg == 0)
         return false;
     }
+
+    // "Callee" (i.e. value producer) zero extends pointers at function
+    // boundary.
+    if (Subtarget->isTargetILP32() && RV->getType()->isPointerTy())
+      SrcReg = emitAnd_ri(MVT::i64, SrcReg, false, 0xffffffff);
 
     // Make the copy.
     BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc,
@@ -5009,6 +5016,9 @@ std::pair<unsigned, bool> AArch64FastISel::getRegForGEPIndex(const Value *Idx) {
 /// simple cases. This is because the standard fastEmit functions don't cover
 /// MUL at all and ADD is lowered very inefficientily.
 bool AArch64FastISel::selectGetElementPtr(const Instruction *I) {
+  if (Subtarget->isTargetILP32())
+    return false;
+
   unsigned N = getRegForValue(I->getOperand(0));
   if (!N)
     return false;

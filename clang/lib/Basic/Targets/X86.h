@@ -22,6 +22,21 @@
 namespace clang {
 namespace targets {
 
+static const unsigned X86AddrSpaceMap[] = {
+    0,   // Default
+    0,   // opencl_global
+    0,   // opencl_local
+    0,   // opencl_constant
+    0,   // opencl_private
+    0,   // opencl_generic
+    0,   // cuda_device
+    0,   // cuda_constant
+    0,   // cuda_shared
+    270, // ptr32_sptr
+    271, // ptr32_uptr
+    272  // ptr64
+};
+
 // X86 target abstract base class; x86-32 and x86-64 are very close, so
 // most of the implementation can be shared.
 class LLVM_LIBRARY_VISIBILITY X86TargetInfo : public TargetInfo {
@@ -45,6 +60,7 @@ class LLVM_LIBRARY_VISIBILITY X86TargetInfo : public TargetInfo {
     AMD3DNowAthlon
   } MMX3DNowLevel = NoMMX3DNow;
   enum XOPEnum { NoXOP, SSE4A, FMA4, XOP } XOPLevel = NoXOP;
+  enum AddrSpace { ptr32_sptr = 270, ptr32_uptr = 271, ptr64 = 272 };
 
   bool HasAES = false;
   bool HasVAES = false;
@@ -108,6 +124,8 @@ class LLVM_LIBRARY_VISIBILITY X86TargetInfo : public TargetInfo {
   bool HasPTWRITE = false;
   bool HasINVPCID = false;
   bool HasENQCMD = false;
+  bool HasSERIALIZE = false;
+  bool HasTSXLDTRK = false;
 
 protected:
   /// Enumeration of all of the X86 CPUs supported by Clang.
@@ -130,6 +148,7 @@ public:
   X86TargetInfo(const llvm::Triple &Triple, const TargetOptions &)
       : TargetInfo(Triple) {
     LongDoubleFormat = &llvm::APFloat::x87DoubleExtended();
+    AddrSpaceMap = &X86AddrSpaceMap;
   }
 
   const char *getLongDoubleMangling() const override {
@@ -149,6 +168,10 @@ public:
 
   ArrayRef<TargetInfo::AddlRegName> getGCCAddlRegNames() const override;
 
+  bool isSPRegName(StringRef RegName) const override {
+    return RegName.equals("esp") || RegName.equals("rsp");
+  }
+
   bool validateCpuSupports(StringRef Name) const override;
 
   bool validateCpuIs(StringRef Name) const override;
@@ -160,6 +183,8 @@ public:
   void getCPUSpecificCPUDispatchFeatures(
       StringRef Name,
       llvm::SmallVectorImpl<StringRef> &Features) const override;
+
+  Optional<unsigned> getCPUCacheLineSize() const override;
 
   bool validateAsmConstraint(const char *&Name,
                              TargetInfo::ConstraintInfo &info) const override;
@@ -177,9 +202,11 @@ public:
     return false;
   }
 
-  bool validateOutputSize(StringRef Constraint, unsigned Size) const override;
+  bool validateOutputSize(const llvm::StringMap<bool> &FeatureMap,
+                          StringRef Constraint, unsigned Size) const override;
 
-  bool validateInputSize(StringRef Constraint, unsigned Size) const override;
+  bool validateInputSize(const llvm::StringMap<bool> &FeatureMap,
+                         StringRef Constraint, unsigned Size) const override;
 
   virtual bool
   checkCFProtectionReturnSupported(DiagnosticsEngine &Diags) const override {
@@ -191,8 +218,8 @@ public:
     return true;
   };
 
-
-  virtual bool validateOperandSize(StringRef Constraint, unsigned Size) const;
+  virtual bool validateOperandSize(const llvm::StringMap<bool> &FeatureMap,
+                                   StringRef Constraint, unsigned Size) const;
 
   std::string convertConstraint(const char *&Constraint) const override;
   const char *getClobbers() const override {
@@ -328,6 +355,18 @@ public:
   void setSupportedOpenCLOpts() override {
     getSupportedOpenCLOpts().supportAll();
   }
+
+  uint64_t getPointerWidthV(unsigned AddrSpace) const override {
+    if (AddrSpace == ptr32_sptr || AddrSpace == ptr32_uptr)
+      return 32;
+    if (AddrSpace == ptr64)
+      return 64;
+    return PointerWidth;
+  }
+
+  uint64_t getPointerAlignV(unsigned AddrSpace) const override {
+    return getPointerWidthV(AddrSpace);
+  }
 };
 
 // X86-32 generic target
@@ -368,7 +407,8 @@ public:
     return -1;
   }
 
-  bool validateOperandSize(StringRef Constraint, unsigned Size) const override {
+  bool validateOperandSize(const llvm::StringMap<bool> &FeatureMap,
+                           StringRef Constraint, unsigned Size) const override {
     switch (Constraint[0]) {
     default:
       break;
@@ -386,7 +426,7 @@ public:
       return Size <= 64;
     }
 
-    return X86TargetInfo::validateOperandSize(Constraint, Size);
+    return X86TargetInfo::validateOperandSize(FeatureMap, Constraint, Size);
   }
 
   void setMaxAtomicWidth() override {
@@ -395,6 +435,8 @@ public:
   }
 
   ArrayRef<Builtin::Info> getTargetBuiltins() const override;
+
+  bool hasExtIntType() const override { return true; }
 };
 
 class LLVM_LIBRARY_VISIBILITY NetBSDI386TargetInfo
@@ -697,6 +739,8 @@ public:
   }
 
   ArrayRef<Builtin::Info> getTargetBuiltins() const override;
+
+  bool hasExtIntType() const override { return true; }
 };
 
 // x86-64 Windows target

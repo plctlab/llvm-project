@@ -25,6 +25,7 @@
 ///
 //===----------------------------------------------------------------------===//
 
+#include "llvm/Transforms/IPO/HotColdSplitting.h"
 #include "llvm/ADT/PostOrderIterator.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Statistic.h"
@@ -38,7 +39,6 @@
 #include "llvm/Analysis/TargetTransformInfo.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/CFG.h"
-#include "llvm/IR/CallSite.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/Dominators.h"
@@ -53,13 +53,14 @@
 #include "llvm/IR/Use.h"
 #include "llvm/IR/User.h"
 #include "llvm/IR/Value.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/BlockFrequency.h"
 #include "llvm/Support/BranchProbability.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/IPO.h"
-#include "llvm/Transforms/IPO/HotColdSplitting.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/Cloning.h"
@@ -108,8 +109,8 @@ bool unlikelyExecuted(BasicBlock &BB) {
   // The block is cold if it calls/invokes a cold function. However, do not
   // mark sanitizer traps as cold.
   for (Instruction &I : BB)
-    if (auto CS = CallSite(&I))
-      if (CS.hasFnAttr(Attribute::Cold) && !CS->getMetadata("nosanitize"))
+    if (auto *CB = dyn_cast<CallBase>(&I))
+      if (CB->hasFnAttr(Attribute::Cold) && !CB->getMetadata("nosanitize"))
         return true;
 
   // The block is cold if it has an unreachable terminator, unless it's
@@ -203,6 +204,11 @@ bool HotColdSplitting::shouldOutlineFrom(const Function &F) const {
     return false;
 
   if (F.hasFnAttribute(Attribute::NoInline))
+    return false;
+
+  // A function marked `noreturn` may contain unreachable terminators: these
+  // should not be considered cold, as the function may be a trampoline.
+  if (F.hasFnAttribute(Attribute::NoReturn))
     return false;
 
   if (F.hasFnAttribute(Attribute::SanitizeAddress) ||
@@ -318,13 +324,15 @@ Function *HotColdSplitting::extractColdRegion(
   if (Function *OutF = CE.extractCodeRegion(CEAC)) {
     User *U = *OutF->user_begin();
     CallInst *CI = cast<CallInst>(U);
-    CallSite CS(CI);
     NumColdRegionsOutlined++;
     if (TTI.useColdCCForColdCall(*OutF)) {
       OutF->setCallingConv(CallingConv::Cold);
-      CS.setCallingConv(CallingConv::Cold);
+      CI->setCallingConv(CallingConv::Cold);
     }
     CI->setIsNoInline();
+
+    if (OrigF->hasSection())
+      OutF->setSection(OrigF->getSection());
 
     markFunctionCold(*OutF, BFI != nullptr);
 
@@ -448,6 +456,10 @@ public:
     // first have predecessors within the extraction region.
     if (mayExtractBlock(SinkBB)) {
       addBlockToRegion(&SinkBB, SinkScore);
+      if (pred_empty(&SinkBB)) {
+        ColdRegion->EntireFunctionCold = true;
+        return Regions;
+      }
     } else {
       Regions.emplace_back();
       ColdRegion = &Regions.back();

@@ -14,6 +14,7 @@
 #include "lldb/lldb-types.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/YAMLTraits.h"
 #include <string>
 #include <utility>
 #include <vector>
@@ -34,6 +35,9 @@ public:
   struct ArgEntry {
   private:
     friend class Args;
+    friend struct llvm::yaml::MappingTraits<Args>;
+    friend struct llvm::yaml::MappingTraits<Args::ArgEntry>;
+
     std::unique_ptr<char[]> ptr;
     char quote;
 
@@ -252,35 +256,6 @@ public:
   // For re-setting or blanking out the list of arguments.
   void Clear();
 
-  static bool UInt64ValueIsValidForByteSize(uint64_t uval64,
-                                            size_t total_byte_size) {
-    if (total_byte_size > 8)
-      return false;
-
-    if (total_byte_size == 8)
-      return true;
-
-    const uint64_t max = (static_cast<uint64_t>(1)
-                          << static_cast<uint64_t>(total_byte_size * 8)) -
-                         1;
-    return uval64 <= max;
-  }
-
-  static bool SInt64ValueIsValidForByteSize(int64_t sval64,
-                                            size_t total_byte_size) {
-    if (total_byte_size > 8)
-      return false;
-
-    if (total_byte_size == 8)
-      return true;
-
-    const int64_t max = (static_cast<int64_t>(1)
-                         << static_cast<uint64_t>(total_byte_size * 8 - 1)) -
-                        1;
-    const int64_t min = ~(max);
-    return min <= sval64 && sval64 <= max;
-  }
-
   static lldb::Encoding
   StringToEncoding(llvm::StringRef s,
                    lldb::Encoding fail_value = lldb::eEncodingInvalid);
@@ -312,6 +287,8 @@ public:
                                                char quote_char);
 
 private:
+  friend struct llvm::yaml::MappingTraits<Args>;
+
   std::vector<ArgEntry> m_entries;
   std::vector<char *> m_argv;
 };
@@ -401,5 +378,29 @@ private:
 };
 
 } // namespace lldb_private
+
+namespace llvm {
+namespace yaml {
+template <> struct MappingTraits<lldb_private::Args::ArgEntry> {
+  class NormalizedArgEntry {
+  public:
+    NormalizedArgEntry(IO &) {}
+    NormalizedArgEntry(IO &, lldb_private::Args::ArgEntry &entry)
+        : value(entry.ref()), quote(entry.quote) {}
+    lldb_private::Args::ArgEntry denormalize(IO &) {
+      return lldb_private::Args::ArgEntry(value, quote);
+    }
+    StringRef value;
+    char quote;
+  };
+  static void mapping(IO &io, lldb_private::Args::ArgEntry &v);
+};
+template <> struct MappingTraits<lldb_private::Args> {
+  static void mapping(IO &io, lldb_private::Args &v);
+};
+} // namespace yaml
+} // namespace llvm
+
+LLVM_YAML_IS_SEQUENCE_VECTOR(lldb_private::Args::ArgEntry)
 
 #endif // LLDB_UTILITY_ARGS_H

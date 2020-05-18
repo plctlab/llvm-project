@@ -11,7 +11,7 @@
 
 #include <ciso646>
 #ifndef _LIBCPP_VERSION
-#error This header may only be used for libc++ tests"
+#error This header may only be used for libc++ tests
 #endif
 
 #ifndef _LIBCPP_DEBUG
@@ -63,15 +63,15 @@ enum ContainerType {
 };
 
 constexpr bool isSequential(ContainerType CT) {
-  return CT_Vector >= CT && CT_ForwardList <= CT;
+  return CT >= CT_Vector && CT <= CT_ForwardList;
 }
 
 constexpr bool isAssociative(ContainerType CT) {
-  return CT_Map >= CT && CT_MultiSet <= CT;
+  return CT >= CT_Map && CT <= CT_MultiSet;
 }
 
 constexpr bool isUnordered(ContainerType CT) {
-  return CT_UnorderedMap >= CT && CT_UnorderedMultiSet <= CT;
+  return CT >= CT_UnorderedMap && CT <= CT_UnorderedMultiSet;
 }
 
 constexpr bool isSet(ContainerType CT) {

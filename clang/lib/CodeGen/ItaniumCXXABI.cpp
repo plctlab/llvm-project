@@ -24,10 +24,11 @@
 #include "CodeGenFunction.h"
 #include "CodeGenModule.h"
 #include "TargetInfo.h"
-#include "clang/CodeGen/ConstantInitBuilder.h"
+#include "clang/AST/Attr.h"
 #include "clang/AST/Mangle.h"
-#include "clang/AST/Type.h"
 #include "clang/AST/StmtCXX.h"
+#include "clang/AST/Type.h"
+#include "clang/CodeGen/ConstantInitBuilder.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/GlobalValue.h"
 #include "llvm/IR/Instructions.h"
@@ -487,6 +488,19 @@ public:
   bool shouldRTTIBeUnique() const override { return false; }
 };
 
+class FuchsiaCXXABI final : public ItaniumCXXABI {
+public:
+  explicit FuchsiaCXXABI(CodeGen::CodeGenModule &CGM)
+      : ItaniumCXXABI(CGM) {}
+
+private:
+  bool HasThisReturn(GlobalDecl GD) const override {
+    return isa<CXXConstructorDecl>(GD.getDecl()) ||
+           (isa<CXXDestructorDecl>(GD.getDecl()) &&
+            GD.getDtorType() != Dtor_Deleting);
+  }
+};
+
 class WebAssemblyCXXABI final : public ItaniumCXXABI {
 public:
   explicit WebAssemblyCXXABI(CodeGen::CodeGenModule &CGM)
@@ -502,6 +516,16 @@ private:
   }
   bool canCallMismatchedFunctionType() const override { return false; }
 };
+
+class XLCXXABI final : public ItaniumCXXABI {
+public:
+  explicit XLCXXABI(CodeGen::CodeGenModule &CGM)
+      : ItaniumCXXABI(CGM) {}
+
+  void registerGlobalDtor(CodeGenFunction &CGF, const VarDecl &D,
+                          llvm::FunctionCallee dtor,
+                          llvm::Constant *addr) override;
+};
 }
 
 CodeGen::CGCXXABI *CodeGen::CreateItaniumCXXABI(CodeGenModule &CGM) {
@@ -516,6 +540,9 @@ CodeGen::CGCXXABI *CodeGen::CreateItaniumCXXABI(CodeGenModule &CGM) {
   case TargetCXXABI::iOS64:
     return new iOS64CXXABI(CGM);
 
+  case TargetCXXABI::Fuchsia:
+    return new FuchsiaCXXABI(CGM);
+
   // Note that AArch64 uses the generic ItaniumCXXABI class since it doesn't
   // include the other 32-bit ARM oddities: constructor/destructor return values
   // and array cookies.
@@ -528,6 +555,9 @@ CodeGen::CGCXXABI *CodeGen::CreateItaniumCXXABI(CodeGenModule &CGM) {
 
   case TargetCXXABI::WebAssembly:
     return new WebAssemblyCXXABI(CGM);
+
+  case TargetCXXABI::XL:
+    return new XLCXXABI(CGM);
 
   case TargetCXXABI::GenericItanium:
     if (CGM.getContext().getTargetInfo().getTriple().getArch()
@@ -644,8 +674,6 @@ CGCallee ItaniumCXXABI::EmitLoadOfMemberFunctionPointer(
     VTableOffset = Builder.CreateTrunc(VTableOffset, CGF.Int32Ty);
     VTableOffset = Builder.CreateZExt(VTableOffset, CGM.PtrDiffTy);
   }
-  // Compute the address of the virtual function pointer.
-  llvm::Value *VFPAddr = Builder.CreateGEP(VTable, VTableOffset);
 
   // Check the address of the function pointer if CFI on member function
   // pointers is enabled.
@@ -653,44 +681,87 @@ CGCallee ItaniumCXXABI::EmitLoadOfMemberFunctionPointer(
   llvm::Constant *CheckTypeDesc;
   bool ShouldEmitCFICheck = CGF.SanOpts.has(SanitizerKind::CFIMFCall) &&
                             CGM.HasHiddenLTOVisibility(RD);
-  if (ShouldEmitCFICheck) {
+  bool ShouldEmitVFEInfo = CGM.getCodeGenOpts().VirtualFunctionElimination &&
+                           CGM.HasHiddenLTOVisibility(RD);
+  bool ShouldEmitWPDInfo =
+      CGM.getCodeGenOpts().WholeProgramVTables &&
+      // Don't insert type tests if we are forcing public std visibility.
+      !CGM.HasLTOVisibilityPublicStd(RD);
+  llvm::Value *VirtualFn = nullptr;
+
+  {
     CodeGenFunction::SanitizerScope SanScope(&CGF);
+    llvm::Value *TypeId = nullptr;
+    llvm::Value *CheckResult = nullptr;
 
-    CheckSourceLocation = CGF.EmitCheckSourceLocation(E->getBeginLoc());
-    CheckTypeDesc = CGF.EmitCheckTypeDescriptor(QualType(MPT, 0));
-    llvm::Constant *StaticData[] = {
-        llvm::ConstantInt::get(CGF.Int8Ty, CodeGenFunction::CFITCK_VMFCall),
-        CheckSourceLocation,
-        CheckTypeDesc,
-    };
-
-    llvm::Metadata *MD =
-        CGM.CreateMetadataIdentifierForVirtualMemPtrType(QualType(MPT, 0));
-    llvm::Value *TypeId = llvm::MetadataAsValue::get(CGF.getLLVMContext(), MD);
-
-    llvm::Value *TypeTest = Builder.CreateCall(
-        CGM.getIntrinsic(llvm::Intrinsic::type_test), {VFPAddr, TypeId});
-
-    if (CGM.getCodeGenOpts().SanitizeTrap.has(SanitizerKind::CFIMFCall)) {
-      CGF.EmitTrapCheck(TypeTest);
-    } else {
-      llvm::Value *AllVtables = llvm::MetadataAsValue::get(
-          CGM.getLLVMContext(),
-          llvm::MDString::get(CGM.getLLVMContext(), "all-vtables"));
-      llvm::Value *ValidVtable = Builder.CreateCall(
-          CGM.getIntrinsic(llvm::Intrinsic::type_test), {VTable, AllVtables});
-      CGF.EmitCheck(std::make_pair(TypeTest, SanitizerKind::CFIMFCall),
-                    SanitizerHandler::CFICheckFail, StaticData,
-                    {VTable, ValidVtable});
+    if (ShouldEmitCFICheck || ShouldEmitVFEInfo || ShouldEmitWPDInfo) {
+      // If doing CFI, VFE or WPD, we will need the metadata node to check
+      // against.
+      llvm::Metadata *MD =
+          CGM.CreateMetadataIdentifierForVirtualMemPtrType(QualType(MPT, 0));
+      TypeId = llvm::MetadataAsValue::get(CGF.getLLVMContext(), MD);
     }
 
-    FnVirtual = Builder.GetInsertBlock();
-  }
+    llvm::Value *VFPAddr = Builder.CreateGEP(VTable, VTableOffset);
 
-  // Load the virtual function to call.
-  VFPAddr = Builder.CreateBitCast(VFPAddr, FTy->getPointerTo()->getPointerTo());
-  llvm::Value *VirtualFn = Builder.CreateAlignedLoad(
-      VFPAddr, CGF.getPointerAlign(), "memptr.virtualfn");
+    if (ShouldEmitVFEInfo) {
+      // If doing VFE, load from the vtable with a type.checked.load intrinsic
+      // call. Note that we use the GEP to calculate the address to load from
+      // and pass 0 as the offset to the intrinsic. This is because every
+      // vtable slot of the correct type is marked with matching metadata, and
+      // we know that the load must be from one of these slots.
+      llvm::Value *CheckedLoad = Builder.CreateCall(
+          CGM.getIntrinsic(llvm::Intrinsic::type_checked_load),
+          {VFPAddr, llvm::ConstantInt::get(CGM.Int32Ty, 0), TypeId});
+      CheckResult = Builder.CreateExtractValue(CheckedLoad, 1);
+      VirtualFn = Builder.CreateExtractValue(CheckedLoad, 0);
+      VirtualFn = Builder.CreateBitCast(VirtualFn, FTy->getPointerTo(),
+                                        "memptr.virtualfn");
+    } else {
+      // When not doing VFE, emit a normal load, as it allows more
+      // optimisations than type.checked.load.
+      if (ShouldEmitCFICheck || ShouldEmitWPDInfo) {
+        CheckResult = Builder.CreateCall(
+            CGM.getIntrinsic(llvm::Intrinsic::type_test),
+            {Builder.CreateBitCast(VFPAddr, CGF.Int8PtrTy), TypeId});
+      }
+      VFPAddr =
+          Builder.CreateBitCast(VFPAddr, FTy->getPointerTo()->getPointerTo());
+      VirtualFn = Builder.CreateAlignedLoad(VFPAddr, CGF.getPointerAlign(),
+                                            "memptr.virtualfn");
+    }
+    assert(VirtualFn && "Virtual fuction pointer not created!");
+    assert((!ShouldEmitCFICheck || !ShouldEmitVFEInfo || !ShouldEmitWPDInfo ||
+            CheckResult) &&
+           "Check result required but not created!");
+
+    if (ShouldEmitCFICheck) {
+      // If doing CFI, emit the check.
+      CheckSourceLocation = CGF.EmitCheckSourceLocation(E->getBeginLoc());
+      CheckTypeDesc = CGF.EmitCheckTypeDescriptor(QualType(MPT, 0));
+      llvm::Constant *StaticData[] = {
+          llvm::ConstantInt::get(CGF.Int8Ty, CodeGenFunction::CFITCK_VMFCall),
+          CheckSourceLocation,
+          CheckTypeDesc,
+      };
+
+      if (CGM.getCodeGenOpts().SanitizeTrap.has(SanitizerKind::CFIMFCall)) {
+        CGF.EmitTrapCheck(CheckResult);
+      } else {
+        llvm::Value *AllVtables = llvm::MetadataAsValue::get(
+            CGM.getLLVMContext(),
+            llvm::MDString::get(CGM.getLLVMContext(), "all-vtables"));
+        llvm::Value *ValidVtable = Builder.CreateCall(
+            CGM.getIntrinsic(llvm::Intrinsic::type_test), {VTable, AllVtables});
+        CGF.EmitCheck(std::make_pair(CheckResult, SanitizerKind::CFIMFCall),
+                      SanitizerHandler::CFICheckFail, StaticData,
+                      {VTable, ValidVtable});
+      }
+
+      FnVirtual = Builder.GetInsertBlock();
+    }
+  } // End of sanitizer scope
+
   CGF.EmitBranch(FnEnd);
 
   // In the non-virtual path, the function pointer is actually a
@@ -1634,7 +1705,7 @@ void ItaniumCXXABI::emitVTableDefinitions(CodeGenVTables &CGVT,
     EmitFundamentalRTTIDescriptors(RD);
 
   if (!VTable->isDeclarationForLinker())
-    CGM.EmitVTableTypeMetadata(VTable, VTLayout);
+    CGM.EmitVTableTypeMetadata(RD, VTable, VTLayout);
 }
 
 bool ItaniumCXXABI::isVirtualOffsetNeededForVTableField(
@@ -2371,7 +2442,7 @@ static void emitGlobalDtorWithCXAAtExit(CodeGenFunction &CGF,
 }
 
 void CodeGenModule::registerGlobalDtorsWithAtExit() {
-  for (const auto I : DtorsUsingAtExit) {
+  for (const auto &I : DtorsUsingAtExit) {
     int Priority = I.first;
     const llvm::TinyPtrVector<llvm::Function *> &Dtors = I.second;
 
@@ -2493,6 +2564,9 @@ ItaniumCXXABI::getOrCreateThreadLocalWrapper(const VarDecl *VD,
   llvm::Function *Wrapper =
       llvm::Function::Create(FnTy, getThreadLocalWrapperLinkage(VD, CGM),
                              WrapperName.str(), &CGM.getModule());
+
+  if (CGM.supportsCOMDAT() && Wrapper->isWeakForLinker())
+    Wrapper->setComdat(CGM.getModule().getOrInsertComdat(Wrapper->getName()));
 
   CGM.SetLLVMFunctionAttributes(GlobalDecl(), FI, Wrapper);
 
@@ -2632,7 +2706,9 @@ void ItaniumCXXABI::EmitThreadLocalInitFuncs(
 
     if (Init) {
       Init->setVisibility(Var->getVisibility());
-      Init->setDSOLocal(Var->isDSOLocal());
+      // Don't mark an extern_weak function DSO local on windows.
+      if (!CGM.getTriple().isOSWindows() || !Init->hasExternalWeakLinkage())
+        Init->setDSOLocal(Var->isDSOLocal());
     }
 
     llvm::LLVMContext &Context = CGM.getModule().getContext();
@@ -3143,9 +3219,11 @@ void ItaniumRTTIBuilder::BuildVTablePointer(const Type *Ty) {
     llvm_unreachable("Pipe types shouldn't get here");
 
   case Type::Builtin:
+  case Type::ExtInt:
   // GCC treats vector and complex types as fundamental types.
   case Type::Vector:
   case Type::ExtVector:
+  case Type::ConstantMatrix:
   case Type::Complex:
   case Type::Atomic:
   // FIXME: GCC treats block pointers as fundamental types?!
@@ -3381,6 +3459,7 @@ llvm::Constant *ItaniumRTTIBuilder::BuildTypeInfo(
   case Type::Builtin:
   case Type::Vector:
   case Type::ExtVector:
+  case Type::ConstantMatrix:
   case Type::Complex:
   case Type::BlockPointer:
     // Itanium C++ ABI 2.9.5p4:
@@ -3396,7 +3475,10 @@ llvm::Constant *ItaniumRTTIBuilder::BuildTypeInfo(
     llvm_unreachable("Undeduced type shouldn't get here");
 
   case Type::Pipe:
-    llvm_unreachable("Pipe type shouldn't get here");
+    break;
+
+  case Type::ExtInt:
+    break;
 
   case Type::ConstantArray:
   case Type::IncompleteArray:
@@ -4343,4 +4425,12 @@ void WebAssemblyCXXABI::emitBeginCatch(CodeGenFunction &CGF,
     CGF.EHStack.pushCleanup<CatchRetScope>(
         NormalCleanup, cast<llvm::CatchPadInst>(CGF.CurrentFuncletPad));
   ItaniumCXXABI::emitBeginCatch(CGF, C);
+}
+
+/// Register a global destructor as best as we know how.
+void XLCXXABI::registerGlobalDtor(CodeGenFunction &CGF, const VarDecl &D,
+                                  llvm::FunctionCallee dtor,
+                                  llvm::Constant *addr) {
+  llvm::report_fatal_error("Static initialization has not been implemented on"
+                           " XL ABI yet.");
 }

@@ -7,7 +7,9 @@ unittest("ObjectTests") {
     "//llvm/lib/Testing/Support",
   ]
   sources = [
+    "ArchiveTest.cpp",
     "MinidumpTest.cpp",
+    "ObjectFileTest.cpp",
     "SymbolSizeTest.cpp",
     "SymbolicFileTest.cpp",
   ]

@@ -14,22 +14,22 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/ADT/Statistic.h"
-#include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/Analysis/LoopAccessAnalysis.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/NoFolder.h"
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Transforms/Utils/BasicBlockUtils.h"
-#include "llvm/Pass.h"
-#include "llvm/PassRegistry.h"
-#include "llvm/PassSupport.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/IR/PatternMatch.h"
-#include "llvm/CodeGen/TargetPassConfig.h"
 #include "ARM.h"
 #include "ARMSubtarget.h"
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/ADT/Statistic.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Analysis/LoopAccessAnalysis.h"
+#include "llvm/CodeGen/TargetPassConfig.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicsARM.h"
+#include "llvm/IR/NoFolder.h"
+#include "llvm/IR/PatternMatch.h"
+#include "llvm/Pass.h"
+#include "llvm/PassRegistry.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
 
 using namespace llvm;
 using namespace PatternMatch;
@@ -41,6 +41,10 @@ STATISTIC(NumSMLAD , "Number of smlad instructions generated");
 static cl::opt<bool>
 DisableParallelDSP("disable-arm-parallel-dsp", cl::Hidden, cl::init(false),
                    cl::desc("Disable the ARM Parallel DSP pass"));
+
+static cl::opt<unsigned>
+NumLoadLimit("arm-parallel-dsp-load-limit", cl::Hidden, cl::init(16),
+             cl::desc("Limit the number of loads analysed"));
 
 namespace {
   struct MulCandidate;
@@ -360,21 +364,24 @@ bool ARMParallelDSP::RecordMemoryOps(BasicBlock *BB) {
     Loads.push_back(Ld);
   }
 
+  if (Loads.empty() || Loads.size() > NumLoadLimit)
+    return false;
+
   using InstSet = std::set<Instruction*>;
   using DepMap = std::map<Instruction*, InstSet>;
   DepMap RAWDeps;
 
   // Record any writes that may alias a load.
   const auto Size = LocationSize::unknown();
-  for (auto Read : Loads) {
-    for (auto Write : Writes) {
+  for (auto Write : Writes) {
+    for (auto Read : Loads) {
       MemoryLocation ReadLoc =
         MemoryLocation(Read->getPointerOperand(), Size);
 
       if (!isModOrRefSet(intersectModRef(AA->getModRefInfo(Write, ReadLoc),
           ModRefInfo::ModRef)))
         continue;
-      if (DT->dominates(Write, Read))
+      if (Write->comesBefore(Read))
         RAWDeps[Read].insert(Write);
     }
   }
@@ -382,8 +389,9 @@ bool ARMParallelDSP::RecordMemoryOps(BasicBlock *BB) {
   // Check whether there's not a write between the two loads which would
   // prevent them from being safely merged.
   auto SafeToPair = [&](LoadInst *Base, LoadInst *Offset) {
-    LoadInst *Dominator = DT->dominates(Base, Offset) ? Base : Offset;
-    LoadInst *Dominated = DT->dominates(Base, Offset) ? Offset : Base;
+    bool BaseFirst = Base->comesBefore(Offset);
+    LoadInst *Dominator = BaseFirst ? Base : Offset;
+    LoadInst *Dominated = BaseFirst ? Offset : Base;
 
     if (RAWDeps.count(Dominated)) {
       InstSet &WritesBefore = RAWDeps[Dominated];
@@ -391,7 +399,7 @@ bool ARMParallelDSP::RecordMemoryOps(BasicBlock *BB) {
       for (auto Before : WritesBefore) {
         // We can't move the second load backward, past a write, to merge
         // with the first load.
-        if (DT->dominates(Dominator, Before))
+        if (Dominator->comesBefore(Before))
           return false;
       }
     }
@@ -401,7 +409,7 @@ bool ARMParallelDSP::RecordMemoryOps(BasicBlock *BB) {
   // Record base, offset load pairs.
   for (auto *Base : Loads) {
     for (auto *Offset : Loads) {
-      if (Base == Offset)
+      if (Base == Offset || OffsetLoads.count(Offset))
         continue;
 
       if (AreSequentialAccesses<LoadInst>(Base, Offset, *DL, *SE) &&
@@ -561,6 +569,10 @@ bool ARMParallelDSP::CreateParallelPairs(Reduction &R) {
     auto Ld2 = static_cast<LoadInst*>(PMul0->RHS);
     auto Ld3 = static_cast<LoadInst*>(PMul1->RHS);
 
+    // Check that each mul is operating on two different loads.
+    if (Ld0 == Ld2 || Ld1 == Ld3)
+      return false;
+
     if (AreSequentialLoads(Ld0, Ld1, PMul0->VecLd)) {
       if (AreSequentialLoads(Ld2, Ld3, PMul1->VecLd)) {
         LLVM_DEBUG(dbgs() << "OK: found two pairs of parallel loads!\n");
@@ -613,7 +625,6 @@ bool ARMParallelDSP::CreateParallelPairs(Reduction &R) {
   return !R.getMulPairs().empty();
 }
 
-
 void ARMParallelDSP::InsertParallelMACs(Reduction &R) {
 
   auto CreateSMLAD = [&](LoadInst* WideLd0, LoadInst *WideLd1,
@@ -633,30 +644,45 @@ void ARMParallelDSP::InsertParallelMACs(Reduction &R) {
         Intrinsic::getDeclaration(M, Intrinsic::arm_smlald);
 
     IRBuilder<NoFolder> Builder(InsertAfter->getParent(),
-                                ++BasicBlock::iterator(InsertAfter));
+                                BasicBlock::iterator(InsertAfter));
     Instruction *Call = Builder.CreateCall(SMLAD, Args);
     NumSMLAD++;
     return Call;
   };
 
-  Instruction *InsertAfter = R.getRoot();
+  // Return the instruction after the dominated instruction.
+  auto GetInsertPoint = [this](Value *A, Value *B) {
+    assert((isa<Instruction>(A) || isa<Instruction>(B)) &&
+           "expected at least one instruction");
+
+    Value *V = nullptr;
+    if (!isa<Instruction>(A))
+      V = B;
+    else if (!isa<Instruction>(B))
+      V = A;
+    else
+      V = DT->dominates(cast<Instruction>(A), cast<Instruction>(B)) ? B : A;
+
+    return &*++BasicBlock::iterator(cast<Instruction>(V));
+  };
+
   Value *Acc = R.getAccumulator();
 
   // For any muls that were discovered but not paired, accumulate their values
   // as before.
-  IRBuilder<NoFolder> Builder(InsertAfter->getParent(),
-                              ++BasicBlock::iterator(InsertAfter));
+  IRBuilder<NoFolder> Builder(R.getRoot()->getParent());
   MulCandList &MulCands = R.getMuls();
   for (auto &MulCand : MulCands) {
     if (MulCand->Paired)
       continue;
 
-    Value *Mul = MulCand->Root;
+    Instruction *Mul = cast<Instruction>(MulCand->Root);
     LLVM_DEBUG(dbgs() << "Accumulating unpaired mul: " << *Mul << "\n");
 
     if (R.getType() != Mul->getType()) {
       assert(R.is64Bit() && "expected 64-bit result");
-      Mul = Builder.CreateSExt(Mul, R.getType());
+      Builder.SetInsertPoint(&*++BasicBlock::iterator(Mul));
+      Mul = cast<Instruction>(Builder.CreateSExt(Mul, R.getRoot()->getType()));
     }
 
     if (!Acc) {
@@ -664,8 +690,11 @@ void ARMParallelDSP::InsertParallelMACs(Reduction &R) {
       continue;
     }
 
+    // If Acc is the original incoming value to the reduction, it could be a
+    // phi. But the phi will dominate Mul, meaning that Mul will be the
+    // insertion point.
+    Builder.SetInsertPoint(GetInsertPoint(Mul, Acc));
     Acc = Builder.CreateAdd(Mul, Acc);
-    InsertAfter = cast<Instruction>(Acc);
   }
 
   if (!Acc) {
@@ -676,6 +705,13 @@ void ARMParallelDSP::InsertParallelMACs(Reduction &R) {
     Builder.SetInsertPoint(R.getRoot());
     Acc = Builder.CreateSExt(Acc, R.getType());
   }
+
+  // Roughly sort the mul pairs in their program order.
+  llvm::sort(R.getMulPairs(), [](auto &PairA, auto &PairB) {
+    const Instruction *A = PairA.first->Root;
+    const Instruction *B = PairB.first->Root;
+    return A->comesBefore(B);
+  });
 
   IntegerType *Ty = IntegerType::get(M->getContext(), 32);
   for (auto &Pair : R.getMulPairs()) {
@@ -688,8 +724,9 @@ void ARMParallelDSP::InsertParallelMACs(Reduction &R) {
     LoadInst *WideRHS = WideLoads.count(BaseRHS) ?
       WideLoads[BaseRHS]->getLoad() : CreateWideLoad(RHSMul->VecLd, Ty);
 
+    Instruction *InsertAfter = GetInsertPoint(WideLHS, WideRHS);
+    InsertAfter = GetInsertPoint(InsertAfter, Acc);
     Acc = CreateSMLAD(WideLHS, WideRHS, Acc, RHSMul->Exchange, InsertAfter);
-    InsertAfter = cast<Instruction>(Acc);
   }
   R.UpdateRoot(cast<Instruction>(Acc));
 }
@@ -736,8 +773,7 @@ LoadInst* ARMParallelDSP::CreateWideLoad(MemInstList &Loads,
   const unsigned AddrSpace = DomLoad->getPointerAddressSpace();
   Value *VecPtr = IRB.CreateBitCast(Base->getPointerOperand(),
                                     LoadTy->getPointerTo(AddrSpace));
-  LoadInst *WideLoad = IRB.CreateAlignedLoad(LoadTy, VecPtr,
-                                             Base->getAlignment());
+  LoadInst *WideLoad = IRB.CreateAlignedLoad(LoadTy, VecPtr, Base->getAlign());
 
   // Make sure everything is in the correct order in the basic block.
   MoveBefore(Base->getPointerOperand(), VecPtr);

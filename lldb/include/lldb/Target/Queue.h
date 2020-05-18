@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_Queue_h_
-#define liblldb_Queue_h_
+#ifndef LLDB_TARGET_QUEUE_H
+#define LLDB_TARGET_QUEUE_H
 
 #include <string>
 #include <vector>
@@ -126,10 +126,7 @@ public:
     m_pending_items.push_back(item);
   }
 
-  /// Return the kind (serial, concurrent) of this queue
-  ///
-  /// \return
-  //      Whether this is a serial or a concurrent queue
+  /// Return the kind (serial, concurrent) of this queue.
   lldb::QueueKind GetKind();
 
   void SetKind(lldb::QueueKind kind);
@@ -152,4 +149,4 @@ private:
 
 } // namespace lldb_private
 
-#endif // liblldb_Queue_h_
+#endif // LLDB_TARGET_QUEUE_H

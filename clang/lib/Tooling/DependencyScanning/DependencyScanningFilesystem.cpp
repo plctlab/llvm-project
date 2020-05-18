@@ -106,7 +106,8 @@ DependencyScanningFilesystemSharedCache::
   // sharding gives a performance edge by reducing the lock contention.
   // FIXME: A better heuristic might also consider the OS to account for
   // the different cost of lock contention on different OSes.
-  NumShards = std::max(2u, llvm::hardware_concurrency() / 4);
+  NumShards =
+      std::max(2u, llvm::hardware_concurrency().compute_thread_count() / 4);
   CacheShards = std::make_unique<CacheShard[]>(NumShards);
 }
 
@@ -122,19 +123,44 @@ DependencyScanningFilesystemSharedCache::get(StringRef Key) {
   return It.first->getValue();
 }
 
-llvm::ErrorOr<llvm::vfs::Status>
-DependencyScanningWorkerFilesystem::status(const Twine &Path) {
-  SmallString<256> OwnedFilename;
-  StringRef Filename = Path.toStringRef(OwnedFilename);
+/// Whitelist file extensions that should be minimized, treating no extension as
+/// a source file that should be minimized.
+///
+/// This is kinda hacky, it would be better if we knew what kind of file Clang
+/// was expecting instead.
+static bool shouldMinimize(StringRef Filename) {
+  StringRef Ext = llvm::sys::path::extension(Filename);
+  if (Ext.empty())
+    return true; // C++ standard library
+  return llvm::StringSwitch<bool>(Ext)
+    .CasesLower(".c", ".cc", ".cpp", ".c++", ".cxx", true)
+    .CasesLower(".h", ".hh", ".hpp", ".h++", ".hxx", true)
+    .CasesLower(".m", ".mm", true)
+    .CasesLower(".i", ".ii", ".mi", ".mmi", true)
+    .CasesLower(".def", ".inc", true)
+    .Default(false);
+}
 
-  // Check the local cache first.
-  if (const CachedFileSystemEntry *Entry = getCachedEntry(Filename))
-    return Entry->getStatus();
+
+static bool shouldCacheStatFailures(StringRef Filename) {
+  StringRef Ext = llvm::sys::path::extension(Filename);
+  if (Ext.empty())
+    return false; // This may be the module cache directory.
+  return shouldMinimize(Filename); // Only cache stat failures on source files.
+}
+
+llvm::ErrorOr<const CachedFileSystemEntry *>
+DependencyScanningWorkerFilesystem::getOrCreateFileSystemEntry(
+    const StringRef Filename) {
+  if (const CachedFileSystemEntry *Entry = getCachedEntry(Filename)) {
+    return Entry;
+  }
 
   // FIXME: Handle PCM/PCH files.
   // FIXME: Handle module map files.
 
-  bool KeepOriginalSource = IgnoredFiles.count(Filename);
+  bool KeepOriginalSource = IgnoredFiles.count(Filename) ||
+                            !shouldMinimize(Filename);
   DependencyScanningFilesystemSharedCache::SharedFileSystemEntry
       &SharedCacheEntry = SharedCache.get(Filename);
   const CachedFileSystemEntry *Result;
@@ -145,9 +171,16 @@ DependencyScanningWorkerFilesystem::status(const Twine &Path) {
     if (!CacheEntry.isValid()) {
       llvm::vfs::FileSystem &FS = getUnderlyingFS();
       auto MaybeStatus = FS.status(Filename);
-      if (!MaybeStatus)
-        CacheEntry = CachedFileSystemEntry(MaybeStatus.getError());
-      else if (MaybeStatus->isDirectory())
+      if (!MaybeStatus) {
+        if (!shouldCacheStatFailures(Filename))
+          // HACK: We need to always restat non source files if the stat fails.
+          //   This is because Clang first looks up the module cache and module
+          //   files before building them, and then looks for them again. If we
+          //   cache the stat failure, it won't see them the second time.
+          return MaybeStatus.getError();
+        else
+          CacheEntry = CachedFileSystemEntry(MaybeStatus.getError());
+      } else if (MaybeStatus->isDirectory())
         CacheEntry = CachedFileSystemEntry::createDirectoryEntry(
             std::move(*MaybeStatus));
       else
@@ -160,7 +193,18 @@ DependencyScanningWorkerFilesystem::status(const Twine &Path) {
 
   // Store the result in the local cache.
   setCachedEntry(Filename, Result);
-  return Result->getStatus();
+  return Result;
+}
+
+llvm::ErrorOr<llvm::vfs::Status>
+DependencyScanningWorkerFilesystem::status(const Twine &Path) {
+  SmallString<256> OwnedFilename;
+  StringRef Filename = Path.toStringRef(OwnedFilename);
+  const llvm::ErrorOr<const CachedFileSystemEntry *> Result =
+      getOrCreateFileSystemEntry(Filename);
+  if (!Result)
+    return Result.getError();
+  return (*Result)->getStatus();
 }
 
 namespace {
@@ -217,30 +261,9 @@ DependencyScanningWorkerFilesystem::openFileForRead(const Twine &Path) {
   SmallString<256> OwnedFilename;
   StringRef Filename = Path.toStringRef(OwnedFilename);
 
-  // Check the local cache first.
-  if (const CachedFileSystemEntry *Entry = getCachedEntry(Filename))
-    return createFile(Entry, PPSkipMappings);
-
-  // FIXME: Handle PCM/PCH files.
-  // FIXME: Handle module map files.
-
-  bool KeepOriginalSource = IgnoredFiles.count(Filename);
-  DependencyScanningFilesystemSharedCache::SharedFileSystemEntry
-      &SharedCacheEntry = SharedCache.get(Filename);
-  const CachedFileSystemEntry *Result;
-  {
-    std::unique_lock<std::mutex> LockGuard(SharedCacheEntry.ValueLock);
-    CachedFileSystemEntry &CacheEntry = SharedCacheEntry.Value;
-
-    if (!CacheEntry.isValid()) {
-      CacheEntry = CachedFileSystemEntry::createFileEntry(
-          Filename, getUnderlyingFS(), !KeepOriginalSource);
-    }
-
-    Result = &CacheEntry;
-  }
-
-  // Store the result in the local cache.
-  setCachedEntry(Filename, Result);
-  return createFile(Result, PPSkipMappings);
+  const llvm::ErrorOr<const CachedFileSystemEntry *> Result =
+      getOrCreateFileSystemEntry(Filename);
+  if (!Result)
+    return Result.getError();
+  return createFile(Result.get(), PPSkipMappings);
 }

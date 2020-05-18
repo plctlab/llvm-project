@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "MCTargetDesc/X86BaseInfo.h"
+#include "X86.h"
 #include "X86InstrBuilder.h"
 #include "X86InstrInfo.h"
 #include "X86RegisterBankInfo.h"
@@ -34,6 +35,7 @@
 #include "llvm/CodeGen/TargetRegisterInfo.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/IntrinsicsX86.h"
 #include "llvm/Support/AtomicOrdering.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/Debug.h"
@@ -70,7 +72,7 @@ private:
 
   // TODO: remove after supported by Tablegen-erated instruction selection.
   unsigned getLoadStoreOp(const LLT &Ty, const RegisterBank &RB, unsigned Opc,
-                          uint64_t Alignment) const;
+                          Align Alignment) const;
 
   bool selectLoadStoreOp(MachineInstr &I, MachineRegisterInfo &MRI,
                          MachineFunction &MF) const;
@@ -111,8 +113,6 @@ private:
   bool materializeFP(MachineInstr &I, MachineRegisterInfo &MRI,
                      MachineFunction &MF) const;
   bool selectImplicitDefOrPHI(MachineInstr &I, MachineRegisterInfo &MRI) const;
-  bool selectShift(MachineInstr &I, MachineRegisterInfo &MRI,
-                   MachineFunction &MF) const;
   bool selectDivRem(MachineInstr &I, MachineRegisterInfo &MRI,
                     MachineFunction &MF) const;
   bool selectIntrinsicWSideEffects(MachineInstr &I, MachineRegisterInfo &MRI,
@@ -342,7 +342,7 @@ bool X86InstructionSelector::select(MachineInstr &I) {
   case TargetOpcode::G_STORE:
   case TargetOpcode::G_LOAD:
     return selectLoadStoreOp(I, MRI, MF);
-  case TargetOpcode::G_GEP:
+  case TargetOpcode::G_PTR_ADD:
   case TargetOpcode::G_FRAME_INDEX:
     return selectFrameIndexOrGep(I, MRI, MF);
   case TargetOpcode::G_GLOBAL_VALUE:
@@ -380,10 +380,6 @@ bool X86InstructionSelector::select(MachineInstr &I) {
   case TargetOpcode::G_IMPLICIT_DEF:
   case TargetOpcode::G_PHI:
     return selectImplicitDefOrPHI(I, MRI);
-  case TargetOpcode::G_SHL:
-  case TargetOpcode::G_ASHR:
-  case TargetOpcode::G_LSHR:
-    return selectShift(I, MRI, MF);
   case TargetOpcode::G_SDIV:
   case TargetOpcode::G_UDIV:
   case TargetOpcode::G_SREM:
@@ -399,7 +395,7 @@ bool X86InstructionSelector::select(MachineInstr &I) {
 unsigned X86InstructionSelector::getLoadStoreOp(const LLT &Ty,
                                                 const RegisterBank &RB,
                                                 unsigned Opc,
-                                                uint64_t Alignment) const {
+                                                Align Alignment) const {
   bool Isload = (Opc == TargetOpcode::G_LOAD);
   bool HasAVX = STI.hasAVX();
   bool HasAVX512 = STI.hasAVX512();
@@ -432,7 +428,7 @@ unsigned X86InstructionSelector::getLoadStoreOp(const LLT &Ty,
                        HasAVX    ? X86::VMOVSDmr :
                                    X86::MOVSDmr);
   } else if (Ty.isVector() && Ty.getSizeInBits() == 128) {
-    if (Alignment >= 16)
+    if (Alignment >= Align(16))
       return Isload ? (HasVLX ? X86::VMOVAPSZ128rm
                               : HasAVX512
                                     ? X86::VMOVAPSZ128rm_NOVLX
@@ -451,7 +447,7 @@ unsigned X86InstructionSelector::getLoadStoreOp(const LLT &Ty,
                                     ? X86::VMOVUPSZ128mr_NOVLX
                                     : HasAVX ? X86::VMOVUPSmr : X86::MOVUPSmr);
   } else if (Ty.isVector() && Ty.getSizeInBits() == 256) {
-    if (Alignment >= 32)
+    if (Alignment >= Align(32))
       return Isload ? (HasVLX ? X86::VMOVAPSZ256rm
                               : HasAVX512 ? X86::VMOVAPSZ256rm_NOVLX
                                           : X86::VMOVAPSYrm)
@@ -466,7 +462,7 @@ unsigned X86InstructionSelector::getLoadStoreOp(const LLT &Ty,
                               : HasAVX512 ? X86::VMOVUPSZ256mr_NOVLX
                                           : X86::VMOVUPSYmr);
   } else if (Ty.isVector() && Ty.getSizeInBits() == 512) {
-    if (Alignment >= 64)
+    if (Alignment >= Align(64))
       return Isload ? X86::VMOVAPSZrm : X86::VMOVAPSZmr;
     else
       return Isload ? X86::VMOVUPSZrm : X86::VMOVUPSZmr;
@@ -482,7 +478,7 @@ static void X86SelectAddress(const MachineInstr &I,
   assert(MRI.getType(I.getOperand(0).getReg()).isPointer() &&
          "unsupported type.");
 
-  if (I.getOpcode() == TargetOpcode::G_GEP) {
+  if (I.getOpcode() == TargetOpcode::G_PTR_ADD) {
     if (auto COff = getConstantVRegVal(I.getOperand(2).getReg(), MRI)) {
       int64_t Imm = *COff;
       if (isInt<32>(Imm)) { // Check for displacement overflow.
@@ -525,13 +521,13 @@ bool X86InstructionSelector::selectLoadStoreOp(MachineInstr &I,
       LLVM_DEBUG(dbgs() << "Atomic ordering not supported yet\n");
       return false;
     }
-    if (MemOp.getAlignment() < Ty.getSizeInBits()/8) {
+    if (MemOp.getAlign() < Ty.getSizeInBits() / 8) {
       LLVM_DEBUG(dbgs() << "Unaligned atomics not supported yet\n");
       return false;
     }
   }
 
-  unsigned NewOpc = getLoadStoreOp(Ty, RB, Opc, MemOp.getAlignment());
+  unsigned NewOpc = getLoadStoreOp(Ty, RB, Opc, MemOp.getAlign());
   if (NewOpc == Opc)
     return false;
 
@@ -566,7 +562,7 @@ bool X86InstructionSelector::selectFrameIndexOrGep(MachineInstr &I,
                                                    MachineFunction &MF) const {
   unsigned Opc = I.getOpcode();
 
-  assert((Opc == TargetOpcode::G_FRAME_INDEX || Opc == TargetOpcode::G_GEP) &&
+  assert((Opc == TargetOpcode::G_FRAME_INDEX || Opc == TargetOpcode::G_PTR_ADD) &&
          "unexpected instruction");
 
   const Register DefReg = I.getOperand(0).getReg();
@@ -1225,7 +1221,7 @@ bool X86InstructionSelector::emitExtractSubreg(unsigned DstReg, unsigned SrcReg,
 
   if (!RBI.constrainGenericRegister(SrcReg, *SrcRC, MRI) ||
       !RBI.constrainGenericRegister(DstReg, *DstRC, MRI)) {
-    LLVM_DEBUG(dbgs() << "Failed to constrain G_TRUNC\n");
+    LLVM_DEBUG(dbgs() << "Failed to constrain EXTRACT_SUBREG\n");
     return false;
   }
 
@@ -1440,14 +1436,15 @@ bool X86InstructionSelector::materializeFP(MachineInstr &I,
   const Register DstReg = I.getOperand(0).getReg();
   const LLT DstTy = MRI.getType(DstReg);
   const RegisterBank &RegBank = *RBI.getRegBank(DstReg, MRI, TRI);
-  unsigned Align = DstTy.getSizeInBits();
+  Align Alignment = Align(DstTy.getSizeInBytes());
   const DebugLoc &DbgLoc = I.getDebugLoc();
 
-  unsigned Opc = getLoadStoreOp(DstTy, RegBank, TargetOpcode::G_LOAD, Align);
+  unsigned Opc =
+      getLoadStoreOp(DstTy, RegBank, TargetOpcode::G_LOAD, Alignment);
 
   // Create the load from the constant pool.
   const ConstantFP *CFP = I.getOperand(1).getFPImm();
-  unsigned CPI = MF.getConstantPool()->getConstantPoolIndex(CFP, Align);
+  unsigned CPI = MF.getConstantPool()->getConstantPoolIndex(CFP, Alignment);
   MachineInstr *LoadInst = nullptr;
   unsigned char OpFlag = STI.classifyLocalReference(nullptr);
 
@@ -1461,7 +1458,7 @@ bool X86InstructionSelector::materializeFP(MachineInstr &I,
 
     MachineMemOperand *MMO = MF.getMachineMemOperand(
         MachinePointerInfo::getConstantPool(MF), MachineMemOperand::MOLoad,
-        MF.getDataLayout().getPointerSize(), Align);
+        MF.getDataLayout().getPointerSize(), Alignment);
 
     LoadInst =
         addDirectMem(BuildMI(*I.getParent(), I, DbgLoc, TII.get(Opc), DstReg),
@@ -1516,78 +1513,6 @@ bool X86InstructionSelector::selectImplicitDefOrPHI(
   else
     I.setDesc(TII.get(X86::PHI));
 
-  return true;
-}
-
-// Currently GlobalIsel TableGen generates patterns for shift imm and shift 1,
-// but with shiftCount i8. In G_LSHR/G_ASHR/G_SHL like LLVM-IR both arguments
-// has the same type, so for now only shift i8 can use auto generated
-// TableGen patterns.
-bool X86InstructionSelector::selectShift(MachineInstr &I,
-                                         MachineRegisterInfo &MRI,
-                                         MachineFunction &MF) const {
-
-  assert((I.getOpcode() == TargetOpcode::G_SHL ||
-          I.getOpcode() == TargetOpcode::G_ASHR ||
-          I.getOpcode() == TargetOpcode::G_LSHR) &&
-         "unexpected instruction");
-
-  Register DstReg = I.getOperand(0).getReg();
-  const LLT DstTy = MRI.getType(DstReg);
-  const RegisterBank &DstRB = *RBI.getRegBank(DstReg, MRI, TRI);
-
-  const static struct ShiftEntry {
-    unsigned SizeInBits;
-    unsigned OpLSHR;
-    unsigned OpASHR;
-    unsigned OpSHL;
-  } OpTable[] = {
-      {8, X86::SHR8rCL, X86::SAR8rCL, X86::SHL8rCL},     // i8
-      {16, X86::SHR16rCL, X86::SAR16rCL, X86::SHL16rCL}, // i16
-      {32, X86::SHR32rCL, X86::SAR32rCL, X86::SHL32rCL}, // i32
-      {64, X86::SHR64rCL, X86::SAR64rCL, X86::SHL64rCL}  // i64
-  };
-
-  if (DstRB.getID() != X86::GPRRegBankID)
-    return false;
-
-  auto ShiftEntryIt = std::find_if(
-      std::begin(OpTable), std::end(OpTable), [DstTy](const ShiftEntry &El) {
-        return El.SizeInBits == DstTy.getSizeInBits();
-      });
-  if (ShiftEntryIt == std::end(OpTable))
-    return false;
-
-  unsigned Opcode = 0;
-  switch (I.getOpcode()) {
-  case TargetOpcode::G_SHL:
-    Opcode = ShiftEntryIt->OpSHL;
-    break;
-  case TargetOpcode::G_ASHR:
-    Opcode = ShiftEntryIt->OpASHR;
-    break;
-  case TargetOpcode::G_LSHR:
-    Opcode = ShiftEntryIt->OpLSHR;
-    break;
-  default:
-    return false;
-  }
-
-  Register Op0Reg = I.getOperand(1).getReg();
-  Register Op1Reg = I.getOperand(2).getReg();
-
-  assert(MRI.getType(Op1Reg).getSizeInBits() == 8);
-
-  BuildMI(*I.getParent(), I, I.getDebugLoc(), TII.get(TargetOpcode::COPY),
-          X86::CL)
-    .addReg(Op1Reg);
-
-  MachineInstr &ShiftInst =
-      *BuildMI(*I.getParent(), I, I.getDebugLoc(), TII.get(Opcode), DstReg)
-           .addReg(Op0Reg);
-
-  constrainSelectedInstRegOperands(ShiftInst, TII, TRI, RBI);
-  I.eraseFromParent();
   return true;
 }
 

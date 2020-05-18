@@ -269,17 +269,25 @@
 
 // NOSSE42POPCNT: #define __POPCNT__ 1
 
-// RUN: %clang -target i386-unknown-unknown -march=atom -msse -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=SSEMMX %s
+// RUN: %clang -target i386-unknown-unknown -march=pentium -msse -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=SSEMMX %s
 
 // SSEMMX: #define __MMX__ 1
 
-// RUN: %clang -target i386-unknown-unknown -march=atom -msse -mno-sse -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=SSENOSSEMMX %s
+// RUN: %clang -target i386-unknown-unknown -march=pentium -msse -mno-sse -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=SSENOSSEMMX %s
 
 // SSENOSSEMMX-NOT: #define __MMX__ 1
 
-// RUN: %clang -target i386-unknown-unknown -march=atom -msse -mno-mmx -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=SSENOMMX %s
+// RUN: %clang -target i386-unknown-unknown -march=pentium -msse -mno-mmx -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=SSENOMMX %s
 
 // SSENOMMX-NOT: #define __MMX__ 1
+
+// RUN: %clang -target i386-unknown-unknown -march=pentium3 -mno-sse -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=MARCHMMXNOSSE %s
+// RUN: %clang -target i386-unknown-unknown -march=atom -mno-sse -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=MARCHMMXNOSSE %s
+// RUN: %clang -target i386-unknown-unknown -march=knl -mno-sse -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=MARCHMMXNOSSE %s
+// RUN: %clang -target i386-unknown-unknown -march=btver1 -mno-sse -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=MARCHMMXNOSSE %s
+// RUN: %clang -target i386-unknown-unknown -march=znver1 -mno-sse -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=MARCHMMXNOSSE %s
+
+// MARCHMMXNOSSE: #define __MMX__ 1
 
 // RUN: %clang -target i386-unknown-unknown -march=atom -mf16c -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=F16C %s
 
@@ -475,3 +483,19 @@
 // RUN: %clang -target i386-unknown-unknown -march=atom -mno-enqcmd -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=NOENQCMD %s
 
 // NOENQCMD-NOT: #define __ENQCMD__ 1
+
+// RUN: %clang -target i386-unknown-unknown -march=atom -mserialize -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=SERIALIZE %s
+
+// SERIALIZE: #define __SERIALIZE__ 1
+
+// RUN: %clang -target i386-unknown-unknown -march=atom -mno-serialize -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=NOSERIALIZE %s
+
+// NOSERIALIZE-NOT: #define __SERIALIZE__ 1
+
+// RUN: %clang -target i386-unknown-unknown -march=atom -mtsxldtrk -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=TSXLDTRK %s
+
+// TSXLDTRK: #define __TSXLDTRK__ 1
+
+// RUN: %clang -target i386-unknown-unknown -march=atom -mno-tsxldtrk -x c -E -dM -o - %s | FileCheck -match-full-lines --check-prefix=NOTSXLDTRK %s
+
+// NOTSXLDTRK-NOT: #define __TSXLDTRK__ 1

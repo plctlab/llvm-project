@@ -1,4 +1,4 @@
-; RUN: llc -debug-entry-values %s -o - -filetype=obj \
+; RUN: llc -emit-call-site-info -debug-entry-values %s -o - -filetype=obj \
 ; RUN:   | llvm-dwarfdump -statistics - | FileCheck %s
 ;
 ; The LLVM IR file was generated on this source code by using
@@ -12,8 +12,8 @@
 ;   foo(&local1, arg2, 10, 15, arg3 + 3, arg1 + arg2);
 ; }
 ;
-; CHECK: "call site DIEs":2
-; CHECK-SAME: "call site parameter DIEs":6
+; CHECK: "#call site DIEs":2
+; CHECK-SAME: "#call site parameter DIEs":6
 ;
 ; ModuleID = 'test.c'
 source_filename = "test.c"
@@ -64,9 +64,9 @@ declare void @llvm.dbg.value(metadata, metadata, metadata)
 !12 = !{null, !13, !13, !13}
 !13 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
 !14 = !{!15, !16, !17, !18}
-!15 = !DILocalVariable(name: "arg1", arg: 1, scope: !10, file: !1, line: 4, type: !13, flags: DIFlagArgumentNotModified)
-!16 = !DILocalVariable(name: "arg2", arg: 2, scope: !10, file: !1, line: 4, type: !13, flags: DIFlagArgumentNotModified)
-!17 = !DILocalVariable(name: "arg3", arg: 3, scope: !10, file: !1, line: 4, type: !13, flags: DIFlagArgumentNotModified)
+!15 = !DILocalVariable(name: "arg1", arg: 1, scope: !10, file: !1, line: 4, type: !13)
+!16 = !DILocalVariable(name: "arg2", arg: 2, scope: !10, file: !1, line: 4, type: !13)
+!17 = !DILocalVariable(name: "arg3", arg: 3, scope: !10, file: !1, line: 4, type: !13)
 !18 = !DILocalVariable(name: "local1", scope: !10, file: !1, line: 5, type: !13)
 !19 = !DILocation(line: 4, column: 14, scope: !10)
 !20 = !DILocation(line: 4, column: 24, scope: !10)

@@ -204,6 +204,17 @@ CMake manual, or execute ``cmake --help-variable VARIABLE_NAME``.
 **CMAKE_CXX_FLAGS**:STRING
   Extra flags to use when compiling C++ source files.
 
+Rarely-used CMake variables
+---------------------------
+
+Here are some of the CMake variables that are rarely used, along with a brief
+explanation and LLVM-specific notes.  For full documentation, consult the CMake
+manual, or execute ``cmake --help-variable VARIABLE_NAME``.
+
+**CMAKE_CXX_STANDARD**:STRING
+  Sets the C++ standard to conform to when building LLVM.  Possible values are
+  14, 17, 20.  LLVM Requires C++ 14 or higher.  This defaults to 14.
+
 .. _LLVM-specific variables:
 
 LLVM-specific variables
@@ -261,7 +272,7 @@ LLVM-specific variables
   Generate build targets for the LLVM benchmarks. Defaults to ON.
 
 **LLVM_APPEND_VC_REV**:BOOL
-  Embed version control revision info (svn revision number or Git revision id).
+  Embed version control revision info (Git revision id).
   The version info is provided by the ``LLVM_REVISION`` macro in
   ``llvm/include/llvm/Support/VCSRevision.h``. Developers using git who don't
   need revision info can disable this option to avoid re-linking most binaries
@@ -273,9 +284,6 @@ LLVM-specific variables
 **LLVM_ENABLE_UNWIND_TABLES**:BOOL
   Enable unwind tables in the binary.  Disabling unwind tables can reduce the
   size of the libraries.  Defaults to ON.
-
-**LLVM_CXX_STD**:STRING
-  Build with the specified C++ standard. Defaults to "c++11".
 
 **LLVM_ENABLE_ASSERTIONS**:BOOL
   Enables code assertions. Defaults to ON if and only if ``CMAKE_BUILD_TYPE``
@@ -369,11 +377,13 @@ LLVM-specific variables
 
 **LLVM_ENABLE_PROJECTS**:STRING
   Semicolon-separated list of projects to build, or *all* for building all
-  (clang, libcxx, libcxxabi, lldb, compiler-rt, lld, polly) projects.
+  (clang, libcxx, libcxxabi, lldb, compiler-rt, lld, polly, etc) projects.
   This flag assumes that projects are checked out side-by-side and not nested,
   i.e. clang needs to be in parallel of llvm instead of nested in `llvm/tools`.
   This feature allows to have one build for only LLVM and another for clang+llvm
   using the same source checkout.
+  The full list is:
+  ``clang;clang-tools-extra;compiler-rt;debuginfo-tests;libc;libclc;libcxx;libcxxabi;libunwind;lld;lldb;openmp;parallel-libs;polly;pstl``
 
 **LLVM_EXTERNAL_PROJECTS**:STRING
   Semicolon-separated list of additional external projects to build as part of
@@ -412,7 +422,7 @@ LLVM-specific variables
 **LLVM_USE_SANITIZER**:STRING
   Define the sanitizer used to build LLVM binaries and tests. Possible values
   are ``Address``, ``Memory``, ``MemoryWithOrigins``, ``Undefined``, ``Thread``,
-  and ``Address;Undefined``. Defaults to empty string.
+  ``DataFlow``, and ``Address;Undefined``. Defaults to empty string.
 
 **LLVM_ENABLE_LTO**:STRING
   Add ``-flto`` or ``-flto=`` flags to the compile and link command
@@ -517,7 +527,7 @@ LLVM-specific variables
 **SPHINX_EXECUTABLE**:STRING
   The path to the ``sphinx-build`` executable detected by CMake.
   For installation instructions, see
-  http://www.sphinx-doc.org/en/latest/install.html
+  http://www.sphinx-doc.org/en/latest/usage/installation.html
 
 **SPHINX_OUTPUT_HTML**:BOOL
   If enabled (and ``LLVM_ENABLE_SPHINX`` is enabled) then the targets for
@@ -560,11 +570,13 @@ LLVM-specific variables
   is also ON.
   The components in the library can be customised by setting LLVM_DYLIB_COMPONENTS
   to a list of the desired components.
+  This option is not available on Windows.
 
 **LLVM_LINK_LLVM_DYLIB**:BOOL
   If enabled, tools will be linked with the libLLVM shared library. Defaults
   to OFF. Setting LLVM_LINK_LLVM_DYLIB to ON also sets LLVM_BUILD_LLVM_DYLIB
   to ON.
+  This option is not available on Windows.
 
 **BUILD_SHARED_LIBS**:BOOL
   Flag indicating if each LLVM component (e.g. Support) is built as a shared
@@ -589,7 +601,7 @@ LLVM-specific variables
 
 **LLVM_BUILD_INSTRUMENTED_COVERAGE**:BOOL
   If enabled, `source-based code coverage
-  <http://clang.llvm.org/docs/SourceBasedCodeCoverage.html>`_ instrumentation
+  <https://clang.llvm.org/docs/SourceBasedCodeCoverage.html>`_ instrumentation
   is enabled while building llvm.
 
 **LLVM_CCACHE_BUILD**:BOOL
@@ -618,6 +630,14 @@ LLVM-specific variables
 **LLVM_ENABLE_Z3_SOLVER**:BOOL
   If enabled, the Z3 constraint solver is activated for the Clang static analyzer.
   A recent version of the z3 library needs to be available on the system.
+
+**LLVM_USE_RELATIVE_PATHS_IN_DEBUG_INFO**:BOOL
+  Rewrite absolute source paths in debug info to relative ones. The source prefix
+  can be adjusted via the LLVM_SOURCE_PREFIX variable.
+
+**LLVM_USE_RELATIVE_PATHS_IN_FILES**:BOOL
+  Rewrite absolute source paths in sources and debug info to relative ones. The
+  source prefix can be adjusted via the LLVM_SOURCE_PREFIX variable.
 
 CMake Caches
 ============

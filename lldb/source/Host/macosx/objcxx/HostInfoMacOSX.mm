@@ -8,6 +8,7 @@
 
 #include "lldb/Host/macosx/HostInfoMacOSX.h"
 #include "lldb/Host/FileSystem.h"
+#include "lldb/Host/Host.h"
 #include "lldb/Host/HostInfo.h"
 #include "lldb/Utility/Args.h"
 #include "lldb/Utility/Log.h"
@@ -40,6 +41,11 @@
 #endif
 #ifndef CPU_TYPE_ARM64
 #define CPU_TYPE_ARM64 (CPU_TYPE_ARM | CPU_ARCH_ABI64)
+#endif
+
+#ifndef CPU_TYPE_ARM64_32
+#define CPU_ARCH_ABI64_32 0x02000000
+#define CPU_TYPE_ARM64_32 (CPU_TYPE_ARM | CPU_ARCH_ABI64_32)
 #endif
 
 #include <TargetConditionals.h> // for TARGET_OS_TV, TARGET_OS_WATCH
@@ -257,7 +263,9 @@ void HostInfoMacOSX::ComputeHostArchitectureSupport(ArchSpec &arch_32,
       arch_32.SetArchitecture(eArchTypeMachO, cputype & ~(CPU_ARCH_MASK),
                               cpusubtype32);
 
-      if (cputype == CPU_TYPE_ARM || cputype == CPU_TYPE_ARM64) {
+      if (cputype == CPU_TYPE_ARM || 
+          cputype == CPU_TYPE_ARM64 || 
+          cputype == CPU_TYPE_ARM64_32) {
 // When running on a watch or tv, report the host os correctly
 #if defined(TARGET_OS_TV) && TARGET_OS_TV == 1
         arch_32.GetTriple().setOS(llvm::Triple::TvOS);
@@ -265,6 +273,9 @@ void HostInfoMacOSX::ComputeHostArchitectureSupport(ArchSpec &arch_32,
 #elif defined(TARGET_OS_BRIDGE) && TARGET_OS_BRIDGE == 1
         arch_32.GetTriple().setOS(llvm::Triple::BridgeOS);
         arch_64.GetTriple().setOS(llvm::Triple::BridgeOS);
+#elif defined(TARGET_OS_WATCHOS) && TARGET_OS_WATCHOS == 1
+        arch_32.GetTriple().setOS(llvm::Triple::WatchOS);
+        arch_64.GetTriple().setOS(llvm::Triple::WatchOS);
 #else
         arch_32.GetTriple().setOS(llvm::Triple::IOS);
         arch_64.GetTriple().setOS(llvm::Triple::IOS);
@@ -284,4 +295,80 @@ void HostInfoMacOSX::ComputeHostArchitectureSupport(ArchSpec &arch_32,
       arch_64.Clear();
     }
   }
+}
+
+static std::string GetXcodeSDK(XcodeSDK sdk) {
+  XcodeSDK::Info info = sdk.Parse();
+  std::string sdk_name = XcodeSDK::GetCanonicalName(info);
+  auto find_sdk = [](std::string sdk_name) -> std::string {
+    std::string xcrun_cmd = "xcrun --show-sdk-path --sdk " + sdk_name;
+    int status = 0;
+    int signo = 0;
+    std::string output_str;
+    lldb_private::Status error =
+        Host::RunShellCommand(xcrun_cmd.c_str(), FileSpec(), &status, &signo,
+                              &output_str, std::chrono::seconds(15));
+
+    // Check that xcrun return something useful.
+    if (status != 0 || output_str.empty())
+      return {};
+
+    // Convert to a StringRef so we can manipulate the string without modifying
+    // the underlying data.
+    llvm::StringRef output(output_str);
+
+    // Remove any trailing newline characters.
+    output = output.rtrim();
+
+    // Strip any leading newline characters and everything before them.
+    const size_t last_newline = output.rfind('\n');
+    if (last_newline != llvm::StringRef::npos)
+      output = output.substr(last_newline + 1);
+
+    return output.str();
+  };
+
+  std::string path = find_sdk(sdk_name);
+  while (path.empty()) {
+    // Try an alternate spelling of the name ("macosx10.9internal").
+    if (info.type == XcodeSDK::Type::MacOSX && !info.version.empty() &&
+        info.internal) {
+      llvm::StringRef fixed(sdk_name);
+      if (fixed.consume_back(".internal"))
+        sdk_name = fixed.str() + "internal";
+      path = find_sdk(sdk_name);
+      if (!path.empty())
+        break;
+    }
+    Log *log = lldb_private::GetLogIfAllCategoriesSet(LIBLLDB_LOG_HOST);
+    LLDB_LOGF(log, "Couldn't find SDK %s on host", sdk_name.c_str());
+
+    // Try without the version.
+    if (!info.version.empty()) {
+      info.version = {};
+      sdk_name = XcodeSDK::GetCanonicalName(info);
+      path = find_sdk(sdk_name);
+      if (!path.empty())
+        break;
+    }
+
+    LLDB_LOGF(log, "Couldn't find any matching SDK on host");
+    return {};
+  }
+
+  // Whatever is left in output should be a valid path.
+  if (!FileSystem::Instance().Exists(path))
+    return {};
+  return path;
+}
+
+llvm::StringRef HostInfoMacOSX::GetXcodeSDKPath(XcodeSDK sdk) {
+  static llvm::StringMap<std::string> g_sdk_path;
+  static std::mutex g_sdk_path_mutex;
+
+  std::lock_guard<std::mutex> guard(g_sdk_path_mutex);
+  std::string &path = g_sdk_path[sdk.GetString()];
+  if (path.empty())
+    path = GetXcodeSDK(sdk);
+  return path;
 }

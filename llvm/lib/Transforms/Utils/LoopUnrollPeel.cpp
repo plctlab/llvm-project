@@ -212,14 +212,11 @@ static unsigned countToEliminateCompares(Loop &L, unsigned MaxPeelCount,
     const SCEVAddRecExpr *LeftAR = cast<SCEVAddRecExpr>(LeftSCEV);
 
     // Avoid huge SCEV computations in the loop below, make sure we only
-    // consider AddRecs of the loop we are trying to peel and avoid
-    // non-monotonic predicates, as we will not be able to simplify the loop
-    // body.
-    // FIXME: For the non-monotonic predicates ICMP_EQ and ICMP_NE we can
-    //        simplify the loop, if we peel 1 additional iteration, if there
-    //        is no wrapping.
+    // consider AddRecs of the loop we are trying to peel.
+    if (!LeftAR->isAffine() || LeftAR->getLoop() != &L)
+      continue;
     bool Increasing;
-    if (!LeftAR->isAffine() || LeftAR->getLoop() != &L ||
+    if (!(ICmpInst::isEquality(Pred) && LeftAR->hasNoSelfWrap()) &&
         !SE.isMonotonicPredicate(LeftAR, Pred, Increasing))
       continue;
     (void)Increasing;
@@ -238,18 +235,42 @@ static unsigned countToEliminateCompares(Loop &L, unsigned MaxPeelCount,
       Pred = ICmpInst::getInversePredicate(Pred);
 
     const SCEV *Step = LeftAR->getStepRecurrence(SE);
-    while (NewPeelCount < MaxPeelCount &&
-           SE.isKnownPredicate(Pred, IterVal, RightSCEV)) {
-      IterVal = SE.getAddExpr(IterVal, Step);
+    const SCEV *NextIterVal = SE.getAddExpr(IterVal, Step);
+    auto PeelOneMoreIteration = [&IterVal, &NextIterVal, &SE, Step,
+                                 &NewPeelCount]() {
+      IterVal = NextIterVal;
+      NextIterVal = SE.getAddExpr(IterVal, Step);
       NewPeelCount++;
+    };
+
+    auto CanPeelOneMoreIteration = [&NewPeelCount, &MaxPeelCount]() {
+      return NewPeelCount < MaxPeelCount;
+    };
+
+    while (CanPeelOneMoreIteration() &&
+           SE.isKnownPredicate(Pred, IterVal, RightSCEV))
+      PeelOneMoreIteration();
+
+    // With *that* peel count, does the predicate !Pred become known in the
+    // first iteration of the loop body after peeling?
+    if (!SE.isKnownPredicate(ICmpInst::getInversePredicate(Pred), IterVal,
+                             RightSCEV))
+      continue; // If not, give up.
+
+    // However, for equality comparisons, that isn't always sufficient to
+    // eliminate the comparsion in loop body, we may need to peel one more
+    // iteration. See if that makes !Pred become unknown again.
+    if (ICmpInst::isEquality(Pred) &&
+        !SE.isKnownPredicate(ICmpInst::getInversePredicate(Pred), NextIterVal,
+                             RightSCEV) &&
+        !SE.isKnownPredicate(Pred, IterVal, RightSCEV) &&
+        SE.isKnownPredicate(Pred, NextIterVal, RightSCEV)) {
+      if (!CanPeelOneMoreIteration())
+        continue; // Need to peel one more iteration, but can't. Give up.
+      PeelOneMoreIteration(); // Great!
     }
 
-    // Only peel the loop if the monotonic predicate !Pred becomes known in the
-    // first iteration of the loop body after peeling.
-    if (NewPeelCount > DesiredPeelCount &&
-        SE.isKnownPredicate(ICmpInst::getInversePredicate(Pred), IterVal,
-                            RightSCEV))
-      DesiredPeelCount = NewPeelCount;
+    DesiredPeelCount = std::max(DesiredPeelCount, NewPeelCount);
   }
 
   return DesiredPeelCount;
@@ -267,8 +288,10 @@ void llvm::computePeelCount(Loop *L, unsigned LoopSize,
   if (!canPeel(L))
     return;
 
-  // Only try to peel innermost loops.
-  if (!L->empty())
+  // Only try to peel innermost loops by default.
+  // The constraint can be relaxed by the target in TTI.getUnrollingPreferences
+  // or by the flag -unroll-allow-loop-nests-peeling.
+  if (!UP.AllowLoopNestsPeeling && !L->empty())
     return;
 
   // If the user provided a peel count, use that.
@@ -486,7 +509,10 @@ static void cloneLoopBlocks(
     BasicBlock *NewBB = CloneBasicBlock(*BB, VMap, ".peel", F);
     NewBlocks.push_back(NewBB);
 
-    if (ParentLoop)
+    // If an original block is an immediate child of the loop L, its copy
+    // is a child of a ParentLoop after peeling. If a block is a child of
+    // a nested loop, it is handled in the cloneLoop() call below.
+    if (ParentLoop && LI->getLoopFor(*BB) == L)
       ParentLoop->addBasicBlockToLoop(NewBB, *LI);
 
     VMap[*BB] = NewBB;
@@ -501,6 +527,12 @@ static void cloneLoopBlocks(
         DT->addNewBlock(NewBB, cast<BasicBlock>(VMap[IDom->getBlock()]));
       }
     }
+  }
+
+  // Recursively create the new Loop objects for nested loops, if any,
+  // to preserve LoopInfo.
+  for (Loop *ChildLoop : *L) {
+    cloneLoop(ChildLoop, ParentLoop, VMap, LI, nullptr);
   }
 
   // Hook-up the control flow for the newly inserted blocks.
@@ -562,7 +594,7 @@ static void cloneLoopBlocks(
 
   // LastValueMap is updated with the values for the current loop
   // which are used the next time this function is called.
-  for (const auto &KV : VMap)
+  for (auto KV : VMap)
     LVMap[KV.first] = KV.second;
 }
 

@@ -262,8 +262,8 @@ define amdgpu_kernel void @used_lds_6552() {
 }
 
 ; GCN-LABEL: {{^}}used_lds_6556:
-; GFX9:       ; Occupancy: 9
-; GFX1010W64: ; Occupancy: 19
+; GFX9:       ; Occupancy: 10
+; GFX1010W64: ; Occupancy: 20
 ; GFX1010W32: ; Occupancy: 20
 @lds6556 = internal addrspace(3) global [6556 x i8] undef, align 4
 define amdgpu_kernel void @used_lds_6556() {
@@ -273,9 +273,9 @@ define amdgpu_kernel void @used_lds_6556() {
 }
 
 ; GCN-LABEL: {{^}}used_lds_13112:
-; GFX9:       ; Occupancy: 4
-; GFX1010W64: ; Occupancy: 9
-; GFX1010W32: ; Occupancy: 19
+; GFX9:       ; Occupancy: 10
+; GFX1010W64: ; Occupancy: 20
+; GFX1010W32: ; Occupancy: 20
 @lds13112 = internal addrspace(3) global [13112 x i8] undef, align 4
 define amdgpu_kernel void @used_lds_13112() {
   %p = bitcast [13112 x i8] addrspace(3)* @lds13112 to i8 addrspace(3)*
@@ -283,6 +283,95 @@ define amdgpu_kernel void @used_lds_13112() {
   ret void
 }
 
+; GCN-LABEL: {{^}}used_lds_8252_max_group_size_64:
+; GFX9:       ; Occupancy: 7{{$}}
+; GFX101064:    ; Occupancy: 7{{$}}
+; GFX1010W32:    ; Occupancy: 14{{$}}
+@lds8252 = internal addrspace(3) global [8252 x i8] undef, align 4
+define amdgpu_kernel void @used_lds_8252_max_group_size_64() #3 {
+  %p = bitcast [8252 x i8] addrspace(3)* @lds8252 to i8 addrspace(3)*
+  store volatile i8 1, i8 addrspace(3)* %p
+  ret void
+}
+
+; GCN-LABEL: {{^}}used_lds_8252_max_group_size_96:
+; GFX9:       ; Occupancy: 10{{$}}
+; GFX1010W64:    ; Occupancy: 14{{$}}
+; GFX1010W32:    ; Occupancy: 20{{$}}
+define amdgpu_kernel void @used_lds_8252_max_group_size_96() #4 {
+  %p = bitcast [8252 x i8] addrspace(3)* @lds8252 to i8 addrspace(3)*
+  store volatile i8 1, i8 addrspace(3)* %p
+  ret void
+}
+
+; GCN-LABEL: {{^}}used_lds_8252_max_group_size_128:
+; GFX9:       ; Occupancy: 10{{$}}
+; GFX1010W64:    ; Occupancy: 14{{$}}
+; GFX1010W32:    ; Occupancy: 20{{$}}
+define amdgpu_kernel void @used_lds_8252_max_group_size_128() #5 {
+  %p = bitcast [8252 x i8] addrspace(3)* @lds8252 to i8 addrspace(3)*
+  store volatile i8 1, i8 addrspace(3)* %p
+  ret void
+}
+
+; GCN-LABEL: {{^}}used_lds_8252_max_group_size_192:
+; GFX9:       ; Occupancy: 10{{$}}
+; GFX1010W64:    ; Occupancy: 20{{$}}
+; GFX1010W32:    ; Occupancy: 20{{$}}
+define amdgpu_kernel void @used_lds_8252_max_group_size_192() #6 {
+  %p = bitcast [8252 x i8] addrspace(3)* @lds8252 to i8 addrspace(3)*
+  store volatile i8 1, i8 addrspace(3)* %p
+  ret void
+}
+
+; GCN-LABEL: {{^}}used_lds_8252_max_group_size_256:
+; GFX9:       ; Occupancy: 10{{$}}
+; GFX1010W64:    ; Occupancy: 20{{$}}
+; GFX1010W32:    ; Occupancy: 20{{$}}
+define amdgpu_kernel void @used_lds_8252_max_group_size_256() #7 {
+  %p = bitcast [8252 x i8] addrspace(3)* @lds8252 to i8 addrspace(3)*
+  store volatile i8 1, i8 addrspace(3)* %p
+  ret void
+}
+
+; GCN-LABEL: {{^}}used_lds_8252_max_group_size_512:
+; GFX9:       ; Occupancy: 10{{$}}
+; GFX1010W64:    ; Occupancy: 20{{$}}
+; GFX1010W32:    ; Occupancy: 20{{$}}
+define amdgpu_kernel void @used_lds_8252_max_group_size_512() #8 {
+  %p = bitcast [8252 x i8] addrspace(3)* @lds8252 to i8 addrspace(3)*
+  store volatile i8 1, i8 addrspace(3)* %p
+  ret void
+}
+
+; GCN-LABEL: {{^}}used_lds_8252_max_group_size_1024:
+; GFX9:       ; Occupancy: 10{{$}}
+; GFX1010W64:    ; Occupancy: 20{{$}}
+; GFX1010W32:    ; Occupancy: 20{{$}}
+define amdgpu_kernel void @used_lds_8252_max_group_size_1024() #9 {
+  %p = bitcast [8252 x i8] addrspace(3)* @lds8252 to i8 addrspace(3)*
+  store volatile i8 1, i8 addrspace(3)* %p
+  ret void
+}
+
+; GCN-LABEL: {{^}}used_lds_8252_max_group_size_32:
+; GFX9:       ; Occupancy: 7{{$}}
+; GFX1010W64:    ; Occupancy: 7{{$}}
+; GFX1010W32:    ; Occupancy: 7{{$}}
+define amdgpu_kernel void @used_lds_8252_max_group_size_32() #10 {
+  %p = bitcast [8252 x i8] addrspace(3)* @lds8252 to i8 addrspace(3)*
+  store volatile i8 1, i8 addrspace(3)* %p
+  ret void
+}
+
 attributes #0 = { "amdgpu-waves-per-eu"="2,3" }
 attributes #1 = { "amdgpu-waves-per-eu"="18,18" }
 attributes #2 = { "amdgpu-waves-per-eu"="19,19" }
+attributes #3 = { "amdgpu-flat-work-group-size"="1,64" }
+attributes #4 = { "amdgpu-flat-work-group-size"="1,96" }
+attributes #5 = { "amdgpu-flat-work-group-size"="1,128" }
+attributes #6 = { "amdgpu-flat-work-group-size"="1,192" }
+attributes #7 = { "amdgpu-flat-work-group-size"="1,256" }
+attributes #8 = { "amdgpu-flat-work-group-size"="1,512" }
+attributes #9 = { "amdgpu-flat-work-group-size"="1,1024" }
+attributes #10 = { "amdgpu-flat-work-group-size"="1,32" }

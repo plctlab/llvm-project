@@ -114,7 +114,7 @@ __kernel void test__global() {
 // Test the address space of 'this' when invoking the operator+
 // COMMON: [[C1GEN:%[.a-z0-9]+]] = addrspacecast %class.C* %c1 to %class.C addrspace(4)*
 // COMMON: [[C2GEN:%[.a-z0-9]+]] = addrspacecast %class.C* %c2 to %class.C addrspace(4)*
-// COMMON: call spir_func void @_ZNU3AS41CplERU3AS4KS_(%class.C* sret %c3, %class.C addrspace(4)* [[C1GEN]], %class.C addrspace(4)* dereferenceable(4) [[C2GEN]])
+// COMMON: call spir_func void @_ZNU3AS41CplERU3AS4KS_(%class.C* sret align 4 %c3, %class.C addrspace(4)* [[C1GEN]], %class.C addrspace(4)* dereferenceable(4) [[C2GEN]])
 
 // Test the address space of 'this' when invoking the move constructor
 // COMMON: [[C4GEN:%[.a-z0-9]+]] = addrspacecast %class.C* %c4 to %class.C addrspace(4)*
@@ -134,7 +134,7 @@ __kernel void test__global() {
 
 // Tests address space of inline members
 //COMMON: @_ZNU3AS41C3getEv(%class.C addrspace(4)* %this)
-//COMMON: @_ZNU3AS41CplERU3AS4KS_(%class.C* noalias sret %agg.result, %class.C addrspace(4)* %this
+//COMMON: @_ZNU3AS41CplERU3AS4KS_(%class.C* noalias sret align 4 %agg.result, %class.C addrspace(4)* %this
 #define TEST(AS)             \
   __kernel void test##AS() { \
     AS C c;                  \
@@ -174,7 +174,7 @@ TEST(__local)
 
 TEST(__private)
 
-// CHECK-LABEL: @test__private
+// COMMON-LABEL: @test__private
 
 // Test the address space of 'this' when invoking a constructor for an object in non-default address space
 // EXPL: [[CGEN:%[.a-z0-9]+]] = addrspacecast %class.C* %c to %class.C addrspace(4)*
@@ -203,3 +203,14 @@ TEST(__private)
 // IMPL: [[C2GENVOID:%[0-9]+]] = bitcast %class.C addrspace(4)* [[C2GEN]] to i8 addrspace(4)*
 // IMPL: [[C1GENVOID:%[0-9]+]] = bitcast %class.C addrspace(4)* [[C1GEN]] to i8 addrspace(4)*
 // IMPL:  call void @llvm.memcpy.p4i8.p4i8.i32(i8 addrspace(4)* {{.*}}[[C2GENVOID]], i8 addrspace(4)* {{.*}}[[C1GENVOID]]
+
+// Test that calling a const method from a non-const method does not crash Clang.
+class ConstAndNonConstMethod {
+public:
+  void DoConst() const {
+  }
+
+  void DoNonConst() {
+    DoConst();
+  }
+};

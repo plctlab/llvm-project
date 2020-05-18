@@ -91,10 +91,9 @@ ProgramStateManager::~ProgramStateManager() {
     I->second.second(I->second.first);
 }
 
-ProgramStateRef
-ProgramStateManager::removeDeadBindings(ProgramStateRef state,
-                                   const StackFrameContext *LCtx,
-                                   SymbolReaper& SymReaper) {
+ProgramStateRef ProgramStateManager::removeDeadBindingsFromEnvironmentAndStore(
+    ProgramStateRef state, const StackFrameContext *LCtx,
+    SymbolReaper &SymReaper) {
 
   // This code essentially performs a "mark-and-sweep" of the VariableBindings.
   // The roots are any Block-level exprs and Decls that our liveness algorithm
@@ -112,8 +111,7 @@ ProgramStateManager::removeDeadBindings(ProgramStateRef state,
   NewState.setStore(newStore);
   SymReaper.setReapedStore(newStore);
 
-  ProgramStateRef Result = getPersistentState(NewState);
-  return ConstraintMgr->removeDeadBindings(Result, SymReaper);
+  return getPersistentState(NewState);
 }
 
 ProgramStateRef ProgramState::bindLoc(Loc LV,
@@ -240,6 +238,13 @@ ProgramState::enterStackFrame(const CallEvent &Call,
   const StoreRef &NewStore =
     getStateManager().StoreMgr->enterStackFrame(getStore(), Call, CalleeCtx);
   return makeWithStore(NewStore);
+}
+
+SVal ProgramState::getSelfSVal(const LocationContext *LCtx) const {
+  const ImplicitParamDecl *SelfDecl = LCtx->getSelfDecl();
+  if (!SelfDecl)
+    return SVal();
+  return getSVal(getRegion(SelfDecl, LCtx));
 }
 
 SVal ProgramState::getSValAsScalarOrLoc(const MemRegion *R) const {

@@ -1,8 +1,18 @@
-Build
-=====
+Building
+========
 
 .. contents::
    :local:
+
+Getting the Sources
+-------------------
+
+Please refer to the `LLVM Getting Started Guide
+<https://llvm.org/docs/GettingStarted.html#getting-started-with-llvm>`_ for
+general instructions on how to check out the LLVM monorepo, which contains the
+LLDB sources.
+
+Git browser: https://github.com/llvm/llvm-project/tree/master/lldb
 
 Preliminaries
 -------------
@@ -19,8 +29,41 @@ The following requirements are shared on all platforms.
 
 * `CMake <https://cmake.org>`_
 * `Ninja <https://ninja-build.org>`_ (strongly recommended)
+
+If you want to run the test suite, you'll need to build LLDB with Python
+scripting support.
+
 * `Python <http://www.python.org/>`_
-* `SWIG <http://swig.org/>`_
+* `SWIG <http://swig.org/>`_ 2 or later.
+
+Optional Dependencies
+*********************
+
+Although the following dependencies are optional, they have a big impact on
+LLDB's functionality. It is strongly encouraged to build LLDB with these
+dependencies enabled.
+
+By default they are auto-detected: if CMake can find the dependency it will be
+used. It is possible to override this behavior by setting the corresponding
+CMake flag to ``On`` or ``Off`` to force the dependency to be enabled or
+disabled. When a dependency is set to ``On`` and can't be found it will cause a
+CMake configuration error.
+
++-------------------+------------------------------------------------------+--------------------------+
+| Feature           | Description                                          | CMake Flag               |
++===================+======================================================+==========================+
+| Editline          | Generic line editing, history, Emacs and Vi bindings | ``LLDB_ENABLE_LIBEDIT``  |
++-------------------+------------------------------------------------------+--------------------------+
+| Curses            | Text user interface                                  | ``LLDB_ENABLE_CURSES``   |
++-------------------+------------------------------------------------------+--------------------------+
+| LZMA              | Lossless data compression                            | ``LLDB_ENABLE_LZMA``     |
++-------------------+------------------------------------------------------+--------------------------+
+| Libxml2           | XML                                                  | ``LLDB_ENABLE_LIBXML2``  |
++-------------------+------------------------------------------------------+--------------------------+
+| Python            | Python scripting                                     | ``LLDB_ENABLE_PYTHON``   |
++-------------------+------------------------------------------------------+--------------------------+
+| Lua               | Lua scripting                                        | ``LLDB_ENABLE_LUA``      |
++-------------------+------------------------------------------------------+--------------------------+
 
 Depending on your platform and package manager, one might run any of the
 commands below.
@@ -36,39 +79,43 @@ commands below.
 Windows
 *******
 
-* Visual Studio 2015 or greater
-* Windows SDK 8.0 or higher. In general it is best to use the latest available
-  version.
-* `GnuWin32 <http://gnuwin32.sourceforge.net/>`_
-* `Python 3.5 or higher <https://www.python.org/downloads/windows/>`_ or
-  higher. Earlier versions of Python can be made to work by compiling your own
-  distribution from source, but this workflow is unsupported and you are own
-  your own.
+* Visual Studio 2017.
+* The latest Windows SDK.
+* The Active Template Library (ATL).
+* `GnuWin32 <http://gnuwin32.sourceforge.net/>`_ for CoreUtils and Make.
+* `Python 3.6 or 3.8 <https://www.python.org/downloads/windows/>`_. Python 3.7
+  is known to be incompatible. Make sure to (1) get the x64 variant if that's
+  what you're targetting and (2) install the debug library if you want to build
+  a debug lldb.
 * `Python Tools for Visual Studio
   <https://github.com/Microsoft/PTVS/releases>`_. If you plan to debug test
   failures or even write new tests at all, PTVS is an indispensable debugging
   extension to VS that enables full editing and debugging support for Python
-  (including mixed native/managed debugging)
+  (including mixed native/managed debugging).
 
 The steps outlined here describes how to set up your system and install the
 required dependencies such that they can be found when needed during the build
 process. They only need to be performed once.
 
-#. Install Visual Studio and the Windows SDK.
+#. Install Visual Studio with the Windows SDK and ATL components.
 #. Install GnuWin32, making sure ``<GnuWin32 install dir>\bin`` is added to
-   your PATH environment variable.
+   your PATH environment variable. Verify that utilities like ``dirname`` and
+   ``make`` are available from your terminal.
 #. Install SWIG for Windows, making sure ``<SWIG install dir>`` is added to
-   your PATH environment variable.
+   your PATH environment variable. Verify that ``swig`` is available from your
+   terminal.
+#. Register the Debug Interface Access DLLs with the Registry from a privileged
+   terminal.
+
+::
+
+> regsvr32 "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\DIA SDK\bin\msdia140.dll"
+> regsvr32 "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\DIA SDK\bin\amd64\msdia140.dll"
 
 Any command prompt from which you build LLDB should have a valid Visual Studio
 environment setup. This means you should run ``vcvarsall.bat`` or open an
 appropriate Visual Studio Command Prompt corresponding to the version you wish
 to use.
-
-Linux
-*****
-
-* `libedit <http://www.thrysoee.dk/editline>`_
 
 macOS
 *****
@@ -186,8 +233,7 @@ suite.
 ::
 
   > cmake -G Ninja \
-      -DLLDB_TEST_C_COMPILER=<path to C compiler> \
-      -DLLDB_TEST_CXX_COMPILER=<path to C++ compiler> \
+      -DLLDB_TEST_COMPILER=<path to C compiler> \
       <path to root of llvm source tree>
 
 It is strongly recommend to use a release build for the compiler to speed up
@@ -227,7 +273,7 @@ Sample command line:
   > cmake -G Ninja^
       -DLLDB_TEST_DEBUG_TEST_CRASHES=1^
       -DPYTHON_HOME=C:\Python35^
-      -DLLDB_TEST_C_COMPILER=d:\src\llvmbuild\ninja_release\bin\clang.exe^
+      -DLLDB_TEST_COMPILER=d:\src\llvmbuild\ninja_release\bin\clang.exe^
       <path to root of llvm source tree>
 
 
@@ -248,14 +294,6 @@ project, and use F5 to run it. You need only edit the project settings to set
 the executable and the working directory to point to binaries inside of the
 ninja tree.
 
-
-NetBSD
-^^^^^^
-
-Current stable NetBSD release doesn't ship with libpanel(3), therefore it's
-required to disable curses(3) support with the
-``-DLLDB_DISABLE_CURSES:BOOL=TRUE`` option. To make sure check if
-``/usr/include/panel.h`` exists in your system.
 
 macOS
 ^^^^^
@@ -332,7 +370,7 @@ Build LLDB standalone for development with Xcode:
    <https://cmake.org/cmake/help/v3.14/release/3.14.html#command-line>`_
 
 
-Building The Documentation
+Building the Documentation
 --------------------------
 
 If you wish to build the optional (reference) documentation, additional
@@ -356,6 +394,7 @@ To build the documentation, configure with ``LLVM_ENABLE_SPHINX=ON`` and build t
 ::
 
   > ninja docs-lldb-html
+  > ninja docs-lldb-man
   > ninja lldb-cpp-doc
   > ninja lldb-python-doc
 
@@ -392,9 +431,9 @@ further by passing the appropriate cmake options, such as:
 
 ::
 
-  -DLLDB_DISABLE_LIBEDIT=1
-  -DLLDB_DISABLE_CURSES=1
-  -DLLDB_DISABLE_PYTHON=1
+  -DLLDB_ENABLE_PYTHON=0
+  -DLLDB_ENABLE_LIBEDIT=0
+  -DLLDB_ENABLE_CURSES=0
   -DLLVM_ENABLE_TERMINFO=0
 
 In this case you, will often not need anything other than the standard C and
@@ -444,9 +483,9 @@ to prepare the cmake build with the following parameters:
   -DLLVM_HOST_TRIPLE=aarch64-unknown-linux-gnu \
   -DLLVM_TABLEGEN=<path-to-host>/bin/llvm-tblgen \
   -DCLANG_TABLEGEN=<path-to-host>/bin/clang-tblgen \
-  -DLLDB_DISABLE_PYTHON=1 \
-  -DLLDB_DISABLE_LIBEDIT=1 \
-  -DLLDB_DISABLE_CURSES=1
+  -DLLDB_ENABLE_PYTHON=0 \
+  -DLLDB_ENABLE_LIBEDIT=0 \
+  -DLLDB_ENABLE_CURSES=0
 
 An alternative (and recommended) way to compile LLDB is with clang.
 Unfortunately, clang is not able to find all the include paths necessary for a
@@ -462,7 +501,7 @@ options. In my case it was sufficient to add the following arguments to
   -I /usr/aarch64-linux-gnu/include
 
 If you wanted to build a full version of LLDB and avoid passing
-``-DLLDB_DISABLE_PYTHON`` and other options, you would need to obtain the
+``-DLLDB_ENABLE_PYTHON=0`` and other options, you would need to obtain the
 target versions of the respective libraries. The easiest way to achieve this is
 to use the qemu-debootstrap utility, which can prepare a system image using
 qemu and chroot to simulate the target environment. Then you can install the
@@ -523,6 +562,11 @@ built correctly and is available to the default Python interpreter, run:
 ::
 
   > python -c 'import lldb'
+
+
+Make sure you're using the Python interpreter that matches the Python library
+you linked against. For more details please refer to the :ref:`caveats
+<python_caveat>`.
 
 .. _CodeSigning:
 

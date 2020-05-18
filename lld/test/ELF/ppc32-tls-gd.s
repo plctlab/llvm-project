@@ -18,30 +18,30 @@
 # RUN: llvm-objdump -d --no-show-raw-insn %t | FileCheck --check-prefix=IE %s
 
 ## DT_PPC_GOT represents the address of _GLOBAL_OFFSET_TABLE_.
-# GD-DYN: PPC_GOT 0x2035C
+# GD-DYN: PPC_GOT 0x20358
 
 # GD-REL:      .rela.dyn {
-# GD-REL-NEXT:   0x2035C R_PPC_DTPMOD32 a 0x0
-# GD-REL-NEXT:   0x20360 R_PPC_DTPREL32 a 0x0
-# GD-REL-NEXT:   0x20364 R_PPC_DTPMOD32 b 0x0
-# GD-REL-NEXT:   0x20368 R_PPC_DTPREL32 b 0x0
-# GD-REL-NEXT:   0x2036C R_PPC_DTPMOD32 c 0x0
-# GD-REL-NEXT:   0x20370 R_PPC_DTPREL32 c 0x0
+# GD-REL-NEXT:   0x20358 R_PPC_DTPMOD32 a 0x0
+# GD-REL-NEXT:   0x2035C R_PPC_DTPREL32 a 0x0
+# GD-REL-NEXT:   0x20360 R_PPC_DTPMOD32 b 0x0
+# GD-REL-NEXT:   0x20364 R_PPC_DTPREL32 b 0x0
+# GD-REL-NEXT:   0x20368 R_PPC_DTPMOD32 c 0x0
+# GD-REL-NEXT:   0x2036C R_PPC_DTPREL32 c 0x0
 # GD-REL-NEXT: }
 
 ## &DTPMOD(a) - _GLOBAL_OFFSET_TABLE_ = 0x20078 - 0x20078 = 0
 # GD:      addi 3, 31, 0
-# GD-NEXT: bl .+32
+# GD-NEXT: bl 0x1028c
 # GD-NEXT: lwz 3, 0(3)
 
 ## &DTPMOD(b) - _GLOBAL_OFFSET_TABLE_ = 0x20080 - 0x20078 = 8
 # GD-NEXT: addi 3, 31, 8
-# GD-NEXT: bl .+20
+# GD-NEXT: bl 0x1028c
 # GD-NEXT: lwz 3, 0(3)
 
 ## &DTPMOD(c) - _GLOBAL_OFFSET_TABLE_ = 0x20088 - 0x20078 = 16
 # GD-NEXT: addi 3, 9, 16
-# GD-NEXT: bl .+8
+# GD-NEXT: bl 0x1028c
 # GD-NEXT: lwz 3, 0(3)
 
 # NOREL: no relocations

@@ -18,7 +18,7 @@
 #include "clang/Lex/ModuleMap.h"
 #include "clang/Serialization/GlobalModuleIndex.h"
 #include "clang/Serialization/InMemoryModuleCache.h"
-#include "clang/Serialization/Module.h"
+#include "clang/Serialization/ModuleFile.h"
 #include "clang/Serialization/PCHContainerOperations.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SetVector.h"
@@ -219,10 +219,7 @@ ModuleManager::addModule(StringRef FileName, ModuleKind Type,
   return NewlyLoaded;
 }
 
-void ModuleManager::removeModules(
-    ModuleIterator First,
-    llvm::SmallPtrSetImpl<ModuleFile *> &LoadedSuccessfully,
-    ModuleMap *modMap) {
+void ModuleManager::removeModules(ModuleIterator First, ModuleMap *modMap) {
   auto Last = end();
   if (First == Last)
     return;
@@ -442,7 +439,7 @@ bool ModuleManager::lookupModuleFile(StringRef FileName,
 
   // Open the file immediately to ensure there is no race between stat'ing and
   // opening the file.
-  auto FileOrErr = FileMgr.getFile(FileName, /*OpenFile=*/true, 
+  auto FileOrErr = FileMgr.getFile(FileName, /*OpenFile=*/true,
                                    /*CacheFailure=*/false);
   if (!FileOrErr) {
     File = nullptr;

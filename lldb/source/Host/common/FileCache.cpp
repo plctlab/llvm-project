@@ -1,4 +1,4 @@
-//===-- FileCache.cpp -------------------------------------------*- C++ -*-===//
+//===-- FileCache.cpp -----------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -23,8 +23,9 @@ FileCache &FileCache::GetInstance() {
   return *m_instance;
 }
 
-lldb::user_id_t FileCache::OpenFile(const FileSpec &file_spec, uint32_t flags,
-                                    uint32_t mode, Status &error) {
+lldb::user_id_t FileCache::OpenFile(const FileSpec &file_spec,
+                                    File::OpenOptions flags, uint32_t mode,
+                                    Status &error) {
   if (!file_spec) {
     error.SetErrorString("empty path");
     return UINT64_MAX;

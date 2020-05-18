@@ -1,4 +1,4 @@
-; RUN: not llc %s -mtriple=s390x-linux-gnu -o - 2>&1 | FileCheck %s
+; RUN: not --crash llc %s -mtriple=s390x-linux-gnu -o - 2>&1 | FileCheck %s
 ;
 ; CHECK: LLVM ERROR: mnop-mcount only supported with fentry-call
 
@@ -7,5 +7,4 @@ entry:
   ret void
 }
 
-attributes #0 = { "instrument-function-entry-inlined"="mcount" "mnop-mcount"="true" }
-
+attributes #0 = { "instrument-function-entry-inlined"="mcount" "mnop-mcount" }

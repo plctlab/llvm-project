@@ -6,11 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_CommandObjectLog_h_
-#define liblldb_CommandObjectLog_h_
-
-#include <map>
-#include <string>
+#ifndef LLDB_SOURCE_COMMANDS_COMMANDOBJECTLOG_H
+#define LLDB_SOURCE_COMMANDS_COMMANDOBJECTLOG_H
 
 #include "lldb/Interpreter/CommandObjectMultiword.h"
 
@@ -32,4 +29,4 @@ private:
 
 } // namespace lldb_private
 
-#endif // liblldb_CommandObjectLog_h_
+#endif // LLDB_SOURCE_COMMANDS_COMMANDOBJECTLOG_H

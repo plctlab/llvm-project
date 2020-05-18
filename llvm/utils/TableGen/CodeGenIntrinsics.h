@@ -123,6 +123,9 @@ struct CodeGenIntrinsic {
   /// True if the intrinsic is no-return.
   bool isNoReturn;
 
+  /// True if the intrinsic is no-sync.
+  bool isNoSync;
+
   /// True if the intrinsic is will-return.
   bool isWillReturn;
 
@@ -162,6 +165,8 @@ struct CodeGenIntrinsic {
   /// Note that this requires that \p IS.ParamVTs is available.
   bool isParamAPointer(unsigned ParamIdx) const;
 
+  bool isParamImmArg(unsigned ParamIdx) const;
+
   CodeGenIntrinsic(Record *R);
 };
 
@@ -176,7 +181,7 @@ public:
   };
   std::vector<TargetSet> Targets;
 
-  explicit CodeGenIntrinsicTable(const RecordKeeper &RC, bool TargetOnly);
+  explicit CodeGenIntrinsicTable(const RecordKeeper &RC);
   CodeGenIntrinsicTable() = default;
 
   bool empty() const { return Intrinsics.empty(); }

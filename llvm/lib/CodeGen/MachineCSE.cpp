@@ -33,6 +33,7 @@
 #include "llvm/CodeGen/TargetOpcodes.h"
 #include "llvm/CodeGen/TargetRegisterInfo.h"
 #include "llvm/CodeGen/TargetSubtargetInfo.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/MC/MCInstrDesc.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/Pass.h"
@@ -830,6 +831,13 @@ bool MachineCSE::ProcessBlockPRE(MachineDominatorTree *DT,
           continue;
         MachineInstr &NewMI =
             TII->duplicate(*CMBB, CMBB->getFirstTerminator(), *MI);
+
+        // When hoisting, make sure we don't carry the debug location of
+        // the original instruction, as that's not correct and can cause
+        // unexpected jumps when debugging optimized code.
+        auto EmptyDL = DebugLoc();
+        NewMI.setDebugLoc(EmptyDL);
+
         NewMI.getOperand(0).setReg(NewReg);
 
         PREMap[MI] = CMBB;

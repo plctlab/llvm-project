@@ -6,11 +6,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_ExpressionSourceCode_h
-#define liblldb_ExpressionSourceCode_h
+#ifndef LLDB_EXPRESSION_EXPRESSIONSOURCECODE_H
+#define LLDB_EXPRESSION_EXPRESSIONSOURCECODE_H
 
 #include "lldb/lldb-enumerations.h"
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/StringRef.h"
 
 #include <string>
 

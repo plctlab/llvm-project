@@ -230,7 +230,8 @@ Value *SimplifyCastInst(unsigned CastOpc, Value *Op, Type *Ty,
                         const SimplifyQuery &Q);
 
 /// Given operands for a ShuffleVectorInst, fold the result or return null.
-Value *SimplifyShuffleVectorInst(Value *Op0, Value *Op1, Constant *Mask,
+/// See class ShuffleVectorInst for a description of the mask representation.
+Value *SimplifyShuffleVectorInst(Value *Op0, Value *Op1, ArrayRef<int> Mask,
                                  Type *RetTy, const SimplifyQuery &Q);
 
 //=== Helper functions for higher up the class hierarchy.
@@ -258,6 +259,10 @@ Value *SimplifyBinOp(unsigned Opcode, Value *LHS, Value *RHS,
 
 /// Given a callsite, fold the result or return null.
 Value *SimplifyCall(CallBase *Call, const SimplifyQuery &Q);
+
+/// Given an operand for a Freeze, see if we can fold the result.
+/// If not, this returns null.
+Value *SimplifyFreezeInst(Value *Op, const SimplifyQuery &Q);
 
 /// See if we can compute a simplified version of this instruction. If not,
 /// return null.

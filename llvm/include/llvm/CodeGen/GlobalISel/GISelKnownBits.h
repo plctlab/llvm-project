@@ -13,6 +13,7 @@
 #ifndef LLVM_CODEGEN_GLOBALISEL_KNOWNBITSINFO_H
 #define LLVM_CODEGEN_GLOBALISEL_KNOWNBITSINFO_H
 
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/CodeGen/GlobalISel/GISelChangeObserver.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/Register.h"
@@ -31,17 +32,27 @@ class GISelKnownBits : public GISelChangeObserver {
   MachineRegisterInfo &MRI;
   const TargetLowering &TL;
   const DataLayout &DL;
+  unsigned MaxDepth;
+  /// Cache maintained during a computeKnownBits request.
+  SmallDenseMap<Register, KnownBits, 16> ComputeKnownBitsCache;
 
 public:
-  GISelKnownBits(MachineFunction &MF);
+  GISelKnownBits(MachineFunction &MF, unsigned MaxDepth = 6);
   virtual ~GISelKnownBits() = default;
   void setMF(MachineFunction &MF);
   virtual void computeKnownBitsImpl(Register R, KnownBits &Known,
                                     const APInt &DemandedElts,
                                     unsigned Depth = 0);
 
+  unsigned computeNumSignBits(Register R, const APInt &DemandedElts,
+                              unsigned Depth = 0);
+  unsigned computeNumSignBits(Register R, unsigned Depth = 0);
+
   // KnownBitsAPI
   KnownBits getKnownBits(Register R);
+  KnownBits getKnownBits(Register R, const APInt &DemandedElts,
+                         unsigned Depth = 0);
+
   // Calls getKnownBits for first operand def of MI.
   KnownBits getKnownBits(MachineInstr &MI);
   APInt getKnownZeroes(Register R);
@@ -63,12 +74,13 @@ public:
   void computeKnownBitsForFrameIndex(Register R, KnownBits &Known,
                                      const APInt &DemandedElts,
                                      unsigned Depth = 0);
-  static unsigned inferAlignmentForFrameIdx(int FrameIdx, int Offset,
-                                            const MachineFunction &MF);
-  static void computeKnownBitsForAlignment(KnownBits &Known, unsigned Align);
+  static Align inferAlignmentForFrameIdx(int FrameIdx, int Offset,
+                                         const MachineFunction &MF);
+  static void computeKnownBitsForAlignment(KnownBits &Known,
+                                           MaybeAlign Alignment);
 
   // Try to infer alignment for MI.
-  static unsigned inferPtrAlignment(const MachineInstr &MI);
+  static MaybeAlign inferPtrAlignment(const MachineInstr &MI);
 
   // Observer API. No-op for non-caching implementation.
   void erasingInstr(MachineInstr &MI) override{};
@@ -77,7 +89,7 @@ public:
   void changedInstr(MachineInstr &MI) override{};
 
 protected:
-  unsigned getMaxDepth() const { return 6; }
+  unsigned getMaxDepth() const { return MaxDepth; }
 };
 
 /// To use KnownBitsInfo analysis in a pass,

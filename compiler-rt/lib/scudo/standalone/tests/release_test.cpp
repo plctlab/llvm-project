@@ -6,16 +6,17 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "tests/scudo_unit_test.h"
+
 #include "list.h"
 #include "release.h"
 #include "size_class_map.h"
-
-#include "gtest/gtest.h"
 
 #include <string.h>
 
 #include <algorithm>
 #include <random>
+#include <set>
 
 TEST(ScudoReleaseTest, PackedCounterArray) {
   for (scudo::uptr I = 0; I < SCUDO_WORDSIZE; I++) {
@@ -146,14 +147,14 @@ private:
 
 template <class SizeClassMap> void testReleaseFreeMemoryToOS() {
   typedef FreeBatch<SizeClassMap> Batch;
-  const scudo::uptr AllocatedPagesCount = 1024;
+  const scudo::uptr PagesCount = 1024;
   const scudo::uptr PageSize = scudo::getPageSizeCached();
   std::mt19937 R;
   scudo::u32 RandState = 42;
 
   for (scudo::uptr I = 1; I <= SizeClassMap::LargestClassId; I++) {
     const scudo::uptr BlockSize = SizeClassMap::getSizeByClassId(I);
-    const scudo::uptr MaxBlocks = AllocatedPagesCount * PageSize / BlockSize;
+    const scudo::uptr MaxBlocks = PagesCount * PageSize / BlockSize;
 
     // Generate the random free list.
     std::vector<scudo::uptr> FreeArray;
@@ -173,7 +174,7 @@ template <class SizeClassMap> void testReleaseFreeMemoryToOS() {
     std::shuffle(FreeArray.begin(), FreeArray.end(), R);
 
     // Build the FreeList from the FreeArray.
-    scudo::IntrusiveList<Batch> FreeList;
+    scudo::SinglyLinkedList<Batch> FreeList;
     FreeList.clear();
     Batch *CurrentBatch = nullptr;
     for (auto const &Block : FreeArray) {
@@ -189,7 +190,7 @@ template <class SizeClassMap> void testReleaseFreeMemoryToOS() {
 
     // Release the memory.
     ReleasedPagesRecorder Recorder;
-    releaseFreeMemoryToOS(&FreeList, 0, AllocatedPagesCount, BlockSize,
+    releaseFreeMemoryToOS(FreeList, 0, MaxBlocks * BlockSize, BlockSize,
                           &Recorder);
 
     // Verify that there are no released pages touched by used chunks and all
@@ -201,7 +202,7 @@ template <class SizeClassMap> void testReleaseFreeMemoryToOS() {
     scudo::uptr CurrentBlock = 0;
     InFreeRange = false;
     scudo::uptr CurrentFreeRangeStart = 0;
-    for (scudo::uptr I = 0; I <= MaxBlocks; I++) {
+    for (scudo::uptr I = 0; I < MaxBlocks; I++) {
       const bool IsFreeBlock =
           FreeBlocks.find(CurrentBlock) != FreeBlocks.end();
       if (IsFreeBlock) {
@@ -235,6 +236,19 @@ template <class SizeClassMap> void testReleaseFreeMemoryToOS() {
       }
 
       CurrentBlock += BlockSize;
+    }
+
+    if (InFreeRange) {
+      scudo::uptr P = scudo::roundUpTo(CurrentFreeRangeStart, PageSize);
+      const scudo::uptr EndPage =
+          scudo::roundUpTo(MaxBlocks * BlockSize, PageSize);
+      while (P + PageSize <= EndPage) {
+        const bool PageReleased =
+            Recorder.ReportedPages.find(P) != Recorder.ReportedPages.end();
+        EXPECT_EQ(true, PageReleased);
+        VerifiedReleasedPages++;
+        P += PageSize;
+      }
     }
 
     EXPECT_EQ(Recorder.ReportedPages.size(), VerifiedReleasedPages);

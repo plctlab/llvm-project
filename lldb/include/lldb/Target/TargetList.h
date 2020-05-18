@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_TargetList_h_
-#define liblldb_TargetList_h_
+#ifndef LLDB_TARGET_TARGETLIST_H
+#define LLDB_TARGET_TARGETLIST_H
 
 #include <mutex>
 #include <vector>
@@ -55,12 +55,12 @@ public:
   /// \param[in] debugger
   ///     The debugger to associate this target with
   ///
-  /// \param[in] file_spec
+  /// \param[in] user_exe_path
   ///     The main executable file for a debug target. This value
-  ///     can be nullptr and the file can be set later using:
+  ///     can be empty and the file can be set later using:
   ///     Target::SetExecutableModule (ModuleSP&)
   ///
-  /// \param[in] triple_cstr
+  /// \param[in] triple_str
   ///     A target triple string to be used for the target. This can
   ///     be nullptr if the triple is not known or when attaching to a
   ///     process.
@@ -211,4 +211,4 @@ private:
 
 } // namespace lldb_private
 
-#endif // liblldb_TargetList_h_
+#endif // LLDB_TARGET_TARGETLIST_H

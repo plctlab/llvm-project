@@ -107,7 +107,7 @@ static const Expr *getDereferenceExpr(const Stmt *S, bool IsBind=false){
 
 static bool suppressReport(const Expr *E) {
   // Do not report dereferences on memory in non-default address spaces.
-  return E->getType().getQualifiers().hasAddressSpace();
+  return E->getType().hasAddressSpace();
 }
 
 static bool isDeclRefExprToReference(const Expr *E) {
@@ -304,6 +304,6 @@ void ento::registerDereferenceChecker(CheckerManager &mgr) {
   mgr.registerChecker<DereferenceChecker>();
 }
 
-bool ento::shouldRegisterDereferenceChecker(const LangOptions &LO) {
+bool ento::shouldRegisterDereferenceChecker(const CheckerManager &mgr) {
   return true;
 }

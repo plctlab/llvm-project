@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_StreamFile_h_
-#define liblldb_StreamFile_h_
+#ifndef LLDB_CORE_STREAMFILE_H
+#define LLDB_CORE_STREAMFILE_H
 
 #include "lldb/Host/File.h"
 #include "lldb/Utility/Stream.h"
@@ -21,16 +21,11 @@ namespace lldb_private {
 
 class StreamFile : public Stream {
 public:
-  // Constructors and Destructors
-  StreamFile();
-
   StreamFile(uint32_t flags, uint32_t addr_size, lldb::ByteOrder byte_order);
 
   StreamFile(int fd, bool transfer_ownership);
 
-  StreamFile(const char *path);
-
-  StreamFile(const char *path, uint32_t options,
+  StreamFile(const char *path, File::OpenOptions options,
              uint32_t permissions = lldb::eFilePermissionsFileDefault);
 
   StreamFile(FILE *fh, bool transfer_ownership);
@@ -47,7 +42,6 @@ public:
 
   void Flush() override;
 
-
 protected:
   // Classes that inherit from StreamFile can see and modify these
   std::shared_ptr<File> m_file_sp; // never NULL
@@ -59,4 +53,4 @@ private:
 
 } // namespace lldb_private
 
-#endif // liblldb_StreamFile_h_
+#endif // LLDB_CORE_STREAMFILE_H

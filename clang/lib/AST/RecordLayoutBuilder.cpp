@@ -2956,7 +2956,7 @@ void MicrosoftRecordLayoutBuilder::computeVtorDispSet(
     const CXXRecordDecl *RD) const {
   // /vd2 or #pragma vtordisp(2): Always use vtordisps for virtual bases with
   // vftables.
-  if (RD->getMSVtorDispMode() == MSVtorDispAttr::ForVFTable) {
+  if (RD->getMSVtorDispMode() == MSVtorDispMode::ForVFTable) {
     for (const CXXBaseSpecifier &Base : RD->vbases()) {
       const CXXRecordDecl *BaseDecl = Base.getType()->getAsCXXRecordDecl();
       const ASTRecordLayout &Layout = Context.getASTRecordLayout(BaseDecl);
@@ -2979,12 +2979,12 @@ void MicrosoftRecordLayoutBuilder::computeVtorDispSet(
   // * A user declared constructor or destructor aren't declared.
   // * #pragma vtordisp(0) or the /vd0 flag are in use.
   if ((!RD->hasUserDeclaredConstructor() && !RD->hasUserDeclaredDestructor()) ||
-      RD->getMSVtorDispMode() == MSVtorDispAttr::Never)
+      RD->getMSVtorDispMode() == MSVtorDispMode::Never)
     return;
   // /vd1 or #pragma vtordisp(1): Try to guess based on whether we think it's
   // possible for a partially constructed object with virtual base overrides to
   // escape a non-trivial constructor.
-  assert(RD->getMSVtorDispMode() == MSVtorDispAttr::ForVBaseOverride);
+  assert(RD->getMSVtorDispMode() == MSVtorDispMode::ForVBaseOverride);
   // Compute a set of base classes which define methods we override.  A virtual
   // base in this set will require a vtordisp.  A virtual base that transitively
   // contains one of these bases as a non-virtual base will also require a
@@ -3222,7 +3222,8 @@ ASTContext::getObjCLayout(const ObjCInterfaceDecl *D,
   if (D->hasExternalLexicalStorage() && !D->getDefinition())
     getExternalSource()->CompleteType(const_cast<ObjCInterfaceDecl*>(D));
   D = D->getDefinition();
-  assert(D && D->isThisDeclarationADefinition() && "Invalid interface decl!");
+  assert(D && !D->isInvalidDecl() && D->isThisDeclarationADefinition() &&
+         "Invalid interface decl!");
 
   // Look up this layout, if already laid out, return what we have.
   const ObjCContainerDecl *Key =

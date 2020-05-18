@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "clang/Basic/Builtins.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Frontend/ASTUnit.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -188,7 +189,7 @@ IntrusiveRefCntPtr<ExternalSemaSource> clang::createChainedIncludesSource(
           Clang->getASTConsumer().GetASTDeserializationListener());
       if (!Reader)
         return nullptr;
-      Clang->setModuleManager(Reader);
+      Clang->setASTReader(Reader);
       Clang->getASTContext().setExternalSource(Reader);
     }
 

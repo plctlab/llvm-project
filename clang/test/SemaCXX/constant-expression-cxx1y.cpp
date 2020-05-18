@@ -627,6 +627,12 @@ namespace assignment_op {
 }
 
 namespace switch_stmt {
+  constexpr bool no_such_case(int n) {
+    switch (n) { case 1: return false; }
+    return true;
+  }
+  static_assert(no_such_case(0), "");
+
   constexpr int f(char k) {
     bool b = false;
     int z = 6;
@@ -1205,7 +1211,7 @@ namespace ObjectsUnderConstruction {
   static_assert(aggr2.x == 1 && aggr2.y == 1, "");
 
   // The lifetime of 'n' begins at the initialization, not before.
-  constexpr int n = ++const_cast<int&>(n); // expected-error {{constant expression}} expected-note {{modification}}
+  constexpr int n = ++const_cast<int&>(n); // expected-error {{constant expression}} expected-note {{increment of object outside its lifetime}}
 }
 
 namespace PR39728 {

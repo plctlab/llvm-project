@@ -1,12 +1,7 @@
 ; RUN: llc -filetype=obj %p/Inputs/hello.ll -o %t.hello.o
 ; RUN: llc -filetype=obj %s -o %t.o
 ; RUN: wasm-ld -r -o %t.wasm %t.hello.o %t.o
-; RUN: obj2yaml %t.wasm | FileCheck %s --check-prefixes CHECK,NORMAL
-
-; RUN: llc -filetype=obj %p/Inputs/hello.ll -o %t.hello.bm.o -mattr=+bulk-memory,+atomics
-; RUN: llc -filetype=obj %s -o %t.bm.o -mattr=+bulk-memory
-; RUN: wasm-ld -r -o %t.mt.wasm %t.hello.bm.o %t.bm.o --shared-memory --max-memory=131072
-; RUN: obj2yaml %t.mt.wasm | FileCheck %s --check-prefixes CHECK,SHARED
+; RUN: obj2yaml %t.wasm | FileCheck %s
 
 target triple = "wasm32-unknown-unknown"
 
@@ -44,15 +39,16 @@ entry:
 ; CHECK-NEXT:   - Type:            TYPE
 ; CHECK-NEXT:     Signatures:
 ; CHECK-NEXT:       - Index:           0
-; CHECK-NEXT:         ReturnType:      NORESULT
 ; CHECK-NEXT:         ParamTypes:
 ; CHECK-NEXT:           - I32
+; CHECK-NEXT:         ReturnTypes:     []
 ; CHECK-NEXT:       - Index:           1
-; CHECK-NEXT:         ReturnType:      I32
 ; CHECK-NEXT:         ParamTypes:
+; CHECK-NEXT:         ReturnTypes:
+; CHECK-NEXT:           - I32
 ; CHECK-NEXT:       - Index:           2
-; CHECK-NEXT:         ReturnType:      NORESULT
 ; CHECK-NEXT:         ParamTypes:
+; CHECK-NEXT:         ReturnTypes:     []
 ; CHECK-NEXT:   - Type:            IMPORT
 ; CHECK-NEXT:     Imports:
 ; CHECK-NEXT:       - Module:          env
@@ -78,10 +74,7 @@ entry:
 ; CHECK-NEXT:           Maximum:         0x00000004
 ; CHECK-NEXT:   - Type:            MEMORY
 ; CHECK-NEXT:     Memories:
-; NORMAL-NEXT:      - Initial:         0x00000001
-; SHARED-NEXT:      - Flags:           [ HAS_MAX, IS_SHARED ]
-; SHARED-NEXT:        Initial:         0x00000001
-; SHARED-NEXT:        Maximum:         0x00000002
+; CHECK-NEXT:      - Initial:         0x00000001
 ; CHECK-NEXT:   - Type:            ELEM
 ; CHECK-NEXT:     Segments:
 ; CHECK-NEXT:       - Offset:

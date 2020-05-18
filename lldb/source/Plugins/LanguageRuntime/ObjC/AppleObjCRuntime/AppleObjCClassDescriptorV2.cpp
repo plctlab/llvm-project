@@ -1,5 +1,4 @@
-//===-- AppleObjCClassDescriptorV2.cpp -----------------------------*- C++
-//-*-===//
+//===-- AppleObjCClassDescriptorV2.cpp ------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -110,6 +109,18 @@ bool ClassDescriptorV2::class_rw_t::Read(Process *process, lldb::addr_t addr) {
   m_properties_ptr = extractor.GetAddress_unchecked(&cursor);
   m_firstSubclass = extractor.GetAddress_unchecked(&cursor);
   m_nextSiblingClass = extractor.GetAddress_unchecked(&cursor);
+
+  if (m_ro_ptr & 1) {
+    DataBufferHeap buffer(ptr_size, '\0');
+    process->ReadMemory(m_ro_ptr ^ 1, buffer.GetBytes(), ptr_size, error);
+    if (error.Fail())
+      return false;
+    cursor = 0;
+    DataExtractor extractor(buffer.GetBytes(), ptr_size,
+                            process->GetByteOrder(),
+                            process->GetAddressByteSize());
+    m_ro_ptr = extractor.GetAddress_unchecked(&cursor);
+  }
 
   return true;
 }

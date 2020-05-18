@@ -1,4 +1,4 @@
-//===-- Reproducer.cpp ------------------------------------------*- C++ -*-===//
+//===-- Reproducer.cpp ----------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -18,12 +18,31 @@ using namespace lldb_private::repro;
 using namespace llvm;
 using namespace llvm::yaml;
 
+static llvm::Optional<bool> GetEnv(const char *var) {
+  std::string val = llvm::StringRef(getenv(var)).lower();
+  if (val == "0" || val == "off")
+    return false;
+  if (val == "1" || val == "on")
+    return true;
+  return {};
+}
+
 Reproducer &Reproducer::Instance() { return *InstanceImpl(); }
 
 llvm::Error Reproducer::Initialize(ReproducerMode mode,
                                    llvm::Optional<FileSpec> root) {
   lldbassert(!InstanceImpl() && "Already initialized.");
   InstanceImpl().emplace();
+
+  // The environment can override the capture mode.
+  if (mode != ReproducerMode::Replay) {
+    if (llvm::Optional<bool> override = GetEnv("LLDB_CAPTURE_REPRODUCER")) {
+      if (*override)
+        mode = ReproducerMode::Capture;
+      else
+        mode = ReproducerMode::Off;
+    }
+  }
 
   switch (mode) {
   case ReproducerMode::Capture: {
@@ -43,7 +62,9 @@ llvm::Error Reproducer::Initialize(ReproducerMode mode,
     return Instance().SetCapture(root);
   } break;
   case ReproducerMode::Replay:
-    return Instance().SetReplay(root);
+    return Instance().SetReplay(root, /*passive*/ false);
+  case ReproducerMode::PassiveReplay:
+    return Instance().SetReplay(root, /*passive*/ true);
   case ReproducerMode::Off:
     break;
   };
@@ -108,7 +129,7 @@ llvm::Error Reproducer::SetCapture(llvm::Optional<FileSpec> root) {
   return Error::success();
 }
 
-llvm::Error Reproducer::SetReplay(llvm::Optional<FileSpec> root) {
+llvm::Error Reproducer::SetReplay(llvm::Optional<FileSpec> root, bool passive) {
   std::lock_guard<std::mutex> guard(m_mutex);
 
   if (root && m_generator)
@@ -121,7 +142,7 @@ llvm::Error Reproducer::SetReplay(llvm::Optional<FileSpec> root) {
     return Error::success();
   }
 
-  m_loader.emplace(*root);
+  m_loader.emplace(*root, passive);
   if (auto e = m_loader->LoadIndex())
     return e;
 
@@ -143,10 +164,18 @@ static FileSpec MakeAbsolute(FileSpec file_spec) {
   return FileSpec(path, file_spec.GetPathStyle());
 }
 
-Generator::Generator(FileSpec root)
-    : m_root(MakeAbsolute(std::move(root))), m_done(false) {}
+Generator::Generator(FileSpec root) : m_root(MakeAbsolute(std::move(root))) {
+  GetOrCreate<repro::WorkingDirectoryProvider>();
+}
 
-Generator::~Generator() {}
+Generator::~Generator() {
+  if (!m_done) {
+    if (m_auto_generate)
+      Keep();
+    else
+      Discard();
+  }
+}
 
 ProviderBase *Generator::Register(std::unique_ptr<ProviderBase> provider) {
   std::lock_guard<std::mutex> lock(m_providers_mutex);
@@ -176,6 +205,10 @@ void Generator::Discard() {
   llvm::sys::fs::remove_directories(m_root.GetPath());
 }
 
+void Generator::SetAutoGenerate(bool b) { m_auto_generate = b; }
+
+bool Generator::IsAutoGenerate() const { return m_auto_generate; }
+
 const FileSpec &Generator::GetRoot() const { return m_root; }
 
 void Generator::AddProvidersToIndex() {
@@ -196,8 +229,9 @@ void Generator::AddProvidersToIndex() {
   yout << files;
 }
 
-Loader::Loader(FileSpec root)
-    : m_root(MakeAbsolute(std::move(root))), m_loaded(false) {}
+Loader::Loader(FileSpec root, bool passive)
+    : m_root(MakeAbsolute(std::move(root))), m_loaded(false),
+      m_passive_replay(passive) {}
 
 llvm::Error Loader::LoadIndex() {
   if (m_loaded)
@@ -241,7 +275,7 @@ DataRecorder::Create(const FileSpec &filename) {
 DataRecorder *CommandProvider::GetNewDataRecorder() {
   std::size_t i = m_data_recorders.size() + 1;
   std::string filename = (llvm::Twine(Info::name) + llvm::Twine("-") +
-                          llvm::Twine(i) + llvm::Twine(".txt"))
+                          llvm::Twine(i) + llvm::Twine(".yaml"))
                              .str();
   auto recorder_or_error =
       DataRecorder::Create(GetRoot().CopyByAppendingPathComponent(filename));
@@ -281,60 +315,31 @@ void VersionProvider::Keep() {
   os << m_version << "\n";
 }
 
-llvm::raw_ostream *ProcessGDBRemoteProvider::GetHistoryStream() {
-  FileSpec history_file = GetRoot().CopyByAppendingPathComponent(Info::file);
-
-  std::error_code EC;
-  m_stream_up = std::make_unique<raw_fd_ostream>(history_file.GetPath(), EC,
-                                                 sys::fs::OpenFlags::OF_Text);
-  return m_stream_up.get();
+void WorkingDirectoryProvider::Keep() {
+  FileSpec file = GetRoot().CopyByAppendingPathComponent(Info::file);
+  std::error_code ec;
+  llvm::raw_fd_ostream os(file.GetPath(), ec, llvm::sys::fs::OF_Text);
+  if (ec)
+    return;
+  os << m_cwd << "\n";
 }
 
-std::unique_ptr<CommandLoader> CommandLoader::Create(Loader *loader) {
-  if (!loader)
-    return {};
-
-  FileSpec file = loader->GetFile<repro::CommandProvider::Info>();
-  if (!file)
-    return {};
-
-  auto error_or_file = llvm::MemoryBuffer::getFile(file.GetPath());
-  if (auto err = error_or_file.getError())
-    return {};
-
-  std::vector<std::string> files;
-  llvm::yaml::Input yin((*error_or_file)->getBuffer());
-  yin >> files;
-
-  if (auto err = yin.error())
-    return {};
-
-  for (auto &file : files) {
-    FileSpec absolute_path =
-        loader->GetRoot().CopyByAppendingPathComponent(file);
-    file = absolute_path.GetPath();
-  }
-
-  return std::make_unique<CommandLoader>(std::move(files));
-}
-
-llvm::Optional<std::string> CommandLoader::GetNextFile() {
-  if (m_index >= m_files.size())
-    return {};
-  return m_files[m_index++];
+void FileProvider::recordInterestingDirectory(const llvm::Twine &dir) {
+  if (m_collector)
+    m_collector->addDirectory(dir);
 }
 
 void ProviderBase::anchor() {}
 char CommandProvider::ID = 0;
 char FileProvider::ID = 0;
-char ProcessGDBRemoteProvider::ID = 0;
 char ProviderBase::ID = 0;
 char VersionProvider::ID = 0;
+char WorkingDirectoryProvider::ID = 0;
 const char *CommandProvider::Info::file = "command-interpreter.yaml";
 const char *CommandProvider::Info::name = "command-interpreter";
 const char *FileProvider::Info::file = "files.yaml";
 const char *FileProvider::Info::name = "files";
-const char *ProcessGDBRemoteProvider::Info::file = "gdb-remote.yaml";
-const char *ProcessGDBRemoteProvider::Info::name = "gdb-remote";
 const char *VersionProvider::Info::file = "version.txt";
 const char *VersionProvider::Info::name = "version";
+const char *WorkingDirectoryProvider::Info::file = "cwd.txt";
+const char *WorkingDirectoryProvider::Info::name = "cwd";

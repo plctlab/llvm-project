@@ -305,8 +305,8 @@ struct __declspec(dllexport) Befriended {
 void Befriended::func() {}
 
 // Implicit declarations can be redeclared with dllexport.
-// MSC-DAG: define dso_local dllexport noalias i8* @"??2@{{YAPAXI|YAPEAX_K}}@Z"(
-// GNU-DAG: define dso_local dllexport noalias i8* @_Znw{{[yj]}}(
+// MSC-DAG: define dso_local dllexport nonnull i8* @"??2@{{YAPAXI|YAPEAX_K}}@Z"(
+// GNU-DAG: define dso_local dllexport nonnull i8* @_Znw{{[yj]}}(
 void* alloc(__SIZE_TYPE__ n);
 __declspec(dllexport) void* operator new(__SIZE_TYPE__ n) { return alloc(n); }
 
@@ -859,6 +859,20 @@ struct PR40006 {
   int x = 42;
 };
 // M32-DAG: define weak_odr dso_local dllexport x86_thiscallcc %"struct.InClassInits::PR40006"* @"??0PR40006@InClassInits@@QAE@XZ"
+
+namespace pr40006 {
+// Delay emitting the method also past the instantiation of Tmpl<Inner>, i.e.
+// until the top-level class Outer is completely finished.
+template<typename> struct Tmpl {};
+struct Outer {
+    struct Inner {
+        __declspec(dllexport) Inner() = default;
+        unsigned int x = 0;
+    };
+    Tmpl<Inner> y;
+};
+// M32-DAG: define weak_odr dso_local dllexport x86_thiscallcc %"struct.InClassInits::pr40006::Outer::Inner"* @"??0Inner@Outer@pr40006@InClassInits@@QAE@XZ"
+}
 
 // PR42857: Clang would try to emit the non-trivial explicitly defaulted
 // dllexport ctor twice when doing an explicit instantiation definition.

@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_Options_h_
-#define liblldb_Options_h_
+#ifndef LLDB_INTERPRETER_OPTIONS_H
+#define LLDB_INTERPRETER_OPTIONS_H
 
 #include <set>
 #include <vector>
@@ -163,7 +163,7 @@ public:
   /// Handles the generic bits of figuring out whether we are in an option,
   /// and if so completing it.
   ///
-  /// \param[in/out] request
+  /// \param[in,out] request
   ///    The completion request that we need to act upon.
   ///
   /// \param[in] interpreter
@@ -182,7 +182,7 @@ public:
   /// Handles the generic bits of figuring out whether we are in an option,
   /// and if so completing it.
   ///
-  /// \param[in/out] request
+  /// \param[in,out] request
   ///    The completion request that we need to act upon.
   ///
   /// \param[in] interpreter
@@ -328,4 +328,4 @@ public:
 
 } // namespace lldb_private
 
-#endif // liblldb_Options_h_
+#endif // LLDB_INTERPRETER_OPTIONS_H

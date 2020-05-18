@@ -1,4 +1,4 @@
-//===-- RegisterContextPOSIX_arm64.cpp --------------------------*- C++ -*-===//
+//===-- RegisterContextPOSIX_arm64.cpp ------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -109,6 +109,7 @@ RegisterContextPOSIX_arm64::RegisterContextPOSIX_arm64(
 
   switch (register_info->m_target_arch.GetMachine()) {
   case llvm::Triple::aarch64:
+  case llvm::Triple::aarch64_32:
     m_reg_info.num_registers = k_num_registers_arm64;
     m_reg_info.num_gpr_registers = k_num_gpr_registers_arm64;
     m_reg_info.num_fpr_registers = k_num_fpr_registers_arm64;
@@ -184,6 +185,7 @@ RegisterContextPOSIX_arm64::GetRegisterSet(size_t set) {
   if (IsRegisterSetAvailable(set)) {
     switch (m_register_info_up->m_target_arch.GetMachine()) {
     case llvm::Triple::aarch64:
+    case llvm::Triple::aarch64_32:
       return &g_reg_sets_arm64[set];
     default:
       assert(false && "Unhandled target architecture.");

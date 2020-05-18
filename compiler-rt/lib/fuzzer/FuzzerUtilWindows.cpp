@@ -16,6 +16,7 @@
 #include <chrono>
 #include <cstring>
 #include <errno.h>
+#include <io.h>
 #include <iomanip>
 #include <signal.h>
 #include <stdio.h>
@@ -151,9 +152,26 @@ FILE *OpenProcessPipe(const char *Command, const char *Mode) {
   return _popen(Command, Mode);
 }
 
+int CloseProcessPipe(FILE *F) {
+  return _pclose(F);
+}
+
 int ExecuteCommand(const Command &Cmd) {
   std::string CmdLine = Cmd.toString();
   return system(CmdLine.c_str());
+}
+
+bool ExecuteCommand(const Command &Cmd, std::string *CmdOutput) {
+  FILE *Pipe = _popen(Cmd.toString().c_str(), "r");
+  if (!Pipe)
+    return false;
+
+  if (CmdOutput) {
+    char TmpBuffer[128];
+    while (fgets(TmpBuffer, sizeof(TmpBuffer), Pipe))
+      CmdOutput->append(TmpBuffer);
+  }
+  return _pclose(Pipe) == 0;
 }
 
 const void *SearchMemory(const void *Data, size_t DataLen, const void *Patt,
@@ -188,6 +206,14 @@ std::string DisassembleCmd(const std::string &FileName) {
 
 std::string SearchRegexCmd(const std::string &Regex) {
   return "findstr /r \"" + Regex + "\"";
+}
+
+void DiscardOutput(int Fd) {
+  FILE* Temp = fopen("nul", "w");
+  if (!Temp)
+    return;
+  _dup2(_fileno(Temp), Fd);
+  fclose(Temp);
 }
 
 } // namespace fuzzer

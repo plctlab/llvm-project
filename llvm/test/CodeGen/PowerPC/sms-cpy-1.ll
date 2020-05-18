@@ -13,7 +13,7 @@ define void @print_res() nounwind {
 ; CHECK-NEXT:    lwz 3, 0(3)
 ; CHECK-NEXT:    addi 3, 3, -1
 ; CHECK-NEXT:    clrldi 4, 3, 32
-; CHECK-NEXT:    cmplwi 0, 3, 1
+; CHECK-NEXT:    cmplwi 3, 1
 ; CHECK-NEXT:    li 3, 1
 ; CHECK-NEXT:    isel 3, 4, 3, 1
 ; CHECK-NEXT:    li 4, 2
@@ -44,7 +44,6 @@ define void @print_res() nounwind {
 ; CHECK-NEXT:    lbz 5, 0(5)
 ; CHECK-NEXT:    addi 3, 3, 1
 ; CHECK-NEXT:    bdz .LBB0_4
-; CHECK-NEXT:    .p2align 4
 ; CHECK-NEXT:  .LBB0_3: #
 ; CHECK-NEXT:    clrldi 10, 8, 32
 ; CHECK-NEXT:    cntlzw 9, 6

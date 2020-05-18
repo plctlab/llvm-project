@@ -28,7 +28,6 @@
 #include "llvm/Analysis/TypeMetadataUtils.h"
 #include "llvm/IR/Attributes.h"
 #include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Dominators.h"
@@ -44,6 +43,7 @@
 #include "llvm/IR/ModuleSummaryIndex.h"
 #include "llvm/IR/Use.h"
 #include "llvm/IR/User.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/Object/ModuleSymbolTable.h"
 #include "llvm/Object/SymbolicFile.h"
 #include "llvm/Pass.h"
@@ -82,7 +82,7 @@ cl::opt<std::string> ModuleSummaryDotFile(
 // to know when computing summary for global var, because if global variable
 // references basic block address we can't import it separately from function
 // containing that basic block. For simplicity we currently don't import such
-// global vars at all. When importing function we aren't interested if any 
+// global vars at all. When importing function we aren't interested if any
 // instruction in it takes an address of any basic block, because instruction
 // can only take an address of basic block located in the same function.
 static bool findRefEdges(ModuleSummaryIndex &Index, const User *CurUser,
@@ -98,7 +98,7 @@ static bool findRefEdges(ModuleSummaryIndex &Index, const User *CurUser,
     if (!Visited.insert(U).second)
       continue;
 
-    ImmutableCallSite CS(U);
+    const auto *CB = dyn_cast<CallBase>(U);
 
     for (const auto &OI : U->operands()) {
       const User *Operand = dyn_cast<User>(OI);
@@ -112,7 +112,7 @@ static bool findRefEdges(ModuleSummaryIndex &Index, const User *CurUser,
         // We have a reference to a global value. This should be added to
         // the reference set unless it is a callee. Callees are handled
         // specially by WriteFunction and are added to a separate list.
-        if (!(CS && CS.isCallee(&OI)))
+        if (!(CB && CB->isCallee(&OI)))
           RefEdges.insert(Index.getOrInsertValueInfo(GV));
         continue;
       }
@@ -144,7 +144,7 @@ static void addVCallToSet(DevirtCallSite Call, GlobalValue::GUID Guid,
                           SetVector<FunctionSummary::ConstVCall> &ConstVCalls) {
   std::vector<uint64_t> Args;
   // Start from the second argument to skip the "this" pointer.
-  for (auto &Arg : make_range(Call.CS.arg_begin() + 1, Call.CS.arg_end())) {
+  for (auto &Arg : make_range(Call.CB.arg_begin() + 1, Call.CB.arg_end())) {
     auto *CI = dyn_cast<ConstantInt>(Arg);
     if (!CI || CI->getBitWidth() > 64) {
       VCalls.insert({Guid, Call.Offset});
@@ -303,8 +303,8 @@ static void computeFunctionSummary(ModuleSummaryIndex &Index, const Module &M,
         }
       }
       findRefEdges(Index, &I, RefEdges, Visited);
-      auto CS = ImmutableCallSite(&I);
-      if (!CS)
+      const auto *CB = dyn_cast<CallBase>(&I);
+      if (!CB)
         continue;
 
       const auto *CI = dyn_cast<CallInst>(&I);
@@ -316,8 +316,8 @@ static void computeFunctionSummary(ModuleSummaryIndex &Index, const Module &M,
       if (HasLocalsInUsedOrAsm && CI && CI->isInlineAsm())
         HasInlineAsmMaybeReferencingInternal = true;
 
-      auto *CalledValue = CS.getCalledValue();
-      auto *CalledFunction = CS.getCalledFunction();
+      auto *CalledValue = CB->getCalledOperand();
+      auto *CalledFunction = CB->getCalledFunction();
       if (CalledValue && !CalledFunction) {
         CalledValue = CalledValue->stripPointerCasts();
         // Stripping pointer casts can reveal a called function.
@@ -340,7 +340,7 @@ static void computeFunctionSummary(ModuleSummaryIndex &Index, const Module &M,
         }
         // We should have named any anonymous globals
         assert(CalledFunction->hasName());
-        auto ScaledCount = PSI->getProfileCount(&I, BFI);
+        auto ScaledCount = PSI->getProfileCount(*CB, BFI);
         auto Hotness = ScaledCount ? getHotness(ScaledCount.getValue(), PSI)
                                    : CalleeInfo::HotnessType::Unknown;
         if (ForceSummaryEdgesCold != FunctionSummary::FSHT_None)
@@ -466,7 +466,8 @@ static void computeFunctionSummary(ModuleSummaryIndex &Index, const Module &M,
       F.hasFnAttribute(Attribute::NoRecurse), F.returnDoesNotAlias(),
       // FIXME: refactor this to use the same code that inliner is using.
       // Don't try to import functions with noinline attribute.
-      F.getAttributes().hasFnAttribute(Attribute::NoInline)};
+      F.getAttributes().hasFnAttribute(Attribute::NoInline),
+      F.hasFnAttribute(Attribute::AlwaysInline)};
   auto FuncSummary = std::make_unique<FunctionSummary>(
       Flags, NumInsts, FunFlags, /*EntryCount=*/0, std::move(Refs),
       CallGraphEdges.takeVector(), TypeTests.takeVector(),
@@ -597,7 +598,10 @@ static void computeVariableSummary(ModuleSummaryIndex &Index,
   bool CanBeInternalized =
       !V.hasComdat() && !V.hasAppendingLinkage() && !V.isInterposable() &&
       !V.hasAvailableExternallyLinkage() && !V.hasDLLExportStorageClass();
-  GlobalVarSummary::GVarFlags VarFlags(CanBeInternalized, CanBeInternalized);
+  bool Constant = V.isConstant();
+  GlobalVarSummary::GVarFlags VarFlags(CanBeInternalized,
+                                       Constant ? false : CanBeInternalized,
+                                       Constant, V.getVCallVisibility());
   auto GVarSummary = std::make_unique<GlobalVarSummary>(Flags, VarFlags,
                                                          RefEdges.takeVector());
   if (NonRenamableLocal)
@@ -703,7 +707,8 @@ ModuleSummaryIndex llvm::buildModuleSummaryIndex(
                         F->hasFnAttribute(Attribute::ReadOnly),
                         F->hasFnAttribute(Attribute::NoRecurse),
                         F->returnDoesNotAlias(),
-                        /* NoInline = */ false},
+                        /* NoInline = */ false,
+                        F->hasFnAttribute(Attribute::AlwaysInline)},
                     /*EntryCount=*/0, ArrayRef<ValueInfo>{},
                     ArrayRef<FunctionSummary::EdgeTy>{},
                     ArrayRef<GlobalValue::GUID>{},
@@ -715,7 +720,10 @@ ModuleSummaryIndex llvm::buildModuleSummaryIndex(
           } else {
             std::unique_ptr<GlobalVarSummary> Summary =
                 std::make_unique<GlobalVarSummary>(
-                    GVFlags, GlobalVarSummary::GVarFlags(false, false),
+                    GVFlags,
+                    GlobalVarSummary::GVarFlags(
+                        false, false, cast<GlobalVariable>(GV)->isConstant(),
+                        GlobalObject::VCallVisibilityPublic),
                     ArrayRef<ValueInfo>{});
             Index.addGlobalValueSummary(*GV, std::move(Summary));
           }
@@ -817,7 +825,7 @@ ModuleSummaryIndex llvm::buildModuleSummaryIndex(
     if (EC)
       report_fatal_error(Twine("Failed to open dot file ") +
                          ModuleSummaryDotFile + ": " + EC.message() + "\n");
-    Index.exportToDot(OSDot);
+    Index.exportToDot(OSDot, {});
   }
 
   return Index;

@@ -37,6 +37,7 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/Pass.h"
 #include "llvm/ProfileData/InstrProf.h"
 #include "llvm/Support/Casting.h"
@@ -73,14 +74,15 @@ cl::opt<unsigned> MemOPSizeLarge(
 
 namespace {
 
-cl::opt<bool> DoNameCompression("enable-name-compression",
-                                cl::desc("Enable name string compression"),
-                                cl::init(true));
-
 cl::opt<bool> DoHashBasedCounterSplit(
     "hash-based-counter-split",
     cl::desc("Rename counter variable of a comdat function based on cfg hash"),
     cl::init(true));
+
+cl::opt<bool> RuntimeCounterRelocation(
+    "runtime-counter-relocation",
+    cl::desc("Enable relocating counters at runtime."),
+    cl::init(false));
 
 cl::opt<bool> ValueProfileStaticAlloc(
     "vp-static-alloc",
@@ -150,7 +152,9 @@ public:
 
   InstrProfilingLegacyPass() : ModulePass(ID) {}
   InstrProfilingLegacyPass(const InstrProfOptions &Options, bool IsCS = false)
-      : ModulePass(ID), InstrProf(Options, IsCS) {}
+      : ModulePass(ID), InstrProf(Options, IsCS) {
+    initializeInstrProfilingLegacyPassPass(*PassRegistry::getPassRegistry());
+  }
 
   StringRef getPassName() const override {
     return "Frontend instrumentation-based coverage lowering";
@@ -241,9 +245,14 @@ public:
       : LoopToCandidates(LoopToCands), ExitBlocks(), InsertPts(), L(CurLoop),
         LI(LI), BFI(BFI) {
 
+    // Skip collection of ExitBlocks and InsertPts for loops that will not be
+    // able to have counters promoted.
     SmallVector<BasicBlock *, 8> LoopExitBlocks;
     SmallPtrSet<BasicBlock *, 8> BlockSet;
+
     L.getExitBlocks(LoopExitBlocks);
+    if (!isPromotionPossible(&L, LoopExitBlocks))
+      return;
 
     for (BasicBlock *ExitBlock : LoopExitBlocks) {
       if (BlockSet.insert(ExitBlock).second) {
@@ -312,21 +321,31 @@ private:
     return true;
   }
 
-  // Returns the max number of Counter Promotions for LP.
-  unsigned getMaxNumOfPromotionsInLoop(Loop *LP) {
+  // Check whether the loop satisfies the basic conditions needed to perform
+  // Counter Promotions.
+  bool isPromotionPossible(Loop *LP,
+                           const SmallVectorImpl<BasicBlock *> &LoopExitBlocks) {
     // We can't insert into a catchswitch.
-    SmallVector<BasicBlock *, 8> LoopExitBlocks;
-    LP->getExitBlocks(LoopExitBlocks);
     if (llvm::any_of(LoopExitBlocks, [](BasicBlock *Exit) {
           return isa<CatchSwitchInst>(Exit->getTerminator());
         }))
-      return 0;
+      return false;
 
     if (!LP->hasDedicatedExits())
-      return 0;
+      return false;
 
     BasicBlock *PH = LP->getLoopPreheader();
     if (!PH)
+      return false;
+
+    return true;
+  }
+
+  // Returns the max number of Counter Promotions for LP.
+  unsigned getMaxNumOfPromotionsInLoop(Loop *LP) {
+    SmallVector<BasicBlock *, 8> LoopExitBlocks;
+    LP->getExitBlocks(LoopExitBlocks);
+    if (!isPromotionPossible(LP, LoopExitBlocks))
       return 0;
 
     SmallVector<BasicBlock *, 8> ExitingBlocks;
@@ -428,6 +447,13 @@ bool InstrProfiling::lowerIntrinsics(Function *F) {
 
   promoteCounterLoadStores(F);
   return true;
+}
+
+bool InstrProfiling::isRuntimeCounterRelocationEnabled() const {
+  if (RuntimeCounterRelocation.getNumOccurrences() > 0)
+    return RuntimeCounterRelocation;
+
+  return TT.isOSFuchsia();
 }
 
 bool InstrProfiling::isCounterPromotionEnabled() const {
@@ -610,11 +636,19 @@ void InstrProfiling::lowerValueProfileInst(InstrProfValueProfileInst *Ind) {
                   llvm::InstrProfValueKind::IPVK_MemOPSize);
   CallInst *Call = nullptr;
   auto *TLI = &GetTLI(*Ind->getFunction());
+
+  // To support value profiling calls within Windows exception handlers, funclet
+  // information contained within operand bundles needs to be copied over to
+  // the library call. This is required for the IR to be processed by the
+  // WinEHPrepare pass.
+  SmallVector<OperandBundleDef, 1> OpBundles;
+  Ind->getOperandBundlesAsDefs(OpBundles);
   if (!IsRange) {
     Value *Args[3] = {Ind->getTargetValue(),
                       Builder.CreateBitCast(DataVar, Builder.getInt8PtrTy()),
                       Builder.getInt32(Index)};
-    Call = Builder.CreateCall(getOrInsertValueProfilingCall(*M, *TLI), Args);
+    Call = Builder.CreateCall(getOrInsertValueProfilingCall(*M, *TLI), Args,
+                              OpBundles);
   } else {
     Value *Args[6] = {
         Ind->getTargetValue(),
@@ -623,8 +657,8 @@ void InstrProfiling::lowerValueProfileInst(InstrProfValueProfileInst *Ind) {
         Builder.getInt64(MemOPSizeRangeStart),
         Builder.getInt64(MemOPSizeRangeLast),
         Builder.getInt64(MemOPSizeLarge == 0 ? INT64_MIN : MemOPSizeLarge)};
-    Call =
-        Builder.CreateCall(getOrInsertValueProfilingCall(*M, *TLI, true), Args);
+    Call = Builder.CreateCall(getOrInsertValueProfilingCall(*M, *TLI, true),
+                              Args, OpBundles);
   }
   if (auto AK = TLI->getExtAttrForI32Param(false))
     Call->addParamAttr(2, AK);
@@ -639,6 +673,28 @@ void InstrProfiling::lowerIncrement(InstrProfIncrementInst *Inc) {
   uint64_t Index = Inc->getIndex()->getZExtValue();
   Value *Addr = Builder.CreateConstInBoundsGEP2_64(Counters->getValueType(),
                                                    Counters, 0, Index);
+
+  if (isRuntimeCounterRelocationEnabled()) {
+    Type *Int64Ty = Type::getInt64Ty(M->getContext());
+    Type *Int64PtrTy = Type::getInt64PtrTy(M->getContext());
+    Function *Fn = Inc->getParent()->getParent();
+    Instruction &I = Fn->getEntryBlock().front();
+    LoadInst *LI = dyn_cast<LoadInst>(&I);
+    if (!LI) {
+      IRBuilder<> Builder(&I);
+      Type *Int64Ty = Type::getInt64Ty(M->getContext());
+      GlobalVariable *Bias = M->getGlobalVariable(getInstrProfCounterBiasVarName());
+      if (!Bias) {
+        Bias = new GlobalVariable(*M, Int64Ty, false, GlobalValue::LinkOnceODRLinkage,
+                                  Constant::getNullValue(Int64Ty),
+                                  getInstrProfCounterBiasVarName());
+        Bias->setVisibility(GlobalVariable::HiddenVisibility);
+      }
+      LI = Builder.CreateLoad(Int64Ty, Bias);
+    }
+    auto *Add = Builder.CreateAdd(Builder.CreatePtrToInt(Addr, Int64Ty), LI);
+    Addr = Builder.CreateIntToPtr(Add, Int64PtrTy);
+  }
 
   if (Options.Atomic || AtomicCounterUpdateAll) {
     Builder.CreateAtomicRMW(AtomicRMWInst::Add, Addr, Inc->getStep(),
@@ -785,7 +841,7 @@ InstrProfiling::getOrCreateRegionCounters(InstrProfIncrementInst *Inc) {
   CounterPtr->setVisibility(Visibility);
   CounterPtr->setSection(
       getInstrProfSectionName(IPSK_cnts, TT.getObjectFormat()));
-  CounterPtr->setAlignment(8);
+  CounterPtr->setAlignment(Align(8));
   MaybeSetComdat(CounterPtr);
   CounterPtr->setLinkage(Linkage);
 
@@ -807,7 +863,7 @@ InstrProfiling::getOrCreateRegionCounters(InstrProfIncrementInst *Inc) {
       ValuesVar->setVisibility(Visibility);
       ValuesVar->setSection(
           getInstrProfSectionName(IPSK_vals, TT.getObjectFormat()));
-      ValuesVar->setAlignment(8);
+      ValuesVar->setAlignment(Align(8));
       MaybeSetComdat(ValuesVar);
       ValuesPtrExpr =
           ConstantExpr::getBitCast(ValuesVar, Type::getInt8PtrTy(Ctx));
@@ -840,7 +896,7 @@ InstrProfiling::getOrCreateRegionCounters(InstrProfIncrementInst *Inc) {
                                   getVarName(Inc, getInstrProfDataVarPrefix()));
   Data->setVisibility(Visibility);
   Data->setSection(getInstrProfSectionName(IPSK_data, TT.getObjectFormat()));
-  Data->setAlignment(INSTR_PROF_DATA_ALIGNMENT);
+  Data->setAlignment(Align(INSTR_PROF_DATA_ALIGNMENT));
   MaybeSetComdat(Data);
   Data->setLinkage(Linkage);
 
@@ -915,7 +971,7 @@ void InstrProfiling::emitNameData() {
 
   std::string CompressedNameStr;
   if (Error E = collectPGOFuncNameStrings(ReferencedNames, CompressedNameStr,
-                                          DoNameCompression)) {
+                                          DoInstrProfNameCompression)) {
     report_fatal_error(toString(std::move(E)), false);
   }
 
@@ -931,7 +987,7 @@ void InstrProfiling::emitNameData() {
   // On COFF, it's important to reduce the alignment down to 1 to prevent the
   // linker from inserting padding before the start of the names section or
   // between names entries.
-  NamesVar->setAlignment(1);
+  NamesVar->setAlignment(Align(1));
   UsedVars.push_back(NamesVar);
 
   for (auto *NamePtr : ReferencedNames)

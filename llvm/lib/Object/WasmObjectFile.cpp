@@ -302,10 +302,10 @@ Error WasmObjectFile::parseSection(WasmSection &Sec) {
     return parseTableSection(Ctx);
   case wasm::WASM_SEC_MEMORY:
     return parseMemorySection(Ctx);
-  case wasm::WASM_SEC_GLOBAL:
-    return parseGlobalSection(Ctx);
   case wasm::WASM_SEC_EVENT:
     return parseEventSection(Ctx);
+  case wasm::WASM_SEC_GLOBAL:
+    return parseGlobalSection(Ctx);
   case wasm::WASM_SEC_EXPORT:
     return parseExportSection(Ctx);
   case wasm::WASM_SEC_START:
@@ -343,7 +343,7 @@ Error WasmObjectFile::parseDylinkSection(ReadContext &Ctx) {
 
 Error WasmObjectFile::parseNameSection(ReadContext &Ctx) {
   llvm::DenseSet<uint64_t> Seen;
-  if (Functions.size() != FunctionTypes.size()) {
+  if (FunctionTypes.size() && !SeenCodeSection) {
     return make_error<GenericBinaryError>("Names must come after code section",
                                           object_error::parse_failed);
   }
@@ -389,7 +389,7 @@ Error WasmObjectFile::parseNameSection(ReadContext &Ctx) {
 
 Error WasmObjectFile::parseLinkingSection(ReadContext &Ctx) {
   HasLinkingSection = true;
-  if (Functions.size() != FunctionTypes.size()) {
+  if (FunctionTypes.size() && !SeenCodeSection) {
     return make_error<GenericBinaryError>(
         "Linking data must come after code section",
         object_error::parse_failed);
@@ -508,13 +508,16 @@ Error WasmObjectFile::parseLinkingSectionSymtab(ReadContext &Ctx) {
           Function.SymbolName = Info.Name;
       } else {
         wasm::WasmImport &Import = *ImportedFunctions[Info.ElementIndex];
-        if ((Info.Flags & wasm::WASM_SYMBOL_EXPLICIT_NAME) != 0)
+        if ((Info.Flags & wasm::WASM_SYMBOL_EXPLICIT_NAME) != 0) {
           Info.Name = readString(Ctx);
-        else
+          Info.ImportName = Import.Field;
+        } else {
           Info.Name = Import.Field;
+        }
         Signature = &Signatures[Import.SigIndex];
-        Info.ImportName = Import.Field;
-        Info.ImportModule = Import.Module;
+        if (!Import.Module.empty()) {
+          Info.ImportModule = Import.Module;
+        }
       }
       break;
 
@@ -537,13 +540,17 @@ Error WasmObjectFile::parseLinkingSectionSymtab(ReadContext &Ctx) {
           Global.SymbolName = Info.Name;
       } else {
         wasm::WasmImport &Import = *ImportedGlobals[Info.ElementIndex];
-        if ((Info.Flags & wasm::WASM_SYMBOL_EXPLICIT_NAME) != 0)
+        if ((Info.Flags & wasm::WASM_SYMBOL_EXPLICIT_NAME) != 0) {
           Info.Name = readString(Ctx);
-        else
+          Info.ImportName = Import.Field;
+        } else {
           Info.Name = Import.Field;
+        }
         GlobalType = &Import.Global;
         Info.ImportName = Import.Field;
-        Info.ImportModule = Import.Module;
+        if (!Import.Module.empty()) {
+          Info.ImportModule = Import.Module;
+        }
       }
       break;
 
@@ -597,14 +604,17 @@ Error WasmObjectFile::parseLinkingSectionSymtab(ReadContext &Ctx) {
 
       } else {
         wasm::WasmImport &Import = *ImportedEvents[Info.ElementIndex];
-        if ((Info.Flags & wasm::WASM_SYMBOL_EXPLICIT_NAME) != 0)
+        if ((Info.Flags & wasm::WASM_SYMBOL_EXPLICIT_NAME) != 0) {
           Info.Name = readString(Ctx);
-        else
+          Info.ImportName = Import.Field;
+        } else {
           Info.Name = Import.Field;
+        }
         EventType = &Import.Event;
         Signature = &Signatures[EventType->SigIndex];
-        Info.ImportName = Import.Field;
-        Info.ImportModule = Import.Module;
+        if (!Import.Module.empty()) {
+          Info.ImportModule = Import.Module;
+        }
       }
       break;
     }
@@ -708,7 +718,7 @@ Error WasmObjectFile::parseProducersSection(ReadContext &Ctx) {
             "Producers section contains repeated producer",
             object_error::parse_failed);
       }
-      ProducerVec->emplace_back(Name, Version);
+      ProducerVec->emplace_back(std::string(Name), std::string(Version));
     }
   }
   if (Ctx.Ptr != Ctx.End)
@@ -732,7 +742,7 @@ Error WasmObjectFile::parseTargetFeaturesSection(ReadContext &Ctx) {
       return make_error<GenericBinaryError>("Unknown feature policy prefix",
                                             object_error::parse_failed);
     }
-    Feature.Name = readString(Ctx);
+    Feature.Name = std::string(readString(Ctx));
     if (!FeaturesSeen.insert(Feature.Name).second)
       return make_error<GenericBinaryError>(
           "Target features section contains repeated feature \"" +
@@ -788,6 +798,11 @@ Error WasmObjectFile::parseRelocSection(StringRef Name, ReadContext &Ctx) {
         return make_error<GenericBinaryError>("Bad relocation global index",
                                               object_error::parse_failed);
       break;
+    case wasm::R_WASM_GLOBAL_INDEX_I32:
+      if (!isValidGlobalSymbol(Reloc.Index))
+        return make_error<GenericBinaryError>("Bad relocation global index",
+                                              object_error::parse_failed);
+      break;
     case wasm::R_WASM_EVENT_INDEX_LEB:
       if (!isValidEventSymbol(Reloc.Index))
         return make_error<GenericBinaryError>("Bad relocation event index",
@@ -827,7 +842,8 @@ Error WasmObjectFile::parseRelocSection(StringRef Name, ReadContext &Ctx) {
     if (Reloc.Type == wasm::R_WASM_TABLE_INDEX_I32 ||
         Reloc.Type == wasm::R_WASM_MEMORY_ADDR_I32 ||
         Reloc.Type == wasm::R_WASM_SECTION_OFFSET_I32 ||
-        Reloc.Type == wasm::R_WASM_FUNCTION_OFFSET_I32)
+        Reloc.Type == wasm::R_WASM_FUNCTION_OFFSET_I32 ||
+        Reloc.Type == wasm::R_WASM_GLOBAL_INDEX_I32)
       Size = 4;
     if (Reloc.Offset + Size > EndOffset)
       return make_error<GenericBinaryError>("Bad relocation offset",
@@ -881,12 +897,9 @@ Error WasmObjectFile::parseTypeSection(ReadContext &Ctx) {
       Sig.Params.push_back(wasm::ValType(ParamType));
     }
     uint32_t ReturnCount = readVaruint32(Ctx);
-    if (ReturnCount) {
-      if (ReturnCount != 1) {
-        return make_error<GenericBinaryError>(
-            "Multiple return types not supported", object_error::parse_failed);
-      }
-      Sig.Returns.push_back(wasm::ValType(readUint8(Ctx)));
+    while (ReturnCount--) {
+      uint32_t ReturnType = readUint8(Ctx);
+      Sig.Returns.push_back(wasm::ValType(ReturnType));
     }
     Signatures.push_back(std::move(Sig));
   }
@@ -943,6 +956,7 @@ Error WasmObjectFile::parseImportSection(ReadContext &Ctx) {
 Error WasmObjectFile::parseFunctionSection(ReadContext &Ctx) {
   uint32_t Count = readVaruint32(Ctx);
   FunctionTypes.reserve(Count);
+  Functions.resize(Count);
   uint32_t NumTypes = Signatures.size();
   while (Count--) {
     uint32_t Type = readVaruint32(Ctx);
@@ -985,6 +999,24 @@ Error WasmObjectFile::parseMemorySection(ReadContext &Ctx) {
   return Error::success();
 }
 
+Error WasmObjectFile::parseEventSection(ReadContext &Ctx) {
+  EventSection = Sections.size();
+  uint32_t Count = readVarint32(Ctx);
+  Events.reserve(Count);
+  while (Count--) {
+    wasm::WasmEvent Event;
+    Event.Index = NumImportedEvents + Events.size();
+    Event.Type.Attribute = readVaruint32(Ctx);
+    Event.Type.SigIndex = readVarint32(Ctx);
+    Events.push_back(Event);
+  }
+
+  if (Ctx.Ptr != Ctx.End)
+    return make_error<GenericBinaryError>("Event section ended prematurely",
+                                          object_error::parse_failed);
+  return Error::success();
+}
+
 Error WasmObjectFile::parseGlobalSection(ReadContext &Ctx) {
   GlobalSection = Sections.size();
   uint32_t Count = readVaruint32(Ctx);
@@ -1004,24 +1036,6 @@ Error WasmObjectFile::parseGlobalSection(ReadContext &Ctx) {
   return Error::success();
 }
 
-Error WasmObjectFile::parseEventSection(ReadContext &Ctx) {
-  EventSection = Sections.size();
-  uint32_t Count = readVarint32(Ctx);
-  Events.reserve(Count);
-  while (Count--) {
-    wasm::WasmEvent Event;
-    Event.Index = NumImportedEvents + Events.size();
-    Event.Type.Attribute = readVaruint32(Ctx);
-    Event.Type.SigIndex = readVarint32(Ctx);
-    Events.push_back(Event);
-  }
-
-  if (Ctx.Ptr != Ctx.End)
-    return make_error<GenericBinaryError>("Event section ended prematurely",
-                                          object_error::parse_failed);
-  return Error::success();
-}
-
 Error WasmObjectFile::parseExportSection(ReadContext &Ctx) {
   uint32_t Count = readVaruint32(Ctx);
   Exports.reserve(Count);
@@ -1032,9 +1046,11 @@ Error WasmObjectFile::parseExportSection(ReadContext &Ctx) {
     Ex.Index = readVaruint32(Ctx);
     switch (Ex.Kind) {
     case wasm::WASM_EXTERNAL_FUNCTION:
-      if (!isValidFunctionIndex(Ex.Index))
+
+      if (!isDefinedFunctionIndex(Ex.Index))
         return make_error<GenericBinaryError>("Invalid function export",
                                               object_error::parse_failed);
+      getDefinedFunction(Ex.Index).ExportName = Ex.Name;
       break;
     case wasm::WASM_EXTERNAL_GLOBAL:
       if (!isValidGlobalIndex(Ex.Index))
@@ -1135,6 +1151,7 @@ Error WasmObjectFile::parseStartSection(ReadContext &Ctx) {
 }
 
 Error WasmObjectFile::parseCodeSection(ReadContext &Ctx) {
+  SeenCodeSection = true;
   CodeSection = Sections.size();
   uint32_t FunctionCount = readVaruint32(Ctx);
   if (FunctionCount != FunctionTypes.size()) {
@@ -1142,14 +1159,14 @@ Error WasmObjectFile::parseCodeSection(ReadContext &Ctx) {
                                           object_error::parse_failed);
   }
 
-  while (FunctionCount--) {
-    wasm::WasmFunction Function;
+  for (uint32_t i = 0; i < FunctionCount; i++) {
+    wasm::WasmFunction& Function = Functions[i];
     const uint8_t *FunctionStart = Ctx.Ptr;
     uint32_t Size = readVaruint32(Ctx);
     const uint8_t *FunctionEnd = Ctx.Ptr + Size;
 
     Function.CodeOffset = Ctx.Ptr - FunctionStart;
-    Function.Index = NumImportedFunctions + Functions.size();
+    Function.Index = NumImportedFunctions + i;
     Function.CodeSectionOffset = FunctionStart - Ctx.Start;
     Function.Size = FunctionEnd - FunctionStart;
 
@@ -1168,7 +1185,6 @@ Error WasmObjectFile::parseCodeSection(ReadContext &Ctx) {
     Function.Comdat = UINT32_MAX;
     Ctx.Ptr += BodySize;
     assert(Ctx.Ptr == FunctionEnd);
-    Functions.push_back(Function);
   }
   if (Ctx.Ptr != Ctx.End)
     return make_error<GenericBinaryError>("Code section ended prematurely",
@@ -1250,7 +1266,7 @@ const wasm::WasmObjectHeader &WasmObjectFile::getHeader() const {
 
 void WasmObjectFile::moveSymbolNext(DataRefImpl &Symb) const { Symb.d.b++; }
 
-uint32_t WasmObjectFile::getSymbolFlags(DataRefImpl Symb) const {
+Expected<uint32_t> WasmObjectFile::getSymbolFlags(DataRefImpl Symb) const {
   uint32_t Result = SymbolRef::SF_None;
   const WasmSymbol &Sym = getWasmSymbol(Symb);
 
@@ -1365,26 +1381,30 @@ WasmObjectFile::getSymbolSection(DataRefImpl Symb) const {
     return section_end();
 
   DataRefImpl Ref;
+  Ref.d.a = getSymbolSectionIdImpl(Sym);
+  return section_iterator(SectionRef(Ref, this));
+}
+
+uint32_t WasmObjectFile::getSymbolSectionId(SymbolRef Symb) const {
+  const WasmSymbol &Sym = getWasmSymbol(Symb);
+  return getSymbolSectionIdImpl(Sym);
+}
+
+uint32_t WasmObjectFile::getSymbolSectionIdImpl(const WasmSymbol &Sym) const {
   switch (Sym.Info.Kind) {
   case wasm::WASM_SYMBOL_TYPE_FUNCTION:
-    Ref.d.a = CodeSection;
-    break;
+    return CodeSection;
   case wasm::WASM_SYMBOL_TYPE_GLOBAL:
-    Ref.d.a = GlobalSection;
-    break;
+    return GlobalSection;
   case wasm::WASM_SYMBOL_TYPE_DATA:
-    Ref.d.a = DataSection;
-    break;
+    return DataSection;
   case wasm::WASM_SYMBOL_TYPE_SECTION:
-    Ref.d.a = Sym.Info.ElementIndex;
-    break;
+    return Sym.Info.ElementIndex;
   case wasm::WASM_SYMBOL_TYPE_EVENT:
-    Ref.d.a = EventSection;
-    break;
+    return EventSection;
   default:
     llvm_unreachable("Unknown WasmSymbol::SymbolType");
   }
-  return section_iterator(SectionRef(Ref, this));
 }
 
 void WasmObjectFile::moveSectionNext(DataRefImpl &Sec) const { Sec.d.a++; }
@@ -1454,8 +1474,6 @@ bool WasmObjectFile::isSectionData(DataRefImpl Sec) const {
 bool WasmObjectFile::isSectionBSS(DataRefImpl Sec) const { return false; }
 
 bool WasmObjectFile::isSectionVirtual(DataRefImpl Sec) const { return false; }
-
-bool WasmObjectFile::isSectionBitcode(DataRefImpl Sec) const { return false; }
 
 relocation_iterator WasmObjectFile::section_rel_begin(DataRefImpl Ref) const {
   DataRefImpl RelocRef;
@@ -1608,30 +1626,50 @@ int WasmSectionOrderChecker::getSectionOrder(unsigned ID,
 // Represents the edges in a directed graph where any node B reachable from node
 // A is not allowed to appear before A in the section ordering, but may appear
 // afterward.
-int WasmSectionOrderChecker::DisallowedPredecessors[WASM_NUM_SEC_ORDERS][WASM_NUM_SEC_ORDERS] = {
-  {}, // WASM_SEC_ORDER_NONE
-  {WASM_SEC_ORDER_TYPE, WASM_SEC_ORDER_IMPORT}, // WASM_SEC_ORDER_TYPE,
-  {WASM_SEC_ORDER_IMPORT, WASM_SEC_ORDER_FUNCTION}, // WASM_SEC_ORDER_IMPORT,
-  {WASM_SEC_ORDER_FUNCTION, WASM_SEC_ORDER_TABLE}, // WASM_SEC_ORDER_FUNCTION,
-  {WASM_SEC_ORDER_TABLE, WASM_SEC_ORDER_MEMORY}, // WASM_SEC_ORDER_TABLE,
-  {WASM_SEC_ORDER_MEMORY, WASM_SEC_ORDER_GLOBAL}, // WASM_SEC_ORDER_MEMORY,
-  {WASM_SEC_ORDER_GLOBAL, WASM_SEC_ORDER_EVENT}, // WASM_SEC_ORDER_GLOBAL,
-  {WASM_SEC_ORDER_EVENT, WASM_SEC_ORDER_EXPORT}, // WASM_SEC_ORDER_EVENT,
-  {WASM_SEC_ORDER_EXPORT, WASM_SEC_ORDER_START}, // WASM_SEC_ORDER_EXPORT,
-  {WASM_SEC_ORDER_START, WASM_SEC_ORDER_ELEM}, // WASM_SEC_ORDER_START,
-  {WASM_SEC_ORDER_ELEM, WASM_SEC_ORDER_DATACOUNT}, // WASM_SEC_ORDER_ELEM,
-  {WASM_SEC_ORDER_DATACOUNT, WASM_SEC_ORDER_CODE}, // WASM_SEC_ORDER_DATACOUNT,
-  {WASM_SEC_ORDER_CODE, WASM_SEC_ORDER_DATA}, // WASM_SEC_ORDER_CODE,
-  {WASM_SEC_ORDER_DATA, WASM_SEC_ORDER_LINKING}, // WASM_SEC_ORDER_DATA,
+int WasmSectionOrderChecker::DisallowedPredecessors
+    [WASM_NUM_SEC_ORDERS][WASM_NUM_SEC_ORDERS] = {
+        // WASM_SEC_ORDER_NONE
+        {},
+        // WASM_SEC_ORDER_TYPE
+        {WASM_SEC_ORDER_TYPE, WASM_SEC_ORDER_IMPORT},
+        // WASM_SEC_ORDER_IMPORT
+        {WASM_SEC_ORDER_IMPORT, WASM_SEC_ORDER_FUNCTION},
+        // WASM_SEC_ORDER_FUNCTION
+        {WASM_SEC_ORDER_FUNCTION, WASM_SEC_ORDER_TABLE},
+        // WASM_SEC_ORDER_TABLE
+        {WASM_SEC_ORDER_TABLE, WASM_SEC_ORDER_MEMORY},
+        // WASM_SEC_ORDER_MEMORY
+        {WASM_SEC_ORDER_MEMORY, WASM_SEC_ORDER_EVENT},
+        // WASM_SEC_ORDER_EVENT
+        {WASM_SEC_ORDER_EVENT, WASM_SEC_ORDER_GLOBAL},
+        // WASM_SEC_ORDER_GLOBAL
+        {WASM_SEC_ORDER_GLOBAL, WASM_SEC_ORDER_EXPORT},
+        // WASM_SEC_ORDER_EXPORT
+        {WASM_SEC_ORDER_EXPORT, WASM_SEC_ORDER_START},
+        // WASM_SEC_ORDER_START
+        {WASM_SEC_ORDER_START, WASM_SEC_ORDER_ELEM},
+        // WASM_SEC_ORDER_ELEM
+        {WASM_SEC_ORDER_ELEM, WASM_SEC_ORDER_DATACOUNT},
+        // WASM_SEC_ORDER_DATACOUNT
+        {WASM_SEC_ORDER_DATACOUNT, WASM_SEC_ORDER_CODE},
+        // WASM_SEC_ORDER_CODE
+        {WASM_SEC_ORDER_CODE, WASM_SEC_ORDER_DATA},
+        // WASM_SEC_ORDER_DATA
+        {WASM_SEC_ORDER_DATA, WASM_SEC_ORDER_LINKING},
 
-  // Custom Sections
-  {WASM_SEC_ORDER_DYLINK, WASM_SEC_ORDER_TYPE}, // WASM_SEC_ORDER_DYLINK,
-  {WASM_SEC_ORDER_LINKING, WASM_SEC_ORDER_RELOC, WASM_SEC_ORDER_NAME}, // WASM_SEC_ORDER_LINKING,
-  {}, // WASM_SEC_ORDER_RELOC (can be repeated),
-  {WASM_SEC_ORDER_NAME, WASM_SEC_ORDER_PRODUCERS}, // WASM_SEC_ORDER_NAME,
-  {WASM_SEC_ORDER_PRODUCERS, WASM_SEC_ORDER_TARGET_FEATURES}, // WASM_SEC_ORDER_PRODUCERS,
-  {WASM_SEC_ORDER_TARGET_FEATURES}  // WASM_SEC_ORDER_TARGET_FEATURES
-};
+        // Custom Sections
+        // WASM_SEC_ORDER_DYLINK
+        {WASM_SEC_ORDER_DYLINK, WASM_SEC_ORDER_TYPE},
+        // WASM_SEC_ORDER_LINKING
+        {WASM_SEC_ORDER_LINKING, WASM_SEC_ORDER_RELOC, WASM_SEC_ORDER_NAME},
+        // WASM_SEC_ORDER_RELOC (can be repeated)
+        {},
+        // WASM_SEC_ORDER_NAME
+        {WASM_SEC_ORDER_NAME, WASM_SEC_ORDER_PRODUCERS},
+        // WASM_SEC_ORDER_PRODUCERS
+        {WASM_SEC_ORDER_PRODUCERS, WASM_SEC_ORDER_TARGET_FEATURES},
+        // WASM_SEC_ORDER_TARGET_FEATURES
+        {WASM_SEC_ORDER_TARGET_FEATURES}};
 
 bool WasmSectionOrderChecker::isValidSectionOrder(unsigned ID,
                                                   StringRef CustomSectionName) {

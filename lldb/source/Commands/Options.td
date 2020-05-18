@@ -4,6 +4,8 @@ let Command = "target modules dump symtab" in {
   def tm_sort : Option<"sort", "s">, Group<1>,
     Desc<"Supply a sort order when dumping the symbol table.">,
     EnumArg<"SortOrder", "OptionEnumValues(g_sort_option_enumeration)">;
+  def tm_smn : Option<"show-mangled-names", "m">, Group<1>,
+    Desc<"Do not demangle symbol names before showing them.">;
 }
 
 let Command = "help" in {
@@ -35,6 +37,11 @@ let Command = "settings read" in {
   def setread_file : Option<"file", "f">, Required, Arg<"Filename">,
     Completion<"DiskFile">,
     Desc<"The file from which to read the settings.">;
+}
+
+let Command = "settings clear" in {
+  def setclear_all : Option<"all", "a">,
+    Desc<"Clear all settings.">;
 }
 
 let Command = "breakpoint list" in {
@@ -113,6 +120,8 @@ let Command = "breakpoint set" in {
   def breakpoint_set_line : Option<"line", "l">, Group<1>, Arg<"LineNum">,
     Required,
     Desc<"Specifies the line number on which to set this breakpoint.">;
+  def breakpoint_set_column : Option<"column", "u">, Group<1>, Arg<"ColumnNum">,
+    Desc<"Specifies the column number on which to set this breakpoint.">;
   def breakpoint_set_address : Option<"address", "a">, Group<2>,
     Arg<"AddressOrExpression">, Required,
     Desc<"Set the breakpoint at the specified address.  If the address maps "
@@ -148,7 +157,7 @@ let Command = "breakpoint set" in {
     "multiple times tomake one breakpoint for multiple methods.">;
   def breakpoint_set_func_regex : Option<"func-regex", "r">, Group<7>,
     Arg<"RegularExpression">, Required, Desc<"Set the breakpoint by function "
-    "name, evaluating a regular-expression to findthe function name(s).">;
+    "name, evaluating a regular-expression to find the function name(s).">;
   def breakpoint_set_basename : Option<"basename", "b">, Group<8>,
     Arg<"FunctionName">, Required, Completion<"Symbol">,
     Desc<"Set the breakpoint by function basename (C++ namespaces and arguments"
@@ -268,10 +277,6 @@ let Command = "breakpoint command add" in {
     EnumArg<"None", "ScriptOptionEnum()">,
     Desc<"Specify the language for the commands - if none is specified, the "
     "lldb command interpreter will be used.">;
-  def breakpoint_add_python_function : Option<"python-function", "F">,
-    Group<2>, Arg<"PythonFunction">,
-    Desc<"Give the name of a Python function to run as command for this "
-    "breakpoint. Be sure to give a module name if appropriate.">;
   def breakpoint_add_dummy_breakpoints : Option<"dummy-breakpoints", "D">,
     Desc<"Sets Dummy breakpoints - i.e. breakpoints set before a file is "
     "provided, which prime new targets.">;
@@ -384,7 +389,8 @@ let Command = "frame recognizer add" in {
     "to.">;
   def frame_recognizer_function : Option<"function", "n">, Arg<"Name">,
     Completion<"Symbol">,
-    Desc<"Name of the function that this recognizer applies to.">;
+    Desc<"Name of the function that this recognizer applies to. "
+         "Can be specified more than once except if -x|--regex is provided.">;
   def frame_recognizer_python_class : Option<"python-class", "l">, Group<2>,
     Arg<"PythonClass">,
     Desc<"Give the name of a Python class to use for this frame recognizer.">;
@@ -431,13 +437,19 @@ let Command = "log" in {
     Desc<"Prepend the names of files and function that generate the logs.">;
 }
 
-let Command = "reproducer" in {
+let Command = "reproducer dump" in {
   def reproducer_provider : Option<"provider", "p">, Group<1>,
     EnumArg<"None", "ReproducerProviderType()">,
     Required, Desc<"The reproducer provider to dump.">;
   def reproducer_file : Option<"file", "f">, Group<1>, Arg<"Filename">,
     Desc<"The reproducer path. If a reproducer is replayed and no path is "
     "provided, that reproducer is dumped.">;
+}
+
+let Command = "reproducer xcrash" in {
+  def reproducer_signal : Option<"signal", "s">, Group<1>,
+    EnumArg<"None", "ReproducerSignalType()">,
+    Required, Desc<"The signal to crash the debugger.">;
 }
 
 let Command = "memory read" in {
@@ -591,6 +603,9 @@ let Command = "platform process list" in {
   def platform_process_list_show_args : Option<"show-args", "A">,
     GroupRange<1, 6>,
     Desc<"Show process arguments instead of the process executable basename.">;
+  def platform_process_list_all_users: Option<"all-users", "x">,
+    GroupRange<1,6>,
+    Desc<"Show processes matching all user IDs.">;
   def platform_process_list_verbose : Option<"verbose", "v">, GroupRange<1, 6>,
     Desc<"Enable verbose output.">;
 }
@@ -659,6 +674,11 @@ let Command = "process handle" in {
     "received.">;
   def process_handle_pass : Option<"pass", "p">, Group<1>, Arg<"Boolean">,
     Desc<"Whether or not the signal should be passed to the process.">;
+}
+
+let Command = "process status" in {
+  def process_status_verbose : Option<"verbose", "v">, Group<1>,
+    Desc<"Show verbose process status including extended crash information.">;
 }
 
 let Command = "script import" in {
@@ -904,9 +924,6 @@ let Command = "thread step scope" in {
   def thread_step_scope_step_in_target : Option<"step-in-target", "t">,
     Group<1>, Arg<"FunctionName">, Desc<"The name of the directly called "
     "function step in should stop at when stepping into.">;
-  def thread_step_scope_python_class : Option<"python-class", "C">, Group<2>,
-    Arg<"PythonClass">, Desc<"The name of the class that will manage this step "
-    "- only supported for Scripted Step.">;
 }
 
 let Command = "thread until" in {
@@ -952,6 +969,11 @@ let Command = "thread plan list" in {
     Desc<"Display more information about the thread plans">;
   def thread_plan_list_internal : Option<"internal", "i">, Group<1>,
     Desc<"Display internal as well as user thread plans">;
+  def thread_plan_list_thread_id : Option<"thread-id", "t">, Group<1>,
+    Arg<"ThreadID">, Desc<"List the thread plans for this TID, can be "
+    "specified more than once.">;
+  def thread_plan_list_unreported : Option<"unreported", "u">, Group<1>,
+    Desc<"Display thread plans for unreported threads">;
 }
 
 let Command = "type summary add" in {
@@ -1121,4 +1143,9 @@ let Command = "watchpoint command add" in {
     Group<2>, Arg<"PythonFunction">, Desc<"Give the name of a Python function "
     "to run as command for this watchpoint. Be sure to give a module name if "
     "appropriate.">;
+}
+
+let Command = "watchpoint delete" in {
+  def watchpoint_delete_force : Option<"force", "f">, Group<1>,
+    Desc<"Delete all watchpoints without querying for confirmation.">;
 }

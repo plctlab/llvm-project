@@ -42,6 +42,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/IntrinsicsAArch64.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
@@ -399,7 +400,9 @@ bool AArch64StackTagging::isInterestingAlloca(const AllocaInst &AI) {
       // dynamic alloca instrumentation for them as well.
       !AI.isUsedWithInAlloca() &&
       // swifterror allocas are register promoted by ISel
-      !AI.isSwiftError();
+      !AI.isSwiftError() &&
+      // safe allocas are not interesting
+      !AI.getMetadata("stack-safe");
   return IsInteresting;
 }
 

@@ -123,6 +123,9 @@ public:
   /// contains data (e.g. PROGBITS), but is not text.
   bool isBerkeleyData() const;
 
+  /// Whether this section is a debug section.
+  bool isDebugSection(StringRef SectionName) const;
+
   bool containsSymbol(SymbolRef S) const;
 
   relocation_iterator relocation_begin() const;
@@ -130,7 +133,7 @@ public:
   iterator_range<relocation_iterator> relocations() const {
     return make_range(relocation_begin(), relocation_end());
   }
-  section_iterator getRelocatedSection() const;
+  Expected<section_iterator> getRelocatedSection() const;
 
   DataRefImpl getRawDataRefImpl() const;
   const ObjectFile *getObject() const;
@@ -154,6 +157,8 @@ inline bool operator==(const SectionedAddress &LHS,
   return std::tie(LHS.SectionIndex, LHS.Address) ==
          std::tie(RHS.SectionIndex, RHS.Address);
 }
+
+raw_ostream &operator<<(raw_ostream &OS, const SectionedAddress &Addr);
 
 /// This is a value type class that represents a single symbol in the list of
 /// symbols in the object file.
@@ -183,7 +188,7 @@ public:
 
   /// Return the value of the symbol depending on the object this can be an
   /// offset or a virtual address.
-  uint64_t getValue() const;
+  Expected<uint64_t> getValue() const;
 
   /// Get the alignment of this symbol as the actual value (not log 2).
   uint32_t getAlignment() const;
@@ -270,9 +275,10 @@ protected:
   virtual bool isSectionStripped(DataRefImpl Sec) const;
   virtual bool isBerkeleyText(DataRefImpl Sec) const;
   virtual bool isBerkeleyData(DataRefImpl Sec) const;
+  virtual bool isDebugSection(StringRef SectionName) const;
   virtual relocation_iterator section_rel_begin(DataRefImpl Sec) const = 0;
   virtual relocation_iterator section_rel_end(DataRefImpl Sec) const = 0;
-  virtual section_iterator getRelocatedSection(DataRefImpl Sec) const;
+  virtual Expected<section_iterator> getRelocatedSection(DataRefImpl Sec) const;
 
   // Same as above for RelocationRef.
   friend class RelocationRef;
@@ -283,14 +289,18 @@ protected:
   virtual void getRelocationTypeName(DataRefImpl Rel,
                                      SmallVectorImpl<char> &Result) const = 0;
 
-  uint64_t getSymbolValue(DataRefImpl Symb) const;
+  Expected<uint64_t> getSymbolValue(DataRefImpl Symb) const;
 
 public:
   ObjectFile() = delete;
   ObjectFile(const ObjectFile &other) = delete;
 
   uint64_t getCommonSymbolSize(DataRefImpl Symb) const {
-    assert(getSymbolFlags(Symb) & SymbolRef::SF_Common);
+    Expected<uint32_t> SymbolFlagsOrErr = getSymbolFlags(Symb);
+    if (!SymbolFlagsOrErr)
+      // TODO: Actually report errors helpfully.
+      report_fatal_error(SymbolFlagsOrErr.takeError());
+    assert(*SymbolFlagsOrErr & SymbolRef::SF_Common);
     return getCommonSymbolSizeImpl(Symb);
   }
 
@@ -380,7 +390,7 @@ inline Expected<uint64_t> SymbolRef::getAddress() const {
   return getObject()->getSymbolAddress(getRawDataRefImpl());
 }
 
-inline uint64_t SymbolRef::getValue() const {
+inline Expected<uint64_t> SymbolRef::getValue() const {
   return getObject()->getSymbolValue(getRawDataRefImpl());
 }
 
@@ -493,6 +503,10 @@ inline bool SectionRef::isBerkeleyData() const {
   return OwningObject->isBerkeleyData(SectionPimpl);
 }
 
+inline bool SectionRef::isDebugSection(StringRef SectionName) const {
+  return OwningObject->isDebugSection(SectionName);
+}
+
 inline relocation_iterator SectionRef::relocation_begin() const {
   return OwningObject->section_rel_begin(SectionPimpl);
 }
@@ -501,7 +515,7 @@ inline relocation_iterator SectionRef::relocation_end() const {
   return OwningObject->section_rel_end(SectionPimpl);
 }
 
-inline section_iterator SectionRef::getRelocatedSection() const {
+inline Expected<section_iterator> SectionRef::getRelocatedSection() const {
   return OwningObject->getRelocatedSection(SectionPimpl);
 }
 

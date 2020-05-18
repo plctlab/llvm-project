@@ -31,6 +31,18 @@ using namespace llvm;
 cl::opt<bool> DumpBackReferences("backrefs", cl::Optional,
                                  cl::desc("dump backreferences"), cl::Hidden,
                                  cl::init(false));
+cl::opt<bool> NoAccessSpecifier("no-access-specifier", cl::Optional,
+                                cl::desc("skip access specifiers"), cl::Hidden,
+                                cl::init(false));
+cl::opt<bool> NoCallingConvention("no-calling-convention", cl::Optional,
+                                  cl::desc("skip calling convention"),
+                                  cl::Hidden, cl::init(false));
+cl::opt<bool> NoReturnType("no-return-type", cl::Optional,
+                           cl::desc("skip return types"), cl::Hidden,
+                           cl::init(false));
+cl::opt<bool> NoMemberType("no-member-type", cl::Optional,
+                           cl::desc("skip member types"), cl::Hidden,
+                           cl::init(false));
 cl::opt<std::string> RawFile("raw-file", cl::Optional,
                              cl::desc("for fuzzer data"), cl::Hidden);
 cl::list<std::string> Symbols(cl::Positional, cl::desc("<input symbols>"),
@@ -41,6 +53,14 @@ static bool msDemangle(const std::string &S) {
   MSDemangleFlags Flags = MSDF_None;
   if (DumpBackReferences)
     Flags = MSDemangleFlags(Flags | MSDF_DumpBackrefs);
+  if (NoAccessSpecifier)
+    Flags = MSDemangleFlags(Flags | MSDF_NoAccessSpecifier);
+  if (NoCallingConvention)
+    Flags = MSDemangleFlags(Flags | MSDF_NoCallingConvention);
+  if (NoReturnType)
+    Flags = MSDemangleFlags(Flags | MSDF_NoReturnType);
+  if (NoMemberType)
+    Flags = MSDemangleFlags(Flags | MSDF_NoMemberType);
 
   char *ResultBuf =
       microsoftDemangle(S.c_str(), nullptr, nullptr, &Status, Flags);
@@ -67,7 +87,7 @@ int main(int argc, char **argv) {
                          << "\': " << EC.message() << '\n';
       return 1;
     }
-    return msDemangle(FileOrErr->get()->getBuffer()) ? 0 : 1;
+    return msDemangle(std::string(FileOrErr->get()->getBuffer())) ? 0 : 1;
   }
 
   bool Success = true;
@@ -91,7 +111,7 @@ int main(int argc, char **argv) {
         outs() << Line << "\n";
         outs().flush();
       }
-      if (!msDemangle(Line))
+      if (!msDemangle(std::string(Line)))
         Success = false;
       outs() << "\n";
     }
@@ -99,7 +119,7 @@ int main(int argc, char **argv) {
     for (StringRef S : Symbols) {
       outs() << S << "\n";
       outs().flush();
-      if (!msDemangle(S))
+      if (!msDemangle(std::string(S)))
         Success = false;
       outs() << "\n";
     }

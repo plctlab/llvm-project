@@ -203,6 +203,12 @@ def G_DYN_STACKALLOC : GenericInstruction {
   let hasSideEffects = 1;
 }
 
+def G_FREEZE : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type0:$src);
+  let hasSideEffects = 0;
+}
+
 //------------------------------------------------------------------------------
 // Binary ops.
 //------------------------------------------------------------------------------
@@ -308,6 +314,22 @@ def G_ASHR : GenericInstruction {
   let hasSideEffects = 0;
 }
 
+/// Funnel 'double' shifts take 3 operands, 2 inputs and the shift amount.
+/// fshl(X,Y,Z): (X << (Z % bitwidth)) | (Y >> (bitwidth - (Z % bitwidth)))
+def G_FSHL : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type0:$src1, type0:$src2, type1:$src3);
+  let hasSideEffects = 0;
+}
+
+/// Funnel 'double' shifts take 3 operands, 2 inputs and the shift amount.
+/// fshr(X,Y,Z): (X << (bitwidth - (Z % bitwidth))) | (Y >> (Z % bitwidth))
+def G_FSHR : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type0:$src1, type0:$src2, type1:$src3);
+  let hasSideEffects = 0;
+}
+
 // Generic integer comparison.
 def G_ICMP : GenericInstruction {
   let OutOperandList = (outs type0:$dst);
@@ -330,7 +352,7 @@ def G_SELECT : GenericInstruction {
 }
 
 // Generic pointer offset.
-def G_GEP : GenericInstruction {
+def G_PTR_ADD : GenericInstruction {
   let OutOperandList = (outs type0:$dst);
   let InOperandList = (ins type0:$src1, type1:$src2);
   let hasSideEffects = 0;
@@ -467,6 +489,42 @@ def G_SMULH : GenericInstruction {
   let InOperandList = (ins type0:$src1, type0:$src2);
   let hasSideEffects = 0;
   let isCommutable = 1;
+}
+
+//------------------------------------------------------------------------------
+// Saturating ops
+//------------------------------------------------------------------------------
+
+// Generic saturating unsigned addition.
+def G_UADDSAT : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type0:$src1, type0:$src2);
+  let hasSideEffects = 0;
+  let isCommutable = 1;
+}
+
+// Generic saturating signed addition.
+def G_SADDSAT : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type0:$src1, type0:$src2);
+  let hasSideEffects = 0;
+  let isCommutable = 1;
+}
+
+// Generic saturating unsigned subtraction.
+def G_USUBSAT : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type0:$src1, type0:$src2);
+  let hasSideEffects = 0;
+  let isCommutable = 0;
+}
+
+// Generic saturating signed subtraction.
+def G_SSUBSAT : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type0:$src1, type0:$src2);
+  let hasSideEffects = 0;
+  let isCommutable = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -670,7 +728,7 @@ def G_FEXP2 : GenericInstruction {
   let hasSideEffects = 0;
 }
 
-// Floating point base-2 logarithm of a value.
+// Floating point base-e logarithm of a value.
 def G_FLOG : GenericInstruction {
   let OutOperandList = (outs type0:$dst);
   let InOperandList = (ins type0:$src1);
@@ -756,6 +814,12 @@ def G_INTRINSIC_ROUND : GenericInstruction {
   let OutOperandList = (outs type0:$dst);
   let InOperandList = (ins type0:$src1);
   let hasSideEffects = 0;
+}
+
+def G_READCYCLECOUNTER : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins);
+  let hasSideEffects = 1;
 }
 
 //------------------------------------------------------------------------------
@@ -954,6 +1018,10 @@ def G_INTRINSIC : GenericInstruction {
   let OutOperandList = (outs);
   let InOperandList = (ins unknown:$intrin, variable_ops);
   let hasSideEffects = 0;
+
+  // Conservatively assume this is convergent. If there turnes out to
+  // be a need, there should be separate convergent intrinsic opcode.s
+  let isConvergent = 1;
 }
 
 // Intrinsic with side effects.
@@ -963,6 +1031,10 @@ def G_INTRINSIC_W_SIDE_EFFECTS : GenericInstruction {
   let hasSideEffects = 1;
   let mayLoad = 1;
   let mayStore = 1;
+
+  // Conservatively assume this is convergent. If there turnes out to
+  // be a need, there should be separate convergent intrinsic opcode.s
+  let isConvergent = 1;
 }
 
 //------------------------------------------------------------------------------
@@ -1004,6 +1076,26 @@ def G_BRJT : GenericInstruction {
   let hasSideEffects = 0;
   let isBranch = 1;
   let isTerminator = 1;
+}
+
+def G_READ_REGISTER : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins unknown:$register);
+  let hasSideEffects = 1;
+
+  // Assume convergent. It's probably not worth the effort of somehow
+  // modeling convergent and nonconvergent register accesses.
+  let isConvergent = 1;
+}
+
+def G_WRITE_REGISTER : GenericInstruction {
+  let OutOperandList = (outs);
+  let InOperandList = (ins unknown:$register, type0:$value);
+  let hasSideEffects = 1;
+
+  // Assume convergent. It's probably not worth the effort of somehow
+  // modeling convergent and nonconvergent register accesses.
+  let isConvergent = 1;
 }
 
 //------------------------------------------------------------------------------

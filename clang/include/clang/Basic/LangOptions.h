@@ -19,6 +19,7 @@
 #include "clang/Basic/ObjCRuntime.h"
 #include "clang/Basic/Sanitizers.h"
 #include "clang/Basic/Visibility.h"
+#include "llvm/ADT/FloatingPointMode.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Triple.h"
 #include <string>
@@ -44,11 +45,16 @@ protected:
 #include "clang/Basic/LangOptions.def"
 };
 
+/// In the Microsoft ABI, this controls the placement of virtual displacement
+/// members used to implement virtual inheritance.
+enum class MSVtorDispMode { Never, ForVBaseOverride, ForVFTable };
+
 /// Keeps track of the various options that can be
 /// enabled, which controls the dialect of C or C++ that is accepted.
 class LangOptions : public LangOptionsBase {
 public:
   using Visibility = clang::Visibility;
+  using RoundingMode = llvm::RoundingMode;
 
   enum GCMode { NonGC, GCOnly, HybridGC };
   enum StackProtectorMode { SSPOff, SSPOn, SSPStrong, SSPReq };
@@ -90,6 +96,8 @@ public:
     PPTMK_FullGeneralityMultipleInheritance,
     PPTMK_FullGeneralityVirtualInheritance
   };
+
+  using MSVtorDispMode = clang::MSVtorDispMode;
 
   enum DefaultCallingConvention {
     DCC_None,
@@ -166,22 +174,29 @@ public:
     Swift4_1,
   };
 
-  enum FPContractModeKind {
-    // Form fused FP ops only where result will not be affected.
-    FPC_Off,
+  enum FPModeKind {
+    // Disable the floating point pragma
+    FPM_Off,
 
-    // Form fused FP ops according to FP_CONTRACT rules.
-    FPC_On,
+    // Enable the floating point pragma
+    FPM_On,
 
     // Aggressively fuse FP ops (E.g. FMA).
-    FPC_Fast
+    FPM_Fast
   };
 
-  // TODO: merge FEnvAccessModeKind and FPContractModeKind
-  enum FEnvAccessModeKind {
-    FEA_Off,
+  /// Alias for RoundingMode::NearestTiesToEven.
+  static constexpr unsigned FPR_ToNearest =
+      static_cast<unsigned>(llvm::RoundingMode::NearestTiesToEven);
 
-    FEA_On
+  /// Possible floating point exception behavior.
+  enum FPExceptionModeKind {
+    /// Assume that floating-point exceptions are masked.
+    FPE_Ignore,
+    /// Transformations do not cause new exceptions but may hide some.
+    FPE_MayTrap,
+    /// Strictly preserve the floating-point exception semantics.
+    FPE_Strict
   };
 
   enum class LaxVectorConversionKind {
@@ -193,6 +208,22 @@ public:
     /// Permit vector bitcasts between all vectors with the same total
     /// bit-width.
     All,
+  };
+
+  enum class SignReturnAddressScopeKind {
+    /// No signing for any function.
+    None,
+    /// Sign the return address of functions that spill LR.
+    NonLeaf,
+    /// Sign the return address of all functions,
+    All
+  };
+
+  enum class SignReturnAddressKeyKind {
+    /// Return address signing uses APIA key.
+    AKey,
+    /// Return address signing uses APIB key.
+    BKey
   };
 
 public:
@@ -312,66 +343,192 @@ public:
   }
 
   bool assumeFunctionsAreConvergent() const {
-    return (CUDA && CUDAIsDevice) || OpenCL;
+    return ConvergentFunctions;
   }
 
   /// Return the OpenCL C or C++ version as a VersionTuple.
   VersionTuple getOpenCLVersionTuple() const;
+
+  /// Check if return address signing is enabled.
+  bool hasSignReturnAddress() const {
+    return getSignReturnAddressScope() != SignReturnAddressScopeKind::None;
+  }
+
+  /// Check if return address signing uses AKey.
+  bool isSignReturnAddressWithAKey() const {
+    return getSignReturnAddressKey() == SignReturnAddressKeyKind::AKey;
+  }
+
+  /// Check if leaf functions are also signed.
+  bool isSignReturnAddressScopeAll() const {
+    return getSignReturnAddressScope() == SignReturnAddressScopeKind::All;
+  }
 };
 
 /// Floating point control options
 class FPOptions {
+  using RoundingMode = llvm::RoundingMode;
+
 public:
-  FPOptions() : fp_contract(LangOptions::FPC_Off),
-                fenv_access(LangOptions::FEA_Off) {}
+  FPOptions()
+      : fp_contract(LangOptions::FPM_Off), fenv_access(LangOptions::FPM_Off),
+        rounding(LangOptions::FPR_ToNearest),
+        exceptions(LangOptions::FPE_Ignore), allow_reassoc(0), no_nans(0),
+        no_infs(0), no_signed_zeros(0), allow_reciprocal(0), approx_func(0) {}
 
   // Used for serializing.
-  explicit FPOptions(unsigned I)
-      : fp_contract(static_cast<LangOptions::FPContractModeKind>(I & 3)),
-        fenv_access(static_cast<LangOptions::FEnvAccessModeKind>((I >> 2) & 1))
-        {}
+  explicit FPOptions(unsigned I) { getFromOpaqueInt(I); }
 
   explicit FPOptions(const LangOptions &LangOpts)
       : fp_contract(LangOpts.getDefaultFPContractMode()),
-        fenv_access(LangOptions::FEA_Off) {}
+        fenv_access(LangOptions::FPM_Off),
+        rounding(static_cast<unsigned>(LangOpts.getFPRoundingMode())),
+        exceptions(LangOpts.getFPExceptionMode()),
+        allow_reassoc(LangOpts.FastMath || LangOpts.AllowFPReassoc),
+        no_nans(LangOpts.FastMath || LangOpts.NoHonorNaNs),
+        no_infs(LangOpts.FastMath || LangOpts.NoHonorInfs),
+        no_signed_zeros(LangOpts.FastMath || LangOpts.NoSignedZero),
+        allow_reciprocal(LangOpts.FastMath || LangOpts.AllowRecip),
+        approx_func(LangOpts.FastMath || LangOpts.ApproxFunc) {}
   // FIXME: Use getDefaultFEnvAccessMode() when available.
 
+  void setFastMath(bool B = true) {
+    allow_reassoc = no_nans = no_infs = no_signed_zeros = approx_func =
+        allow_reciprocal = B;
+  }
+
+  /// Return the default value of FPOptions that's used when trailing
+  /// storage isn't required.
+  static FPOptions defaultWithoutTrailingStorage(const LangOptions &LO);
+
+  /// Does this FPOptions require trailing storage when stored in various
+  /// AST nodes, or can it be recreated using `defaultWithoutTrailingStorage`?
+  bool requiresTrailingStorage(const LangOptions &LO);
+
   bool allowFPContractWithinStatement() const {
-    return fp_contract == LangOptions::FPC_On;
+    return fp_contract == LangOptions::FPM_On;
   }
 
   bool allowFPContractAcrossStatement() const {
-    return fp_contract == LangOptions::FPC_Fast;
+    return fp_contract == LangOptions::FPM_Fast;
   }
 
   void setAllowFPContractWithinStatement() {
-    fp_contract = LangOptions::FPC_On;
+    fp_contract = LangOptions::FPM_On;
   }
 
   void setAllowFPContractAcrossStatement() {
-    fp_contract = LangOptions::FPC_Fast;
+    fp_contract = LangOptions::FPM_Fast;
   }
 
-  void setDisallowFPContract() { fp_contract = LangOptions::FPC_Off; }
+  void setDisallowFPContract() { fp_contract = LangOptions::FPM_Off; }
 
-  bool allowFEnvAccess() const {
-    return fenv_access == LangOptions::FEA_On;
+  bool allowFEnvAccess() const { return fenv_access == LangOptions::FPM_On; }
+
+  void setAllowFEnvAccess() { fenv_access = LangOptions::FPM_On; }
+
+  void setFPPreciseEnabled(bool Value) {
+    if (Value) {
+      /* Precise mode implies fp_contract=on and disables ffast-math */
+      setFastMath(false);
+      setAllowFPContractWithinStatement();
+    } else {
+      /* Precise mode implies fp_contract=fast and enables ffast-math */
+      setFastMath(true);
+      setAllowFPContractAcrossStatement();
+    }
   }
 
-  void setAllowFEnvAccess() {
-    fenv_access = LangOptions::FEA_On;
+  void setDisallowFEnvAccess() { fenv_access = LangOptions::FPM_Off; }
+
+  RoundingMode getRoundingMode() const {
+    return static_cast<RoundingMode>(rounding);
   }
 
-  void setDisallowFEnvAccess() { fenv_access = LangOptions::FEA_Off; }
+  void setRoundingMode(RoundingMode RM) {
+    rounding = static_cast<unsigned>(RM);
+  }
+
+  LangOptions::FPExceptionModeKind getExceptionMode() const {
+    return static_cast<LangOptions::FPExceptionModeKind>(exceptions);
+  }
+
+  void setExceptionMode(LangOptions::FPExceptionModeKind EM) {
+    exceptions = EM;
+  }
+
+  /// FMF Flag queries
+  bool allowAssociativeMath() const { return allow_reassoc; }
+  bool noHonorNaNs() const { return no_nans; }
+  bool noHonorInfs() const { return no_infs; }
+  bool noSignedZeros() const { return no_signed_zeros; }
+  bool allowReciprocalMath() const { return allow_reciprocal; }
+  bool allowApproximateFunctions() const { return approx_func; }
+
+  /// Flag setters
+  void setAllowAssociativeMath(bool B = true) { allow_reassoc = B; }
+  void setNoHonorNaNs(bool B = true) { no_nans = B; }
+  void setNoHonorInfs(bool B = true) { no_infs = B; }
+  void setNoSignedZeros(bool B = true) { no_signed_zeros = B; }
+  void setAllowReciprocalMath(bool B = true) { allow_reciprocal = B; }
+  void setAllowApproximateFunctions(bool B = true) { approx_func = B; }
+
+  bool isFPConstrained() const {
+    return getRoundingMode() != RoundingMode::NearestTiesToEven ||
+           getExceptionMode() != LangOptions::FPE_Ignore ||
+           allowFEnvAccess();
+  }
 
   /// Used to serialize this.
-  unsigned getInt() const { return fp_contract | (fenv_access << 2); }
+  unsigned getAsOpaqueInt() const {
+    return fp_contract | (fenv_access << 2) | (rounding << 3) |
+           (exceptions << 6) | (allow_reassoc << 8) | (no_nans << 9) |
+           (no_infs << 10) | (no_signed_zeros << 11) |
+           (allow_reciprocal << 12) | (approx_func << 13);
+  }
+
+  /// Used with getAsOpaqueInt() to manage the float_control pragma stack.
+  void getFromOpaqueInt(unsigned I) {
+    fp_contract = (static_cast<LangOptions::FPModeKind>(I & 3));
+    fenv_access = ((I >> 2) & 1);
+    rounding = static_cast<unsigned>(static_cast<RoundingMode>((I >> 3) & 7));
+    exceptions = (static_cast<LangOptions::FPExceptionModeKind>((I >> 6) & 3));
+    allow_reassoc = ((I >> 8) & 1);
+    no_nans = ((I >> 9) & 1);
+    no_infs = ((I >> 10) & 1);
+    no_signed_zeros = ((I >> 11) & 1);
+    allow_reciprocal = ((I >> 12) & 1);
+    approx_func = ((I >> 13) & 1);
+  }
 
 private:
-  /// Adjust BinaryOperator::FPFeatures to match the total bit-field size
-  /// of these two.
+  /// Adjust BinaryOperatorBitfields::FPFeatures and
+  /// CXXOperatorCallExprBitfields::FPFeatures to match the total bit-field size
+  /// of these fields.
   unsigned fp_contract : 2;
   unsigned fenv_access : 1;
+  unsigned rounding : 3;
+  unsigned exceptions : 2;
+  /// Allow reassociation transformations for floating-point instructions
+  /// across multiple statements.
+  unsigned allow_reassoc : 1;
+  /// No NaNs - Allow optimizations to assume the arguments and result
+  /// are not NaN. If an argument is a nan, or the result would be a nan,
+  /// it produces a :ref:`poison value <poisonvalues>` instead.
+  unsigned no_nans : 1;
+  /// No Infs - Allow optimizations to assume the arguments and result
+  /// are not +/-Inf. If an argument is +/-Inf, or the result would be +/-Inf,
+  /// it produces a :ref:`poison value <poisonvalues>` instead.
+  unsigned no_infs : 1;
+  /// No Signed Zeros - Allow optimizations to treat the sign of a zero
+  /// argument or result as insignificant.
+  unsigned no_signed_zeros : 1;
+  /// Allow Reciprocal - Allow optimizations to use the reciprocal
+  /// of an argument rather than perform division.
+  unsigned allow_reciprocal : 1;
+  /// Approximate functions - Allow substitution of approximate calculations
+  /// for functions (sin, log, sqrt, etc).
+  unsigned approx_func : 1;
 };
 
 /// Describes the kind of translation unit being processed.

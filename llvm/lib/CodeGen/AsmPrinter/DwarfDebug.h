@@ -49,7 +49,6 @@ namespace llvm {
 
 class AsmPrinter;
 class ByteStreamer;
-class DebugLocEntry;
 class DIE;
 class DwarfCompileUnit;
 class DwarfExpression;
@@ -59,7 +58,6 @@ class LexicalScope;
 class MachineFunction;
 class MCSection;
 class MCSymbol;
-class MDNode;
 class Module;
 
 //===----------------------------------------------------------------------===//
@@ -118,6 +116,9 @@ public:
 class DbgVariable : public DbgEntity {
   /// Offset in DebugLocs.
   unsigned DebugLocListIndex = ~0u;
+  /// DW_OP_LLVM_tag_offset value from DebugLocs.
+  Optional<uint8_t> DebugLocListTagOffset;
+
   /// Single value location description.
   std::unique_ptr<DbgValueLoc> ValueLoc = nullptr;
 
@@ -174,6 +175,8 @@ public:
 
   void setDebugLocListIndex(unsigned O) { DebugLocListIndex = O; }
   unsigned getDebugLocListIndex() const { return DebugLocListIndex; }
+  void setDebugLocListTagOffset(uint8_t O) { DebugLocListTagOffset = O; }
+  Optional<uint8_t> getDebugLocListTagOffset() const { return DebugLocListTagOffset; }
   StringRef getName() const { return getVariable()->getName(); }
   const DbgValueLoc *getValueLoc() const { return ValueLoc.get(); }
   /// Get the FI entries, sorted by fragment offset.
@@ -381,6 +384,11 @@ class DwarfDebug : public DebugHandlerBase {
   /// a monolithic sequence of string offsets.
   bool UseSegmentedStringOffsetsTable;
 
+  /// Enable production of call site parameters needed to print the debug entry
+  /// values. Useful for testing purposes when a debugger does not support the
+  /// feature yet.
+  bool EmitDebugEntryValues;
+
   /// Separated Dwarf Variables
   /// In general these will all be for bits that are left in the
   /// original object file, rather than things that are meant
@@ -436,6 +444,9 @@ class DwarfDebug : public DebugHandlerBase {
 
   /// Construct a DIE for this abstract scope.
   void constructAbstractSubprogramScopeDIE(DwarfCompileUnit &SrcCU, LexicalScope *Scope);
+
+  /// Construct a DIE for the subprogram definition \p SP and return it.
+  DIE &constructSubprogramDefinitionDIE(const DISubprogram *SP);
 
   /// Construct DIEs for call site entries describing the calls in \p MF.
   void constructCallSiteEntryDIEs(const DISubprogram &SP, DwarfCompileUnit &CU,
@@ -498,17 +509,26 @@ class DwarfDebug : public DebugHandlerBase {
   /// Emit variable locations into a debug loc dwo section.
   void emitDebugLocDWO();
 
+  void emitDebugLocImpl(MCSection *Sec);
+
   /// Emit address ranges into a debug aranges section.
   void emitDebugARanges();
 
   /// Emit address ranges into a debug ranges section.
   void emitDebugRanges();
   void emitDebugRangesDWO();
+  void emitDebugRangesImpl(const DwarfFile &Holder, MCSection *Section);
 
   /// Emit macros into a debug macinfo section.
   void emitDebugMacinfo();
+  /// Emit macros into a debug macinfo.dwo section.
+  void emitDebugMacinfoDWO();
+  void emitDebugMacinfoImpl(MCSection *Section);
   void emitMacro(DIMacro &M);
   void emitMacroFile(DIMacroFile &F, DwarfCompileUnit &U);
+  void emitMacroFileImpl(DIMacroFile &F, DwarfCompileUnit &U,
+                         unsigned StartFile, unsigned EndFile,
+                         StringRef (*MacroFormToString)(unsigned Form));
   void handleMacroNodes(DIMacroNodeArray Nodes, DwarfCompileUnit &U);
 
   /// DWARF 5 Experimental Split Dwarf Emitters
@@ -694,6 +714,10 @@ public:
     return UseSegmentedStringOffsetsTable;
   }
 
+  bool emitDebugEntryValues() const {
+    return EmitDebugEntryValues;
+  }
+
   bool shareAcrossDWOCUs() const;
 
   /// Returns the Dwarf Version.
@@ -754,6 +778,7 @@ public:
 
   void addSectionLabel(const MCSymbol *Sym);
   const MCSymbol *getSectionLabel(const MCSection *S);
+  void insertSectionLabel(const MCSymbol *S);
 
   static void emitDebugLocValue(const AsmPrinter &AP, const DIBasicType *BT,
                                 const DbgValueLoc &Value,

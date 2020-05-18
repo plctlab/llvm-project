@@ -69,15 +69,15 @@ class ARMTTIImpl : public BasicTTIImplBase<ARMTTIImpl> {
       ARM::FeatureDontWidenVMOVS, ARM::FeatureExpandMLx,
       ARM::FeatureHasVMLxHazards, ARM::FeatureNEONForFPMovs,
       ARM::FeatureNEONForFP, ARM::FeatureCheckVLDnAlign,
-      ARM::FeatureHasSlowFPVMLx, ARM::FeatureVMLxForwarding,
-      ARM::FeaturePref32BitThumb, ARM::FeatureAvoidPartialCPSR,
-      ARM::FeatureCheapPredicableCPSR, ARM::FeatureAvoidMOVsShOp,
-      ARM::FeatureHasRetAddrStack, ARM::FeatureHasNoBranchPredictor,
-      ARM::FeatureDSP, ARM::FeatureMP, ARM::FeatureVirtualization,
-      ARM::FeatureMClass, ARM::FeatureRClass, ARM::FeatureAClass,
-      ARM::FeatureNaClTrap, ARM::FeatureStrictAlign, ARM::FeatureLongCalls,
-      ARM::FeatureExecuteOnly, ARM::FeatureReserveR9, ARM::FeatureNoMovt,
-      ARM::FeatureNoNegativeImmediates
+      ARM::FeatureHasSlowFPVMLx, ARM::FeatureHasSlowFPVFMx,
+      ARM::FeatureVMLxForwarding, ARM::FeaturePref32BitThumb,
+      ARM::FeatureAvoidPartialCPSR, ARM::FeatureCheapPredicableCPSR,
+      ARM::FeatureAvoidMOVsShOp, ARM::FeatureHasRetAddrStack,
+      ARM::FeatureHasNoBranchPredictor, ARM::FeatureDSP, ARM::FeatureMP,
+      ARM::FeatureVirtualization, ARM::FeatureMClass, ARM::FeatureRClass,
+      ARM::FeatureAClass, ARM::FeatureNaClTrap, ARM::FeatureStrictAlign,
+      ARM::FeatureLongCalls, ARM::FeatureExecuteOnly, ARM::FeatureReserveR9,
+      ARM::FeatureNoMovt, ARM::FeatureNoNegativeImmediates
   };
 
   const ARMSubtarget *getST() const { return ST; }
@@ -93,11 +93,8 @@ public:
 
   bool enableInterleavedAccessVectorization() { return true; }
 
-  bool shouldFavorBackedgeIndex(const Loop *L) const {
-    if (L->getHeader()->getParent()->hasOptSize())
-      return false;
-    return ST->isMClass() && ST->isThumb2() && L->getNumBlocks() == 1;
-  }
+  bool shouldFavorBackedgeIndex(const Loop *L) const;
+  bool shouldFavorPostInc() const;
 
   /// Floating-point computation using ARMv8 AArch32 Advanced
   /// SIMD instructions remains unchanged from ARMv7. Only AArch64 SIMD
@@ -113,16 +110,18 @@ public:
                             Type *Ty);
 
   using BaseT::getIntImmCost;
-  int getIntImmCost(const APInt &Imm, Type *Ty);
+  int getIntImmCost(const APInt &Imm, Type *Ty, TTI::TargetCostKind CostKind);
 
-  int getIntImmCost(unsigned Opcode, unsigned Idx, const APInt &Imm, Type *Ty);
+  int getIntImmCostInst(unsigned Opcode, unsigned Idx, const APInt &Imm,
+                        Type *Ty, TTI::TargetCostKind CostKind);
 
   /// @}
 
   /// \name Vector TTI Implementations
   /// @{
 
-  unsigned getNumberOfRegisters(bool Vector) {
+  unsigned getNumberOfRegisters(unsigned ClassID) const {
+    bool Vector = (ClassID == 1);
     if (Vector) {
       if (ST->hasNEON())
         return 16;
@@ -152,24 +151,57 @@ public:
     return ST->getMaxInterleaveFactor();
   }
 
-  bool isLegalMaskedLoad(Type *DataTy);
-  bool isLegalMaskedStore(Type *DataTy) { return isLegalMaskedLoad(DataTy); }
+  bool isProfitableLSRChainElement(Instruction *I);
+
+  bool isLegalMaskedLoad(Type *DataTy, MaybeAlign Alignment);
+
+  bool isLegalMaskedStore(Type *DataTy, MaybeAlign Alignment) {
+    return isLegalMaskedLoad(DataTy, Alignment);
+  }
+
+  bool isLegalMaskedGather(Type *Ty, MaybeAlign Alignment);
+
+  bool isLegalMaskedScatter(Type *Ty, MaybeAlign Alignment) {
+    return isLegalMaskedGather(Ty, Alignment);
+  }
 
   int getMemcpyCost(const Instruction *I);
 
-  int getShuffleCost(TTI::ShuffleKind Kind, Type *Tp, int Index, Type *SubTp);
+  int getShuffleCost(TTI::ShuffleKind Kind, VectorType *Tp, int Index,
+                     VectorType *SubTp);
 
   bool useReductionIntrinsic(unsigned Opcode, Type *Ty,
                              TTI::ReductionFlags Flags) const;
 
   bool shouldExpandReduction(const IntrinsicInst *II) const {
-    return false;
+    switch (II->getIntrinsicID()) {
+    case Intrinsic::experimental_vector_reduce_v2_fadd:
+    case Intrinsic::experimental_vector_reduce_v2_fmul:
+      // We don't have legalization support for ordered FP reductions.
+      if (!II->getFastMathFlags().allowReassoc())
+        return true;
+      // Can't legalize reductions with soft floats.
+      return TLI->useSoftFloat() || !TLI->getSubtarget()->hasFPRegs();
+
+    case Intrinsic::experimental_vector_reduce_fmin:
+    case Intrinsic::experimental_vector_reduce_fmax:
+      // Can't legalize reductions with soft floats, and NoNan will create
+      // fminimum which we do not know how to lower.
+      return TLI->useSoftFloat() || !TLI->getSubtarget()->hasFPRegs() ||
+             !II->getFastMathFlags().noNaNs();
+
+    default:
+      // Don't expand anything else, let legalization deal with it.
+      return false;
+    }
   }
 
   int getCastInstrCost(unsigned Opcode, Type *Dst, Type *Src,
+                       TTI::TargetCostKind CostKind,
                        const Instruction *I = nullptr);
 
   int getCmpSelInstrCost(unsigned Opcode, Type *ValTy, Type *CondTy,
+                         TTI::TargetCostKind CostKind,
                          const Instruction *I = nullptr);
 
   int getVectorInstrCost(unsigned Opcode, Type *Val, unsigned Index);
@@ -179,27 +211,42 @@ public:
 
   int getArithmeticInstrCost(
       unsigned Opcode, Type *Ty,
+      TTI::TargetCostKind CostKind = TTI::TCK_RecipThroughput,
       TTI::OperandValueKind Op1Info = TTI::OK_AnyValue,
       TTI::OperandValueKind Op2Info = TTI::OK_AnyValue,
       TTI::OperandValueProperties Opd1PropInfo = TTI::OP_None,
       TTI::OperandValueProperties Opd2PropInfo = TTI::OP_None,
-      ArrayRef<const Value *> Args = ArrayRef<const Value *>());
+      ArrayRef<const Value *> Args = ArrayRef<const Value *>(),
+      const Instruction *CxtI = nullptr);
 
-  int getMemoryOpCost(unsigned Opcode, Type *Src, unsigned Alignment,
-                      unsigned AddressSpace, const Instruction *I = nullptr);
+  int getMemoryOpCost(unsigned Opcode, Type *Src, MaybeAlign Alignment,
+                      unsigned AddressSpace,
+                      TTI::TargetCostKind CostKind,
+                      const Instruction *I = nullptr);
 
   int getInterleavedMemoryOpCost(unsigned Opcode, Type *VecTy, unsigned Factor,
                                  ArrayRef<unsigned> Indices, unsigned Alignment,
                                  unsigned AddressSpace,
+                                 TTI::TargetCostKind CostKind = TTI::TCK_SizeAndLatency,
                                  bool UseMaskForCond = false,
                                  bool UseMaskForGaps = false);
+
+  unsigned getGatherScatterOpCost(
+    unsigned Opcode, Type *DataTy, Value *Ptr, bool VariableMask,
+    unsigned Alignment, TTI::TargetCostKind CostKind,
+    const Instruction *I = nullptr);
 
   bool isLoweredToCall(const Function *F);
   bool isHardwareLoopProfitable(Loop *L, ScalarEvolution &SE,
                                 AssumptionCache &AC,
                                 TargetLibraryInfo *LibInfo,
                                 HardwareLoopInfo &HWLoopInfo);
-
+  bool preferPredicateOverEpilogue(Loop *L, LoopInfo *LI,
+                                   ScalarEvolution &SE,
+                                   AssumptionCache &AC,
+                                   TargetLibraryInfo *TLI,
+                                   DominatorTree *DT,
+                                   const LoopAccessInfo *LAI);
   void getUnrollingPreferences(Loop *L, ScalarEvolution &SE,
                                TTI::UnrollingPreferences &UP);
 

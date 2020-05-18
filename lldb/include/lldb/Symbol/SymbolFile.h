@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_SymbolFile_h_
-#define liblldb_SymbolFile_h_
+#ifndef LLDB_SYMBOL_SYMBOLFILE_H
+#define LLDB_SYMBOL_SYMBOLFILE_H
 
 #include "lldb/Core/PluginInterface.h"
 #include "lldb/Symbol/CompilerDecl.h"
@@ -18,6 +18,7 @@
 #include "lldb/Symbol/Type.h"
 #include "lldb/Symbol/TypeList.h"
 #include "lldb/Symbol/TypeSystem.h"
+#include "lldb/Utility/XcodeSDK.h"
 #include "lldb/lldb-private.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/Errc.h"
@@ -33,7 +34,16 @@
 namespace lldb_private {
 
 class SymbolFile : public PluginInterface {
+  /// LLVM RTTI support.
+  static char ID;
+
 public:
+  /// LLVM RTTI support.
+  /// \{
+  virtual bool isA(const void *ClassID) const { return ClassID == &ID; }
+  static bool classof(const SymbolFile *obj) { return obj->isA(&ID); }
+  /// \}
+
   // Symbol file ability bits.
   //
   // Each symbol file can claim to support one or more symbol file abilities.
@@ -119,12 +129,44 @@ public:
   Symtab *GetSymtab();
 
   virtual lldb::LanguageType ParseLanguage(CompileUnit &comp_unit) = 0;
+  /// Return the Xcode SDK comp_unit was compiled against.
+  virtual XcodeSDK ParseXcodeSDK(CompileUnit &comp_unit) { return {}; }
   virtual size_t ParseFunctions(CompileUnit &comp_unit) = 0;
   virtual bool ParseLineTable(CompileUnit &comp_unit) = 0;
   virtual bool ParseDebugMacros(CompileUnit &comp_unit) = 0;
-  virtual void
-  ForEachExternalModule(CompileUnit &comp_unit,
-                        llvm::function_ref<void(lldb::ModuleSP)> f) {}
+
+  /// Apply a lambda to each external lldb::Module referenced by this
+  /// \p comp_unit. Recursively also descends into the referenced external
+  /// modules of any encountered compilation unit.
+  ///
+  /// This function can be used to traverse Clang -gmodules debug
+  /// information, which is stored in DWARF files separate from the
+  /// object files.
+  ///
+  /// \param comp_unit
+  ///     When this SymbolFile consists of multiple auxilliary
+  ///     SymbolFiles, for example, a Darwin debug map that references
+  ///     multiple .o files, comp_unit helps choose the auxilliary
+  ///     file. In most other cases comp_unit's symbol file is
+  ///     identical with *this.
+  ///
+  /// \param[in] lambda
+  ///     The lambda that should be applied to every function. The lambda can
+  ///     return true if the iteration should be aborted earlier.
+  ///
+  /// \param visited_symbol_files
+  ///     A set of SymbolFiles that were already visited to avoid
+  ///     visiting one file more than once.
+  ///
+  /// \return
+  ///     If the lambda early-exited, this function returns true to
+  ///     propagate the early exit.
+  virtual bool ForEachExternalModule(
+      lldb_private::CompileUnit &comp_unit,
+      llvm::DenseSet<lldb_private::SymbolFile *> &visited_symbol_files,
+      llvm::function_ref<bool(Module &)> lambda) {
+    return false;
+  }
   virtual bool ParseSupportFiles(CompileUnit &comp_unit,
                                  FileSpecList &support_files) = 0;
   virtual size_t ParseTypes(CompileUnit &comp_unit) = 0;
@@ -147,7 +189,7 @@ public:
   };
   /// If \c type_uid points to an array type, return its characteristics.
   /// To support variable-length array types, this function takes an
-  /// optional \p ExtecutionContext. If \c exe_ctx is non-null, the
+  /// optional \p ExecutionContext. If \c exe_ctx is non-null, the
   /// dynamic characteristics for that context are returned.
   virtual llvm::Optional<ArrayInfo>
   GetDynamicArrayInfoForUID(lldb::user_id_t type_uid,
@@ -173,31 +215,34 @@ public:
                                         SymbolContextList &sc_list);
 
   virtual void DumpClangAST(Stream &s) {}
-  virtual uint32_t
-  FindGlobalVariables(ConstString name,
-                      const CompilerDeclContext *parent_decl_ctx,
-                      uint32_t max_matches, VariableList &variables);
-  virtual uint32_t FindGlobalVariables(const RegularExpression &regex,
-                                       uint32_t max_matches,
-                                       VariableList &variables);
-  virtual uint32_t FindFunctions(ConstString name,
-                                 const CompilerDeclContext *parent_decl_ctx,
-                                 lldb::FunctionNameType name_type_mask,
-                                 bool include_inlines, bool append,
-                                 SymbolContextList &sc_list);
-  virtual uint32_t FindFunctions(const RegularExpression &regex,
-                                 bool include_inlines, bool append,
-                                 SymbolContextList &sc_list);
+  virtual void FindGlobalVariables(ConstString name,
+                                   const CompilerDeclContext &parent_decl_ctx,
+                                   uint32_t max_matches,
+                                   VariableList &variables);
+  virtual void FindGlobalVariables(const RegularExpression &regex,
+                                   uint32_t max_matches,
+                                   VariableList &variables);
+  virtual void FindFunctions(ConstString name,
+                             const CompilerDeclContext &parent_decl_ctx,
+                             lldb::FunctionNameType name_type_mask,
+                             bool include_inlines, SymbolContextList &sc_list);
+  virtual void FindFunctions(const RegularExpression &regex,
+                             bool include_inlines, SymbolContextList &sc_list);
   virtual void
-  FindTypes(ConstString name, const CompilerDeclContext *parent_decl_ctx,
+  FindTypes(ConstString name, const CompilerDeclContext &parent_decl_ctx,
             uint32_t max_matches,
             llvm::DenseSet<lldb_private::SymbolFile *> &searched_symbol_files,
             TypeMap &types);
 
   /// Find types specified by a CompilerContextPattern.
-  /// \param languages    Only return results in these languages.
-  virtual void FindTypes(llvm::ArrayRef<CompilerContext> pattern,
-                           LanguageSet languages, TypeMap &types);
+  /// \param languages
+  ///     Only return results in these languages.
+  /// \param searched_symbol_files
+  ///     Prevents one file from being visited multiple times.
+  virtual void
+  FindTypes(llvm::ArrayRef<CompilerContext> pattern, LanguageSet languages,
+            llvm::DenseSet<lldb_private::SymbolFile *> &searched_symbol_files,
+            TypeMap &types);
 
   virtual void
   GetMangledNamesForFunction(const std::string &scope_qualified_name,
@@ -213,8 +258,7 @@ public:
   GetTypeSystemForLanguage(lldb::LanguageType language);
 
   virtual CompilerDeclContext
-  FindNamespace(ConstString name,
-                const CompilerDeclContext *parent_decl_ctx) {
+  FindNamespace(ConstString name, const CompilerDeclContext &parent_decl_ctx) {
     return CompilerDeclContext();
   }
 
@@ -222,7 +266,8 @@ public:
   const ObjectFile *GetObjectFile() const { return m_objfile_sp.get(); }
   ObjectFile *GetMainObjectFile();
 
-  virtual std::vector<CallEdge> ParseCallEdgesInFunction(UserID func_id) {
+  virtual std::vector<std::unique_ptr<CallEdge>>
+  ParseCallEdgesInFunction(UserID func_id) {
     return {};
   }
 
@@ -277,4 +322,4 @@ private:
 
 } // namespace lldb_private
 
-#endif // liblldb_SymbolFile_h_
+#endif // LLDB_SYMBOL_SYMBOLFILE_H

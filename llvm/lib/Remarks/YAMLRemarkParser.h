@@ -35,7 +35,7 @@ public:
   YAMLParseError(StringRef Message, SourceMgr &SM, yaml::Stream &Stream,
                  yaml::Node &Node);
 
-  YAMLParseError(StringRef Message) : Message(Message) {}
+  YAMLParseError(StringRef Message) : Message(std::string(Message)) {}
 
   void log(raw_ostream &OS) const override { OS << Message; }
   std::error_code convertToErrorCode() const override {
@@ -111,7 +111,8 @@ protected:
 
 Expected<std::unique_ptr<YAMLRemarkParser>>
 createYAMLParserFromMeta(StringRef Buf,
-                         Optional<ParsedStringTable> StrTab = None);
+                         Optional<ParsedStringTable> StrTab = None,
+                         Optional<StringRef> ExternalFilePrependPath = None);
 
 } // end namespace remarks
 } // end namespace llvm

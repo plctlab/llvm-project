@@ -17,6 +17,7 @@
 #include "llvm/Support/CachePruning.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/Endian.h"
+#include "llvm/Support/GlobPattern.h"
 #include <atomic>
 #include <vector>
 
@@ -64,6 +65,9 @@ enum class ARMVFPArgKind { Default, Base, VFP, ToolChain };
 // For -z noseparate-code, -z separate-code and -z separate-loadable-segments.
 enum class SeparateSegmentKind { None, Code, Loadable };
 
+// For -z *stack
+enum class GnuStackKind { None, Exec, NoExec };
+
 struct SymbolVersion {
   llvm::StringRef name;
   bool isExternCpp;
@@ -87,6 +91,7 @@ struct Configuration {
   uint32_t andFeatures = 0;
   llvm::CachePruningPolicy thinLTOCachePolicy;
   llvm::StringMap<uint64_t> sectionStartMap;
+  llvm::StringRef bfdname;
   llvm::StringRef chroot;
   llvm::StringRef dynamicLinker;
   llvm::StringRef dwoDir;
@@ -105,11 +110,13 @@ struct Configuration {
   llvm::StringRef optRemarksPasses;
   llvm::StringRef optRemarksFormat;
   llvm::StringRef progName;
+  llvm::StringRef printArchiveStats;
   llvm::StringRef printSymbolOrder;
   llvm::StringRef soName;
   llvm::StringRef sysroot;
   llvm::StringRef thinLTOCacheDir;
   llvm::StringRef thinLTOIndexOnlyArg;
+  llvm::StringRef ltoBasicBlockSections;
   std::pair<llvm::StringRef, llvm::StringRef> thinLTOObjectSuffixReplace;
   std::pair<llvm::StringRef, llvm::StringRef> thinLTOPrefixReplace;
   std::string rpath;
@@ -149,9 +156,7 @@ struct Configuration {
   bool exportDynamic;
   bool fixCortexA53Errata843419;
   bool fixCortexA8;
-  bool forceBTI;
   bool formatBinary = false;
-  bool requireCET;
   bool gcSections;
   bool gdbIndex;
   bool gnuHash = false;
@@ -162,16 +167,21 @@ struct Configuration {
   bool ignoreFunctionAddressEquality;
   bool ltoCSProfileGenerate;
   bool ltoDebugPassManager;
+  bool ltoEmitAsm;
   bool ltoNewPassManager;
+  bool ltoUniqueBBSectionNames;
+  bool ltoWholeProgramVisibility;
   bool mergeArmExidx;
   bool mipsN32Abi = false;
+  bool mmapOutputFile;
   bool nmagic;
+  bool noDynamicLinker = false;
   bool noinhibitExec;
   bool nostdlib;
   bool oFormatBinary;
   bool omagic;
+  bool optimizeBBJumps;
   bool optRemarksWithHotness;
-  bool pacPlt;
   bool picThunk;
   bool pie;
   bool printGcSections;
@@ -179,6 +189,7 @@ struct Configuration {
   bool relocatable;
   bool relrPackDynRelocs;
   bool saveTemps;
+  llvm::Optional<uint32_t> shuffleSectionSeed;
   bool singleRoRx;
   bool shared;
   bool isStatic = false;
@@ -187,10 +198,13 @@ struct Configuration {
   bool trace;
   bool thinLTOEmitImportsFiles;
   bool thinLTOIndexOnly;
+  bool timeTraceEnabled;
   bool tocOptimize;
   bool undefinedVersion;
+  bool unique;
   bool useAndroidRelrTags = false;
   bool warnBackrefs;
+  std::vector<llvm::GlobPattern> warnBackrefsExclude;
   bool warnCommon;
   bool warnIfuncTextrel;
   bool warnMissingEntry;
@@ -198,7 +212,8 @@ struct Configuration {
   bool writeAddends;
   bool zCombreloc;
   bool zCopyreloc;
-  bool zExecstack;
+  bool zForceBti;
+  bool zForceIbt;
   bool zGlobal;
   bool zHazardplt;
   bool zIfuncNoplt;
@@ -210,12 +225,15 @@ struct Configuration {
   bool zNodlopen;
   bool zNow;
   bool zOrigin;
+  bool zPacPlt;
   bool zRelro;
   bool zRodynamic;
+  bool zShstk;
   bool zText;
   bool zRetpolineplt;
   bool zWxneeded;
   DiscardPolicy discard;
+  GnuStackKind zGnustack;
   ICFLevel icf;
   OrphanHandlingPolicy orphanHandling;
   SortSectionPolicy sortSection;
@@ -235,11 +253,12 @@ struct Configuration {
   unsigned ltoPartitions;
   unsigned ltoo;
   unsigned optimize;
-  unsigned thinLTOJobs;
+  StringRef thinLTOJobs;
+  unsigned timeTraceGranularity;
   int32_t splitStackAdjustSize;
 
   // The following config options do not directly correspond to any
-  // particualr command line options.
+  // particular command line options.
 
   // True if we need to pass through relocations in input files to the
   // output file. Usually false because we consume relocations.

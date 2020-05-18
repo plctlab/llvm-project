@@ -18,6 +18,7 @@ namespace std {
 [[nodiscard]] void *operator new(std::size_t, std::align_val_t, const std::nothrow_t&) noexcept;
 [[nodiscard]] void *operator new[](std::size_t, const std::nothrow_t&) noexcept;
 [[nodiscard]] void *operator new[](std::size_t, std::align_val_t, const std::nothrow_t&) noexcept;
+[[nodiscard]] void *operator new[](std::size_t, std::align_val_t);
 void operator delete(void*, const std::nothrow_t&) noexcept;
 void operator delete(void*, std::align_val_t, const std::nothrow_t&) noexcept;
 void operator delete[](void*, const std::nothrow_t&) noexcept;
@@ -111,123 +112,19 @@ constexpr bool test_constexpr_success = [] {
     CHECK_TYPE(decltype(greater), PO);
     CHECK(greater.test_eq(GREATER));
   }
-  {
-    using SE = std::strong_equality;
-    auto EQ = SE::equal;
-    auto NEQ = SE::nonequal;
-
-    MemPtrT P1 = &MemPtr::foo;
-    MemPtrT P12 = &MemPtr::foo;
-    MemPtrT P2 = &MemPtr::bar;
-    MemPtrT P3 = nullptr;
-
-    auto eq = (P1 <=> P12);
-    CHECK_TYPE(decltype(eq), SE);
-    CHECK(eq.test_eq(EQ));
-
-    auto neq = (P1 <=> P2);
-    CHECK_TYPE(decltype(eq), SE);
-    CHECK(neq.test_eq(NEQ));
-
-    auto eq2 = (P3 <=> nullptr);
-    CHECK_TYPE(decltype(eq2), SE);
-    CHECK(eq2.test_eq(EQ));
-  }
-  {
-    using SE = std::strong_equality;
-    auto EQ = SE::equal;
-    auto NEQ = SE::nonequal;
-
-    FnPtrT F1 = &FnPtr1;
-    FnPtrT F12 = &FnPtr1;
-    FnPtrT F2 = &FnPtr2;
-    FnPtrT F3 = nullptr;
-
-    auto eq = (F1 <=> F12);
-    CHECK_TYPE(decltype(eq), SE);
-    CHECK(eq.test_eq(EQ));
-
-    auto neq = (F1 <=> F2);
-    CHECK_TYPE(decltype(neq), SE);
-    CHECK(neq.test_eq(NEQ));
-  }
-  { // mixed nullptr tests
-    using SO = std::strong_ordering;
-    using SE = std::strong_equality;
-
-    int x = 42;
-    int *xp = &x;
-
-    MemPtrT mf = nullptr;
-    MemPtrT mf2 = &MemPtr::foo;
-    auto r3 = (mf <=> nullptr);
-    CHECK_TYPE(decltype(r3), std::strong_equality);
-    CHECK(r3.test_eq(SE::equal));
-  }
 
   return true;
 }();
 
-template <auto LHS, auto RHS, bool ExpectTrue = false>
-constexpr bool test_constexpr() {
-  using nullptr_t = decltype(nullptr);
-  using LHSTy = decltype(LHS);
-  using RHSTy = decltype(RHS);
-  // expected-note@+1 {{subexpression not valid in a constant expression}}
-  auto Res = (LHS <=> RHS);
-  if constexpr (__is_same(LHSTy, nullptr_t) || __is_same(RHSTy, nullptr_t)) {
-    CHECK_TYPE(decltype(Res), std::strong_equality);
-  }
-  if (ExpectTrue)
-    return Res == 0;
-  return Res != 0;
-}
 int dummy = 42;
 int dummy2 = 101;
-
-constexpr bool tc1 = test_constexpr<nullptr, &dummy>();
-constexpr bool tc2 = test_constexpr<&dummy, nullptr>();
-
-// OK, equality comparison only
-constexpr bool tc3 = test_constexpr<&MemPtr::foo, nullptr>();
-constexpr bool tc4 = test_constexpr<nullptr, &MemPtr::foo>();
-constexpr bool tc5 = test_constexpr<&MemPtr::foo, &MemPtr::bar>();
-
-constexpr bool tc6 = test_constexpr<&MemPtr::data, nullptr>();
-constexpr bool tc7 = test_constexpr<nullptr, &MemPtr::data>();
-constexpr bool tc8 = test_constexpr<&MemPtr::data, &MemPtr::data2>();
-
-// expected-error@+1 {{must be initialized by a constant expression}}
-constexpr bool tc9 = test_constexpr<&dummy, &dummy2>(); // expected-note {{in call}}
+constexpr bool tc9 = (&dummy <=> &dummy2) != 0; // expected-error {{constant expression}} expected-note {{unspecified}}
 
 template <class T, class R, class I>
 constexpr T makeComplex(R r, I i) {
   T res{r, i};
   return res;
 };
-
-template <class T, class ResultT>
-constexpr bool complex_test(T x, T y, ResultT Expect) {
-  auto res = x <=> y;
-  CHECK_TYPE(decltype(res), ResultT);
-  return res.test_eq(Expect);
-}
-static_assert(complex_test(makeComplex<_Complex double>(0.0, 0.0),
-                           makeComplex<_Complex double>(0.0, 0.0),
-                           std::weak_equality::equivalent));
-static_assert(complex_test(makeComplex<_Complex double>(0.0, 0.0),
-                           makeComplex<_Complex double>(1.0, 0.0),
-                           std::weak_equality::nonequivalent));
-static_assert(complex_test(makeComplex<_Complex double>(0.0, 0.0),
-                           makeComplex<_Complex double>(0.0, 1.0),
-                           std::weak_equality::nonequivalent));
-static_assert(complex_test(makeComplex<_Complex int>(0, 0),
-                           makeComplex<_Complex int>(0, 0),
-                           std::strong_equality::equal));
-static_assert(complex_test(makeComplex<_Complex int>(0, 0),
-                           makeComplex<_Complex int>(1, 0),
-                           std::strong_equality::nonequal));
-// TODO: defaulted operator <=>
 } // namespace ThreeWayComparison
 
 constexpr bool for_range_init() {
@@ -583,6 +480,48 @@ namespace Union {
     // FIXME: This note isn't great. The 'read' here is reading the referent of the reference.
     r.b.r.b = 2; // expected-note {{read of member 'b' of union with active member 'a'}}
     return r.b.r.b;
+  }
+
+  namespace PR43762 {
+    struct A { int x = 1; constexpr int f() { return 1; } };
+    struct B : A { int y = 1; constexpr int g() { return 2; } };
+    struct C {
+      int x;
+      constexpr virtual int f() = 0;
+    };
+    struct D : C {
+      int y;
+      constexpr virtual int f() override { return 3; }
+    };
+
+    union U {
+      int n;
+      B b;
+      D d;
+    };
+
+    constexpr int test(int which) {
+      U u{.n = 5};
+      switch (which) {
+      case 0:
+        u.b.x = 10; // expected-note {{active member 'n'}}
+        return u.b.f();
+      case 1:
+        u.b.y = 10; // expected-note {{active member 'n'}}
+        return u.b.g();
+      case 2:
+        u.d.x = 10; // expected-note {{active member 'n'}}
+        return u.d.f();
+      case 3:
+        u.d.y = 10; // expected-note {{active member 'n'}}
+        return u.d.f();
+      }
+    }
+
+    static_assert(test(0)); // expected-error {{}} expected-note {{in call}}
+    static_assert(test(1)); // expected-error {{}} expected-note {{in call}}
+    static_assert(test(2)); // expected-error {{}} expected-note {{in call}}
+    static_assert(test(3)); // expected-error {{}} expected-note {{in call}}
   }
 }
 
@@ -1008,7 +947,7 @@ namespace dynamic_alloc {
     // Ensure that we don't try to evaluate these for overflow and crash. These
     // are all value-dependent expressions.
     p = new char[n];
-    p = new (n) char[n];
+    p = new ((std::align_val_t)n) char[n];
     p = new char(n);
   }
 }
@@ -1108,6 +1047,11 @@ namespace memory_leaks {
   static_assert(h({new bool(true)})); // ok
 }
 
+void *operator new(std::size_t, void*);
+namespace std {
+  template<typename T> constexpr T *construct(T *p) { return new (p) T; }
+}
+
 namespace dtor_call {
   struct A { int n; };
   constexpr void f() { // expected-error {{never produces a constant expression}}
@@ -1126,15 +1070,22 @@ namespace dtor_call {
   }
   static_assert((g(), true));
 
-  constexpr bool pseudo() {
+  constexpr bool pseudo(bool read, bool recreate) {
     using T = bool;
-    bool b = false;
-    // This does evaluate the store to 'b'...
+    bool b = false; // expected-note {{lifetime has already ended}}
+    // This evaluates the store to 'b'...
     (b = true).~T();
-    // ... but does not end the lifetime of the object.
-    return b;
+    // ... and ends the lifetime of the object.
+    return (read
+            ? b // expected-note {{read of object outside its lifetime}}
+            : true) +
+           (recreate
+            ? (std::construct(&b), true)
+            : true);
   }
-  static_assert(pseudo());
+  static_assert(pseudo(false, false)); // expected-error {{constant expression}} expected-note {{in call}}
+  static_assert(pseudo(true, false)); // expected-error {{constant expression}} expected-note {{in call}}
+  static_assert(pseudo(false, true));
 
   constexpr void use_after_destroy() {
     A a;
@@ -1309,6 +1260,8 @@ namespace dtor_call {
     // We used to think this was an -> member access because its left-hand side
     // is a pointer. Ensure we don't crash.
     p.~T();
+    // Put a T back so we can destroy it again.
+    std::construct(&p);
   }
   static_assert((destroy_pointer(), true));
 }
@@ -1339,4 +1292,112 @@ namespace value_dependent_init {
   template<typename T> void f() {
     A a = T();
   }
+}
+
+namespace mutable_subobjects {
+  struct A {
+    int m;
+    mutable int n; // expected-note 2{{here}}
+    constexpr int f() const { return m; }
+    constexpr int g() const { return n; } // expected-note {{mutable}}
+  };
+
+  constexpr A a = {1, 2};
+  static_assert(a.f() == 1); // OK (PR44958)
+  static_assert(a.g() == 2); // expected-error {{constant}} expected-note {{in call}}
+
+  constexpr A b = a; // expected-error {{constant}} expected-note {{read of mutable member 'n'}} expected-note {{in call}}
+
+  auto &ti1 = typeid(a);
+  auto &ti2 = typeid(a.m);
+  auto &ti3 = typeid(a.n);
+
+  constexpr void destroy1() { // expected-error {{constexpr}}
+    a.~A(); // expected-note {{cannot modify an object that is visible outside}}
+  }
+  using T = int;
+  constexpr void destroy2() { // expected-error {{constexpr}}
+    a.m.~T(); // expected-note {{cannot modify an object that is visible outside}}
+  }
+  constexpr void destroy3() { // expected-error {{constexpr}}
+    a.n.~T(); // expected-note {{cannot modify an object that is visible outside}}
+  }
+
+  struct X {
+    mutable int n = 0;
+    virtual constexpr ~X() {}
+  };
+  struct Y : X {
+  };
+  constexpr Y y;
+  constexpr const X *p = &y;
+  constexpr const Y *q = dynamic_cast<const Y*>(p);
+
+  // FIXME: It's unclear whether this should be accepted. The dynamic_cast is
+  // undefined after 'z.y.~Y()`, for example. We essentially assume that all
+  // objects that the evaluator can reach have unbounded lifetimes. (We make
+  // the same assumption when evaluating member function calls.)
+  struct Z {
+    mutable Y y;
+  };
+  constexpr Z z;
+  constexpr const X *pz = &z.y;
+  constexpr const Y *qz = dynamic_cast<const Y*>(pz);
+  auto &zti = typeid(z.y);
+  static_assert(&zti == &typeid(Y));
+}
+
+namespace PR45133 {
+  struct A { long x; };
+
+  union U;
+  constexpr A foo(U *up);
+
+  union U {
+    A a = foo(this); // expected-note {{in call to 'foo(&u)'}}
+    int y;
+  };
+
+  constexpr A foo(U *up) {
+    up->y = 11; // expected-note {{assignment would change active union member during the initialization of a different member}}
+    return {42};
+  }
+
+  constinit U u = {}; // expected-error {{constant init}} expected-note {{constinit}}
+
+  template<int> struct X {};
+
+  union V {
+    int a, b;
+    constexpr V(X<0>) : a(a = 1) {} // ok
+    constexpr V(X<1>) : a(b = 1) {} // expected-note {{assignment would change active union member during the initialization of a different member}}
+    constexpr V(X<2>) : a() { b = 1; } // ok
+    // This case (changing the active member then changing it back) is debatable,
+    // but it seems appropriate to reject.
+    constexpr V(X<3>) : a((b = 1, a = 1)) {} // expected-note {{assignment would change active union member during the initialization of a different member}}
+  };
+  constinit V v0 = X<0>();
+  constinit V v1 = X<1>(); // expected-error {{constant init}} expected-note {{constinit}} expected-note {{in call}}
+  constinit V v2 = X<2>();
+  constinit V v3 = X<3>(); // expected-error {{constant init}} expected-note {{constinit}} expected-note {{in call}}
+}
+
+namespace PR45350 {
+  int q;
+  struct V { int n; int *p = &n; constexpr ~V() { *p = *p * 10 + n; }};
+  constexpr int f(int n) {
+    int k = 0;
+    V *p = new V[n];
+    for (int i = 0; i != n; ++i) {
+      if (p[i].p != &p[i].n) return -1;
+      p[i].n = i;
+      p[i].p = &k;
+    }
+    delete[] p;
+    return k;
+  }
+  // [expr.delete]p6:
+  //   In the case of an array, the elements will be destroyed in order of
+  //   decreasing address
+  static_assert(f(6) == 543210);
 }

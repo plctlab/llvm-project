@@ -132,6 +132,7 @@ enum Kind {
   kw_fastcc,
   kw_coldcc,
   kw_intel_ocl_bicc,
+  kw_cfguard_checkcc,
   kw_x86_stdcallcc,
   kw_x86_fastcallcc,
   kw_x86_thiscallcc,
@@ -141,6 +142,7 @@ enum Kind {
   kw_arm_aapcscc,
   kw_arm_aapcs_vfpcc,
   kw_aarch64_vector_pcs,
+  kw_aarch64_sve_vector_pcs,
   kw_msp430_intrcc,
   kw_avr_intrcc,
   kw_avr_signalcc,
@@ -202,6 +204,7 @@ enum Kind {
   kw_noinline,
   kw_norecurse,
   kw_nonlazybind,
+  kw_nomerge,
   kw_nonnull,
   kw_noredzone,
   kw_noreturn,
@@ -211,6 +214,7 @@ enum Kind {
   kw_optforfuzzing,
   kw_optnone,
   kw_optsize,
+  kw_preallocated,
   kw_readnone,
   kw_readonly,
   kw_returned,
@@ -352,6 +356,8 @@ enum Kind {
   kw_insertvalue,
   kw_blockaddress,
 
+  kw_freeze,
+
   // Metadata types.
   kw_distinct,
 
@@ -380,6 +386,7 @@ enum Kind {
   kw_noRecurse,
   kw_returnDoesNotAlias,
   kw_noInline,
+  kw_alwaysInline,
   kw_calls,
   kw_callee,
   kw_hotness,
@@ -416,6 +423,7 @@ enum Kind {
   kw_sizeM1,
   kw_bitMask,
   kw_inlineBits,
+  kw_vcall_visibility,
   kw_wpdResolutions,
   kw_wpdRes,
   kw_indir,

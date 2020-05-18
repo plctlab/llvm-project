@@ -61,6 +61,7 @@
 #include "llvm/CodeGen/TargetSchedule.h"
 #include "llvm/CodeGen/TargetSubtargetInfo.h"
 #include "llvm/IR/DebugLoc.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/MC/MCSchedule.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/CommandLine.h"
@@ -111,9 +112,9 @@ public:
   static char ID;
 
 private:
-  MachineRegisterInfo *MRI;
-  const TargetInstrInfo *TII;
-  const TargetRegisterInfo *TRI;
+  MachineRegisterInfo *MRI = nullptr;
+  const TargetInstrInfo *TII = nullptr;
+  const TargetRegisterInfo *TRI = nullptr;
   TargetSchedModel TSchedModel;
 
   /// List of consecutive CMOV instructions.
@@ -363,12 +364,13 @@ bool X86CmovConverterPass::collectCmovCandidates(
 /// \param TrueOpDepth depth cost of CMOV true value operand.
 /// \param FalseOpDepth depth cost of CMOV false value operand.
 static unsigned getDepthOfOptCmov(unsigned TrueOpDepth, unsigned FalseOpDepth) {
-  //===--------------------------------------------------------------------===//
-  // With no info about branch weight, we assume 50% for each value operand.
-  // Thus, depth of optimized CMOV instruction is the rounded up average of
-  // its True-Operand-Value-Depth and False-Operand-Value-Depth.
-  //===--------------------------------------------------------------------===//
-  return (TrueOpDepth + FalseOpDepth + 1) / 2;
+  // The depth of the result after branch conversion is
+  // TrueOpDepth * TrueOpProbability + FalseOpDepth * FalseOpProbability.
+  // As we have no info about branch weight, we assume 75% for one and 25% for
+  // the other, and pick the result with the largest resulting depth.
+  return std::max(
+      divideCeil(TrueOpDepth * 3 + FalseOpDepth, 4),
+      divideCeil(FalseOpDepth * 3 + TrueOpDepth, 4));
 }
 
 bool X86CmovConverterPass::checkForProfitableCmovCandidates(

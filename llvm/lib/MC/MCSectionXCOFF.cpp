@@ -15,17 +15,9 @@ using namespace llvm;
 
 MCSectionXCOFF::~MCSectionXCOFF() = default;
 
-static StringRef getMappingClassString(XCOFF::StorageMappingClass SMC) {
-  switch (SMC) {
-  case XCOFF::XMC_DS:
-    return "DS";
-  case XCOFF::XMC_RW:
-    return "RW";
-  case XCOFF::XMC_PR:
-    return "PR";
-  default:
-    report_fatal_error("Unhandled storage-mapping class.");
-  }
+void MCSectionXCOFF::printCsectDirective(raw_ostream &OS) const {
+  OS << "\t.csect " << QualName->getName() << ", " << Log2_32(getAlignment())
+     << '\n';
 }
 
 void MCSectionXCOFF::PrintSwitchToSection(const MCAsmInfo &MAI, const Triple &T,
@@ -35,9 +27,14 @@ void MCSectionXCOFF::PrintSwitchToSection(const MCAsmInfo &MAI, const Triple &T,
     if (getMappingClass() != XCOFF::XMC_PR)
       report_fatal_error("Unhandled storage-mapping class for .text csect");
 
-    OS << "\t.csect " << getSectionName() << "["
-       << getMappingClassString(getMappingClass())
-       << "]" << '\n';
+    printCsectDirective(OS);
+    return;
+  }
+
+  if (getKind().isReadOnly()) {
+    if (getMappingClass() != XCOFF::XMC_RO)
+      report_fatal_error("Unhandled storage-mapping class for .rodata csect.");
+    printCsectDirective(OS);
     return;
   }
 
@@ -45,8 +42,9 @@ void MCSectionXCOFF::PrintSwitchToSection(const MCAsmInfo &MAI, const Triple &T,
     switch (getMappingClass()) {
     case XCOFF::XMC_RW:
     case XCOFF::XMC_DS:
-      OS << "\t.csect " << getSectionName() << "["
-         << getMappingClassString(getMappingClass()) << "]" << '\n';
+      printCsectDirective(OS);
+      break;
+    case XCOFF::XMC_TC:
       break;
     case XCOFF::XMC_TC0:
       OS << "\t.toc\n";

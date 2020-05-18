@@ -5,6 +5,7 @@
 #include "llvm/CodeGen/MachineModuleInfo.h"
 #include "llvm/CodeGen/TargetRegisterInfo.h"
 #include "llvm/IR/LegacyPassManager.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -125,6 +126,27 @@ static void testHandleMove(MachineFunction &MF, LiveIntervals &LIS,
   MachineBasicBlock &MBB = *FromInstr.getParent();
   MBB.splice(ToInstr.getIterator(), &MBB, FromInstr.getIterator());
   LIS.handleMove(FromInstr, true);
+}
+
+/**
+ * Move instructions numbered \p From inclusive through instruction number
+ * \p To into a newly formed bundle and update affected liveness intervals
+ * with LiveIntervalAnalysis::handleMoveIntoNewBundle().
+ */
+static void testHandleMoveIntoNewBundle(MachineFunction &MF, LiveIntervals &LIS,
+                                        unsigned From, unsigned To,
+                                        unsigned BlockNum = 0) {
+  MachineInstr &FromInstr = getMI(MF, From, BlockNum);
+  MachineInstr &ToInstr = getMI(MF, To, BlockNum);
+  MachineBasicBlock &MBB = *FromInstr.getParent();
+  MachineBasicBlock::instr_iterator I = FromInstr.getIterator();
+
+  // Build bundle
+  finalizeBundle(MBB, I, std::next(ToInstr.getIterator()));
+
+  // Update LiveIntervals
+  MachineBasicBlock::instr_iterator BundleStart = std::prev(I);
+  LIS.handleMoveIntoNewBundle(*BundleStart, true);
 }
 
 static void liveIntervalTest(StringRef MIRFunc, LiveIntervalTest T) {
@@ -418,6 +440,136 @@ TEST(LiveIntervalTest, DeadSubRegMoveUp) {
     dead undef %125.sub3:vreg_128 = V_MAC_F32_e32 %63, undef %76:vgpr_32, %125.sub3, implicit $exec
 )MIR", [](MachineFunction &MF, LiveIntervals &LIS) {
     testHandleMove(MF, LIS, 15, 12);
+  });
+}
+
+TEST(LiveIntervalTest, TestMoveSubRegDefAcrossUseDef) {
+  liveIntervalTest(R"MIR(
+    %1:vreg_64 = IMPLICIT_DEF
+
+  bb.1:
+    %2:vgpr_32 = V_MOV_B32_e32 2, implicit $exec
+    %3:vgpr_32 = V_ADD_U32_e32 %2, %1.sub0, implicit $exec
+    undef %1.sub0:vreg_64 = V_ADD_U32_e32 %2, %2, implicit $exec
+    %1.sub1:vreg_64 = COPY %2
+    S_NOP 0, implicit %1.sub1
+    S_BRANCH %bb.1
+
+)MIR", [](MachineFunction &MF, LiveIntervals &LIS) {
+     MachineInstr &UndefSubregDef = getMI(MF, 2, 1);
+     // The scheduler clears undef from subregister defs before moving
+     UndefSubregDef.getOperand(0).setIsUndef(false);
+     testHandleMove(MF, LIS, 3, 1, 1);
+  });
+}
+
+TEST(LiveIntervalTest, TestMoveSubRegDefAcrossUseDefMulti) {
+  liveIntervalTest(R"MIR(
+    %1:vreg_96 = IMPLICIT_DEF
+
+  bb.1:
+    %2:vgpr_32 = V_MOV_B32_e32 2, implicit $exec
+    %3:vgpr_32 = V_ADD_U32_e32 %2, %1.sub0, implicit $exec
+    undef %1.sub0:vreg_96 = V_ADD_U32_e32 %2, %2, implicit $exec
+    %1.sub1:vreg_96 = COPY %2
+    %1.sub2:vreg_96 = COPY %2
+    S_NOP 0, implicit %1.sub1, implicit %1.sub2
+    S_BRANCH %bb.1
+
+)MIR", [](MachineFunction &MF, LiveIntervals &LIS) {
+     MachineInstr &UndefSubregDef = getMI(MF, 2, 1);
+     // The scheduler clears undef from subregister defs before moving
+     UndefSubregDef.getOperand(0).setIsUndef(false);
+     testHandleMove(MF, LIS, 4, 1, 1);
+  });
+}
+
+TEST(LiveIntervalTest, BundleUse) {
+  liveIntervalTest(R"MIR(
+    %0 = IMPLICIT_DEF
+    S_NOP 0
+    S_NOP 0, implicit %0
+    S_NOP 0
+)MIR", [](MachineFunction &MF, LiveIntervals &LIS) {
+    testHandleMoveIntoNewBundle(MF, LIS, 1, 2);
+  });
+}
+
+TEST(LiveIntervalTest, BundleDef) {
+  liveIntervalTest(R"MIR(
+    %0 = IMPLICIT_DEF
+    S_NOP 0
+    S_NOP 0, implicit %0
+    S_NOP 0
+)MIR", [](MachineFunction &MF, LiveIntervals &LIS) {
+    testHandleMoveIntoNewBundle(MF, LIS, 0, 1);
+  });
+}
+
+TEST(LiveIntervalTest, BundleRedef) {
+  liveIntervalTest(R"MIR(
+    %0 = IMPLICIT_DEF
+    S_NOP 0
+    %0 = IMPLICIT_DEF implicit %0(tied-def 0)
+    S_NOP 0, implicit %0
+)MIR", [](MachineFunction &MF, LiveIntervals &LIS) {
+    testHandleMoveIntoNewBundle(MF, LIS, 1, 2);
+  });
+}
+
+TEST(LiveIntervalTest, BundleInternalUse) {
+  liveIntervalTest(R"MIR(
+    %0 = IMPLICIT_DEF
+    S_NOP 0
+    S_NOP 0, implicit %0
+    S_NOP 0
+)MIR", [](MachineFunction &MF, LiveIntervals &LIS) {
+    testHandleMoveIntoNewBundle(MF, LIS, 0, 2);
+  });
+}
+
+TEST(LiveIntervalTest, BundleUndefUse) {
+  liveIntervalTest(R"MIR(
+    %0 = IMPLICIT_DEF
+    S_NOP 0
+    S_NOP 0, implicit undef %0
+    S_NOP 0
+)MIR", [](MachineFunction &MF, LiveIntervals &LIS) {
+    testHandleMoveIntoNewBundle(MF, LIS, 1, 2);
+  });
+}
+
+TEST(LiveIntervalTest, BundleSubRegUse) {
+  liveIntervalTest(R"MIR(
+    successors: %bb.1, %bb.2
+    undef %0.sub0 = IMPLICIT_DEF
+    %0.sub1 = IMPLICIT_DEF
+    S_CBRANCH_VCCNZ %bb.2, implicit undef $vcc
+    S_BRANCH %bb.1
+  bb.1:
+    S_NOP 0
+    S_NOP 0, implicit %0.sub1
+  bb.2:
+    S_NOP 0, implicit %0.sub1
+)MIR", [](MachineFunction &MF, LiveIntervals &LIS) {
+    testHandleMoveIntoNewBundle(MF, LIS, 0, 1, 1);
+  });
+}
+
+TEST(LiveIntervalTest, BundleSubRegDef) {
+  liveIntervalTest(R"MIR(
+    successors: %bb.1, %bb.2
+    undef %0.sub0 = IMPLICIT_DEF
+    %0.sub1 = IMPLICIT_DEF
+    S_CBRANCH_VCCNZ %bb.2, implicit undef $vcc
+    S_BRANCH %bb.1
+  bb.1:
+    S_NOP 0
+    S_NOP 0, implicit %0.sub1
+  bb.2:
+    S_NOP 0, implicit %0.sub1
+)MIR", [](MachineFunction &MF, LiveIntervals &LIS) {
+    testHandleMoveIntoNewBundle(MF, LIS, 0, 1, 0);
   });
 }
 

@@ -24,14 +24,10 @@ namespace llvm {
 
 class MCAsmBackend;
 class MCCodeEmitter;
-class MCContext;
 class MCInstrInfo;
 class MCObjectTargetWriter;
-class MCSubtargetInfo;
 class MVT;
-class Target;
 class Triple;
-class raw_pwrite_stream;
 
 MCCodeEmitter *createWebAssemblyMCCodeEmitter(const MCInstrInfo &MCII);
 
@@ -122,16 +118,22 @@ enum TOF {
 namespace llvm {
 namespace WebAssembly {
 
-/// This is used to indicate block signatures.
-enum class ExprType : unsigned {
+/// Used as immediate MachineOperands for block signatures
+enum class BlockType : unsigned {
+  Invalid = 0x00,
   Void = 0x40,
-  I32 = 0x7F,
-  I64 = 0x7E,
-  F32 = 0x7D,
-  F64 = 0x7C,
-  V128 = 0x7B,
-  Exnref = 0x68,
-  Invalid = 0x00
+  I32 = unsigned(wasm::ValType::I32),
+  I64 = unsigned(wasm::ValType::I64),
+  F32 = unsigned(wasm::ValType::F32),
+  F64 = unsigned(wasm::ValType::F64),
+  V128 = unsigned(wasm::ValType::V128),
+  Exnref = unsigned(wasm::ValType::EXNREF),
+  // Multivalue blocks (and other non-void blocks) are only emitted when the
+  // blocks will never be exited and are at the ends of functions (see
+  // WebAssemblyCFGStackify::fixEndsAtEndOfFunction). They also are never made
+  // to pop values off the stack, so the exact multivalue signature can always
+  // be inferred from the return type of the parent function in MCInstLower.
+  Multivalue = 0xffff,
 };
 
 /// Instruction opcodes emitted via means other than CodeGen.
@@ -435,30 +437,8 @@ inline bool isTee(unsigned Opc) {
 
 inline bool isCallDirect(unsigned Opc) {
   switch (Opc) {
-  case WebAssembly::CALL_VOID:
-  case WebAssembly::CALL_VOID_S:
-  case WebAssembly::CALL_i32:
-  case WebAssembly::CALL_i32_S:
-  case WebAssembly::CALL_i64:
-  case WebAssembly::CALL_i64_S:
-  case WebAssembly::CALL_f32:
-  case WebAssembly::CALL_f32_S:
-  case WebAssembly::CALL_f64:
-  case WebAssembly::CALL_f64_S:
-  case WebAssembly::CALL_v16i8:
-  case WebAssembly::CALL_v16i8_S:
-  case WebAssembly::CALL_v8i16:
-  case WebAssembly::CALL_v8i16_S:
-  case WebAssembly::CALL_v4i32:
-  case WebAssembly::CALL_v4i32_S:
-  case WebAssembly::CALL_v2i64:
-  case WebAssembly::CALL_v2i64_S:
-  case WebAssembly::CALL_v4f32:
-  case WebAssembly::CALL_v4f32_S:
-  case WebAssembly::CALL_v2f64:
-  case WebAssembly::CALL_v2f64_S:
-  case WebAssembly::CALL_exnref:
-  case WebAssembly::CALL_exnref_S:
+  case WebAssembly::CALL:
+  case WebAssembly::CALL_S:
   case WebAssembly::RET_CALL:
   case WebAssembly::RET_CALL_S:
     return true;
@@ -469,98 +449,13 @@ inline bool isCallDirect(unsigned Opc) {
 
 inline bool isCallIndirect(unsigned Opc) {
   switch (Opc) {
-  case WebAssembly::CALL_INDIRECT_VOID:
-  case WebAssembly::CALL_INDIRECT_VOID_S:
-  case WebAssembly::CALL_INDIRECT_i32:
-  case WebAssembly::CALL_INDIRECT_i32_S:
-  case WebAssembly::CALL_INDIRECT_i64:
-  case WebAssembly::CALL_INDIRECT_i64_S:
-  case WebAssembly::CALL_INDIRECT_f32:
-  case WebAssembly::CALL_INDIRECT_f32_S:
-  case WebAssembly::CALL_INDIRECT_f64:
-  case WebAssembly::CALL_INDIRECT_f64_S:
-  case WebAssembly::CALL_INDIRECT_v16i8:
-  case WebAssembly::CALL_INDIRECT_v16i8_S:
-  case WebAssembly::CALL_INDIRECT_v8i16:
-  case WebAssembly::CALL_INDIRECT_v8i16_S:
-  case WebAssembly::CALL_INDIRECT_v4i32:
-  case WebAssembly::CALL_INDIRECT_v4i32_S:
-  case WebAssembly::CALL_INDIRECT_v2i64:
-  case WebAssembly::CALL_INDIRECT_v2i64_S:
-  case WebAssembly::CALL_INDIRECT_v4f32:
-  case WebAssembly::CALL_INDIRECT_v4f32_S:
-  case WebAssembly::CALL_INDIRECT_v2f64:
-  case WebAssembly::CALL_INDIRECT_v2f64_S:
-  case WebAssembly::CALL_INDIRECT_exnref:
-  case WebAssembly::CALL_INDIRECT_exnref_S:
+  case WebAssembly::CALL_INDIRECT:
+  case WebAssembly::CALL_INDIRECT_S:
   case WebAssembly::RET_CALL_INDIRECT:
   case WebAssembly::RET_CALL_INDIRECT_S:
     return true;
   default:
     return false;
-  }
-}
-
-/// Returns the operand number of a callee, assuming the argument is a call
-/// instruction.
-inline unsigned getCalleeOpNo(unsigned Opc) {
-  switch (Opc) {
-  case WebAssembly::CALL_VOID:
-  case WebAssembly::CALL_VOID_S:
-  case WebAssembly::CALL_INDIRECT_VOID:
-  case WebAssembly::CALL_INDIRECT_VOID_S:
-  case WebAssembly::RET_CALL:
-  case WebAssembly::RET_CALL_S:
-  case WebAssembly::RET_CALL_INDIRECT:
-  case WebAssembly::RET_CALL_INDIRECT_S:
-    return 0;
-  case WebAssembly::CALL_i32:
-  case WebAssembly::CALL_i32_S:
-  case WebAssembly::CALL_i64:
-  case WebAssembly::CALL_i64_S:
-  case WebAssembly::CALL_f32:
-  case WebAssembly::CALL_f32_S:
-  case WebAssembly::CALL_f64:
-  case WebAssembly::CALL_f64_S:
-  case WebAssembly::CALL_v16i8:
-  case WebAssembly::CALL_v16i8_S:
-  case WebAssembly::CALL_v8i16:
-  case WebAssembly::CALL_v8i16_S:
-  case WebAssembly::CALL_v4i32:
-  case WebAssembly::CALL_v4i32_S:
-  case WebAssembly::CALL_v2i64:
-  case WebAssembly::CALL_v2i64_S:
-  case WebAssembly::CALL_v4f32:
-  case WebAssembly::CALL_v4f32_S:
-  case WebAssembly::CALL_v2f64:
-  case WebAssembly::CALL_v2f64_S:
-  case WebAssembly::CALL_exnref:
-  case WebAssembly::CALL_exnref_S:
-  case WebAssembly::CALL_INDIRECT_i32:
-  case WebAssembly::CALL_INDIRECT_i32_S:
-  case WebAssembly::CALL_INDIRECT_i64:
-  case WebAssembly::CALL_INDIRECT_i64_S:
-  case WebAssembly::CALL_INDIRECT_f32:
-  case WebAssembly::CALL_INDIRECT_f32_S:
-  case WebAssembly::CALL_INDIRECT_f64:
-  case WebAssembly::CALL_INDIRECT_f64_S:
-  case WebAssembly::CALL_INDIRECT_v16i8:
-  case WebAssembly::CALL_INDIRECT_v16i8_S:
-  case WebAssembly::CALL_INDIRECT_v8i16:
-  case WebAssembly::CALL_INDIRECT_v8i16_S:
-  case WebAssembly::CALL_INDIRECT_v4i32:
-  case WebAssembly::CALL_INDIRECT_v4i32_S:
-  case WebAssembly::CALL_INDIRECT_v2i64:
-  case WebAssembly::CALL_INDIRECT_v2i64_S:
-  case WebAssembly::CALL_INDIRECT_v4f32:
-  case WebAssembly::CALL_INDIRECT_v4f32_S:
-  case WebAssembly::CALL_INDIRECT_v2f64:
-  case WebAssembly::CALL_INDIRECT_v2f64_S:
-  case WebAssembly::CALL_INDIRECT_exnref:
-  case WebAssembly::CALL_INDIRECT_exnref_S:
-    return 1;
-  default:
-    llvm_unreachable("Not a call instruction");
   }
 }
 

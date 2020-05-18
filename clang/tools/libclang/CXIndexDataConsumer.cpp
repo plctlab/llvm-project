@@ -154,7 +154,7 @@ CXSymbolRole getSymbolRole(SymbolRoleSet Role) {
 }
 }
 
-bool CXIndexDataConsumer::handleDeclOccurence(
+bool CXIndexDataConsumer::handleDeclOccurrence(
     const Decl *D, SymbolRoleSet Roles, ArrayRef<SymbolRelation> Relations,
     SourceLocation Loc, ASTNodeInfo ASTNode) {
   Loc = getASTContext().getSourceManager().getFileLoc(Loc);
@@ -220,10 +220,10 @@ bool CXIndexDataConsumer::handleDeclOccurence(
   return !shouldAbort();
 }
 
-bool CXIndexDataConsumer::handleModuleOccurence(const ImportDecl *ImportD,
-                                                const Module *Mod,
-                                                SymbolRoleSet Roles,
-                                                SourceLocation Loc) {
+bool CXIndexDataConsumer::handleModuleOccurrence(const ImportDecl *ImportD,
+                                                 const Module *Mod,
+                                                 SymbolRoleSet Roles,
+                                                 SourceLocation Loc) {
   if (Roles & (SymbolRoleSet)SymbolRole::Declaration)
     IndexingDeclVisitor(*this, SourceLocation(), nullptr).Visit(ImportD);
   return !shouldAbort();
@@ -1245,6 +1245,9 @@ static CXIdxEntityKind getEntityKindFromSymbolKind(SymbolKind K, SymbolLanguage 
   case SymbolKind::Macro:
   case SymbolKind::ClassProperty:
   case SymbolKind::Using:
+  case SymbolKind::TemplateTypeParm:
+  case SymbolKind::TemplateTemplateParm:
+  case SymbolKind::NonTypeTemplateParm:
     return CXIdxEntity_Unexposed;
 
   case SymbolKind::Enum: return CXIdxEntity_Enum;

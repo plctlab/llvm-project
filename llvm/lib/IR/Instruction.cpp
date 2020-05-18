@@ -97,6 +97,15 @@ void Instruction::moveBefore(BasicBlock &BB,
   BB.getInstList().splice(I, getParent()->getInstList(), getIterator());
 }
 
+bool Instruction::comesBefore(const Instruction *Other) const {
+  assert(Parent && Other->Parent &&
+         "instructions without BB parents have no order");
+  assert(Parent == Other->Parent && "cross-BB instruction order comparison");
+  if (!Parent->isInstrOrderValid())
+    Parent->renumberInstructions();
+  return Order < Other->Order;
+}
+
 void Instruction::setHasNoUnsignedWrap(bool b) {
   cast<OverflowingBinaryOperator>(this)->setHasNoUnsignedWrap(b);
 }
@@ -368,6 +377,7 @@ const char *Instruction::getOpcodeName(unsigned OpCode) {
   case InsertValue:    return "insertvalue";
   case LandingPad:     return "landingpad";
   case CleanupPad:     return "cleanuppad";
+  case Freeze:         return "freeze";
 
   default: return "<Invalid operator> ";
   }
@@ -433,6 +443,9 @@ static bool haveSameSpecialState(const Instruction *I1, const Instruction *I2,
            RMWI->isVolatile() == cast<AtomicRMWInst>(I2)->isVolatile() &&
            RMWI->getOrdering() == cast<AtomicRMWInst>(I2)->getOrdering() &&
            RMWI->getSyncScopeID() == cast<AtomicRMWInst>(I2)->getSyncScopeID();
+  if (const ShuffleVectorInst *SVI = dyn_cast<ShuffleVectorInst>(I1))
+    return SVI->getShuffleMask() ==
+           cast<ShuffleVectorInst>(I2)->getShuffleMask();
 
   return true;
 }
@@ -524,7 +537,7 @@ bool Instruction::mayReadFromMemory() const {
   case Instruction::Call:
   case Instruction::Invoke:
   case Instruction::CallBr:
-    return !cast<CallBase>(this)->doesNotAccessMemory();
+    return !cast<CallBase>(this)->doesNotReadMemory();
   case Instruction::Store:
     return !cast<StoreInst>(this)->isUnordered();
   }

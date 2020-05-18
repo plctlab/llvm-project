@@ -9,6 +9,7 @@
 #include "llvm/ADT/BitmaskEnum.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/StringSwitch.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Endian.h"
@@ -332,6 +333,7 @@ struct BuiltInTypes {
   uint16_t        u16;
   uint8_t         u8;
   bool            b;
+  char            c;
   int64_t         s64;
   int32_t         s32;
   int16_t         s16;
@@ -356,6 +358,7 @@ namespace yaml {
       io.mapRequired("u16",      bt.u16);
       io.mapRequired("u8",       bt.u8);
       io.mapRequired("b",        bt.b);
+      io.mapRequired("c",        bt.c);
       io.mapRequired("s64",      bt.s64);
       io.mapRequired("s32",      bt.s32);
       io.mapRequired("s16",      bt.s16);
@@ -385,6 +388,7 @@ TEST(YAMLIO, TestReadBuiltInTypes) {
             "u16:      65000\n"
             "u8:       255\n"
             "b:        false\n"
+            "c:        'c'\n"
             "s64:      -5000000000\n"
             "s32:      -2000000000\n"
             "s16:      -32000\n"
@@ -395,7 +399,7 @@ TEST(YAMLIO, TestReadBuiltInTypes) {
             "h16:      0x8765\n"
             "h32:      0xFEDCBA98\n"
             "h64:      0xFEDCBA9876543210\n"
-           "...\n");
+            "...\n");
   yin >> map;
 
   EXPECT_FALSE(yin.error());
@@ -406,6 +410,7 @@ TEST(YAMLIO, TestReadBuiltInTypes) {
   EXPECT_EQ(map.u16, 65000);
   EXPECT_EQ(map.u8,  255);
   EXPECT_EQ(map.b,   false);
+  EXPECT_EQ(map.c,   'c');
   EXPECT_EQ(map.s64, -5000000000LL);
   EXPECT_EQ(map.s32, -2000000000L);
   EXPECT_EQ(map.s16, -32000);
@@ -433,6 +438,7 @@ TEST(YAMLIO, TestReadWriteBuiltInTypes) {
     map.u16 = 50000;
     map.u8  = 254;
     map.b   = true;
+    map.c   = 'd';
     map.s64 = -6000000000LL;
     map.s32 = -2000000000;
     map.s16 = -32000;
@@ -462,6 +468,7 @@ TEST(YAMLIO, TestReadWriteBuiltInTypes) {
     EXPECT_EQ(map.u16,      50000);
     EXPECT_EQ(map.u8,       254);
     EXPECT_EQ(map.b,        true);
+    EXPECT_EQ(map.c,        'd');
     EXPECT_EQ(map.s64,      -6000000000LL);
     EXPECT_EQ(map.s32,      -2000000000L);
     EXPECT_EQ(map.s16,      -32000);
@@ -2189,7 +2196,6 @@ TEST(YAMLIO, TestReadBuiltInTypesDoubleError) {
 //
 // Test error handling reading built-in Hex8 type
 //
-LLVM_YAML_IS_SEQUENCE_VECTOR(Hex8)
 TEST(YAMLIO, TestReadBuiltInTypesHex8Error) {
   std::vector<Hex8> seq;
   Input yin("---\n"
@@ -2200,15 +2206,26 @@ TEST(YAMLIO, TestReadBuiltInTypesHex8Error) {
             /*Ctxt=*/nullptr,
             suppressErrorMessages);
   yin >> seq;
-
   EXPECT_TRUE(!!yin.error());
+
+  std::vector<Hex8> seq2;
+  Input yin2("---\n"
+             "[ 0x12, 0xFE, 0x123 ]\n"
+             "...\n",
+             /*Ctxt=*/nullptr, suppressErrorMessages);
+  yin2 >> seq2;
+  EXPECT_TRUE(!!yin2.error());
+
+  EXPECT_TRUE(seq.size() == 3);
+  EXPECT_TRUE(seq.size() == seq2.size());
+  for (size_t i = 0; i < seq.size(); ++i)
+    EXPECT_TRUE(seq[i] == seq2[i]);
 }
 
 
 //
 // Test error handling reading built-in Hex16 type
 //
-LLVM_YAML_IS_SEQUENCE_VECTOR(Hex16)
 TEST(YAMLIO, TestReadBuiltInTypesHex16Error) {
   std::vector<Hex16> seq;
   Input yin("---\n"
@@ -2219,14 +2236,25 @@ TEST(YAMLIO, TestReadBuiltInTypesHex16Error) {
             /*Ctxt=*/nullptr,
             suppressErrorMessages);
   yin >> seq;
-
   EXPECT_TRUE(!!yin.error());
+
+  std::vector<Hex16> seq2;
+  Input yin2("---\n"
+             "[ 0x0012, 0xFEFF, 0x12345 ]\n"
+             "...\n",
+             /*Ctxt=*/nullptr, suppressErrorMessages);
+  yin2 >> seq2;
+  EXPECT_TRUE(!!yin2.error());
+
+  EXPECT_TRUE(seq.size() == 3);
+  EXPECT_TRUE(seq.size() == seq2.size());
+  for (size_t i = 0; i < seq.size(); ++i)
+    EXPECT_TRUE(seq[i] == seq2[i]);
 }
 
 //
 // Test error handling reading built-in Hex32 type
 //
-LLVM_YAML_IS_SEQUENCE_VECTOR(Hex32)
 TEST(YAMLIO, TestReadBuiltInTypesHex32Error) {
   std::vector<Hex32> seq;
   Input yin("---\n"
@@ -2239,12 +2267,24 @@ TEST(YAMLIO, TestReadBuiltInTypesHex32Error) {
   yin >> seq;
 
   EXPECT_TRUE(!!yin.error());
+
+  std::vector<Hex32> seq2;
+  Input yin2("---\n"
+             "[ 0x0012, 0xFEFF0000, 0x1234556789 ]\n"
+             "...\n",
+             /*Ctxt=*/nullptr, suppressErrorMessages);
+  yin2 >> seq2;
+  EXPECT_TRUE(!!yin2.error());
+
+  EXPECT_TRUE(seq.size() == 3);
+  EXPECT_TRUE(seq.size() == seq2.size());
+  for (size_t i = 0; i < seq.size(); ++i)
+    EXPECT_TRUE(seq[i] == seq2[i]);
 }
 
 //
 // Test error handling reading built-in Hex64 type
 //
-LLVM_YAML_IS_SEQUENCE_VECTOR(Hex64)
 TEST(YAMLIO, TestReadBuiltInTypesHex64Error) {
   std::vector<Hex64> seq;
   Input yin("---\n"
@@ -2255,8 +2295,20 @@ TEST(YAMLIO, TestReadBuiltInTypesHex64Error) {
             /*Ctxt=*/nullptr,
             suppressErrorMessages);
   yin >> seq;
-
   EXPECT_TRUE(!!yin.error());
+
+  std::vector<Hex64> seq2;
+  Input yin2("---\n"
+             "[ 0x0012, 0xFFEEDDCCBBAA9988, 0x12345567890ABCDEF0 ]\n"
+             "...\n",
+             /*Ctxt=*/nullptr, suppressErrorMessages);
+  yin2 >> seq2;
+  EXPECT_TRUE(!!yin2.error());
+
+  EXPECT_TRUE(seq.size() == 3);
+  EXPECT_TRUE(seq.size() == seq2.size());
+  for (size_t i = 0; i < seq.size(); ++i)
+    EXPECT_TRUE(seq[i] == seq2[i]);
 }
 
 TEST(YAMLIO, TestMalformedMapFailsGracefully) {
@@ -3004,4 +3056,56 @@ TEST(YAMLIO, TestReadWritePolymorphicMap) {
     EXPECT_EQ(bar->SKind, Scalar::SK_Double);
     EXPECT_EQ(bar->DoubleValue, 2.0);
   }
+}
+
+TEST(YAMLIO, TestAnchorMapError) {
+  Input yin("& & &: ");
+  yin.setCurrentDocument();
+  EXPECT_TRUE(yin.error());
+}
+
+TEST(YAMLIO, TestFlowSequenceTokenErrors) {
+  Input yin(",");
+  EXPECT_FALSE(yin.setCurrentDocument());
+  EXPECT_TRUE(yin.error());
+
+  Input yin2("]");
+  EXPECT_FALSE(yin2.setCurrentDocument());
+  EXPECT_TRUE(yin2.error());
+
+  Input yin3("}");
+  EXPECT_FALSE(yin3.setCurrentDocument());
+  EXPECT_TRUE(yin3.error());
+}
+
+TEST(YAMLIO, TestDirectiveMappingNoValue) {
+  Input yin("%YAML\n{5:");
+  EXPECT_FALSE(yin.setCurrentDocument());
+  EXPECT_TRUE(yin.error());
+
+  Input yin2("%TAG\n'\x98!< :\n");
+  yin2.setCurrentDocument();
+  EXPECT_TRUE(yin2.error());
+}
+
+TEST(YAMLIO, TestUnescapeInfiniteLoop) {
+  Input yin("\"\\u\\^#\\\\\"");
+  yin.setCurrentDocument();
+  EXPECT_TRUE(yin.error());
+}
+
+TEST(YAMLIO, TestScannerUnexpectedCharacter) {
+  Input yin("!<$\x9F.");
+  EXPECT_FALSE(yin.setCurrentDocument());
+  EXPECT_TRUE(yin.error());
+}
+
+TEST(YAMLIO, TestUnknownDirective) {
+  Input yin("%");
+  EXPECT_FALSE(yin.setCurrentDocument());
+  EXPECT_TRUE(yin.error());
+
+  Input yin2("%)");
+  EXPECT_FALSE(yin2.setCurrentDocument());
+  EXPECT_TRUE(yin2.error());
 }

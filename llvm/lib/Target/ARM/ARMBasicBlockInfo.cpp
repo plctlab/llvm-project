@@ -6,14 +6,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "ARMBasicBlockInfo.h"
 #include "ARM.h"
 #include "ARMBaseInstrInfo.h"
-#include "ARMBasicBlockInfo.h"
 #include "ARMMachineFunctionInfo.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/TargetSubtargetInfo.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/Support/Debug.h"
 #include <vector>
 
 #define DEBUG_TYPE "arm-bb-utils"
@@ -47,7 +49,7 @@ void ARMBasicBlockUtils::computeBlockSize(MachineBasicBlock *MBB) {
   BasicBlockInfo &BBI = BBInfo[MBB->getNumber()];
   BBI.Size = 0;
   BBI.Unalign = 0;
-  BBI.PostAlign = Align::None();
+  BBI.PostAlign = Align(1);
 
   for (MachineInstr &I : *MBB) {
     BBI.Size += TII->getInstSizeInBytes(I);

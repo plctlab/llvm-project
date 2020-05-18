@@ -16,6 +16,7 @@
 #include "clang/Lex/Lexer.h"
 #include "clang/Lex/Preprocessor.h"
 #include "llvm/ADT/IntrusiveRefCntPtr.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/AlignOf.h"
 #include "llvm/Support/MD5.h"
 #include <cstddef>
@@ -38,7 +39,7 @@ class PCHContainerOperations;
 
 /// Runs lexer to compute suggested preamble bounds.
 PreambleBounds ComputePreambleBounds(const LangOptions &LangOpts,
-                                     llvm::MemoryBuffer *Buffer,
+                                     const llvm::MemoryBuffer *Buffer,
                                      unsigned MaxLines);
 
 class PreambleCallbacks;
@@ -94,6 +95,11 @@ public:
   /// be used for logging and debugging purposes only.
   std::size_t getSize() const;
 
+  /// Returned string is not null-terminated.
+  llvm::StringRef getContents() const {
+    return {PreambleBytes.data(), PreambleBytes.size()};
+  }
+
   /// Check whether PrecompiledPreamble can be reused for the new contents(\p
   /// MainFileBuffer) of the main file.
   bool CanReuse(const CompilerInvocation &Invocation,
@@ -133,14 +139,6 @@ private:
   public:
     // A main method used to construct TempPCHFile.
     static llvm::ErrorOr<TempPCHFile> CreateNewPreamblePCHFile();
-
-    /// Call llvm::sys::fs::createTemporaryFile to create a new temporary file.
-    static llvm::ErrorOr<TempPCHFile> createInSystemTempDir(const Twine &Prefix,
-                                                            StringRef Suffix);
-    /// Create a new instance of TemporaryFile for file at \p Path. Use with
-    /// extreme caution, there's an assertion checking that there's only a
-    /// single instance of TempPCHFile alive for each path.
-    static llvm::ErrorOr<TempPCHFile> createFromCustomPath(const Twine &Path);
 
   private:
     TempPCHFile(std::string FilePath);

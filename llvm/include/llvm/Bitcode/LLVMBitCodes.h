@@ -559,6 +559,7 @@ enum FunctionCodes {
   FUNC_CODE_INST_UNOP = 56,      // UNOP:       [opcode, ty, opval]
   FUNC_CODE_INST_CALLBR = 57,    // CALLBR:     [attr, cc, norm, transfs,
                                  //              fnty, fnid, args...]
+  FUNC_CODE_INST_FREEZE = 58,    // FREEZE: [opty, opval]
 };
 
 enum UseListCodes {
@@ -632,6 +633,8 @@ enum AttributeKindCodes {
   ATTR_KIND_NOFREE = 62,
   ATTR_KIND_NOSYNC = 63,
   ATTR_KIND_SANITIZE_MEMTAG = 64,
+  ATTR_KIND_PREALLOCATED = 65,
+  ATTR_KIND_NO_MERGE = 66,
 };
 
 enum ComdatSelectionKindCodes {

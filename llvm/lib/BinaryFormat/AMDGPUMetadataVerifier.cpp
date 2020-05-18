@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/BinaryFormat/AMDGPUMetadataVerifier.h"
+#include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/AMDGPUMetadata.h"
 
 namespace llvm {
@@ -119,6 +120,7 @@ bool MetadataVerifier::verifyKernelArgs(msgpack::DocNode &Node) {
                                .Case("hidden_global_offset_z", true)
                                .Case("hidden_none", true)
                                .Case("hidden_printf_buffer", true)
+                               .Case("hidden_hostcall_buffer", true)
                                .Case("hidden_default_queue", true)
                                .Case("hidden_completion_action", true)
                                .Case("hidden_multigrid_sync_arg", true)

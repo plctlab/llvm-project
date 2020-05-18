@@ -9,6 +9,8 @@
 #include "CGLoopInfo.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/Attr.h"
+#include "clang/AST/Expr.h"
+#include "clang/Basic/CodeGenOptions.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/Constants.h"
@@ -286,17 +288,18 @@ LoopInfo::createLoopVectorizeMetadata(const LoopAttributes &Attrs,
     Args.push_back(MDNode::get(Ctx, Vals));
   }
 
-  // Setting vectorize.enable
+  // vectorize.enable is set if:
+  // 1) loop hint vectorize.enable is set, or
+  // 2) it is implied when vectorize.predicate is set, or
+  // 3) it is implied when vectorize.width is set.
   if (Attrs.VectorizeEnable != LoopAttributes::Unspecified ||
-      IsVectorPredicateEnabled) {
-    Metadata *Vals[] = {
-        MDString::get(Ctx, "llvm.loop.vectorize.enable"),
-        ConstantAsMetadata::get(ConstantInt::get(
-            llvm::Type::getInt1Ty(Ctx),
-            IsVectorPredicateEnabled
-                ? true
-                : (Attrs.VectorizeEnable == LoopAttributes::Enable)))};
-    Args.push_back(MDNode::get(Ctx, Vals));
+      IsVectorPredicateEnabled ||
+      Attrs.VectorizeWidth > 1 ) {
+    bool AttrVal = Attrs.VectorizeEnable != LoopAttributes::Disable;
+    Args.push_back(
+        MDNode::get(Ctx, {MDString::get(Ctx, "llvm.loop.vectorize.enable"),
+                          ConstantAsMetadata::get(ConstantInt::get(
+                              llvm::Type::getInt1Ty(Ctx), AttrVal))}));
   }
 
   if (FollowupHasTransforms)
@@ -571,6 +574,7 @@ void LoopInfoStack::push(BasicBlock *Header, const llvm::DebugLoc &StartLoc,
 }
 
 void LoopInfoStack::push(BasicBlock *Header, clang::ASTContext &Ctx,
+                         const clang::CodeGenOptions &CGOpts,
                          ArrayRef<const clang::Attr *> Attrs,
                          const llvm::DebugLoc &StartLoc,
                          const llvm::DebugLoc &EndLoc) {
@@ -750,6 +754,14 @@ void LoopInfoStack::push(BasicBlock *Header, clang::ASTContext &Ctx,
       break;
     }
   }
+
+  if (CGOpts.OptimizationLevel > 0)
+    // Disable unrolling for the loop, if unrolling is disabled (via
+    // -fno-unroll-loops) and no pragmas override the decision.
+    if (!CGOpts.UnrollLoops &&
+        (StagedAttrs.UnrollEnable == LoopAttributes::Unspecified &&
+         StagedAttrs.UnrollCount == 0))
+      setUnrollState(LoopAttributes::Disable);
 
   /// Stage the attributes.
   push(Header, StartLoc, EndLoc);

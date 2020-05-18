@@ -1,4 +1,4 @@
-//===-- ProcessMinidump.cpp -------------------------------------*- C++ -*-===//
+//===-- ProcessMinidump.cpp -----------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -40,6 +40,8 @@
 using namespace lldb;
 using namespace lldb_private;
 using namespace minidump;
+
+LLDB_PLUGIN_DEFINE(ProcessMinidump)
 
 namespace {
 
@@ -219,12 +221,17 @@ Status ProcessMinidump::DoLoadCore() {
 
   m_thread_list = m_minidump_parser->GetThreads();
   m_active_exception = m_minidump_parser->GetExceptionStream();
+
+  SetUnixSignals(UnixSignals::Create(GetArchitecture()));
+
   ReadModuleList();
 
   llvm::Optional<lldb::pid_t> pid = m_minidump_parser->GetPid();
   if (!pid) {
-    error.SetErrorString("failed to parse PID");
-    return error;
+    GetTarget().GetDebugger().GetAsyncErrorStream()->PutCString(
+        "Unable to retrieve process ID from minidump file, setting process ID "
+        "to 1.\n");
+    pid = 1;
   }
   SetID(pid.getValue());
 
@@ -238,39 +245,56 @@ uint32_t ProcessMinidump::GetPluginVersion() { return 1; }
 Status ProcessMinidump::DoDestroy() { return Status(); }
 
 void ProcessMinidump::RefreshStateAfterStop() {
+
   if (!m_active_exception)
     return;
 
-  if (m_active_exception->exception_record.exception_code ==
-      MinidumpException::DumpRequested) {
+  constexpr uint32_t BreakpadDumpRequested = 0xFFFFFFFF;
+  if (m_active_exception->ExceptionRecord.ExceptionCode ==
+      BreakpadDumpRequested) {
+    // This "ExceptionCode" value is a sentinel that is sometimes used
+    // when generating a dump for a process that hasn't crashed.
+
+    // TODO: The definition and use of this "dump requested" constant
+    // in Breakpad are actually Linux-specific, and for similar use
+    // cases on Mac/Windows it defines different constants, referring
+    // to them as "simulated" exceptions; consider moving this check
+    // down to the OS-specific paths and checking each OS for its own
+    // constant.
     return;
   }
 
   lldb::StopInfoSP stop_info;
   lldb::ThreadSP stop_thread;
 
-  Process::m_thread_list.SetSelectedThreadByID(m_active_exception->thread_id);
+  Process::m_thread_list.SetSelectedThreadByID(m_active_exception->ThreadId);
   stop_thread = Process::m_thread_list.GetSelectedThread();
   ArchSpec arch = GetArchitecture();
 
   if (arch.GetTriple().getOS() == llvm::Triple::Linux) {
+    uint32_t signo = m_active_exception->ExceptionRecord.ExceptionCode;
+
+    if (signo == 0) {
+      // No stop.
+      return;
+    }
+
     stop_info = StopInfo::CreateStopReasonWithSignal(
-        *stop_thread, m_active_exception->exception_record.exception_code);
+        *stop_thread, signo);
   } else if (arch.GetTriple().getVendor() == llvm::Triple::Apple) {
     stop_info = StopInfoMachException::CreateStopReasonWithMachException(
-        *stop_thread, m_active_exception->exception_record.exception_code, 2,
-        m_active_exception->exception_record.exception_flags,
-        m_active_exception->exception_record.exception_address, 0);
+        *stop_thread, m_active_exception->ExceptionRecord.ExceptionCode, 2,
+        m_active_exception->ExceptionRecord.ExceptionFlags,
+        m_active_exception->ExceptionRecord.ExceptionAddress, 0);
   } else {
     std::string desc;
     llvm::raw_string_ostream desc_stream(desc);
     desc_stream << "Exception "
                 << llvm::format_hex(
-                       m_active_exception->exception_record.exception_code, 8)
+                       m_active_exception->ExceptionRecord.ExceptionCode, 8)
                 << " encountered at address "
                 << llvm::format_hex(
-                       m_active_exception->exception_record.exception_address,
-                       8);
+                       m_active_exception->ExceptionRecord.ExceptionAddress, 8);
     stop_info = StopInfo::CreateStopReasonWithException(
         *stop_thread, desc_stream.str().c_str());
   }
@@ -314,15 +338,84 @@ ArchSpec ProcessMinidump::GetArchitecture() {
   return ArchSpec(triple);
 }
 
+static MemoryRegionInfo GetMemoryRegionInfo(const MemoryRegionInfos &regions,
+                                            lldb::addr_t load_addr) {
+  MemoryRegionInfo region;
+  auto pos = llvm::upper_bound(regions, load_addr);
+  if (pos != regions.begin() &&
+      std::prev(pos)->GetRange().Contains(load_addr)) {
+    return *std::prev(pos);
+  }
+
+  if (pos == regions.begin())
+    region.GetRange().SetRangeBase(0);
+  else
+    region.GetRange().SetRangeBase(std::prev(pos)->GetRange().GetRangeEnd());
+
+  if (pos == regions.end())
+    region.GetRange().SetRangeEnd(UINT64_MAX);
+  else
+    region.GetRange().SetRangeEnd(pos->GetRange().GetRangeBase());
+
+  region.SetReadable(MemoryRegionInfo::eNo);
+  region.SetWritable(MemoryRegionInfo::eNo);
+  region.SetExecutable(MemoryRegionInfo::eNo);
+  region.SetMapped(MemoryRegionInfo::eNo);
+  return region;
+}
+
+void ProcessMinidump::BuildMemoryRegions() {
+  if (m_memory_regions)
+    return;
+  m_memory_regions.emplace();
+  bool is_complete;
+  std::tie(*m_memory_regions, is_complete) =
+      m_minidump_parser->BuildMemoryRegions();
+
+  if (is_complete)
+    return;
+
+  MemoryRegionInfos to_add;
+  ModuleList &modules = GetTarget().GetImages();
+  SectionLoadList &load_list = GetTarget().GetSectionLoadList();
+  modules.ForEach([&](const ModuleSP &module_sp) {
+    SectionList *sections = module_sp->GetSectionList();
+    for (size_t i = 0; i < sections->GetSize(); ++i) {
+      SectionSP section_sp = sections->GetSectionAtIndex(i);
+      addr_t load_addr = load_list.GetSectionLoadAddress(section_sp);
+      if (load_addr == LLDB_INVALID_ADDRESS)
+        continue;
+      MemoryRegionInfo::RangeType section_range(load_addr,
+                                                section_sp->GetByteSize());
+      MemoryRegionInfo region =
+          ::GetMemoryRegionInfo(*m_memory_regions, load_addr);
+      if (region.GetMapped() != MemoryRegionInfo::eYes &&
+          region.GetRange().GetRangeBase() <= section_range.GetRangeBase() &&
+          section_range.GetRangeEnd() <= region.GetRange().GetRangeEnd()) {
+        to_add.emplace_back();
+        to_add.back().GetRange() = section_range;
+        to_add.back().SetLLDBPermissions(section_sp->GetPermissions());
+        to_add.back().SetMapped(MemoryRegionInfo::eYes);
+        to_add.back().SetName(module_sp->GetFileSpec().GetPath().c_str());
+      }
+    }
+    return true;
+  });
+  m_memory_regions->insert(m_memory_regions->end(), to_add.begin(),
+                           to_add.end());
+  llvm::sort(*m_memory_regions);
+}
+
 Status ProcessMinidump::GetMemoryRegionInfo(lldb::addr_t load_addr,
-                                            MemoryRegionInfo &range_info) {
-  range_info = m_minidump_parser->GetMemoryRegionInfo(load_addr);
+                                            MemoryRegionInfo &region) {
+  BuildMemoryRegions();
+  region = ::GetMemoryRegionInfo(*m_memory_regions, load_addr);
   return Status();
 }
 
-Status ProcessMinidump::GetMemoryRegions(
-    lldb_private::MemoryRegionInfos &region_list) {
-  region_list = m_minidump_parser->GetMemoryRegions();
+Status ProcessMinidump::GetMemoryRegions(MemoryRegionInfos &region_list) {
+  BuildMemoryRegions();
+  region_list = *m_memory_regions;
   return Status();
 }
 
@@ -335,8 +428,8 @@ bool ProcessMinidump::UpdateThreadList(ThreadList &old_thread_list,
 
     // If the minidump contains an exception context, use it
     if (m_active_exception != nullptr &&
-        m_active_exception->thread_id == thread.ThreadId) {
-      context_location = m_active_exception->thread_context;
+        m_active_exception->ThreadId == thread.ThreadId) {
+      context_location = m_active_exception->ThreadContext;
     }
 
     llvm::ArrayRef<uint8_t> context;

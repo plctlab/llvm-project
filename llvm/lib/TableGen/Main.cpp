@@ -73,14 +73,14 @@ static int createDependencyFile(const TGParser &Parser, const char *argv0) {
                                   EC.message() + "\n");
   DepOut.os() << OutputFilename << ":";
   for (const auto &Dep : Parser.getDependencies()) {
-    DepOut.os() << ' ' << Dep.first;
+    DepOut.os() << ' ' << Dep;
   }
   DepOut.os() << "\n";
   DepOut.keep();
   return 0;
 }
 
-int llvm::TableGenMain(char *argv0, TableGenMainFn *MainFn) {
+int llvm::TableGenMain(const char *argv0, TableGenMainFn *MainFn) {
   RecordKeeper Records;
 
   // Parse the input file.

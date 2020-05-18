@@ -38,6 +38,14 @@
 #include <mach-o/dyld.h>
 #include <sys/attr.h>
 #include <copyfile.h>
+#elif defined(__FreeBSD__)
+#include <osreldate.h>
+#if __FreeBSD_version >= 1300057
+#include <sys/auxv.h>
+#else
+#include <machine/elf.h>
+extern char **environ;
+#endif
 #elif defined(__DragonFly__)
 #include <sys/mount.h>
 #endif
@@ -51,7 +59,6 @@
 // For GNU Hurd
 #if defined(__GNU__) && !defined(PATH_MAX)
 # define PATH_MAX 4096
-# define MAXPATHLEN 4096
 #endif
 
 #include <sys/types.h>
@@ -176,20 +183,42 @@ std::string getMainExecutable(const char *argv0, void *MainAddr) {
   // On OS X the executable path is saved to the stack by dyld. Reading it
   // from there is much faster than calling dladdr, especially for large
   // binaries with symbols.
-  char exe_path[MAXPATHLEN];
+  char exe_path[PATH_MAX];
   uint32_t size = sizeof(exe_path);
   if (_NSGetExecutablePath(exe_path, &size) == 0) {
-    char link_path[MAXPATHLEN];
+    char link_path[PATH_MAX];
     if (realpath(exe_path, link_path))
       return link_path;
   }
-#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) ||   \
-    defined(__minix) || defined(__DragonFly__) ||                              \
-    defined(__FreeBSD_kernel__) || defined(_AIX)
+#elif defined(__FreeBSD__)
+  // On FreeBSD if the exec path specified in ELF auxiliary vectors is
+  // preferred, if available.  /proc/curproc/file and the KERN_PROC_PATHNAME
+  // sysctl may not return the desired path if there are multiple hardlinks
+  // to the file.
+  char exe_path[PATH_MAX];
+#if __FreeBSD_version >= 1300057
+  if (elf_aux_info(AT_EXECPATH, exe_path, sizeof(exe_path)) == 0)
+    return exe_path;
+#else
+  // elf_aux_info(AT_EXECPATH, ... is not available in all supported versions,
+  // fall back to finding the ELF auxiliary vectors after the process's
+  // environment.
+  char **p = ::environ;
+  while (*p++ != 0)
+    ;
+  // Iterate through auxiliary vectors for AT_EXECPATH.
+  for (; *(uintptr_t *)p != AT_NULL; p++) {
+    if (*(uintptr_t *)p++ == AT_EXECPATH)
+      return *p;
+  }
+#endif
+  // Fall back to argv[0] if auxiliary vectors are not available.
+  if (getprogpath(exe_path, argv0) != NULL)
+    return exe_path;
+#elif defined(__NetBSD__) || defined(__OpenBSD__) || defined(__minix) ||       \
+    defined(__DragonFly__) || defined(__FreeBSD_kernel__) || defined(_AIX)
   const char *curproc = "/proc/curproc/file";
   char exe_path[PATH_MAX];
-  // /proc is not mounted by default under FreeBSD, but gives more accurate
-  // information than argv[0] when it is.
   if (sys::fs::exists(curproc)) {
     ssize_t len = readlink(curproc, exe_path, sizeof(exe_path));
     if (len > 0) {
@@ -203,8 +232,8 @@ std::string getMainExecutable(const char *argv0, void *MainAddr) {
   // If we don't have procfs mounted, fall back to argv[0]
   if (getprogpath(exe_path, argv0) != NULL)
     return exe_path;
-#elif defined(__linux__) || defined(__CYGWIN__)
-  char exe_path[MAXPATHLEN];
+#elif defined(__linux__) || defined(__CYGWIN__) || defined(__gnu_hurd__)
+  char exe_path[PATH_MAX];
   const char *aPath = "/proc/self/exe";
   if (sys::fs::exists(aPath)) {
     // /proc is not always mounted under Linux (chroot for example).
@@ -228,7 +257,7 @@ std::string getMainExecutable(const char *argv0, void *MainAddr) {
       return ret;
     }
 #else
-    char real_path[MAXPATHLEN];
+    char real_path[PATH_MAX];
     if (realpath(exe_path, real_path))
       return std::string(real_path);
 #endif
@@ -245,7 +274,7 @@ std::string getMainExecutable(const char *argv0, void *MainAddr) {
 
   // If the filename is a symlink, we need to resolve and return the location of
   // the actual executable.
-  char link_path[MAXPATHLEN];
+  char link_path[PATH_MAX];
   if (realpath(DLInfo.dli_fname, link_path))
     return link_path;
 #else
@@ -295,12 +324,7 @@ std::error_code current_path(SmallVectorImpl<char> &result) {
     return std::error_code();
   }
 
-#ifdef MAXPATHLEN
-  result.reserve(MAXPATHLEN);
-#else
-// For GNU Hurd
-  result.reserve(1024);
-#endif
+  result.reserve(PATH_MAX);
 
   while (true) {
     if (::getcwd(result.data(), result.capacity()) == nullptr) {
@@ -963,7 +987,7 @@ std::error_code openFileForRead(const Twine &Name, int &ResultFD,
 #if defined(F_GETPATH)
   // When F_GETPATH is availble, it is the quickest way to get
   // the real path name.
-  char Buffer[MAXPATHLEN];
+  char Buffer[PATH_MAX];
   if (::fcntl(ResultFD, F_GETPATH, Buffer) != -1)
     RealPath->append(Buffer, Buffer + strlen(Buffer));
 #else
@@ -1106,6 +1130,19 @@ bool home_directory(SmallVectorImpl<char> &result) {
 
   result.clear();
   result.append(RequestedDir, RequestedDir + strlen(RequestedDir));
+  return true;
+}
+
+bool cache_directory(SmallVectorImpl<char> &result) {
+  if (const char *RequestedDir = getenv("XDG_CACHE_HOME")) {
+    result.clear();
+    result.append(RequestedDir, RequestedDir + strlen(RequestedDir));
+    return true;
+  }
+  if (!home_directory(result)) {
+    return false;
+  }
+  append(result, ".cache");
   return true;
 }
 

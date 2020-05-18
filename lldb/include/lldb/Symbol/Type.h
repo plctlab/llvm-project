@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_Type_h_
-#define liblldb_Type_h_
+#ifndef LLDB_SYMBOL_TYPE_H
+#define LLDB_SYMBOL_TYPE_H
 
 #include "lldb/Symbol/CompilerDecl.h"
 #include "lldb/Symbol/CompilerType.h"
@@ -80,34 +80,31 @@ public:
     eEncodingIsLValueReferenceUID, ///< This type is L value reference to a type
                                    /// whose UID is m_encoding_uid
     eEncodingIsRValueReferenceUID, ///< This type is R value reference to a type
-                                   /// whose UID is m_encoding_uid
+                                   /// whose UID is m_encoding_uid,
+    eEncodingIsAtomicUID,          ///< This type is the type whose UID is
+                                   /// m_encoding_uid as an atomic type.
     eEncodingIsSyntheticUID
   };
 
-  // We must force the underlying type of the enum to be unsigned here.  Not
-  // all compilers behave the same with regards to the default underlying type
-  // of an enum, but because this enum is used in an enum bitfield and integer
-  // comparisons are done with the value we need to guarantee that it's always
-  // unsigned so that, for example, eResolveStateFull doesn't compare less than
-  // eResolveStateUnresolved when used in a 2-bit bitfield.
-  typedef enum ResolveStateTag : unsigned {
-    eResolveStateUnresolved = 0,
-    eResolveStateForward = 1,
-    eResolveStateLayout = 2,
-    eResolveStateFull = 3
-  } ResolveState;
+  enum class ResolveState : unsigned char {
+    Unresolved = 0,
+    Forward = 1,
+    Layout = 2,
+    Full = 3
+  };
 
   Type(lldb::user_id_t uid, SymbolFile *symbol_file, ConstString name,
        llvm::Optional<uint64_t> byte_size, SymbolContextScope *context,
        lldb::user_id_t encoding_uid, EncodingDataType encoding_uid_type,
        const Declaration &decl, const CompilerType &compiler_qual_type,
-       ResolveState compiler_type_resolve_state);
+       ResolveState compiler_type_resolve_state, uint32_t opaque_payload = 0);
 
   // This makes an invalid type.  Used for functions that return a Type when
   // they get an error.
   Type();
 
-  void Dump(Stream *s, bool show_context);
+  void Dump(Stream *s, bool show_context,
+            lldb::DescriptionLevel level = lldb::eDescriptionLevelFull);
 
   void DumpTypeName(Stream *s);
 
@@ -200,17 +197,17 @@ public:
 
   uint32_t GetEncodingMask();
 
-  bool IsCompleteObjCClass() { return m_flags.is_complete_objc_class; }
-
-  void SetIsCompleteObjCClass(bool is_complete_objc_class) {
-    m_flags.is_complete_objc_class = is_complete_objc_class;
-  }
+  typedef uint32_t Payload;
+  /// Return the language-specific payload.
+  Payload GetPayload() { return m_payload; }
+  /// Return the language-specific payload.
+  void SetPayload(Payload opaque_payload) { m_payload = opaque_payload; }
 
 protected:
   ConstString m_name;
   SymbolFile *m_symbol_file;
-  SymbolContextScope
-      *m_context; // The symbol context in which this type is defined
+  /// The symbol context in which this type is defined.
+  SymbolContextScope *m_context;
   Type *m_encoding_type;
   lldb::user_id_t m_encoding_uid;
   EncodingDataType m_encoding_uid_type;
@@ -218,20 +215,13 @@ protected:
   uint64_t m_byte_size_has_value : 1;
   Declaration m_decl;
   CompilerType m_compiler_type;
-
-  struct Flags {
-#ifdef __GNUC__
-    // using unsigned type here to work around a very noisy gcc warning
-    unsigned compiler_type_resolve_state : 2;
-#else
-    ResolveState compiler_type_resolve_state : 2;
-#endif
-    bool is_complete_objc_class : 1;
-  } m_flags;
+  ResolveState m_compiler_type_resolve_state;
+  /// Language-specific flags.
+  Payload m_payload;
 
   Type *GetEncodingType();
 
-  bool ResolveClangType(ResolveState compiler_type_resolve_state);
+  bool ResolveCompilerType(ResolveState compiler_type_resolve_state);
 };
 
 // the two classes here are used by the public API as a backend to the SBType
@@ -522,4 +512,4 @@ private:
 
 } // namespace lldb_private
 
-#endif // liblldb_Type_h_
+#endif // LLDB_SYMBOL_TYPE_H

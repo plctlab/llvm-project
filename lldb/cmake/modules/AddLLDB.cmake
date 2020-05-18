@@ -27,12 +27,6 @@ function(lldb_tablegen)
   endif()
 endfunction(lldb_tablegen)
 
-function(add_lldb_test_dependency)
-  foreach(dependency ${ARGN})
-    add_dependencies(lldb-test-deps ${dependency})
-  endforeach()
-endfunction(add_lldb_test_dependency)
-
 function(add_lldb_library name)
   include_directories(BEFORE
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -41,7 +35,7 @@ function(add_lldb_library name)
   # only supported parameters to this macro are the optional
   # MODULE;SHARED;STATIC library type and source files
   cmake_parse_arguments(PARAM
-    "MODULE;SHARED;STATIC;OBJECT;PLUGIN"
+    "MODULE;SHARED;STATIC;OBJECT;PLUGIN;FRAMEWORK"
     "INSTALL_PREFIX;ENTITLEMENTS"
     "EXTRA_CXXFLAGS;DEPENDS;LINK_LIBS;LINK_COMPONENTS;CLANG_LIBS"
     ${ARGN})
@@ -105,6 +99,13 @@ function(add_lldb_library name)
     endif()
   endif()
 
+  # A target cannot be changed to a FRAMEWORK after calling install() because
+  # this may result in the wrong install DESTINATION. The FRAMEWORK property
+  # must be set earlier.
+  if(PARAM_FRAMEWORK)
+    set_target_properties(liblldb PROPERTIES FRAMEWORK ON)
+  endif()
+
   if(PARAM_SHARED)
     set(install_dest lib${LLVM_LIBDIR_SUFFIX})
     if(PARAM_INSTALL_PREFIX)
@@ -148,7 +149,7 @@ function(add_lldb_executable name)
   cmake_parse_arguments(ARG
     "GENERATE_INSTALL"
     "INSTALL_PREFIX;ENTITLEMENTS"
-    "LINK_LIBS;CLANG_LIBS;LINK_COMPONENTS"
+    "LINK_LIBS;CLANG_LIBS;LINK_COMPONENTS;BUILD_RPATH;INSTALL_RPATH"
     ${ARGN}
     )
 
@@ -175,13 +176,26 @@ function(add_lldb_executable name)
   endif()
   set_target_properties(${name} PROPERTIES FOLDER "lldb executables")
 
+  if (ARG_BUILD_RPATH)
+    set_target_properties(${name} PROPERTIES BUILD_RPATH "${ARG_BUILD_RPATH}")
+  endif()
+
+  if (ARG_INSTALL_RPATH)
+    set_target_properties(${name} PROPERTIES
+      BUILD_WITH_INSTALL_RPATH OFF
+      INSTALL_RPATH "${ARG_INSTALL_RPATH}")
+  endif()
+
   if(ARG_GENERATE_INSTALL)
     set(install_dest bin)
     if(ARG_INSTALL_PREFIX)
       set(install_dest ${ARG_INSTALL_PREFIX})
     endif()
     install(TARGETS ${name} COMPONENT ${name}
-            RUNTIME DESTINATION ${install_dest})
+            RUNTIME DESTINATION ${install_dest}
+            LIBRARY DESTINATION ${install_dest}
+            BUNDLE DESTINATION ${install_dest}
+            FRAMEWORK DESTINATION ${install_dest})
     if (NOT CMAKE_CONFIGURATION_TYPES)
       add_llvm_install_targets(install-${name}
                                DEPENDS ${name}
@@ -220,8 +234,7 @@ endfunction()
 function(lldb_add_to_buildtree_lldb_framework name subdir)
   # Destination for the copy in the build-tree. While the framework target may
   # not exist yet, it will exist when the generator expression gets expanded.
-  get_target_property(framework_build_dir liblldb LIBRARY_OUTPUT_DIRECTORY)
-  set(copy_dest "${framework_build_dir}/${subdir}/$<TARGET_FILE_NAME:${name}>")
+  set(copy_dest "${LLDB_FRAMEWORK_ABSOLUTE_BUILD_DIR}/${subdir}/$<TARGET_FILE_NAME:${name}>")
 
   # Copy into the given subdirectory for testing.
   add_custom_command(TARGET ${name} POST_BUILD
@@ -277,13 +290,15 @@ function(lldb_add_post_install_steps_darwin name install_prefix)
   install(CODE "execute_process(COMMAND xcrun dsymutil -o=${dsym_name} ${buildtree_name})"
           COMPONENT ${name})
 
-  # Strip distribution binary with -ST (removing debug symbol table entries and
-  # Swift symbols). Avoid CMAKE_INSTALL_DO_STRIP and llvm_externalize_debuginfo()
-  # as they can't be configured sufficiently.
-  set(installtree_name "\$ENV\{DESTDIR\}${install_prefix}/${bundle_subdir}${output_name}")
-  install(CODE "message(STATUS \"Stripping: ${installtree_name}\")" COMPONENT ${name})
-  install(CODE "execute_process(COMMAND xcrun strip -ST ${installtree_name})"
-          COMPONENT ${name})
+  if(NOT LLDB_SKIP_STRIP)
+    # Strip distribution binary with -ST (removing debug symbol table entries and
+    # Swift symbols). Avoid CMAKE_INSTALL_DO_STRIP and llvm_externalize_debuginfo()
+    # as they can't be configured sufficiently.
+    set(installtree_name "\$ENV\{DESTDIR\}${install_prefix}/${bundle_subdir}${output_name}")
+    install(CODE "message(STATUS \"Stripping: ${installtree_name}\")" COMPONENT ${name})
+    install(CODE "execute_process(COMMAND xcrun strip -ST ${installtree_name})"
+            COMPONENT ${name})
+  endif()
 endfunction()
 
 # CMake's set_target_properties() doesn't allow to pass lists for RPATH
@@ -321,3 +336,17 @@ function(lldb_find_system_debugserver path)
     endif()
   endif()
 endfunction()
+
+# Removes all module flags from the current CMAKE_CXX_FLAGS. Used for
+# the Objective-C++ code in lldb which we don't want to build with modules.
+# Reasons for this are that modules with Objective-C++ would require that
+# all LLVM/Clang modules are Objective-C++ compatible (which they are likely
+# not) and we would have rebuild a second set of modules just for the few
+# Objective-C++ files in lldb (which slows down the build process).
+macro(remove_module_flags)
+  string(REGEX REPLACE "-fmodules-cache-path=[^ ]+" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REGEX REPLACE "-fmodules-local-submodule-visibility" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REGEX REPLACE "-fmodules" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REGEX REPLACE "-gmodules" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REGEX REPLACE "-fcxx-modules" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endmacro()

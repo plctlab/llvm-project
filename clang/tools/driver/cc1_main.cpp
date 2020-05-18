@@ -36,6 +36,7 @@
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/Path.h"
+#include "llvm/Support/Process.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/TargetSelect.h"
@@ -69,14 +70,8 @@ static void LLVMErrorHandler(void *UserData, const std::string &Message,
   // We cannot recover from llvm errors.  When reporting a fatal error, exit
   // with status 70 to generate crash diagnostics.  For BSD systems this is
   // defined as an internal software error.  Otherwise, exit with status 1.
-  exit(GenCrashDiag ? 70 : 1);
+  llvm::sys::Process::Exit(GenCrashDiag ? 70 : 1);
 }
-
-#ifdef LINK_POLLY_INTO_TOOLS
-namespace polly {
-void initializePollyPasses(llvm::PassRegistry &Registry);
-}
-#endif
 
 #ifdef CLANG_HAVE_RLIMITS
 #if defined(__linux__) && defined(__PIE__)
@@ -182,7 +177,7 @@ static int PrintSupportedCPUs(std::string TargetStr) {
   // the target machine will handle the mcpu printing
   llvm::TargetOptions Options;
   std::unique_ptr<llvm::TargetMachine> TheTargetMachine(
-      TheTarget->createTargetMachine(TargetStr, "", "+cpuHelp", Options, None));
+      TheTarget->createTargetMachine(TargetStr, "", "+cpuhelp", Options, None));
   return 0;
 }
 
@@ -203,11 +198,6 @@ int cc1_main(ArrayRef<const char *> Argv, const char *Argv0, void *MainAddr) {
   llvm::InitializeAllAsmPrinters();
   llvm::InitializeAllAsmParsers();
 
-#ifdef LINK_POLLY_INTO_TOOLS
-  llvm::PassRegistry &Registry = *llvm::PassRegistry::getPassRegistry();
-  polly::initializePollyPasses(Registry);
-#endif
-
   // Buffer diagnostics from argument parsing so that we can output them using a
   // well formed diagnostic object.
   IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
@@ -218,7 +208,7 @@ int cc1_main(ArrayRef<const char *> Argv, const char *Argv0, void *MainAddr) {
 
   if (Clang->getFrontendOpts().TimeTrace) {
     llvm::timeTraceProfilerInitialize(
-        Clang->getFrontendOpts().TimeTraceGranularity);
+        Clang->getFrontendOpts().TimeTraceGranularity, Argv0);
   }
   // --print-supported-cpus takes priority over the actual compilation.
   if (Clang->getFrontendOpts().PrintSupportedCPUs)
@@ -246,7 +236,7 @@ int cc1_main(ArrayRef<const char *> Argv, const char *Argv0, void *MainAddr) {
 
   // Execute the frontend actions.
   {
-    llvm::TimeTraceScope TimeScope("ExecuteCompiler", StringRef(""));
+    llvm::TimeTraceScope TimeScope("ExecuteCompiler");
     Success = ExecuteCompilerInvocation(Clang.get());
   }
 
@@ -269,8 +259,7 @@ int cc1_main(ArrayRef<const char *> Argv, const char *Argv0, void *MainAddr) {
       // FIXME(ibiryukov): make profilerOutput flush in destructor instead.
       profilerOutput->flush();
       llvm::timeTraceProfilerCleanup();
-
-      llvm::errs() << "Time trace json-file dumped to " << Path.str() << "\n";
+      Clang->clearOutputFiles(false);
     }
   }
 

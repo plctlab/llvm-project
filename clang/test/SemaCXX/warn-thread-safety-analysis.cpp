@@ -3051,6 +3051,20 @@ void Foo::test() {
   int b = a;  // expected-warning {{reading variable 'a' requires holding mutex 'getMutexPtr()'}}
 }
 
+#ifdef __cpp_guaranteed_copy_elision
+
+void guaranteed_copy_elision() {
+  MutexLock lock = MutexLock{&sls_mu};
+  sls_guard_var = 0;
+}
+
+void guaranteed_copy_elision_const() {
+  const MutexLock lock = MutexLock{&sls_mu};
+  sls_guard_var = 0;
+}
+
+#endif
+
 } // end namespace TemporaryCleanupExpr
 
 
@@ -5633,6 +5647,22 @@ namespace ReturnScopedLockable {
   int use() {
     auto ptr = get();
     return ptr->f();
+  }
+  void use_constructor() {
+    auto ptr = ReadLockedPtr<Object>(nullptr);
+    ptr->f();
+    auto ptr2 = ReadLockedPtr<Object>{nullptr};
+    ptr2->f();
+    auto ptr3 = (ReadLockedPtr<Object>{nullptr});
+    ptr3->f();
+  }
+  struct Convertible {
+    Convertible();
+    operator ReadLockedPtr<Object>();
+  };
+  void use_conversion() {
+    ReadLockedPtr<Object> ptr = Convertible();
+    ptr->f();
   }
 }
 

@@ -21,6 +21,7 @@ clang_target_link_libraries(clangd
   clangBasic
   clangFormat
   clangFrontend
+  clangLex
   clangSema
   clangTooling
   clangToolingCore
@@ -31,5 +32,6 @@ target_link_libraries(clangd
   PRIVATE
   clangTidy
   clangDaemon
+  clangdSupport
   ${CLANGD_XPC_LIBS}
   )

@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_DynamicLoaderDarwin_h_
-#define liblldb_DynamicLoaderDarwin_h_
+#ifndef LLDB_SOURCE_PLUGINS_DYNAMICLOADER_MACOSX_DYLD_DYNAMICLOADERDARWIN_H
+#define LLDB_SOURCE_PLUGINS_DYNAMICLOADER_MACOSX_DYLD_DYNAMICLOADERDARWIN_H
 
 #include <map>
 #include <mutex>
@@ -41,7 +41,7 @@ public:
   lldb::ThreadPlanSP GetStepThroughTrampolinePlan(lldb_private::Thread &thread,
                                                   bool stop_others) override;
 
-  size_t FindEquivalentSymbols(
+  void FindEquivalentSymbols(
       lldb_private::Symbol *original_symbol,
       lldb_private::ModuleList &module_list,
       lldb_private::SymbolContextList &equivalent_symbols) override;
@@ -243,4 +243,4 @@ private:
 
 } // namespace lldb_private
 
-#endif // liblldb_DynamicLoaderDarwin_h_
+#endif // LLDB_SOURCE_PLUGINS_DYNAMICLOADER_MACOSX_DYLD_DYNAMICLOADERDARWIN_H

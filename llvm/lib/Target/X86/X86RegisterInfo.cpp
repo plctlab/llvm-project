@@ -72,12 +72,6 @@ X86RegisterInfo::X86RegisterInfo(const Triple &TT)
   }
 }
 
-bool
-X86RegisterInfo::trackLivenessAfterRegAlloc(const MachineFunction &MF) const {
-  // ExecutionDomainFix, BreakFalseDeps and PostRAScheduler require liveness.
-  return true;
-}
-
 int
 X86RegisterInfo::getSEHRegNum(unsigned i) const {
   return getEncodingValue(i);
@@ -341,6 +335,10 @@ X86RegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
       return (HasSSE ? CSR_32_RegCall_SaveList :
                        CSR_32_RegCall_NoSSE_SaveList);
     }
+  case CallingConv::CFGuard_Check:
+    assert(!Is64Bit && "CFGuard check mechanism only used on 32-bit X86");
+    return (HasSSE ? CSR_Win32_CFGuard_Check_SaveList
+                   : CSR_Win32_CFGuard_Check_NoSSE_SaveList);
   case CallingConv::Cold:
     if (Is64Bit)
       return CSR_64_MostRegs_SaveList;
@@ -455,6 +453,10 @@ X86RegisterInfo::getCallPreservedMask(const MachineFunction &MF,
       return (HasSSE ? CSR_32_RegCall_RegMask :
                        CSR_32_RegCall_NoSSE_RegMask);
     }
+  case CallingConv::CFGuard_Check:
+    assert(!Is64Bit && "CFGuard check mechanism only used on 32-bit X86");
+    return (HasSSE ? CSR_Win32_CFGuard_Check_RegMask
+                   : CSR_Win32_CFGuard_Check_NoSSE_RegMask);
   case CallingConv::Cold:
     if (Is64Bit)
       return CSR_64_MostRegs_RegMask;
@@ -515,24 +517,27 @@ BitVector X86RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   // Set the floating point control register as reserved.
   Reserved.set(X86::FPCW);
 
+  // Set the floating point status register as reserved.
+  Reserved.set(X86::FPSW);
+
+  // Set the SIMD floating point control register as reserved.
+  Reserved.set(X86::MXCSR);
+
   // Set the stack-pointer register and its aliases as reserved.
-  for (MCSubRegIterator I(X86::RSP, this, /*IncludeSelf=*/true); I.isValid();
-       ++I)
-    Reserved.set(*I);
+  for (const MCPhysReg &SubReg : subregs_inclusive(X86::RSP))
+    Reserved.set(SubReg);
 
   // Set the Shadow Stack Pointer as reserved.
   Reserved.set(X86::SSP);
 
   // Set the instruction pointer register and its aliases as reserved.
-  for (MCSubRegIterator I(X86::RIP, this, /*IncludeSelf=*/true); I.isValid();
-       ++I)
-    Reserved.set(*I);
+  for (const MCPhysReg &SubReg : subregs_inclusive(X86::RIP))
+    Reserved.set(SubReg);
 
   // Set the frame-pointer register and its aliases as reserved if needed.
   if (TFI->hasFP(MF)) {
-    for (MCSubRegIterator I(X86::RBP, this, /*IncludeSelf=*/true); I.isValid();
-         ++I)
-      Reserved.set(*I);
+    for (const MCPhysReg &SubReg : subregs_inclusive(X86::RBP))
+      Reserved.set(SubReg);
   }
 
   // Set the base-pointer register and its aliases as reserved if needed.
@@ -545,9 +550,8 @@ BitVector X86RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
         "this calling convention.");
 
     Register BasePtr = getX86SubSuperRegister(getBaseRegister(), 64);
-    for (MCSubRegIterator I(BasePtr, this, /*IncludeSelf=*/true);
-         I.isValid(); ++I)
-      Reserved.set(*I);
+    for (const MCPhysReg &SubReg : subregs_inclusive(BasePtr))
+      Reserved.set(SubReg);
   }
 
   // Mark the segment registers as reserved.
@@ -657,7 +661,7 @@ bool X86RegisterInfo::canRealignStack(const MachineFunction &MF) const {
 }
 
 bool X86RegisterInfo::hasReservedSpillSlot(const MachineFunction &MF,
-                                           unsigned Reg, int &FrameIdx) const {
+                                           Register Reg, int &FrameIdx) const {
   // Since X86 defines assignCalleeSavedSpillSlots which always return true
   // this function neither used nor tested.
   llvm_unreachable("Unused function on X86. Otherwise need a test case.");
@@ -718,7 +722,7 @@ X86RegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   // Determine base register and offset.
   int FIOffset;
-  unsigned BasePtr;
+  Register BasePtr;
   if (MI.isReturn()) {
     assert((!needsStackRealignment(MF) ||
            MF.getFrameInfo().isFixedObjectIndex(FrameIndex)) &&

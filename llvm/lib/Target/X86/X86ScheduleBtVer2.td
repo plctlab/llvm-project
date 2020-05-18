@@ -501,14 +501,14 @@ defm : X86WriteRes<WriteFLD0,          [JFPU1, JSTC], 3, [1,1], 1>;
 defm : X86WriteRes<WriteFLD1,          [JFPU1, JSTC], 3, [1,1], 1>;
 defm : X86WriteRes<WriteFLDC,          [JFPU1, JSTC], 3, [1,1], 1>;
 defm : X86WriteRes<WriteFLoad,         [JLAGU, JFPU01, JFPX], 5, [1, 1, 1], 1>;
-defm : X86WriteRes<WriteFLoadX,        [JLAGU, JFPU01, JFPX], 5, [1, 1, 1], 1>;
-defm : X86WriteRes<WriteFLoadY,        [JLAGU, JFPU01, JFPX], 5, [1, 1, 1], 1>;
+defm : X86WriteRes<WriteFLoadX,        [JLAGU], 5, [1], 1>;
+defm : X86WriteRes<WriteFLoadY,        [JLAGU], 5, [2], 2>;
 defm : X86WriteRes<WriteFMaskedLoad,   [JLAGU, JFPU01, JFPX], 6, [1, 2, 2], 1>;
 defm : X86WriteRes<WriteFMaskedLoadY,  [JLAGU, JFPU01, JFPX], 6, [2, 4, 4], 2>;
 
 defm : X86WriteRes<WriteFStore,        [JSAGU, JFPU1,  JSTC], 2, [1, 1, 1], 1>;
 defm : X86WriteRes<WriteFStoreX,       [JSAGU, JFPU1,  JSTC], 1, [1, 1, 1], 1>;
-defm : X86WriteRes<WriteFStoreY,       [JSAGU, JFPU1,  JSTC], 1, [1, 1, 1], 1>;
+defm : X86WriteRes<WriteFStoreY,       [JSAGU, JFPU1,  JSTC], 1, [2, 2, 2], 2>;
 defm : X86WriteRes<WriteFStoreNT,      [JSAGU, JFPU1,  JSTC], 3, [1, 1, 1], 1>;
 defm : X86WriteRes<WriteFStoreNTX,     [JSAGU, JFPU1,  JSTC], 3, [1, 1, 1], 1>;
 defm : X86WriteRes<WriteFStoreNTY,     [JSAGU, JFPU1,  JSTC], 3, [2, 2, 2], 1>;
@@ -541,6 +541,7 @@ defm : JWriteResFpuPair<WriteFCmp64X,      [JFPU0, JFPA],  2>;
 defm : JWriteResYMMPair<WriteFCmp64Y,      [JFPU0, JFPA],  2, [2,2], 2>;
 defm : X86WriteResPairUnsupported<WriteFCmp64Z>;
 defm : JWriteResFpuPair<WriteFCom,  [JFPU0, JFPA, JALU0],  3>;
+defm : JWriteResFpuPair<WriteFComX, [JFPU0, JFPA, JALU0],  3>;
 defm : JWriteResFpuPair<WriteFMul,         [JFPU1, JFPM],  2>;
 defm : JWriteResFpuPair<WriteFMulX,        [JFPU1, JFPM],  2>;
 defm : JWriteResYMMPair<WriteFMulY,        [JFPU1, JFPM],  2, [2,2], 2>;
@@ -657,8 +658,8 @@ defm : X86WriteResUnsupported<WriteCvtPS2PHZSt>;
 ////////////////////////////////////////////////////////////////////////////////
 
 defm : X86WriteRes<WriteVecLoad,          [JLAGU, JFPU01, JVALU], 5, [1, 1, 1], 1>;
-defm : X86WriteRes<WriteVecLoadX,         [JLAGU, JFPU01, JVALU], 5, [1, 1, 1], 1>;
-defm : X86WriteRes<WriteVecLoadY,         [JLAGU, JFPU01, JVALU], 5, [1, 1, 1], 1>;
+defm : X86WriteRes<WriteVecLoadX,         [JLAGU], 5, [1], 1>;
+defm : X86WriteRes<WriteVecLoadY,         [JLAGU], 5, [2], 2>;
 defm : X86WriteRes<WriteVecLoadNT,        [JLAGU, JFPU01, JVALU], 5, [1, 1, 1], 1>;
 defm : X86WriteRes<WriteVecLoadNTY,       [JLAGU, JFPU01, JVALU], 5, [1, 1, 1], 1>;
 defm : X86WriteRes<WriteVecMaskedLoad,    [JLAGU, JFPU01, JVALU], 6, [1, 2, 2], 1>;
@@ -666,7 +667,7 @@ defm : X86WriteRes<WriteVecMaskedLoadY,   [JLAGU, JFPU01, JVALU], 6, [2, 4, 4], 
 
 defm : X86WriteRes<WriteVecStore,         [JSAGU, JFPU1,   JSTC], 2, [1, 1, 1], 1>;
 defm : X86WriteRes<WriteVecStoreX,        [JSAGU, JFPU1,   JSTC], 1, [1, 1, 1], 1>;
-defm : X86WriteRes<WriteVecStoreY,        [JSAGU, JFPU1,   JSTC], 1, [1, 1, 1], 1>;
+defm : X86WriteRes<WriteVecStoreY,        [JSAGU, JFPU1,   JSTC], 1, [2, 2, 2], 2>;
 defm : X86WriteRes<WriteVecStoreNT,       [JSAGU, JFPU1,   JSTC], 2, [1, 1, 1], 1>;
 defm : X86WriteRes<WriteVecStoreNTY,      [JSAGU, JFPU1,   JSTC], 2, [2, 2, 2], 1>;
 defm : X86WriteRes<WriteVecMaskedStore,   [JSAGU, JFPU01, JVALU], 6, [1, 1, 4], 1>;

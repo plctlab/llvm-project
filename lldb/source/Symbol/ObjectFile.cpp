@@ -1,4 +1,4 @@
-//===-- ObjectFile.cpp ------------------------------------------*- C++ -*-===//
+//===-- ObjectFile.cpp ----------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -11,6 +11,7 @@
 #include "lldb/Core/ModuleSpec.h"
 #include "lldb/Core/PluginManager.h"
 #include "lldb/Core/Section.h"
+#include "lldb/Symbol/CallFrameInfo.h"
 #include "lldb/Symbol/ObjectContainer.h"
 #include "lldb/Symbol/SymbolFile.h"
 #include "lldb/Target/Process.h"
@@ -351,7 +352,9 @@ AddressClass ObjectFile::GetAddressClass(addr_t file_addr) {
           case eSectionTypeDWARFDebugLine:
           case eSectionTypeDWARFDebugLineStr:
           case eSectionTypeDWARFDebugLoc:
+          case eSectionTypeDWARFDebugLocDwo:
           case eSectionTypeDWARFDebugLocLists:
+          case eSectionTypeDWARFDebugLocListsDwo:
           case eSectionTypeDWARFDebugMacInfo:
           case eSectionTypeDWARFDebugMacro:
           case eSectionTypeDWARFDebugNames:
@@ -359,10 +362,12 @@ AddressClass ObjectFile::GetAddressClass(addr_t file_addr) {
           case eSectionTypeDWARFDebugPubTypes:
           case eSectionTypeDWARFDebugRanges:
           case eSectionTypeDWARFDebugRngLists:
+          case eSectionTypeDWARFDebugRngListsDwo:
           case eSectionTypeDWARFDebugStr:
           case eSectionTypeDWARFDebugStrDwo:
           case eSectionTypeDWARFDebugStrOffsets:
           case eSectionTypeDWARFDebugStrOffsetsDwo:
+          case eSectionTypeDWARFDebugTuIndex:
           case eSectionTypeDWARFDebugTypes:
           case eSectionTypeDWARFDebugTypesDwo:
           case eSectionTypeDWARFAppleNames:
@@ -668,6 +673,10 @@ ObjectFile::GetLoadableData(Target &target) {
     loadables.push_back(loadable);
   }
   return loadables;
+}
+
+std::unique_ptr<CallFrameInfo> ObjectFile::CreateCallFrameInfo() {
+  return {};
 }
 
 void ObjectFile::RelocateSection(lldb_private::Section *section)

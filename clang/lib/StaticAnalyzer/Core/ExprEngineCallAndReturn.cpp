@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "clang/AST/Decl.h"
 #include "clang/StaticAnalyzer/Core/PathSensitive/ExprEngine.h"
 #include "PrettyStackTraceLocationContext.h"
 #include "clang/AST/CXXInheritance.h"
@@ -592,9 +593,45 @@ void ExprEngine::evalCall(ExplodedNodeSet &Dst, ExplodedNode *Pred,
   for (auto I : dstCallEvaluated)
     finishArgumentConstruction(dstArgumentCleanup, I, Call);
 
-  // Finally, run any post-call checks.
-  getCheckerManager().runCheckersForPostCall(Dst, dstArgumentCleanup,
+  ExplodedNodeSet dstPostCall;
+  getCheckerManager().runCheckersForPostCall(dstPostCall, dstArgumentCleanup,
                                              Call, *this);
+
+  // Escaping symbols conjured during invalidating the regions above.
+  // Note that, for inlined calls the nodes were put back into the worklist,
+  // so we can assume that every node belongs to a conservative call at this
+  // point.
+
+  // Run pointerEscape callback with the newly conjured symbols.
+  SmallVector<std::pair<SVal, SVal>, 8> Escaped;
+  for (auto I : dstPostCall) {
+    NodeBuilder B(I, Dst, *currBldrCtx);
+    ProgramStateRef State = I->getState();
+    Escaped.clear();
+    {
+      unsigned Arg = -1;
+      for (const ParmVarDecl *PVD : Call.parameters()) {
+        ++Arg;
+        QualType ParamTy = PVD->getType();
+        if (ParamTy.isNull() ||
+            (!ParamTy->isPointerType() && !ParamTy->isReferenceType()))
+          continue;
+        QualType Pointee = ParamTy->getPointeeType();
+        if (Pointee.isConstQualified() || Pointee->isVoidType())
+          continue;
+        if (const MemRegion *MR = Call.getArgSVal(Arg).getAsRegion())
+          Escaped.emplace_back(loc::MemRegionVal(MR), State->getSVal(MR, Pointee));
+      }
+    }
+
+    State = processPointerEscapedOnBind(State, Escaped, I->getLocationContext(),
+                                        PSK_EscapeOutParameters, &Call);
+
+    if (State == I->getState())
+      Dst.insert(I);
+    else
+      B.generateNode(I->getLocation(), State, I);
+  }
 }
 
 ProgramStateRef ExprEngine::bindReturnValue(const CallEvent &Call,
@@ -631,8 +668,8 @@ ProgramStateRef ExprEngine::bindReturnValue(const CallEvent &Call,
     assert(RTC->getStmt() == Call.getOriginExpr());
     EvalCallOptions CallOpts; // FIXME: We won't really need those.
     std::tie(State, Target) =
-        prepareForObjectConstruction(Call.getOriginExpr(), State, LCtx,
-                                     RTC->getConstructionContext(), CallOpts);
+        handleConstructionContext(Call.getOriginExpr(), State, LCtx,
+                                  RTC->getConstructionContext(), CallOpts);
     const MemRegion *TargetR = Target.getAsRegion();
     assert(TargetR);
     // Invalidate the region so that it didn't look uninitialized. If this is
@@ -670,8 +707,7 @@ ProgramStateRef ExprEngine::bindReturnValue(const CallEvent &Call,
 // Conservatively evaluate call by invalidating regions and binding
 // a conjured return value.
 void ExprEngine::conservativeEvalCall(const CallEvent &Call, NodeBuilder &Bldr,
-                                      ExplodedNode *Pred,
-                                      ProgramStateRef State) {
+                                      ExplodedNode *Pred, ProgramStateRef State) {
   State = Call.invalidateRegions(currBldrCtx->blockCount(), State);
   State = bindReturnValue(Call, Pred->getLocationContext(), State);
 
@@ -752,6 +788,11 @@ ExprEngine::mayInlineCallKind(const CallEvent &Call, const ExplodedNode *Pred,
     }
 
     break;
+  }
+  case CE_CXXInheritedConstructor: {
+    // This doesn't really increase the cost of inlining ever, because
+    // the stack frame of the inherited constructor is trivial.
+    return CIP_Allowed;
   }
   case CE_CXXDestructor: {
     if (!Opts.mayInlineCXXMemberFunction(CIMK_Destructors))

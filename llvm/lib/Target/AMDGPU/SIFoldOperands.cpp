@@ -14,7 +14,7 @@
 #include "SIMachineFunctionInfo.h"
 #include "MCTargetDesc/AMDGPUMCTargetDesc.h"
 #include "llvm/ADT/DepthFirstIterator.h"
-#include "llvm/CodeGen/LiveIntervals.h"
+#include "llvm/ADT/SetVector.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
@@ -239,9 +239,11 @@ static bool updateOperand(FoldCandidate &Fold,
 
   if ((Fold.isImm() || Fold.isFI() || Fold.isGlobal()) && Fold.needsShrink()) {
     MachineBasicBlock *MBB = MI->getParent();
-    auto Liveness = MBB->computeRegisterLiveness(&TRI, AMDGPU::VCC, MI);
-    if (Liveness != MachineBasicBlock::LQR_Dead)
+    auto Liveness = MBB->computeRegisterLiveness(&TRI, AMDGPU::VCC, MI, 16);
+    if (Liveness != MachineBasicBlock::LQR_Dead) {
+      LLVM_DEBUG(dbgs() << "Not shrinking " << MI << " due to vcc liveness\n");
       return false;
+    }
 
     MachineRegisterInfo &MRI = MBB->getParent()->getRegInfo();
     int Op32 = Fold.getShrinkOpcode();
@@ -310,6 +312,19 @@ static bool isUseMIInFoldList(ArrayRef<FoldCandidate> FoldList,
   return false;
 }
 
+static void appendFoldCandidate(SmallVectorImpl<FoldCandidate> &FoldList,
+                                MachineInstr *MI, unsigned OpNo,
+                                MachineOperand *FoldOp, bool Commuted = false,
+                                int ShrinkOp = -1) {
+  // Skip additional folding on the same operand.
+  for (FoldCandidate &Fold : FoldList)
+    if (Fold.UseMI == MI && Fold.UseOpNo == OpNo)
+      return;
+  LLVM_DEBUG(dbgs() << "Append " << (Commuted ? "commuted" : "normal")
+                    << " operand " << OpNo << "\n  " << *MI << '\n');
+  FoldList.push_back(FoldCandidate(MI, OpNo, FoldOp, Commuted, ShrinkOp));
+}
+
 static bool tryAddToFoldList(SmallVectorImpl<FoldCandidate> &FoldList,
                              MachineInstr *MI, unsigned OpNo,
                              MachineOperand *OpToFold,
@@ -342,7 +357,7 @@ static bool tryAddToFoldList(SmallVectorImpl<FoldCandidate> &FoldList,
     // Special case for s_setreg_b32
     if (Opc == AMDGPU::S_SETREG_B32 && OpToFold->isImm()) {
       MI->setDesc(TII->get(AMDGPU::S_SETREG_IMM32_B32));
-      FoldList.push_back(FoldCandidate(MI, OpNo, OpToFold));
+      appendFoldCandidate(FoldList, MI, OpNo, OpToFold);
       return true;
     }
 
@@ -401,8 +416,7 @@ static bool tryAddToFoldList(SmallVectorImpl<FoldCandidate> &FoldList,
         unsigned MaybeCommutedOpc = MI->getOpcode();
         int Op32 = AMDGPU::getVOPe32(MaybeCommutedOpc);
 
-        FoldList.push_back(FoldCandidate(MI, CommuteOpNo, OpToFold, true,
-                                         Op32));
+        appendFoldCandidate(FoldList, MI, CommuteOpNo, OpToFold, true, Op32);
         return true;
       }
 
@@ -410,11 +424,34 @@ static bool tryAddToFoldList(SmallVectorImpl<FoldCandidate> &FoldList,
       return false;
     }
 
-    FoldList.push_back(FoldCandidate(MI, CommuteOpNo, OpToFold, true));
+    appendFoldCandidate(FoldList, MI, CommuteOpNo, OpToFold, true);
     return true;
   }
 
-  FoldList.push_back(FoldCandidate(MI, OpNo, OpToFold));
+  // Check the case where we might introduce a second constant operand to a
+  // scalar instruction
+  if (TII->isSALU(MI->getOpcode())) {
+    const MCInstrDesc &InstDesc = MI->getDesc();
+    const MCOperandInfo &OpInfo = InstDesc.OpInfo[OpNo];
+    const SIRegisterInfo &SRI = TII->getRegisterInfo();
+
+    // Fine if the operand can be encoded as an inline constant
+    if (OpToFold->isImm()) {
+      if (!SRI.opCanUseInlineConstant(OpInfo.OperandType) ||
+          !TII->isInlineConstant(*OpToFold, OpInfo)) {
+        // Otherwise check for another constant
+        for (unsigned i = 0, e = InstDesc.getNumOperands(); i != e; ++i) {
+          auto &Op = MI->getOperand(i);
+          if (OpNo != i &&
+              TII->isLiteralConstantLike(Op, OpInfo)) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+
+  appendFoldCandidate(FoldList, MI, OpNo, OpToFold);
   return true;
 }
 
@@ -425,6 +462,42 @@ static bool isUseSafeToFold(const SIInstrInfo *TII,
                             const MachineOperand &UseMO) {
   return !UseMO.isUndef() && !TII->isSDWA(MI);
   //return !MI.hasRegisterImplicitUseOperand(UseMO.getReg());
+}
+
+// Find a def of the UseReg, check if it is a reg_seqence and find initializers
+// for each subreg, tracking it to foldable inline immediate if possible.
+// Returns true on success.
+static bool getRegSeqInit(
+    SmallVectorImpl<std::pair<MachineOperand*, unsigned>> &Defs,
+    Register UseReg, uint8_t OpTy,
+    const SIInstrInfo *TII, const MachineRegisterInfo &MRI) {
+  MachineInstr *Def = MRI.getUniqueVRegDef(UseReg);
+  if (!Def || !Def->isRegSequence())
+    return false;
+
+  for (unsigned I = 1, E = Def->getNumExplicitOperands(); I < E; I += 2) {
+    MachineOperand *Sub = &Def->getOperand(I);
+    assert (Sub->isReg());
+
+    for (MachineInstr *SubDef = MRI.getUniqueVRegDef(Sub->getReg());
+         SubDef && Sub->isReg() && !Sub->getSubReg() &&
+         TII->isFoldableCopy(*SubDef);
+         SubDef = MRI.getUniqueVRegDef(Sub->getReg())) {
+      MachineOperand *Op = &SubDef->getOperand(1);
+      if (Op->isImm()) {
+        if (TII->isInlineConstant(*Op, OpTy))
+          Sub = Op;
+        break;
+      }
+      if (!Op->isReg())
+        break;
+      Sub = Op;
+    }
+
+    Defs.push_back(std::make_pair(Sub, Def->getOperand(I + 1).getImm()));
+  }
+
+  return true;
 }
 
 static bool tryToFoldACImm(const SIInstrInfo *TII,
@@ -460,39 +533,30 @@ static bool tryToFoldACImm(const SIInstrInfo *TII,
     return false;
 
   MachineRegisterInfo &MRI = UseMI->getParent()->getParent()->getRegInfo();
-  const MachineInstr *Def = MRI.getUniqueVRegDef(UseReg);
-  if (!Def || !Def->isRegSequence())
+  SmallVector<std::pair<MachineOperand*, unsigned>, 32> Defs;
+  if (!getRegSeqInit(Defs, UseReg, OpTy, TII, MRI))
     return false;
 
-  int64_t Imm;
-  MachineOperand *Op;
-  for (unsigned I = 1, E = Def->getNumExplicitOperands(); I < E; I += 2) {
-    const MachineOperand &Sub = Def->getOperand(I);
-    if (!Sub.isReg() || Sub.getSubReg())
+  int32_t Imm;
+  for (unsigned I = 0, E = Defs.size(); I != E; ++I) {
+    const MachineOperand *Op = Defs[I].first;
+    if (!Op->isImm())
       return false;
-    MachineInstr *SubDef = MRI.getUniqueVRegDef(Sub.getReg());
-    while (SubDef && !SubDef->isMoveImmediate() &&
-           !SubDef->getOperand(1).isImm() && TII->isFoldableCopy(*SubDef))
-      SubDef = MRI.getUniqueVRegDef(SubDef->getOperand(1).getReg());
-    if (!SubDef || !SubDef->isMoveImmediate() || !SubDef->getOperand(1).isImm())
-      return false;
-    Op = &SubDef->getOperand(1);
+
     auto SubImm = Op->getImm();
-    if (I == 1) {
-      if (!TII->isInlineConstant(SubDef->getOperand(1), OpTy))
+    if (!I) {
+      Imm = SubImm;
+      if (!TII->isInlineConstant(*Op, OpTy) ||
+          !TII->isOperandLegal(*UseMI, UseOpIdx, Op))
         return false;
 
-      Imm = SubImm;
       continue;
     }
     if (Imm != SubImm)
       return false; // Can only fold splat constants
   }
 
-  if (!TII->isOperandLegal(*UseMI, UseOpIdx, Op))
-    return false;
-
-  FoldList.push_back(FoldCandidate(UseMI, UseOpIdx, Op));
+  appendFoldCandidate(FoldList, UseMI, UseOpIdx, Defs[0].first);
   return true;
 }
 
@@ -510,18 +574,6 @@ void SIFoldOperands::foldOperand(
   // FIXME: Fold operands with subregs.
   if (UseOp.isReg() && OpToFold.isReg()) {
     if (UseOp.isImplicit() || UseOp.getSubReg() != AMDGPU::NoSubRegister)
-      return;
-
-    // Don't fold subregister extracts into tied operands, only if it is a full
-    // copy since a subregister use tied to a full register def doesn't really
-    // make sense. e.g. don't fold:
-    //
-    // %1 = COPY %0:sub1
-    // %2<tied3> = V_MAC_{F16, F32} %3, %4, %1<tied0>
-    //
-    //  into
-    // %2<tied3> = V_MAC_{F16, F32} %3, %4, %0:sub1<tied0>
-    if (UseOp.isTied() && OpToFold.getSubReg() != AMDGPU::NoSubRegister)
       return;
   }
 
@@ -560,19 +612,26 @@ void SIFoldOperands::foldOperand(
   if (frameIndexMayFold(TII, *UseMI, UseOpIdx, OpToFold)) {
     // Sanity check that this is a stack access.
     // FIXME: Should probably use stack pseudos before frame lowering.
-    MachineOperand *SOff = TII->getNamedOperand(*UseMI, AMDGPU::OpName::soffset);
-    if (!SOff->isReg() || (SOff->getReg() != MFI->getScratchWaveOffsetReg() &&
-                           SOff->getReg() != MFI->getStackPtrOffsetReg()))
-      return;
 
     if (TII->getNamedOperand(*UseMI, AMDGPU::OpName::srsrc)->getReg() !=
         MFI->getScratchRSrcReg())
       return;
 
+    // Ensure this is either relative to the current frame or the current wave.
+    MachineOperand &SOff =
+        *TII->getNamedOperand(*UseMI, AMDGPU::OpName::soffset);
+    if ((!SOff.isReg() || SOff.getReg() != MFI->getStackPtrOffsetReg()) &&
+        (!SOff.isImm() || SOff.getImm() != 0))
+      return;
+
     // A frame index will resolve to a positive constant, so it should always be
     // safe to fold the addressing mode, even pre-GFX9.
     UseMI->getOperand(UseOpIdx).ChangeToFrameIndex(OpToFold.getIndex());
-    SOff->setReg(MFI->getStackPtrOffsetReg());
+
+    // If this is relative to the current wave, update it to be relative to the
+    // current frame.
+    if (SOff.isImm())
+      SOff.ChangeToRegister(MFI->getStackPtrOffsetReg(), false);
     return;
   }
 
@@ -637,16 +696,97 @@ void SIFoldOperands::foldOperand(
     CopiesToReplace.push_back(UseMI);
   } else {
     if (UseMI->isCopy() && OpToFold.isReg() &&
-        Register::isVirtualRegister(UseMI->getOperand(0).getReg()) &&
-        TRI->isVectorRegister(*MRI, UseMI->getOperand(0).getReg()) &&
-        TRI->isVectorRegister(*MRI, UseMI->getOperand(1).getReg()) &&
+        UseMI->getOperand(0).getReg().isVirtual() &&
         !UseMI->getOperand(1).getSubReg()) {
+      LLVM_DEBUG(dbgs() << "Folding " << OpToFold
+                        << "\n into " << *UseMI << '\n');
       unsigned Size = TII->getOpSize(*UseMI, 1);
-      UseMI->getOperand(1).setReg(OpToFold.getReg());
+      Register UseReg = OpToFold.getReg();
+      UseMI->getOperand(1).setReg(UseReg);
       UseMI->getOperand(1).setSubReg(OpToFold.getSubReg());
       UseMI->getOperand(1).setIsKill(false);
       CopiesToReplace.push_back(UseMI);
       OpToFold.setIsKill(false);
+
+      // That is very tricky to store a value into an AGPR. v_accvgpr_write_b32
+      // can only accept VGPR or inline immediate. Recreate a reg_sequence with
+      // its initializers right here, so we will rematerialize immediates and
+      // avoid copies via different reg classes.
+      SmallVector<std::pair<MachineOperand*, unsigned>, 32> Defs;
+      if (Size > 4 && TRI->isAGPR(*MRI, UseMI->getOperand(0).getReg()) &&
+          getRegSeqInit(Defs, UseReg, AMDGPU::OPERAND_REG_INLINE_C_INT32, TII,
+                        *MRI)) {
+        const DebugLoc &DL = UseMI->getDebugLoc();
+        MachineBasicBlock &MBB = *UseMI->getParent();
+
+        UseMI->setDesc(TII->get(AMDGPU::REG_SEQUENCE));
+        for (unsigned I = UseMI->getNumOperands() - 1; I > 0; --I)
+          UseMI->RemoveOperand(I);
+
+        MachineInstrBuilder B(*MBB.getParent(), UseMI);
+        DenseMap<TargetInstrInfo::RegSubRegPair, Register> VGPRCopies;
+        SmallSetVector<TargetInstrInfo::RegSubRegPair, 32> SeenAGPRs;
+        for (unsigned I = 0; I < Size / 4; ++I) {
+          MachineOperand *Def = Defs[I].first;
+          TargetInstrInfo::RegSubRegPair CopyToVGPR;
+          if (Def->isImm() &&
+              TII->isInlineConstant(*Def, AMDGPU::OPERAND_REG_INLINE_C_INT32)) {
+            int64_t Imm = Def->getImm();
+
+            auto Tmp = MRI->createVirtualRegister(&AMDGPU::AGPR_32RegClass);
+            BuildMI(MBB, UseMI, DL,
+                    TII->get(AMDGPU::V_ACCVGPR_WRITE_B32), Tmp).addImm(Imm);
+            B.addReg(Tmp);
+          } else if (Def->isReg() && TRI->isAGPR(*MRI, Def->getReg())) {
+            auto Src = getRegSubRegPair(*Def);
+            Def->setIsKill(false);
+            if (!SeenAGPRs.insert(Src)) {
+              // We cannot build a reg_sequence out of the same registers, they
+              // must be copied. Better do it here before copyPhysReg() created
+              // several reads to do the AGPR->VGPR->AGPR copy.
+              CopyToVGPR = Src;
+            } else {
+              B.addReg(Src.Reg, Def->isUndef() ? RegState::Undef : 0,
+                       Src.SubReg);
+            }
+          } else {
+            assert(Def->isReg());
+            Def->setIsKill(false);
+            auto Src = getRegSubRegPair(*Def);
+
+            // Direct copy from SGPR to AGPR is not possible. To avoid creation
+            // of exploded copies SGPR->VGPR->AGPR in the copyPhysReg() later,
+            // create a copy here and track if we already have such a copy.
+            if (TRI->isSGPRReg(*MRI, Src.Reg)) {
+              CopyToVGPR = Src;
+            } else {
+              auto Tmp = MRI->createVirtualRegister(&AMDGPU::AGPR_32RegClass);
+              BuildMI(MBB, UseMI, DL, TII->get(AMDGPU::COPY), Tmp).add(*Def);
+              B.addReg(Tmp);
+            }
+          }
+
+          if (CopyToVGPR.Reg) {
+            Register Vgpr;
+            if (VGPRCopies.count(CopyToVGPR)) {
+              Vgpr = VGPRCopies[CopyToVGPR];
+            } else {
+              Vgpr = MRI->createVirtualRegister(&AMDGPU::VGPR_32RegClass);
+              BuildMI(MBB, UseMI, DL, TII->get(AMDGPU::COPY), Vgpr).add(*Def);
+              VGPRCopies[CopyToVGPR] = Vgpr;
+            }
+            auto Tmp = MRI->createVirtualRegister(&AMDGPU::AGPR_32RegClass);
+            BuildMI(MBB, UseMI, DL,
+                    TII->get(AMDGPU::V_ACCVGPR_WRITE_B32), Tmp).addReg(Vgpr);
+            B.addReg(Tmp);
+          }
+
+          B.addImm(Defs[I].second);
+        }
+        LLVM_DEBUG(dbgs() << "Folded " << *UseMI << '\n');
+        return;
+      }
+
       if (Size != 4)
         return;
       if (TRI->isAGPR(*MRI, UseMI->getOperand(0).getReg()) &&
@@ -774,6 +914,21 @@ static bool evalBinaryInstruction(unsigned Opcode, int32_t &Result,
   case AMDGPU::S_XOR_B32:
     Result = LHS ^ RHS;
     return true;
+  case AMDGPU::S_XNOR_B32:
+    Result = ~(LHS ^ RHS);
+    return true;
+  case AMDGPU::S_NAND_B32:
+    Result = ~(LHS & RHS);
+    return true;
+  case AMDGPU::S_NOR_B32:
+    Result = ~(LHS | RHS);
+    return true;
+  case AMDGPU::S_ANDN2_B32:
+    Result = LHS & ~RHS;
+    return true;
+  case AMDGPU::S_ORN2_B32:
+    Result = LHS | ~RHS;
+    return true;
   case AMDGPU::V_LSHL_B32_e64:
   case AMDGPU::V_LSHL_B32_e32:
   case AMDGPU::S_LSHL_B32:
@@ -874,10 +1029,16 @@ static bool tryConstantFoldOp(MachineRegisterInfo &MRI,
   if (!Src0->isImm() && !Src1->isImm())
     return false;
 
-  if (MI->getOpcode() == AMDGPU::V_LSHL_OR_B32) {
+  if (MI->getOpcode() == AMDGPU::V_LSHL_OR_B32 ||
+      MI->getOpcode() == AMDGPU::V_LSHL_ADD_U32 ||
+      MI->getOpcode() == AMDGPU::V_AND_OR_B32) {
     if (Src0->isImm() && Src0->getImm() == 0) {
       // v_lshl_or_b32 0, X, Y -> copy Y
       // v_lshl_or_b32 0, X, K -> v_mov_b32 K
+      // v_lshl_add_b32 0, X, Y -> copy Y
+      // v_lshl_add_b32 0, X, K -> v_mov_b32 K
+      // v_and_or_b32 0, X, Y -> copy Y
+      // v_and_or_b32 0, X, K -> v_mov_b32 K
       bool UseCopy = TII->getNamedOperand(*MI, AMDGPU::OpName::src2)->isReg();
       MI->RemoveOperand(Src1Idx);
       MI->RemoveOperand(Src0Idx);
@@ -1097,6 +1258,7 @@ void SIFoldOperands::foldInstOperand(MachineInstr &MI,
     Copy->addImplicitDefUseOperands(*MF);
 
   for (FoldCandidate &Fold : FoldList) {
+    assert(!Fold.isReg() || Fold.OpToFold);
     if (Fold.isReg() && Register::isVirtualRegister(Fold.OpToFold->getReg())) {
       Register Reg = Fold.OpToFold->getReg();
       MachineInstr *DefMI = Fold.OpToFold->getParent();
@@ -1247,8 +1409,8 @@ SIFoldOperands::isOMod(const MachineInstr &MI) const {
   case AMDGPU::V_MUL_F32_e64:
   case AMDGPU::V_MUL_F16_e64: {
     // If output denormals are enabled, omod is ignored.
-    if ((Op == AMDGPU::V_MUL_F32_e64 && ST->hasFP32Denormals()) ||
-        (Op == AMDGPU::V_MUL_F16_e64 && ST->hasFP16Denormals()))
+    if ((Op == AMDGPU::V_MUL_F32_e64 && MFI->getMode().FP32OutputDenormals) ||
+        (Op == AMDGPU::V_MUL_F16_e64 && MFI->getMode().FP64FP16OutputDenormals))
       return std::make_pair(nullptr, SIOutMods::NONE);
 
     const MachineOperand *RegOp = nullptr;
@@ -1277,8 +1439,8 @@ SIFoldOperands::isOMod(const MachineInstr &MI) const {
   case AMDGPU::V_ADD_F32_e64:
   case AMDGPU::V_ADD_F16_e64: {
     // If output denormals are enabled, omod is ignored.
-    if ((Op == AMDGPU::V_ADD_F32_e64 && ST->hasFP32Denormals()) ||
-        (Op == AMDGPU::V_ADD_F16_e64 && ST->hasFP16Denormals()))
+    if ((Op == AMDGPU::V_ADD_F32_e64 && MFI->getMode().FP32OutputDenormals) ||
+        (Op == AMDGPU::V_ADD_F16_e64 && MFI->getMode().FP64FP16OutputDenormals))
       return std::make_pair(nullptr, SIOutMods::NONE);
 
     // Look through the DAGCombiner canonicalization fmul x, 2 -> fadd x, x
@@ -1347,6 +1509,8 @@ bool SIFoldOperands::runOnMachineFunction(MachineFunction &MF) {
 
   for (MachineBasicBlock *MBB : depth_first(&MF)) {
     MachineBasicBlock::iterator I, Next;
+
+    MachineOperand *CurrentKnownM0Val = nullptr;
     for (I = MBB->begin(); I != MBB->end(); I = Next) {
       Next = std::next(I);
       MachineInstr &MI = *I;
@@ -1354,11 +1518,31 @@ bool SIFoldOperands::runOnMachineFunction(MachineFunction &MF) {
       tryFoldInst(TII, &MI);
 
       if (!TII->isFoldableCopy(MI)) {
+        // Saw an unknown clobber of m0, so we no longer know what it is.
+        if (CurrentKnownM0Val && MI.modifiesRegister(AMDGPU::M0, TRI))
+          CurrentKnownM0Val = nullptr;
+
         // TODO: Omod might be OK if there is NSZ only on the source
         // instruction, and not the omod multiply.
         if (IsIEEEMode || (!HasNSZ && !MI.getFlag(MachineInstr::FmNsz)) ||
             !tryFoldOMod(MI))
           tryFoldClamp(MI);
+
+        continue;
+      }
+
+      // Specially track simple redefs of m0 to the same value in a block, so we
+      // can erase the later ones.
+      if (MI.getOperand(0).getReg() == AMDGPU::M0) {
+        MachineOperand &NewM0Val = MI.getOperand(1);
+        if (CurrentKnownM0Val && CurrentKnownM0Val->isIdenticalTo(NewM0Val)) {
+          MI.eraseFromParent();
+          continue;
+        }
+
+        // We aren't tracking other physical registers
+        CurrentKnownM0Val = (NewM0Val.isReg() && NewM0Val.getReg().isPhysical()) ?
+          nullptr : &NewM0Val;
         continue;
       }
 
@@ -1386,5 +1570,5 @@ bool SIFoldOperands::runOnMachineFunction(MachineFunction &MF) {
       foldInstOperand(MI, OpToFold);
     }
   }
-  return false;
+  return true;
 }

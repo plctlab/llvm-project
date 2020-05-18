@@ -17,10 +17,12 @@
 #include "InputSection.h"
 #include "lld/Common/LLVM.h"
 #include "lld/Common/Strings.h"
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/Object/Archive.h"
 #include "llvm/Object/ELF.h"
 
 namespace lld {
+// Returns a string representation for a symbol for diagnostics.
 std::string toString(const elf::Symbol &);
 
 // There are two different ways to convert an Archive::Symbol to a string:
@@ -87,9 +89,6 @@ public:
   // Version definition index.
   uint16_t versionId;
 
-  // An index into the .branch_lt section on PPC64.
-  uint16_t ppc64BranchltIndex = -1;
-
   // Symbol binding. This is not overwritten by replace() to track
   // changes during resolution. In particular:
   //  - An undefined weak is still weak when it resolves to a shared library.
@@ -105,13 +104,13 @@ public:
 
   // Symbol visibility. This is the computed minimum visibility of all
   // observed non-DSO symbols.
-  unsigned visibility : 2;
+  uint8_t visibility : 2;
 
   // True if the symbol was used for linking and thus need to be added to the
   // output file's symbol table. This is true for all symbols except for
   // unreferenced DSO symbols, lazy (archive) symbols, and bitcode symbols that
   // are unreferenced except by other bitcode objects.
-  unsigned isUsedInRegularObj : 1;
+  uint8_t isUsedInRegularObj : 1;
 
   // Used by a Defined symbol with protected or default visibility, to record
   // whether it is required to be exported into .dynsym. This is set when any of
@@ -121,25 +120,25 @@ public:
   // - If -shared or --export-dynamic is specified, any symbol in an object
   //   file/bitcode sets this property, unless suppressed by LTO
   //   canBeOmittedFromSymbolTable().
-  unsigned exportDynamic : 1;
+  uint8_t exportDynamic : 1;
 
   // True if the symbol is in the --dynamic-list file. A Defined symbol with
   // protected or default visibility with this property is required to be
   // exported into .dynsym.
-  unsigned inDynamicList : 1;
+  uint8_t inDynamicList : 1;
 
   // False if LTO shouldn't inline whatever this symbol points to. If a symbol
   // is overwritten after LTO, LTO shouldn't inline the symbol because it
   // doesn't know the final contents of the symbol.
-  unsigned canInline : 1;
+  uint8_t canInline : 1;
 
   // Used by Undefined and SharedSymbol to track if there has been at least one
   // undefined reference to the symbol. The binding may change to STB_WEAK if
   // the first undefined reference from a non-shared object is weak.
-  unsigned referenced : 1;
+  uint8_t referenced : 1;
 
   // True if this symbol is specified by --trace-symbol option.
-  unsigned traced : 1;
+  uint8_t traced : 1;
 
   inline void replace(const Symbol &newSym);
 
@@ -181,7 +180,6 @@ public:
 
   bool isInGot() const { return gotIndex != -1U; }
   bool isInPlt() const { return pltIndex != -1U; }
-  bool isInPPC64Branchlt() const { return ppc64BranchltIndex != 0xffff; }
 
   uint64_t getVA(int64_t addend = 0) const;
 
@@ -190,8 +188,6 @@ public:
   uint64_t getGotPltOffset() const;
   uint64_t getGotPltVA() const;
   uint64_t getPltVA() const;
-  uint64_t getPPC64LongBranchTableVA() const;
-  uint64_t getPPC64LongBranchOffset() const;
   uint64_t getSize() const;
   OutputSection *getOutputSection() const;
 
@@ -248,28 +244,31 @@ protected:
 public:
   // True the symbol should point to its PLT entry.
   // For SharedSymbol only.
-  unsigned needsPltAddr : 1;
+  uint8_t needsPltAddr : 1;
 
   // True if this symbol is in the Iplt sub-section of the Plt and the Igot
   // sub-section of the .got.plt or .got.
-  unsigned isInIplt : 1;
+  uint8_t isInIplt : 1;
 
   // True if this symbol needs a GOT entry and its GOT entry is actually in
   // Igot. This will be true only for certain non-preemptible ifuncs.
-  unsigned gotInIgot : 1;
+  uint8_t gotInIgot : 1;
 
   // True if this symbol is preemptible at load time.
-  unsigned isPreemptible : 1;
+  uint8_t isPreemptible : 1;
 
   // True if an undefined or shared symbol is used from a live section.
-  unsigned used : 1;
+  //
+  // NOTE: In Writer.cpp the field is used to mark local defined symbols
+  // which are referenced by relocations when -r or --emit-relocs is given.
+  uint8_t used : 1;
 
   // True if a call to this symbol needs to be followed by a restore of the
   // PPC64 toc pointer.
-  unsigned needsTocRestore : 1;
+  uint8_t needsTocRestore : 1;
 
   // True if this symbol is defined by a linker script.
-  unsigned scriptDefined : 1;
+  uint8_t scriptDefined : 1;
 
   // The partition whose dynamic symbol table contains this symbol's definition.
   uint8_t partition = 1;
@@ -310,7 +309,7 @@ public:
 // definitions for this particular case.
 //
 // Common symbols represent variable definitions without initializations.
-// The compiler creates common symbols when it sees varaible definitions
+// The compiler creates common symbols when it sees variable definitions
 // without initialization (you can suppress this behavior and let the
 // compiler create a regular defined symbol by -fno-common).
 //
@@ -521,13 +520,16 @@ size_t Symbol::getSymbolSize() const {
 void Symbol::replace(const Symbol &newSym) {
   using llvm::ELF::STT_TLS;
 
-  // Symbols representing thread-local variables must be referenced by
-  // TLS-aware relocations, and non-TLS symbols must be reference by
-  // non-TLS relocations, so there's a clear distinction between TLS
-  // and non-TLS symbols. It is an error if the same symbol is defined
-  // as a TLS symbol in one file and as a non-TLS symbol in other file.
-  if (symbolKind != PlaceholderKind && !isLazy() && !newSym.isLazy() &&
-      (type == STT_TLS) != (newSym.type == STT_TLS))
+  // st_value of STT_TLS represents the assigned offset, not the actual address
+  // which is used by STT_FUNC and STT_OBJECT. STT_TLS symbols can only be
+  // referenced by special TLS relocations. It is usually an error if a STT_TLS
+  // symbol is replaced by a non-STT_TLS symbol, vice versa. There are two
+  // exceptions: (a) a STT_NOTYPE lazy/undefined symbol can be replaced by a
+  // STT_TLS symbol, (b) a STT_TLS undefined symbol can be replaced by a
+  // STT_NOTYPE lazy symbol.
+  if (symbolKind != PlaceholderKind && !newSym.isLazy() &&
+      (type == STT_TLS) != (newSym.type == STT_TLS) &&
+      type != llvm::ELF::STT_NOTYPE)
     error("TLS attribute mismatch: " + toString(*this) + "\n>>> defined in " +
           toString(newSym.file) + "\n>>> defined in " + toString(file));
 
@@ -560,6 +562,13 @@ void Symbol::replace(const Symbol &newSym) {
 }
 
 void maybeWarnUnorderableSymbol(const Symbol *sym);
+bool computeIsPreemptible(const Symbol &sym);
+void reportBackrefs();
+
+// A mapping from a symbol to an InputFile referencing it backward. Used by
+// --warn-backrefs.
+extern llvm::DenseMap<const Symbol *, const InputFile *> backwardReferences;
+
 } // namespace elf
 } // namespace lld
 

@@ -1,4 +1,4 @@
-//===-- DynamicRegisterInfo.cpp ----------------------------*- C++ -*-===//
+//===-- DynamicRegisterInfo.cpp -------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -536,6 +536,7 @@ void DynamicRegisterInfo::Finalize(const ArchSpec &arch) {
   if (!generic_regs_specified) {
     switch (arch.GetMachine()) {
     case llvm::Triple::aarch64:
+    case llvm::Triple::aarch64_32:
     case llvm::Triple::aarch64_be:
       for (auto &reg : m_regs) {
         if (strcmp(reg.name, "pc") == 0)
@@ -741,6 +742,8 @@ const lldb_private::RegisterInfo *DynamicRegisterInfo::GetRegisterInfo(
   for (auto &reg_info : m_regs) {
     // We can use pointer comparison since we used a ConstString to set the
     // "name" member in AddRegister()
+    assert(ConstString(reg_info.name).GetCString() == reg_info.name &&
+           "reg_info.name not from a ConstString?");
     if (reg_info.name == reg_name.GetCString()) {
       return &reg_info;
     }

@@ -27,7 +27,6 @@
 
 namespace llvm {
 
-class MachineLocation;
 class MachineOperand;
 class ConstantInt;
 class ConstantFP;
@@ -271,9 +270,6 @@ public:
 
   /// Add the DW_AT_rnglists_base attribute to the unit DIE.
   void addRnglistsBase();
-
-  /// Add the DW_AT_loclists_base attribute to the unit DIE.
-  void addLoclistsBase();
 
   virtual DwarfCompileUnit &getCU() = 0;
 

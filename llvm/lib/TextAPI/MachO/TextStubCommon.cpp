@@ -62,17 +62,26 @@ void ScalarTraits<PlatformSet>::output(const PlatformSet &Values, void *IO,
   case PlatformKind::macOS:
     OS << "macosx";
     break;
+  case PlatformKind::iOSSimulator:
+    LLVM_FALLTHROUGH;
   case PlatformKind::iOS:
     OS << "ios";
     break;
+  case PlatformKind::watchOSSimulator:
+    LLVM_FALLTHROUGH;
   case PlatformKind::watchOS:
     OS << "watchos";
     break;
+  case PlatformKind::tvOSSimulator:
+    LLVM_FALLTHROUGH;
   case PlatformKind::tvOS:
     OS << "tvos";
     break;
   case PlatformKind::bridgeOS:
     OS << "bridgeos";
+    break;
+  case PlatformKind::macCatalyst:
+    OS << "iosmac";
     break;
   }
 }
@@ -172,14 +181,25 @@ void ScalarTraits<SwiftVersion>::output(const SwiftVersion &Value, void *,
     break;
   }
 }
-StringRef ScalarTraits<SwiftVersion>::input(StringRef Scalar, void *,
+StringRef ScalarTraits<SwiftVersion>::input(StringRef Scalar, void *IO,
                                             SwiftVersion &Value) {
-  Value = StringSwitch<SwiftVersion>(Scalar)
-              .Case("1.0", 1)
-              .Case("1.1", 2)
-              .Case("2.0", 3)
-              .Case("3.0", 4)
-              .Default(0);
+  const auto *Ctx = reinterpret_cast<TextAPIContext *>(IO);
+  assert((!Ctx || Ctx->FileKind != FileType::Invalid) &&
+         "File type is not set in context");
+
+  if (Ctx->FileKind == FileType::TBD_V4) {
+    if (Scalar.getAsInteger(10, Value))
+      return "invalid Swift ABI version.";
+    return {};
+  } else {
+    Value = StringSwitch<SwiftVersion>(Scalar)
+                .Case("1.0", 1)
+                .Case("1.1", 2)
+                .Case("2.0", 3)
+                .Case("3.0", 4)
+                .Default(0);
+  }
+
   if (Value != SwiftVersion(0))
     return {};
 
@@ -201,7 +221,7 @@ StringRef ScalarTraits<UUID>::input(StringRef Scalar, void *, UUID &Value) {
   auto UUID = Split.second.trim();
   if (UUID.empty())
     return "invalid uuid string pair";
-  Value.second = UUID;
+  Value.second = std::string(UUID);
   Value.first = Target{getArchitectureFromName(Arch), PlatformKind::unknown};
   return {};
 }

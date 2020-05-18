@@ -64,6 +64,12 @@
 // RUN: %clang -### -c -g %s -target arm64-apple-tvos9.0 2>&1 \
 // RUN:             | FileCheck -check-prefix=G_STANDALONE \
 // RUN:                         -check-prefix=G_DWARF4 %s
+// RUN: %clang -### -c -fsave-optimization-record %s \
+// RUN:        -target x86_64-apple-darwin 2>&1 \
+// RUN:             | FileCheck -check-prefix=GLTO_ONLY %s
+// RUN: %clang -### -c -g -fsave-optimization-record %s \
+// RUN:        -target x86_64-apple-darwin 2>&1 \
+// RUN:             | FileCheck -check-prefix=G_STANDALONE %s
 
 // FreeBSD.
 // RUN: %clang -### -c -g %s -target x86_64-pc-freebsd11.0 2>&1 \
@@ -236,7 +242,7 @@
 // RUN:        | FileCheck -check-prefix=GLIO_ONLY %s
 //
 // NOG_PS4: "-cc1"
-// NOG_PS4-NOT "-dwarf-version=
+// NOG_PS4-NOT: "-dwarf-version=
 // NOG_PS4: "-generate-arange-section"
 // NOG_PS4-NOT: "-dwarf-version=
 //

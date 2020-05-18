@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef SymbolFileDWARF_DWARFASTParserClang_h_
-#define SymbolFileDWARF_DWARFASTParserClang_h_
+#ifndef LLDB_SOURCE_PLUGINS_SYMBOLFILE_DWARF_DWARFASTPARSERCLANG_H
+#define LLDB_SOURCE_PLUGINS_SYMBOLFILE_DWARF_DWARFASTPARSERCLANG_H
 
 #include "clang/AST/CharUnits.h"
 #include "llvm/ADT/DenseMap.h"
@@ -19,10 +19,10 @@
 #include "DWARFDefines.h"
 #include "DWARFFormValue.h"
 #include "LogChannelDWARF.h"
-#include "lldb/Core/ClangForward.h"
 #include "lldb/Core/PluginInterface.h"
-#include "lldb/Symbol/ClangASTContext.h"
-#include "lldb/Symbol/ClangASTImporter.h"
+
+#include "Plugins/ExpressionParser/Clang/ClangASTImporter.h"
+#include "Plugins/TypeSystem/Clang/TypeSystemClang.h"
 
 #include <vector>
 
@@ -36,7 +36,7 @@ struct ParsedDWARFTypeAttributes;
 
 class DWARFASTParserClang : public DWARFASTParser {
 public:
-  DWARFASTParserClang(lldb_private::ClangASTContext &ast);
+  DWARFASTParserClang(lldb_private::TypeSystemClang &ast);
 
   ~DWARFASTParserClang() override;
 
@@ -78,15 +78,19 @@ protected:
       DIEToDeclContextMap;
   typedef std::multimap<const clang::DeclContext *, const DWARFDIE>
       DeclContextToDIEMap;
+  typedef llvm::DenseMap<const DWARFDebugInfoEntry *,
+                         lldb_private::OptionalClangModuleID>
+      DIEToModuleMap;
   typedef llvm::DenseMap<const DWARFDebugInfoEntry *, clang::Decl *>
       DIEToDeclMap;
   typedef llvm::DenseMap<const clang::Decl *, DIEPointerSet> DeclToDIEMap;
 
-  lldb_private::ClangASTContext &m_ast;
+  lldb_private::TypeSystemClang &m_ast;
   DIEToDeclMap m_die_to_decl;
   DeclToDIEMap m_decl_to_die;
   DIEToDeclContextMap m_die_to_decl_ctx;
   DeclContextToDIEMap m_decl_ctx_to_die;
+  DIEToModuleMap m_die_to_module;
   std::unique_ptr<lldb_private::ClangASTImporter> m_clang_ast_importer_up;
   /// @}
 
@@ -97,11 +101,11 @@ protected:
   clang::NamespaceDecl *ResolveNamespaceDIE(const DWARFDIE &die);
 
   bool ParseTemplateDIE(const DWARFDIE &die,
-                        lldb_private::ClangASTContext::TemplateParameterInfos
+                        lldb_private::TypeSystemClang::TemplateParameterInfos
                             &template_param_infos);
   bool ParseTemplateParameterInfos(
       const DWARFDIE &parent_die,
-      lldb_private::ClangASTContext::TemplateParameterInfos
+      lldb_private::TypeSystemClang::TemplateParameterInfos
           &template_param_infos);
 
   bool ParseChildMembers(
@@ -128,7 +132,8 @@ protected:
                                const DWARFDIE &parent_die);
 
   /// Parse a structure, class, or union type DIE.
-  lldb::TypeSP ParseStructureLikeDIE(const DWARFDIE &die,
+  lldb::TypeSP ParseStructureLikeDIE(const lldb_private::SymbolContext &sc,
+                                     const DWARFDIE &die,
                                      ParsedDWARFTypeAttributes &attrs);
 
   lldb_private::Type *GetTypeForDIE(const DWARFDIE &die);
@@ -139,6 +144,7 @@ protected:
 
   clang::DeclContext *GetClangDeclContextContainingDIE(const DWARFDIE &die,
                                                        DWARFDIE *decl_ctx_die);
+  lldb_private::OptionalClangModuleID GetOwningClangModule(const DWARFDIE &die);
 
   bool CopyUniqueClassMethodTypes(const DWARFDIE &src_class_die,
                                   const DWARFDIE &dst_class_die,
@@ -159,11 +165,60 @@ protected:
   UpdateSymbolContextScopeForType(const lldb_private::SymbolContext &sc,
                                   const DWARFDIE &die, lldb::TypeSP type_sp);
 
-  lldb::TypeSP ParseTypeFromDWO(const DWARFDIE &die, lldb_private::Log *log);
+  /// Follow Clang Module Skeleton CU references to find a type definition.
+  lldb::TypeSP ParseTypeFromClangModule(const lldb_private::SymbolContext &sc,
+                                        const DWARFDIE &die,
+                                        lldb_private::Log *log);
 
   // Return true if this type is a declaration to a type in an external
   // module.
   lldb::ModuleSP GetModuleForType(const DWARFDIE &die);
+
+private:
+  struct FieldInfo {
+    uint64_t bit_size = 0;
+    uint64_t bit_offset = 0;
+    bool is_bitfield = false;
+
+    FieldInfo() = default;
+
+    void SetIsBitfield(bool flag) { is_bitfield = flag; }
+    bool IsBitfield() { return is_bitfield; }
+
+    bool NextBitfieldOffsetIsValid(const uint64_t next_bit_offset) const {
+      // Any subsequent bitfields must not overlap and must be at a higher
+      // bit offset than any previous bitfield + size.
+      return (bit_size + bit_offset) <= next_bit_offset;
+    }
+  };
+
+  void
+  ParseSingleMember(const DWARFDIE &die, const DWARFDIE &parent_die,
+                    lldb_private::CompilerType &class_clang_type,
+                    const lldb::LanguageType class_language,
+                    std::vector<int> &member_accessibilities,
+                    lldb::AccessType &default_accessibility,
+                    DelayedPropertyList &delayed_properties,
+                    lldb_private::ClangASTImporter::LayoutInfo &layout_info,
+                    FieldInfo &last_field_info);
+
+  bool CompleteRecordType(const DWARFDIE &die, lldb_private::Type *type,
+                          lldb_private::CompilerType &clang_type);
+  bool CompleteEnumType(const DWARFDIE &die, lldb_private::Type *type,
+                        lldb_private::CompilerType &clang_type);
+
+  lldb::TypeSP ParseTypeModifier(const lldb_private::SymbolContext &sc,
+                                 const DWARFDIE &die,
+                                 ParsedDWARFTypeAttributes &attrs);
+  lldb::TypeSP ParseEnum(const lldb_private::SymbolContext &sc,
+                         const DWARFDIE &die, ParsedDWARFTypeAttributes &attrs);
+  lldb::TypeSP ParseSubroutine(const DWARFDIE &die,
+                               ParsedDWARFTypeAttributes &attrs);
+  // FIXME: attrs should be passed as a const reference.
+  lldb::TypeSP ParseArrayType(const DWARFDIE &die,
+                              ParsedDWARFTypeAttributes &attrs);
+  lldb::TypeSP ParsePointerToMemberType(const DWARFDIE &die,
+                                        const ParsedDWARFTypeAttributes &attrs);
 };
 
 /// Parsed form of all attributes that are relevant for type reconstruction.
@@ -181,6 +236,8 @@ struct ParsedDWARFTypeAttributes {
   bool is_scoped_enum = false;
   bool is_vector = false;
   bool is_virtual = false;
+  bool is_objc_direct_call = false;
+  bool exports_symbols = false;
   clang::StorageClass storage = clang::SC_None;
   const char *mangled_name = nullptr;
   lldb_private::ConstString name;
@@ -199,4 +256,4 @@ struct ParsedDWARFTypeAttributes {
   uint32_t encoding = 0;
 };
 
-#endif // SymbolFileDWARF_DWARFASTParserClang_h_
+#endif // LLDB_SOURCE_PLUGINS_SYMBOLFILE_DWARF_DWARFASTPARSERCLANG_H

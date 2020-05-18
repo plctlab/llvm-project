@@ -67,6 +67,7 @@ namespace clang {
     TST_char32,       // C++11 char32_t
     TST_int,
     TST_int128,
+    TST_extint,       // Extended Int types.
     TST_half,         // OpenCL half, ARM NEON __fp16
     TST_Float16,      // C11 extension ISO/IEC TS 18661-3
     TST_Accum,        // ISO/IEC JTC1 SC22 WG14 N1169 Extension
@@ -352,6 +353,15 @@ namespace clang {
     /// Swift context-pointer ABI treatment.  There can be at
     /// most one parameter on a given function that uses this treatment.
     SwiftContext
+  };
+
+  /// Assigned inheritance model for a class in the MS C++ ABI. Must match order
+  /// of spellings in MSInheritanceAttr.
+  enum class MSInheritanceModel {
+    Single = 0,
+    Multiple = 1,
+    Virtual = 2,
+    Unspecified = 3,
   };
 
   llvm::StringRef getParameterABISpelling(ParameterABI kind);

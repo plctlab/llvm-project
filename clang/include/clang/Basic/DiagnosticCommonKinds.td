@@ -87,7 +87,8 @@ def warn_cxx98_compat_variadic_templates :
   Warning<"variadic templates are incompatible with C++98">,
   InGroup<CXX98Compat>, DefaultIgnore;
 def err_default_special_members : Error<
-  "only special member functions may be defaulted">;
+  "only special member functions %select{|and comparison operators }0"
+  "may be defaulted">;
 def err_deleted_non_function : Error<
   "only functions can have deleted definitions">;
 def err_module_not_found : Error<"module '%0' not found">, DefaultFatal;
@@ -119,7 +120,7 @@ def err_enum_template : Error<"enumeration cannot be a template">;
 
 def warn_cxx20_compat_consteval : Warning<
   "'consteval' specifier is incompatible with C++ standards before C++20">,
-  InGroup<CXX2aCompat>, DefaultIgnore;
+  InGroup<CXX20Compat>, DefaultIgnore;
 
 }
 
@@ -238,6 +239,10 @@ def note_invalid_subexpr_in_const_expr : Note<
 let CategoryName = "Inline Assembly Issue" in {
   def err_asm_invalid_type_in_input : Error<
     "invalid type %0 in asm input for constraint '%1'">;
+
+  def warn_stack_clash_protection_inline_asm : Warning<
+    "Unable to protect inline asm that clobbers stack pointer against stack clash">,
+    InGroup<DiagGroup<"stack-protector">>;
 }
 
 // Sema && Serialization
@@ -270,6 +275,8 @@ def err_target_unsupported_mcmse : Error<
   "-mcmse is not supported for %0">;
 def err_opt_not_valid_with_opt : Error<
   "option '%0' cannot be specified with '%1'">;
+def err_opt_not_valid_without_opt : Error<
+  "option '%0' cannot be specified without '%1'">;
 def err_opt_not_valid_on_target : Error<
   "option '%0' cannot be specified on this target">;
 
@@ -279,6 +286,9 @@ def err_file_modified : Error<
   "file '%0' modified since it was first processed">, DefaultFatal;
 def err_file_too_large : Error<
   "sorry, unsupported: file '%0' is too large for Clang to process">;
+def err_include_too_large : Error<
+  "sorry, this include generates a translation unit too large for"
+  " Clang to process.">, DefaultFatal;
 def err_unsupported_bom : Error<"%0 byte order mark detected in '%1', but "
   "encoding is not supported">, DefaultFatal;
 def err_unable_to_rename_temp : Error<
@@ -303,6 +313,11 @@ def err_arcmt_nsinvocation_ownership : Error<"NSInvocation's %0 is not safe to b
 // C++ for OpenCL.
 def err_openclcxx_not_supported : Error<
   "'%0' is not supported in C++ for OpenCL">;
+
+// HIP
+def warn_ignored_hip_only_option : Warning<
+  "'%0' is ignored since it is only supported for HIP">,
+  InGroup<HIPOnly>;
 
 // OpenMP
 def err_omp_more_one_clause : Error<

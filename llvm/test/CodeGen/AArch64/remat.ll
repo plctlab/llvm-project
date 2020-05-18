@@ -1,3 +1,4 @@
+; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=cortex-a34 -o - %s | FileCheck %s
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=cortex-a35 -o - %s | FileCheck %s
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=cortex-a53 -o - %s | FileCheck %s
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=cortex-a55 -o - %s | FileCheck %s
@@ -9,8 +10,6 @@
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=cortex-a75 -o - %s | FileCheck %s
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=neoverse-e1 -o - %s | FileCheck %s
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=neoverse-n1 -o - %s | FileCheck %s
-; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=exynos-m1 -o - %s | FileCheck %s
-; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=exynos-m2 -o - %s | FileCheck %s
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=exynos-m3 -o - %s | FileCheck %s
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=exynos-m4 -o - %s | FileCheck %s
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=exynos-m5 -o - %s | FileCheck %s
@@ -20,6 +19,7 @@
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=thunderx2t99 -o - %s | FileCheck %s
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=tsv110 -o - %s | FileCheck %s
 ; RUN: llc -mtriple=aarch64-linux-gnuabi -mattr=+custom-cheap-as-move -o - %s | FileCheck %s
+; RUN: llc -mtriple=aarch64-linux-gnuabi -mcpu=thunderx3t110 -o - %s | FileCheck %s
 
 %X = type { i64, i64, i64 }
 declare void @f(%X*)

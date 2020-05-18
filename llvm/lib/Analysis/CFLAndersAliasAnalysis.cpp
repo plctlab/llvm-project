@@ -69,6 +69,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/Type.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compiler.h"
@@ -551,7 +552,7 @@ bool CFLAndersAAResult::FunctionInfo::mayAlias(
       return std::less<const Value *>()(LHS.Val, RHS.Val);
     };
 #ifdef EXPENSIVE_CHECKS
-    assert(std::is_sorted(Itr->second.begin(), Itr->second.end(), Comparator));
+    assert(llvm::is_sorted(Itr->second, Comparator));
 #endif
     auto RangePair = std::equal_range(Itr->second.begin(), Itr->second.end(),
                                       OffsetValue{RHS, 0}, Comparator);

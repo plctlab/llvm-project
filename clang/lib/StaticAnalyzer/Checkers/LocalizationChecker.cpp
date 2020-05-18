@@ -1077,7 +1077,10 @@ void EmptyLocalizationContextChecker::checkASTDecl(
     AnalysisDeclContext *DCtx = Mgr.getAnalysisDeclContext(M);
 
     const Stmt *Body = M->getBody();
-    assert(Body);
+    if (!Body) {
+      assert(M->isSynthesizedAccessorStub());
+      continue;
+    }
 
     MethodCrawler MC(M->getCanonicalDecl(), BR, this, Mgr, DCtx);
     MC.VisitStmt(Body);
@@ -1400,7 +1403,7 @@ void ento::registerNonLocalizedStringChecker(CheckerManager &mgr) {
           checker, "AggressiveReport");
 }
 
-bool ento::shouldRegisterNonLocalizedStringChecker(const LangOptions &LO) {
+bool ento::shouldRegisterNonLocalizedStringChecker(const CheckerManager &mgr) {
   return true;
 }
 
@@ -1409,7 +1412,7 @@ void ento::registerEmptyLocalizationContextChecker(CheckerManager &mgr) {
 }
 
 bool ento::shouldRegisterEmptyLocalizationContextChecker(
-                                                        const LangOptions &LO) {
+                                                    const CheckerManager &mgr) {
   return true;
 }
 
@@ -1417,6 +1420,6 @@ void ento::registerPluralMisuseChecker(CheckerManager &mgr) {
   mgr.registerChecker<PluralMisuseChecker>();
 }
 
-bool ento::shouldRegisterPluralMisuseChecker(const LangOptions &LO) {
+bool ento::shouldRegisterPluralMisuseChecker(const CheckerManager &mgr) {
   return true;
 }

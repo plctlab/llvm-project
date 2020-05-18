@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_Breakpoint_h_
-#define liblldb_Breakpoint_h_
+#ifndef LLDB_BREAKPOINT_BREAKPOINT_H
+#define LLDB_BREAKPOINT_BREAKPOINT_H
 
 #include <memory>
 #include <string>
@@ -142,7 +142,8 @@ public:
 
   // Saving & restoring breakpoints:
   static lldb::BreakpointSP CreateFromStructuredData(
-      Target &target, StructuredData::ObjectSP &data_object_sp, Status &error);
+      lldb::TargetSP target_sp, StructuredData::ObjectSP &data_object_sp,
+      Status &error);
 
   static bool
   SerializedBreakpointMatchesNames(StructuredData::ObjectSP &bkpt_object_sp,
@@ -193,7 +194,7 @@ public:
   /// Tell this breakpoint to scan a given module list and resolve any new
   /// locations that match the breakpoint's specifications.
   ///
-  /// \param[in] changed_modules
+  /// \param[in] module_list
   ///    The list of modules to look in for new locations.
   ///
   /// \param[in]  new_locations
@@ -205,7 +206,7 @@ public:
   /// which case we will remove any locations that are in modules that got
   /// unloaded.
   ///
-  /// \param[in] changedModules
+  /// \param[in] changed_modules
   ///    The list of modules to look in for new locations.
   /// \param[in] load_event
   ///    If \b true then the modules were loaded, if \b false, unloaded.
@@ -372,10 +373,6 @@ public:
   ///    If \b true the callback will be run on the private event thread
   ///    before the stop event gets reported.  If false, the callback will get
   ///    handled on the public event thread after the stop has been posted.
-  ///
-  /// \return
-  ///    \b true if the process should stop when you hit the breakpoint.
-  ///    \b false if it should continue.
   void SetCallback(BreakpointHitCallback callback, void *baton,
                    bool is_synchronous = false);
 
@@ -522,7 +519,7 @@ private: // The target needs to manage adding & removing names.  It will do the
     if (name_to_remove)
       m_name_list.erase(name_to_remove);
   }
-  
+
 public:
   bool MatchesName(const char *name) {
     return m_name_list.find(name) != m_name_list.end();
@@ -554,14 +551,14 @@ public:
   lldb::BreakpointPreconditionSP GetPrecondition() { return m_precondition_sp; }
 
   // Produces the OR'ed values for all the names assigned to this breakpoint.
-  const BreakpointName::Permissions &GetPermissions() const { 
-      return m_permissions; 
+  const BreakpointName::Permissions &GetPermissions() const {
+      return m_permissions;
   }
 
-  BreakpointName::Permissions &GetPermissions() { 
-      return m_permissions; 
+  BreakpointName::Permissions &GetPermissions() {
+      return m_permissions;
   }
-  
+
   bool AllowList() const {
     return GetPermissions().GetAllowList();
   }
@@ -571,6 +568,11 @@ public:
   bool AllowDelete() const {
     return GetPermissions().GetAllowDelete();
   }
+
+  // This one should only be used by Target to copy breakpoints from target to
+  // target - primarily from the dummy target to prime new targets.
+  static lldb::BreakpointSP CopyFromBreakpoint(lldb::TargetSP new_target,
+      const Breakpoint &bp_to_copy_from);
 
 protected:
   friend class Target;
@@ -629,9 +631,8 @@ protected:
   }
 
 private:
-  // This one should only be used by Target to copy breakpoints from target to
-  // target - primarily from the dummy target to prime new targets.
-  Breakpoint(Target &new_target, Breakpoint &bp_to_copy_from);
+  // To call from CopyFromBreakpoint.
+  Breakpoint(Target &new_target, const Breakpoint &bp_to_copy_from);
 
   // For Breakpoint only
   bool m_being_created;
@@ -673,4 +674,4 @@ private:
 
 } // namespace lldb_private
 
-#endif // liblldb_Breakpoint_h_
+#endif // LLDB_BREAKPOINT_BREAKPOINT_H

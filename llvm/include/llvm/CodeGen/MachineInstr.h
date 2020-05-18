@@ -20,11 +20,9 @@
 #include "llvm/ADT/ilist.h"
 #include "llvm/ADT/ilist_node.h"
 #include "llvm/ADT/iterator_range.h"
-#include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/CodeGen/MachineMemOperand.h"
 #include "llvm/CodeGen/MachineOperand.h"
 #include "llvm/CodeGen/TargetOpcodes.h"
-#include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/InlineAsm.h"
 #include "llvm/MC/MCInstrDesc.h"
@@ -38,6 +36,7 @@
 
 namespace llvm {
 
+class AAResults;
 template <typename T> class ArrayRef;
 class DIExpression;
 class DILocalVariable;
@@ -105,8 +104,8 @@ public:
                                         // no signed wrap.
     IsExact      = 1 << 13,             // Instruction supports division is
                                         // known to be exact.
-    FPExcept     = 1 << 14,             // Instruction may raise floating-point
-                                        // exceptions.
+    NoFPExcept   = 1 << 14,             // Instruction does not raise
+                                        // floatint-point exceptions.
   };
 
 private:
@@ -116,8 +115,6 @@ private:
   // Operands are allocated by an ArrayRecycler.
   MachineOperand *Operands = nullptr;   // Pointer to the first operand.
   unsigned NumOperands = 0;             // Number of operands on instruction.
-  using OperandCapacity = ArrayRecycler<MachineOperand>::Capacity;
-  OperandCapacity CapOperands;          // Capacity of the Operands array.
 
   uint16_t Flags = 0;                   // Various bits of additional
                                         // information about machine
@@ -130,6 +127,11 @@ private:
                                         // anything other than to convey comment
                                         // information to AsmPrinter.
 
+  // OperandCapacity has uint8_t size, so it should be next to AsmPrinterFlags
+  // to properly pack.
+  using OperandCapacity = ArrayRecycler<MachineOperand>::Capacity;
+  OperandCapacity CapOperands;          // Capacity of the Operands array.
+
   /// Internal implementation detail class that provides out-of-line storage for
   /// extra info used by the machine instruction when this info cannot be stored
   /// in-line within the instruction itself.
@@ -137,19 +139,23 @@ private:
   /// This has to be defined eagerly due to the implementation constraints of
   /// `PointerSumType` where it is used.
   class ExtraInfo final
-      : TrailingObjects<ExtraInfo, MachineMemOperand *, MCSymbol *> {
+      : TrailingObjects<ExtraInfo, MachineMemOperand *, MCSymbol *, MDNode *> {
   public:
     static ExtraInfo *create(BumpPtrAllocator &Allocator,
                              ArrayRef<MachineMemOperand *> MMOs,
                              MCSymbol *PreInstrSymbol = nullptr,
-                             MCSymbol *PostInstrSymbol = nullptr) {
+                             MCSymbol *PostInstrSymbol = nullptr,
+                             MDNode *HeapAllocMarker = nullptr) {
       bool HasPreInstrSymbol = PreInstrSymbol != nullptr;
       bool HasPostInstrSymbol = PostInstrSymbol != nullptr;
+      bool HasHeapAllocMarker = HeapAllocMarker != nullptr;
       auto *Result = new (Allocator.Allocate(
-          totalSizeToAlloc<MachineMemOperand *, MCSymbol *>(
-              MMOs.size(), HasPreInstrSymbol + HasPostInstrSymbol),
+          totalSizeToAlloc<MachineMemOperand *, MCSymbol *, MDNode *>(
+              MMOs.size(), HasPreInstrSymbol + HasPostInstrSymbol,
+              HasHeapAllocMarker),
           alignof(ExtraInfo)))
-          ExtraInfo(MMOs.size(), HasPreInstrSymbol, HasPostInstrSymbol);
+          ExtraInfo(MMOs.size(), HasPreInstrSymbol, HasPostInstrSymbol,
+                    HasHeapAllocMarker);
 
       // Copy the actual data into the trailing objects.
       std::copy(MMOs.begin(), MMOs.end(),
@@ -160,6 +166,8 @@ private:
       if (HasPostInstrSymbol)
         Result->getTrailingObjects<MCSymbol *>()[HasPreInstrSymbol] =
             PostInstrSymbol;
+      if (HasHeapAllocMarker)
+        Result->getTrailingObjects<MDNode *>()[0] = HeapAllocMarker;
 
       return Result;
     }
@@ -178,6 +186,10 @@ private:
                  : nullptr;
     }
 
+    MDNode *getHeapAllocMarker() const {
+      return HasHeapAllocMarker ? getTrailingObjects<MDNode *>()[0] : nullptr;
+    }
+
   private:
     friend TrailingObjects;
 
@@ -189,6 +201,7 @@ private:
     const int NumMMOs;
     const bool HasPreInstrSymbol;
     const bool HasPostInstrSymbol;
+    const bool HasHeapAllocMarker;
 
     // Implement the `TrailingObjects` internal API.
     size_t numTrailingObjects(OverloadToken<MachineMemOperand *>) const {
@@ -197,12 +210,17 @@ private:
     size_t numTrailingObjects(OverloadToken<MCSymbol *>) const {
       return HasPreInstrSymbol + HasPostInstrSymbol;
     }
+    size_t numTrailingObjects(OverloadToken<MDNode *>) const {
+      return HasHeapAllocMarker;
+    }
 
     // Just a boring constructor to allow us to initialize the sizes. Always use
     // the `create` routine above.
-    ExtraInfo(int NumMMOs, bool HasPreInstrSymbol, bool HasPostInstrSymbol)
+    ExtraInfo(int NumMMOs, bool HasPreInstrSymbol, bool HasPostInstrSymbol,
+              bool HasHeapAllocMarker)
         : NumMMOs(NumMMOs), HasPreInstrSymbol(HasPreInstrSymbol),
-          HasPostInstrSymbol(HasPostInstrSymbol) {}
+          HasPostInstrSymbol(HasPostInstrSymbol),
+          HasHeapAllocMarker(HasHeapAllocMarker) {}
   };
 
   /// Enumeration of the kinds of inline extra info available. It is important
@@ -246,6 +264,10 @@ private:
 
   // MachineInstrs are pool-allocated and owned by MachineFunction.
   friend class MachineFunction;
+
+  void
+  dumprImpl(const MachineRegisterInfo &MRI, unsigned Depth, unsigned MaxDepth,
+            SmallPtrSetImpl<const MachineInstr *> &AlreadySeenInstrs) const;
 
 public:
   MachineInstr(const MachineInstr &) = delete;
@@ -593,6 +615,16 @@ public:
     return nullptr;
   }
 
+  /// Helper to extract a heap alloc marker if one has been added.
+  MDNode *getHeapAllocMarker() const {
+    if (!Info)
+      return nullptr;
+    if (ExtraInfo *EI = Info.get<EIIK_OutOfLine>())
+      return EI->getHeapAllocMarker();
+
+    return nullptr;
+  }
+
   /// API for querying MachineInstr properties. They are the same as MCInstrDesc
   /// queries but they are bundle aware.
 
@@ -658,6 +690,14 @@ public:
     return hasProperty(MCID::Call, Type);
   }
 
+  /// Return true if this is a call instruction that may have an associated
+  /// call site entry in the debug info.
+  bool isCandidateForCallSiteEntry(QueryType Type = IgnoreBundle) const;
+  /// Return true if copying, moving, or erasing this instruction requires
+  /// updating Call Site Info (see \ref copyCallSiteInfo, \ref moveCallSiteInfo,
+  /// \ref eraseCallSiteInfo).
+  bool shouldUpdateCallSiteInfo() const;
+
   /// Returns true if the specified instruction stops control flow
   /// from executing the instruction immediately following it.  Examples include
   /// unconditional branches and return instructions.
@@ -676,7 +716,7 @@ public:
 
   /// Returns true if this is a conditional, unconditional, or indirect branch.
   /// Predicates below can be used to discriminate between
-  /// these cases, and the TargetInstrInfo::AnalyzeBranch method can be used to
+  /// these cases, and the TargetInstrInfo::analyzeBranch method can be used to
   /// get more information.
   bool isBranch(QueryType Type = AnyInBundle) const {
     return hasProperty(MCID::Branch, Type);
@@ -690,18 +730,18 @@ public:
 
   /// Return true if this is a branch which may fall
   /// through to the next instruction or may transfer control flow to some other
-  /// block.  The TargetInstrInfo::AnalyzeBranch method can be used to get more
+  /// block.  The TargetInstrInfo::analyzeBranch method can be used to get more
   /// information about this branch.
   bool isConditionalBranch(QueryType Type = AnyInBundle) const {
-    return isBranch(Type) & !isBarrier(Type) & !isIndirectBranch(Type);
+    return isBranch(Type) && !isBarrier(Type) && !isIndirectBranch(Type);
   }
 
   /// Return true if this is a branch which always
   /// transfers control flow to some other block.  The
-  /// TargetInstrInfo::AnalyzeBranch method can be used to get more information
+  /// TargetInstrInfo::analyzeBranch method can be used to get more information
   /// about this branch.
   bool isUnconditionalBranch(QueryType Type = AnyInBundle) const {
-    return isBranch(Type) & isBarrier(Type) & !isIndirectBranch(Type);
+    return isBranch(Type) && isBarrier(Type) && !isIndirectBranch(Type);
   }
 
   /// Return true if this instruction has a predicate operand that
@@ -860,10 +900,10 @@ public:
   /// instruction that can in principle raise an exception, as indicated
   /// by the MCID::MayRaiseFPException property, *and* at the same time,
   /// the instruction is used in a context where we expect floating-point
-  /// exceptions might be enabled, as indicated by the FPExcept MI flag.
+  /// exceptions are not disabled, as indicated by the NoFPExcept MI flag.
   bool mayRaiseFPException() const {
     return hasProperty(MCID::MayRaiseFPException) &&
-           getFlag(MachineInstr::MIFlag::FPExcept);
+           !getFlag(MachineInstr::MIFlag::NoFPExcept);
   }
 
   //===--------------------------------------------------------------------===//
@@ -1042,10 +1082,8 @@ public:
   }
 
   /// A DBG_VALUE is an entry value iff its debug expression contains the
-  /// DW_OP_entry_value DWARF operation.
-  bool isDebugEntryValue() const {
-    return isDebugValue() && getDebugExpression()->isEntryValue();
-  }
+  /// DW_OP_LLVM_entry_value operation.
+  bool isDebugEntryValue() const;
 
   /// Return true if the instruction is a debug value which describes a part of
   /// a variable as unavailable.
@@ -1414,7 +1452,7 @@ public:
   /// Return true if it is safe to move this instruction. If
   /// SawStore is set to true, it means that there is a store (or call) between
   /// the instruction's location and its intended destination.
-  bool isSafeToMove(AliasAnalysis *AA, bool &SawStore) const;
+  bool isSafeToMove(AAResults *AA, bool &SawStore) const;
 
   /// Returns true if this instruction's memory access aliases the memory
   /// access of Other.
@@ -1426,7 +1464,7 @@ public:
   /// @param AA Optional alias analysis, used to compare memory operands.
   /// @param Other MachineInstr to check aliasing against.
   /// @param UseTBAA Whether to pass TBAA information to alias analysis.
-  bool mayAlias(AliasAnalysis *AA, const MachineInstr &Other, bool UseTBAA) const;
+  bool mayAlias(AAResults *AA, const MachineInstr &Other, bool UseTBAA) const;
 
   /// Return true if this instruction may have an ordered
   /// or volatile memory reference, or if the information describing the memory
@@ -1441,7 +1479,7 @@ public:
   /// argument area of a function (if it does not change).  If the instruction
   /// does multiple loads, this returns true only if all of the loads are
   /// dereferenceable and invariant.
-  bool isDereferenceableInvariantLoad(AliasAnalysis *AA) const;
+  bool isDereferenceableInvariantLoad(AAResults *AA) const;
 
   /// If the specified instruction is a PHI that always merges together the
   /// same virtual register, return the register, otherwise return 0.
@@ -1507,6 +1545,10 @@ public:
              bool AddNewLine = true,
              const TargetInstrInfo *TII = nullptr) const;
   void dump() const;
+  /// Print on dbgs() the current instruction and the instructions defining its
+  /// operands and so on until we reach \p MaxDepth.
+  void dumpr(const MachineRegisterInfo &MRI,
+             unsigned MaxDepth = UINT_MAX) const;
   /// @}
 
   //===--------------------------------------------------------------------===//
@@ -1600,6 +1642,12 @@ public:
   /// replace ours with it.
   void cloneInstrSymbols(MachineFunction &MF, const MachineInstr &MI);
 
+  /// Set a marker on instructions that denotes where we should create and emit
+  /// heap alloc site labels. This waits until after instruction selection and
+  /// optimizations to create the label, so it should still work if the
+  /// instruction is removed or duplicated.
+  void setHeapAllocMarker(MachineFunction &MF, MDNode *MD);
+
   /// Return the MIFlags which represent both MachineInstrs. This
   /// should be used when merging two MachineInstrs into one. This routine does
   /// not modify the MIFlags of this MachineInstr.
@@ -1622,7 +1670,8 @@ public:
   /// Add all implicit def and use operands to this instruction.
   void addImplicitDefUseOperands(MachineFunction &MF);
 
-  /// Scan instructions following MI and collect any matching DBG_VALUEs.
+  /// Scan instructions immediately following MI and collect any matching
+  /// DBG_VALUEs.
   void collectDebugValues(SmallVectorImpl<MachineInstr *> &DbgValues);
 
   /// Find all DBG_VALUEs that point to the register def in this instruction
@@ -1660,6 +1709,12 @@ private:
   const TargetRegisterClass *getRegClassConstraintEffectForVRegImpl(
       unsigned OpIdx, Register Reg, const TargetRegisterClass *CurRC,
       const TargetInstrInfo *TII, const TargetRegisterInfo *TRI) const;
+
+  /// Stores extra instruction information inline or allocates as ExtraInfo
+  /// based on the number of pointers.
+  void setExtraInfo(MachineFunction &MF, ArrayRef<MachineMemOperand *> MMOs,
+                    MCSymbol *PreInstrSymbol, MCSymbol *PostInstrSymbol,
+                    MDNode *HeapAllocMarker);
 };
 
 /// Special DenseMapInfo traits to compare MachineInstr* by *value* of the

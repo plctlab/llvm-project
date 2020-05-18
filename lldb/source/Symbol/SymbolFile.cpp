@@ -1,4 +1,4 @@
-//===-- SymbolFile.cpp ------------------------------------------*- C++ -*-===//
+//===-- SymbolFile.cpp ----------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -23,6 +23,8 @@
 
 using namespace lldb_private;
 using namespace lldb;
+
+char SymbolFile::ID;
 
 void SymbolFile::PreloadSymbols() {
   // No-op for most implementations.
@@ -102,36 +104,24 @@ uint32_t SymbolFile::ResolveSymbolContext(const FileSpec &file_spec,
   return 0;
 }
 
-uint32_t
-SymbolFile::FindGlobalVariables(ConstString name,
-                                const CompilerDeclContext *parent_decl_ctx,
-                                uint32_t max_matches, VariableList &variables) {
-  return 0;
-}
+void SymbolFile::FindGlobalVariables(ConstString name,
+                                     const CompilerDeclContext &parent_decl_ctx,
+                                     uint32_t max_matches,
+                                     VariableList &variables) {}
 
-uint32_t SymbolFile::FindGlobalVariables(const RegularExpression &regex,
-                                         uint32_t max_matches,
-                                         VariableList &variables) {
-  return 0;
-}
+void SymbolFile::FindGlobalVariables(const RegularExpression &regex,
+                                     uint32_t max_matches,
+                                     VariableList &variables) {}
 
-uint32_t SymbolFile::FindFunctions(ConstString name,
-                                   const CompilerDeclContext *parent_decl_ctx,
-                                   lldb::FunctionNameType name_type_mask,
-                                   bool include_inlines, bool append,
-                                   SymbolContextList &sc_list) {
-  if (!append)
-    sc_list.Clear();
-  return 0;
-}
+void SymbolFile::FindFunctions(ConstString name,
+                               const CompilerDeclContext &parent_decl_ctx,
+                               lldb::FunctionNameType name_type_mask,
+                               bool include_inlines,
+                               SymbolContextList &sc_list) {}
 
-uint32_t SymbolFile::FindFunctions(const RegularExpression &regex,
-                                   bool include_inlines, bool append,
-                                   SymbolContextList &sc_list) {
-  if (!append)
-    sc_list.Clear();
-  return 0;
-}
+void SymbolFile::FindFunctions(const RegularExpression &regex,
+                               bool include_inlines,
+                               SymbolContextList &sc_list) {}
 
 void SymbolFile::GetMangledNamesForFunction(
     const std::string &scope_qualified_name,
@@ -140,13 +130,15 @@ void SymbolFile::GetMangledNamesForFunction(
 }
 
 void SymbolFile::FindTypes(
-    ConstString name, const CompilerDeclContext *parent_decl_ctx,
+    ConstString name, const CompilerDeclContext &parent_decl_ctx,
     uint32_t max_matches,
     llvm::DenseSet<lldb_private::SymbolFile *> &searched_symbol_files,
     TypeMap &types) {}
 
 void SymbolFile::FindTypes(llvm::ArrayRef<CompilerContext> pattern,
-                           LanguageSet languages, TypeMap &types) {}
+                           LanguageSet languages,
+                           llvm::DenseSet<SymbolFile *> &searched_symbol_files,
+                           TypeMap &types) {}
 
 void SymbolFile::AssertModuleLock() {
   // The code below is too expensive to leave enabled in release builds. It's

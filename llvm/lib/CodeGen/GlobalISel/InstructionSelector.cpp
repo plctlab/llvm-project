@@ -42,7 +42,7 @@ bool InstructionSelector::constrainOperandRegToRegClass(
   MachineRegisterInfo &MRI = MF.getRegInfo();
 
   return constrainOperandRegClass(MF, TRI, MRI, TII, RBI, I, RC,
-                                  I.getOperand(OpIdx), OpIdx);
+                                  I.getOperand(OpIdx));
 }
 
 bool InstructionSelector::isOperandImmEqual(
@@ -60,7 +60,7 @@ bool InstructionSelector::isBaseWithConstantOffset(
     return false;
 
   MachineInstr *RootI = MRI.getVRegDef(Root.getReg());
-  if (RootI->getOpcode() != TargetOpcode::G_GEP)
+  if (RootI->getOpcode() != TargetOpcode::G_PTR_ADD)
     return false;
 
   MachineOperand &RHS = RootI->getOperand(2);

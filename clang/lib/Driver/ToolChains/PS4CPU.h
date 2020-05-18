@@ -84,6 +84,22 @@ public:
 
   SanitizerMask getSupportedSanitizers() const override;
 
+  // PS4 toolchain uses legacy thin LTO API, which is not
+  // capable of unit splitting.
+  bool canSplitThinLTOUnit() const override { return false; }
+
+  void addClangTargetOptions(
+    const llvm::opt::ArgList &DriverArgs,
+    llvm::opt::ArgStringList &CC1Args,
+    Action::OffloadKind DeviceOffloadingKind) const override;
+
+  llvm::DenormalMode getDefaultDenormalModeForType(
+      const llvm::opt::ArgList &DriverArgs, const JobAction &JA,
+      const llvm::fltSemantics *FPType) const override {
+    // DAZ and FTZ are on by default.
+    return llvm::DenormalMode::getPreserveSign();
+  }
+
 protected:
   Tool *buildAssembler() const override;
   Tool *buildLinker() const override;

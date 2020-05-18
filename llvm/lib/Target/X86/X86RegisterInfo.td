@@ -294,6 +294,11 @@ def FPSW : X86Reg<"fpsr", 0>;
 // Floating-point control word
 def FPCW : X86Reg<"fpcr", 0>;
 
+// SIMD Floating-point control register.
+// Note: We only model the "Uses" of the control bits: current rounding modes,
+// DAZ, FTZ and exception masks. We don't model the "Defs" of flag bits.
+def MXCSR : X86Reg<"mxcsr", 0>;
+
 // Status flags register.
 //
 // Note that some flags that are commonly thought of as part of the status
@@ -493,7 +498,7 @@ def GR64_NOREX_NOSP : RegisterClass<"X86", [i64], 64,
 // which we do not have right now.
 def LOW32_ADDR_ACCESS : RegisterClass<"X86", [i32], 32, (add GR32, RIP)>;
 
-// When RBP is used as a base pointer in a 32-bit addresses environement,
+// When RBP is used as a base pointer in a 32-bit addresses environment,
 // this is also safe to use the full register to access addresses.
 // Since RBP will never be spilled, stick to a 32 alignment to save
 // on memory consumption.

@@ -292,6 +292,20 @@ Check for memory leaks. Traces memory managed by new/delete.
    int *p = new int;
  } // warn
 
+.. _cplusplus-PlacementNewChecker:
+
+cplusplus.PlacementNewChecker (C++)
+"""""""""""""""""""""""""""""""""""
+Check if default placement new is provided with pointers to sufficient storage capacity.
+
+.. code-block:: cpp
+
+ #include <new>
+
+ void f() {
+   short s;
+   long *lp = ::new (&s) long; // warn
+ }
 
 .. _cplusplus-SelfAssignment:
 
@@ -425,7 +439,7 @@ optin.cplusplus.UninitializedObject (C++)
 This checker reports uninitialized fields in objects created after a constructor
 call. It doesn't only find direct uninitialized fields, but rather makes a deep
 inspection of the object, analyzing all of it's fields subfields.
-The checker regards inherited fields as direct fields, so one will recieve
+The checker regards inherited fields as direct fields, so one will receive
 warnings for uninitialized inherited data members as well.
 
 .. code-block:: cpp
@@ -511,7 +525,7 @@ This checker has several options which can be set from command line (e.g.
   objects that don't have at least one initialized field. Defaults to false.
 
 * ``NotesAsWarnings``  (boolean). If set to true, the checker will emit a
-  warning for each uninitalized field, as opposed to emitting one warning per
+  warning for each uninitialized field, as opposed to emitting one warning per
   constructor call, and listing the uninitialized fields that belongs to it in
   notes. *Defaults to false*.
 
@@ -1335,6 +1349,31 @@ Warns if 'CFArray', 'CFDictionary', 'CFSet' are created with non-pointer-size va
                                 &kCFTypeArrayCallBacks); // warn
  }
 
+Fuchsia
+^^^^^^^
+
+Fuchsia is an open source capability-based operating system currently being
+developed by Google. This section describes checkers that can find various
+misuses of Fuchsia APIs.
+
+.. _fuchsia-HandleChecker:
+
+fuchsia.HandleChecker
+""""""""""""""""""""""""""""
+Handles identify resources. Similar to pointers they can be leaked,
+double freed, or use after freed. This check attempts to find such problems.
+
+.. code-block:: cpp
+
+ void checkLeak08(int tag) {
+   zx_handle_t sa, sb;
+   zx_channel_create(0, &sa, &sb);
+   if (tag)
+     zx_handle_close(sa);
+   use(sb); // Warn: Potential leak of handle
+   zx_handle_close(sb);
+ }
+
 
 .. _alpha-checkers:
 
@@ -1890,6 +1929,38 @@ Warns against using one vs. many plural pattern in code when generating localize
 
 alpha.security
 ^^^^^^^^^^^^^^
+
+
+alpha.security.cert
+^^^^^^^^^^^^^^^^^^^
+
+SEI CERT checkers which tries to find errors based on their `C coding rules <https://wiki.sei.cmu.edu/confluence/display/c/2+Rules>`_.
+
+.. _alpha-security-cert-pos-checkers:
+
+alpha.security.cert.pos
+^^^^^^^^^^^^^^^^^^^^^^^
+
+SEI CERT checkers of `POSIX C coding rules <https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87152405>`_.
+
+.. _alpha-security-cert-pos-34c:
+
+alpha.security.cert.pos.34c
+"""""""""""""""""""""""""""
+Finds calls to the ``putenv`` function which pass a pointer to an automatic variable as the argument.
+
+.. code-block:: c
+
+  int func(const char *var) {
+    char env[1024];
+    int retval = snprintf(env, sizeof(env),"TEST=%s", var);
+    if (retval < 0 || (size_t)retval >= sizeof(env)) {
+        /* Handle error */
+    }
+ 
+    return putenv(env); // putenv function should not be called with auto variables
+  }
+  
 .. _alpha-security-ArrayBound:
 
 alpha.security.ArrayBound (C)
@@ -1972,6 +2043,12 @@ Check for overflows in the arguments to malloc().
 
  void test(int n) {
    void *p = malloc(n * sizeof(int)); // warn
+ }
+
+ void test2(int n) {
+   if (n > 100) // gives an upper-bound
+     return;
+   void *p = malloc(n * sizeof(int)); // no warning
  }
 
 .. _alpha-security-MmapWriteExec:
@@ -2122,9 +2199,9 @@ lck_rw_try_lock_exclusive, lck_rw_try_lock_shared, pthread_mutex_unlock, pthread
 alpha.unix.SimpleStream (C)
 """""""""""""""""""""""""""
 Check for misuses of stream APIs. Check for misuses of stream APIs: ``fopen, fclose``
-(demo checker, the subject of the demo (`Slides <http://llvm.org/devmtg/2012-11/Zaks-Rose-Checker24Hours.pdf>`_ ,
+(demo checker, the subject of the demo (`Slides <https://llvm.org/devmtg/2012-11/Zaks-Rose-Checker24Hours.pdf>`_ ,
 `Video <https://youtu.be/kdxlsP5QVPw>`_) by Anna Zaks and Jordan Rose presented at the
-`2012 LLVM Developers' Meeting <http://llvm.org/devmtg/2012-11/>`_).
+`2012 LLVM Developers' Meeting <https://llvm.org/devmtg/2012-11/>`_).
 
 .. code-block:: c
 

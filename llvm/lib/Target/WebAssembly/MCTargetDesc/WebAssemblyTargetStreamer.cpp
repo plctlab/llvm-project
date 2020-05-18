@@ -28,7 +28,7 @@ WebAssemblyTargetStreamer::WebAssemblyTargetStreamer(MCStreamer &S)
     : MCTargetStreamer(S) {}
 
 void WebAssemblyTargetStreamer::emitValueType(wasm::ValType Type) {
-  Streamer.EmitIntValue(uint8_t(Type), 1);
+  Streamer.emitIntValue(uint8_t(Type), 1);
 }
 
 WebAssemblyTargetAsmStreamer::WebAssemblyTargetAsmStreamer(
@@ -94,6 +94,12 @@ void WebAssemblyTargetAsmStreamer::emitImportName(const MCSymbolWasm *Sym,
                            << ImportName << '\n';
 }
 
+void WebAssemblyTargetAsmStreamer::emitExportName(const MCSymbolWasm *Sym,
+                                                  StringRef ExportName) {
+  OS << "\t.export_name\t" << Sym->getName() << ", "
+                           << ExportName << '\n';
+}
+
 void WebAssemblyTargetAsmStreamer::emitIndIdx(const MCExpr *Value) {
   OS << "\t.indidx  \t" << *Value << '\n';
 }
@@ -107,9 +113,9 @@ void WebAssemblyTargetWasmStreamer::emitLocal(ArrayRef<wasm::ValType> Types) {
       ++Grouped.back().second;
   }
 
-  Streamer.EmitULEB128IntValue(Grouped.size());
+  Streamer.emitULEB128IntValue(Grouped.size());
   for (auto Pair : Grouped) {
-    Streamer.EmitULEB128IntValue(Pair.second);
+    Streamer.emitULEB128IntValue(Pair.second);
     emitValueType(Pair.first);
   }
 }

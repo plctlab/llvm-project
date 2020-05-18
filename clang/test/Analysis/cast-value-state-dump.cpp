@@ -1,4 +1,4 @@
-// RUN: %clang_analyze_cc1 \
+// RUN: %clang_analyze_cc1 -std=c++14 \
 // RUN:  -analyzer-checker=core,apiModeling.llvm.CastValue,debug.ExprInspection\
 // RUN:  -analyzer-output=text -verify %s 2>&1 | FileCheck %s
 
@@ -37,7 +37,7 @@ void evalNonNullParamNonNullReturn(const Shape *S) {
   // CHECK:        { "region": "SymRegion{reg_$0<const struct clang::Shape * S>}", "casts": [
   // CHECK-NEXT:     { "from": "const struct clang::Shape *", "to": "const class clang::Circle *", "kind": "success" },
   // CHECK-NEXT:     { "from": "const struct clang::Shape *", "to": "const class clang::Square *", "kind": "fail" }
-  // CHECK-NEXT:   ]}
+  // CHECK-NEXT:   ] }
 
   (void)(1 / !C);
   // expected-note@-1 {{'C' is non-null}}

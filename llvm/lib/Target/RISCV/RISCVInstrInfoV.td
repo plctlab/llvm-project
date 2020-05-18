@@ -648,14 +648,14 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSETVLI: RVInstVSet<0b0, OPC_OP_V, 
                       (outs VLR:$vl, GPR:$rd),
                       (ins GPR:$rs1, vtypei:$vtyi),
-                      "vsetvli", "$rd, $rs1, $vtyi"> {
+                      "vsetvli", "$rd, $rs1, $vtyi">, Sched<[]> {
   bits<11> vtyi;
   let Inst{30-20} = vtyi;
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSETVL: RVInstVSet<0b1, OPC_OP_V, 
                       (outs VLR:$vl, GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
-                      "vsetvl", "$rd, $rs1, $rs2"> {
+                      "vsetvl", "$rd, $rs1, $rs2">, Sched<[]> {
   bits<5> rs2;
   let Inst{30-25} = 0b000000;
   let Inst{24-20} = rs2;
@@ -664,65 +664,65 @@ def VSETVL: RVInstVSet<0b1, OPC_OP_V,
 
 // Vector Unit-Stride Instructions
 
-defm VLB_V : VLoad_UnitStride<0b000, 0b100, 0b000, "vlb.v">;
-defm VLH_V : VLoad_UnitStride<0b000, 0b100, 0b101, "vlh.v">;
-defm VLW_V : VLoad_UnitStride<0b000, 0b100, 0b110, "vlw.v">;
-defm VLBU_V : VLoad_UnitStride<0b000, 0b000, 0b000, "vlbu.v">;
-defm VLHU_V : VLoad_UnitStride<0b000, 0b000, 0b101, "vlhu.v">;
-defm VLWU_V : VLoad_UnitStride<0b000, 0b000, 0b110, "vlwu.v">;
-defm VLE_V : VLoad_UnitStride<0b000, 0b000, 0b111, "vle.v">;
+defm VLB_V : VLoad_UnitStride<0b000, 0b100, 0b000, "vlb.v">, Sched<[]>;
+defm VLH_V : VLoad_UnitStride<0b000, 0b100, 0b101, "vlh.v">, Sched<[]>;
+defm VLW_V : VLoad_UnitStride<0b000, 0b100, 0b110, "vlw.v">, Sched<[]>;
+defm VLBU_V : VLoad_UnitStride<0b000, 0b000, 0b000, "vlbu.v">, Sched<[]>;
+defm VLHU_V : VLoad_UnitStride<0b000, 0b000, 0b101, "vlhu.v">, Sched<[]>;
+defm VLWU_V : VLoad_UnitStride<0b000, 0b000, 0b110, "vlwu.v">, Sched<[]>;
+defm VLE_V : VLoad_UnitStride<0b000, 0b000, 0b111, "vle.v">, Sched<[]>;
 
-defm VSB_V : VStore_UnitStride<0b000, 0b000, 0b000, "vsb.v">;
-defm VSH_V : VStore_UnitStride<0b000, 0b000, 0b101, "vsh.v">;
-defm VSW_V : VStore_UnitStride<0b000, 0b000, 0b110, "vsw.v">;
-defm VSE_V : VStore_UnitStride<0b000, 0b000, 0b111, "vse.v">;
+defm VSB_V : VStore_UnitStride<0b000, 0b000, 0b000, "vsb.v">, Sched<[]>;
+defm VSH_V : VStore_UnitStride<0b000, 0b000, 0b101, "vsh.v">, Sched<[]>;
+defm VSW_V : VStore_UnitStride<0b000, 0b000, 0b110, "vsw.v">, Sched<[]>;
+defm VSE_V : VStore_UnitStride<0b000, 0b000, 0b111, "vse.v">, Sched<[]>;
 
 
 // Vector Strided Instructions
 
-defm VLSB_V : VLoad_Strided<0b000, 0b110, 0b000, "vlsb.v">;
-defm VLSH_V : VLoad_Strided<0b000, 0b110, 0b101, "vlsh.v">;
-defm VLSW_V : VLoad_Strided<0b000, 0b110, 0b110, "vlsw.v">;
-defm VLSBU_V : VLoad_Strided<0b000, 0b010, 0b000, "vlsbu.v">;
-defm VLSHU_V : VLoad_Strided<0b000, 0b010, 0b101, "vlshu.v">;
-defm VLSWU_V : VLoad_Strided<0b000, 0b010, 0b110, "vlswu.v">;
-defm VLSE_V : VLoad_Strided<0b000, 0b010, 0b111, "vlse.v">;
+defm VLSB_V : VLoad_Strided<0b000, 0b110, 0b000, "vlsb.v">, Sched<[]>;
+defm VLSH_V : VLoad_Strided<0b000, 0b110, 0b101, "vlsh.v">, Sched<[]>;
+defm VLSW_V : VLoad_Strided<0b000, 0b110, 0b110, "vlsw.v">, Sched<[]>;
+defm VLSBU_V : VLoad_Strided<0b000, 0b010, 0b000, "vlsbu.v">, Sched<[]>;
+defm VLSHU_V : VLoad_Strided<0b000, 0b010, 0b101, "vlshu.v">, Sched<[]>;
+defm VLSWU_V : VLoad_Strided<0b000, 0b010, 0b110, "vlswu.v">, Sched<[]>;
+defm VLSE_V : VLoad_Strided<0b000, 0b010, 0b111, "vlse.v">, Sched<[]>;
 
-defm VSSB_V : VStore_Strided<0b000, 0b010, 0b000, "vssb.v">;
-defm VSSH_V : VStore_Strided<0b000, 0b010, 0b101, "vssh.v">;
-defm VSSW_V : VStore_Strided<0b000, 0b010, 0b110, "vssw.v">;
-defm VSSE_V : VStore_Strided<0b000, 0b010, 0b111, "vsse.v">;
+defm VSSB_V : VStore_Strided<0b000, 0b010, 0b000, "vssb.v">, Sched<[]>;
+defm VSSH_V : VStore_Strided<0b000, 0b010, 0b101, "vssh.v">, Sched<[]>;
+defm VSSW_V : VStore_Strided<0b000, 0b010, 0b110, "vssw.v">, Sched<[]>;
+defm VSSE_V : VStore_Strided<0b000, 0b010, 0b111, "vsse.v">, Sched<[]>;
 
 
 // Vector Indexed Instructions
 
-defm VLXB_V : VLoad_Indexed<0b000, 0b111, 0b000, "vlxb.v">;
-defm VLXH_V : VLoad_Indexed<0b000, 0b111, 0b101, "vlxh.v">;
-defm VLXW_V : VLoad_Indexed<0b000, 0b111, 0b110, "vlxw.v">;
-defm VLXBU_V : VLoad_Indexed<0b000, 0b011, 0b000, "vlxbu.v">;
-defm VLXHU_V : VLoad_Indexed<0b000, 0b011, 0b101, "vlxhu.v">;
-defm VLXWU_V : VLoad_Indexed<0b000, 0b011, 0b110, "vlxwu.v">;
-defm VLXE_V : VLoad_Indexed<0b000, 0b011, 0b111, "vlxe.v">;
+defm VLXB_V : VLoad_Indexed<0b000, 0b111, 0b000, "vlxb.v">, Sched<[]>;
+defm VLXH_V : VLoad_Indexed<0b000, 0b111, 0b101, "vlxh.v">, Sched<[]>;
+defm VLXW_V : VLoad_Indexed<0b000, 0b111, 0b110, "vlxw.v">, Sched<[]>;
+defm VLXBU_V : VLoad_Indexed<0b000, 0b011, 0b000, "vlxbu.v">, Sched<[]>;
+defm VLXHU_V : VLoad_Indexed<0b000, 0b011, 0b101, "vlxhu.v">, Sched<[]>;
+defm VLXWU_V : VLoad_Indexed<0b000, 0b011, 0b110, "vlxwu.v">, Sched<[]>;
+defm VLXE_V : VLoad_Indexed<0b000, 0b011, 0b111, "vlxe.v">, Sched<[]>;
 
-defm VSXB_V : VStore_Indexed<0b000, 0b011, 0b000, "vsxb.v">;
-defm VSXH_V : VStore_Indexed<0b000, 0b011, 0b101, "vsxh.v">;
-defm VSXW_V : VStore_Indexed<0b000, 0b011, 0b110, "vsxw.v">;
-defm VSXE_V : VStore_Indexed<0b000, 0b011, 0b111, "vsxe.v">;
-defm VSUXB_V : VStore_Indexed<0b000, 0b111, 0b000, "vsuxb.v">;
-defm VSUXH_V : VStore_Indexed<0b000, 0b111, 0b101, "vsuxh.v">;
-defm VSUXW_V : VStore_Indexed<0b000, 0b111, 0b110, "vsuxw.v">;
-defm VSUXE_V : VStore_Indexed<0b000, 0b111, 0b111, "vsuxe.v">;
+defm VSXB_V : VStore_Indexed<0b000, 0b011, 0b000, "vsxb.v">, Sched<[]>;
+defm VSXH_V : VStore_Indexed<0b000, 0b011, 0b101, "vsxh.v">, Sched<[]>;
+defm VSXW_V : VStore_Indexed<0b000, 0b011, 0b110, "vsxw.v">, Sched<[]>;
+defm VSXE_V : VStore_Indexed<0b000, 0b011, 0b111, "vsxe.v">, Sched<[]>;
+defm VSUXB_V : VStore_Indexed<0b000, 0b111, 0b000, "vsuxb.v">, Sched<[]>;
+defm VSUXH_V : VStore_Indexed<0b000, 0b111, 0b101, "vsuxh.v">, Sched<[]>;
+defm VSUXW_V : VStore_Indexed<0b000, 0b111, 0b110, "vsuxw.v">, Sched<[]>;
+defm VSUXE_V : VStore_Indexed<0b000, 0b111, 0b111, "vsuxe.v">, Sched<[]>;
 
 
 // Unit-stride Fault-Only-First Loads Instructions
 
-defm VLBFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b000, "vlbff.v">;
-defm VLHFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b101, "vlhff.v">;
-defm VLWFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b110, "vlwff.v">;
-defm VLBUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b000, "vlbuff.v">;
-defm VLHUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b101, "vlhuff.v">;
-defm VLWUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b110, "vlwuff.v">;
-defm VLEFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b111, "vleff.v">;
+defm VLBFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b000, "vlbff.v">, Sched<[]>;
+defm VLHFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b101, "vlhff.v">, Sched<[]>;
+defm VLWFF_V : VLoad_UnitStrideFF<0b000, 0b100, 0b110, "vlwff.v">, Sched<[]>;
+defm VLBUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b000, "vlbuff.v">, Sched<[]>;
+defm VLHUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b101, "vlhuff.v">, Sched<[]>;
+defm VLWUFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b110, "vlwuff.v">, Sched<[]>;
+defm VLEFF_V : VLoad_UnitStrideFF<0b000, 0b000, 0b111, "vleff.v">, Sched<[]>;
 
 
 // Vector Load/Store Segment Instructions
@@ -731,362 +731,362 @@ foreach nf = 2-8 in {
 
   // Vector Unit-Stride Segment Loads and Stores
   defm VLSEG#nf#B_V : VLoad_UnitStride<!add(nf, -1), 0b100,
-                                       0b000, "vlseg"#nf#"b.v">;
+                                       0b000, "vlseg"#nf#"b.v">, Sched<[]>;
   defm VLSEG#nf#H_V : VLoad_UnitStride<!add(nf, -1), 0b100,
-                                       0b101, "vlseg"#nf#"h.v">;
+                                       0b101, "vlseg"#nf#"h.v">, Sched<[]>;
   defm VLSEG#nf#W_V : VLoad_UnitStride<!add(nf, -1), 0b100,
-                                       0b110, "vlseg"#nf#"w.v">;
+                                       0b110, "vlseg"#nf#"w.v">, Sched<[]>;
   defm VLSEG#nf#BU_V : VLoad_UnitStride<!add(nf, -1), 0b000,
-                                       0b000, "vlseg"#nf#"bu.v">;
+                                       0b000, "vlseg"#nf#"bu.v">, Sched<[]>;
   defm VLSEG#nf#HU_V : VLoad_UnitStride<!add(nf, -1), 0b000,
-                                       0b101, "vlseg"#nf#"hu.v">;
+                                       0b101, "vlseg"#nf#"hu.v">, Sched<[]>;
   defm VLSEG#nf#WU_V : VLoad_UnitStride<!add(nf, -1), 0b000,
-                                       0b110, "vlseg"#nf#"wu.v">;
+                                       0b110, "vlseg"#nf#"wu.v">, Sched<[]>;
   defm VLSEG#nf#E_V : VLoad_UnitStride<!add(nf, -1), 0b000,
-                                       0b111, "vlseg"#nf#"e.v">;
+                                       0b111, "vlseg"#nf#"e.v">, Sched<[]>;
   defm VSSEG#nf#B_V : VStore_UnitStride<!add(nf, -1), 0b000,
-                                       0b000, "vsseg"#nf#"b.v">;
+                                       0b000, "vsseg"#nf#"b.v">, Sched<[]>;
   defm VSSEG#nf#H_V : VStore_UnitStride<!add(nf, -1), 0b000,
-                                       0b101, "vsseg"#nf#"h.v">;
+                                       0b101, "vsseg"#nf#"h.v">, Sched<[]>;
   defm VSSEG#nf#W_V : VStore_UnitStride<!add(nf, -1), 0b000,
-                                       0b110, "vsseg"#nf#"w.v">;
+                                       0b110, "vsseg"#nf#"w.v">, Sched<[]>;
   defm VSSEG#nf#E_V : VStore_UnitStride<!add(nf, -1), 0b000,
-                                       0b111, "vsseg"#nf#"e.v">;
+                                       0b111, "vsseg"#nf#"e.v">, Sched<[]>;
 
   // Vector Strided Segment Loads and Stores
   defm VLSSEG#nf#B_V : VLoad_Strided<!add(nf, -1), 0b110,
-                                       0b000, "vlsseg"#nf#"b.v">;
+                                       0b000, "vlsseg"#nf#"b.v">, Sched<[]>;
   defm VLSSEG#nf#H_V : VLoad_Strided<!add(nf, -1), 0b110,
-                                       0b101, "vlsseg"#nf#"h.v">;
+                                       0b101, "vlsseg"#nf#"h.v">, Sched<[]>;
   defm VLSSEG#nf#W_V : VLoad_Strided<!add(nf, -1), 0b110,
-                                       0b110, "vlsseg"#nf#"w.v">;
+                                       0b110, "vlsseg"#nf#"w.v">, Sched<[]>;
   defm VLSSEG#nf#BU_V : VLoad_Strided<!add(nf, -1), 0b010,
-                                       0b000, "vlsseg"#nf#"bu.v">;
+                                       0b000, "vlsseg"#nf#"bu.v">, Sched<[]>;
   defm VLSSEG#nf#HU_V : VLoad_Strided<!add(nf, -1), 0b010,
-                                       0b101, "vlsseg"#nf#"hu.v">;
+                                       0b101, "vlsseg"#nf#"hu.v">, Sched<[]>;
   defm VLSSEG#nf#WU_V : VLoad_Strided<!add(nf, -1), 0b010,
-                                       0b110, "vlsseg"#nf#"wu.v">;
+                                       0b110, "vlsseg"#nf#"wu.v">, Sched<[]>;
   defm VLSSEG#nf#E_V : VLoad_Strided<!add(nf, -1), 0b010,
-                                       0b111, "vlsseg"#nf#"e.v">;
+                                       0b111, "vlsseg"#nf#"e.v">, Sched<[]>;
   defm VSSSEG#nf#B_V : VStore_Strided<!add(nf, -1), 0b010,
-                                       0b000, "vssseg"#nf#"b.v">;
+                                       0b000, "vssseg"#nf#"b.v">, Sched<[]>;
   defm VSSSEG#nf#H_V : VStore_Strided<!add(nf, -1), 0b010,
-                                       0b101, "vssseg"#nf#"h.v">;
+                                       0b101, "vssseg"#nf#"h.v">, Sched<[]>;
   defm VSSSEG#nf#W_V : VStore_Strided<!add(nf, -1), 0b010,
-                                       0b110, "vssseg"#nf#"w.v">;
+                                       0b110, "vssseg"#nf#"w.v">, Sched<[]>;
   defm VSSSEG#nf#E_V : VStore_Strided<!add(nf, -1), 0b010,
-                                       0b111, "vssseg"#nf#"e.v">;
+                                       0b111, "vssseg"#nf#"e.v">, Sched<[]>;
 
   // Vector Indexed Segment Loads and Stores
   defm VLXSEG#nf#B_V : VLoad_Indexed<!add(nf, -1), 0b111,
-                                       0b000, "vlxseg"#nf#"b.v">;
+                                       0b000, "vlxseg"#nf#"b.v">, Sched<[]>;
   defm VLXSEG#nf#H_V : VLoad_Indexed<!add(nf, -1), 0b111,
-                                       0b101, "vlxseg"#nf#"h.v">;
+                                       0b101, "vlxseg"#nf#"h.v">, Sched<[]>;
   defm VLXSEG#nf#W_V : VLoad_Indexed<!add(nf, -1), 0b111,
-                                       0b110, "vlxseg"#nf#"w.v">;
+                                       0b110, "vlxseg"#nf#"w.v">, Sched<[]>;
   defm VLXSEG#nf#BU_V : VLoad_Indexed<!add(nf, -1), 0b011,
-                                       0b000, "vlxseg"#nf#"bu.v">;
+                                       0b000, "vlxseg"#nf#"bu.v">, Sched<[]>;
   defm VLXSEG#nf#HU_V : VLoad_Indexed<!add(nf, -1), 0b011,
-                                       0b101, "vlxseg"#nf#"hu.v">;
+                                       0b101, "vlxseg"#nf#"hu.v">, Sched<[]>;
   defm VLXSEG#nf#WU_V : VLoad_Indexed<!add(nf, -1), 0b011,
-                                       0b110, "vlxseg"#nf#"wu.v">;
+                                       0b110, "vlxseg"#nf#"wu.v">, Sched<[]>;
   defm VLXSEG#nf#E_V : VLoad_Indexed<!add(nf, -1), 0b011,
-                                       0b111, "vlxseg"#nf#"e.v">;
+                                       0b111, "vlxseg"#nf#"e.v">, Sched<[]>;
   defm VSXSEG#nf#B_V : VStore_Indexed<!add(nf, -1), 0b011,
-                                       0b000, "vsxseg"#nf#"b.v">;
+                                       0b000, "vsxseg"#nf#"b.v">, Sched<[]>;
   defm VSXSEG#nf#H_V : VStore_Indexed<!add(nf, -1), 0b011,
-                                       0b101, "vsxseg"#nf#"h.v">;
+                                       0b101, "vsxseg"#nf#"h.v">, Sched<[]>;
   defm VSXSEG#nf#W_V : VStore_Indexed<!add(nf, -1), 0b011,
-                                       0b110, "vsxseg"#nf#"w.v">;
+                                       0b110, "vsxseg"#nf#"w.v">, Sched<[]>;
   defm VSXSEG#nf#E_V : VStore_Indexed<!add(nf, -1), 0b011,
-                                       0b111, "vsxseg"#nf#"e.v">;
+                                       0b111, "vsxseg"#nf#"e.v">, Sched<[]>;
 
   // Vector Unit-Stride Fault-Only-First Segment Loads
   defm VLSEG#nf#BFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b100,
-                                       0b000, "vlseg"#nf#"bff.v">;
+                                       0b000, "vlseg"#nf#"bff.v">, Sched<[]>;
   defm VLSEG#nf#HFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b100,
-                                       0b101, "vlseg"#nf#"hff.v">;
+                                       0b101, "vlseg"#nf#"hff.v">, Sched<[]>;
   defm VLSEG#nf#WFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b100,
-                                       0b110, "vlseg"#nf#"wff.v">;
+                                       0b110, "vlseg"#nf#"wff.v">, Sched<[]>;
   defm VLSEG#nf#BUFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b000,
-                                       0b000, "vlseg"#nf#"buff.v">;
+                                       0b000, "vlseg"#nf#"buff.v">, Sched<[]>;
   defm VLSEG#nf#HUFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b000,
-                                       0b101, "vlseg"#nf#"huff.v">;
+                                       0b101, "vlseg"#nf#"huff.v">, Sched<[]>;
   defm VLSEG#nf#WUFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b000,
-                                       0b110, "vlseg"#nf#"wuff.v">;
+                                       0b110, "vlseg"#nf#"wuff.v">, Sched<[]>;
   defm VLSEG#nf#EFF_V : VLoad_UnitStrideFF<!add(nf, -1), 0b000,
-                                       0b111, "vlseg"#nf#"eff.v">;
+                                       0b111, "vlseg"#nf#"eff.v">, Sched<[]>;
 }
 
 
 // Vector Load/Store Whole Register Instructions
 
 foreach nf = 1-8 in {
-  def VL#nf#R_V : VLoad_WholeReg<!add(nf, -1), "vl"#nf#"r.v">;
-  def VS#nf#R_V : VStore_WholeReg<!add(nf, -1), "vs"#nf#"r.v">;
+  def VL#nf#R_V : VLoad_WholeReg<!add(nf, -1), "vl"#nf#"r.v">, Sched<[]>;
+  def VS#nf#R_V : VStore_WholeReg<!add(nf, -1), "vs"#nf#"r.v">, Sched<[]>;
 }
 
 
 // Vector AMO Operations
 
-defm VAMOSWAPW_V : VALU_AMO_W<0b00001, "vamoswapw.v">;
-defm VAMOADDW_V : VALU_AMO_W<0b00000, "vamoaddw.v">;
-defm VAMOXORW_V : VALU_AMO_W<0b00100, "vamoxorw.v">;
-defm VAMOANDW_V : VALU_AMO_W<0b01100, "vamoandw.v">;
-defm VAMOORW_V : VALU_AMO_W<0b01000, "vamoorw.v">;
-defm VAMOMINW_V : VALU_AMO_W<0b10000, "vamominw.v">;
-defm VAMOMAXW_V : VALU_AMO_W<0b10100, "vamomaxw.v">;
-defm VAMOMINUW_V : VALU_AMO_W<0b11000, "vamominuw.v">;
-defm VAMOMAXUW_V : VALU_AMO_W<0b11100, "vamomaxuw.v">;
+defm VAMOSWAPW_V : VALU_AMO_W<0b00001, "vamoswapw.v">, Sched<[]>;
+defm VAMOADDW_V : VALU_AMO_W<0b00000, "vamoaddw.v">, Sched<[]>;
+defm VAMOXORW_V : VALU_AMO_W<0b00100, "vamoxorw.v">, Sched<[]>;
+defm VAMOANDW_V : VALU_AMO_W<0b01100, "vamoandw.v">, Sched<[]>;
+defm VAMOORW_V : VALU_AMO_W<0b01000, "vamoorw.v">, Sched<[]>;
+defm VAMOMINW_V : VALU_AMO_W<0b10000, "vamominw.v">, Sched<[]>;
+defm VAMOMAXW_V : VALU_AMO_W<0b10100, "vamomaxw.v">, Sched<[]>;
+defm VAMOMINUW_V : VALU_AMO_W<0b11000, "vamominuw.v">, Sched<[]>;
+defm VAMOMAXUW_V : VALU_AMO_W<0b11100, "vamomaxuw.v">, Sched<[]>;
 
-defm VAMOSWAPE_V : VALU_AMO_E<0b00001, "vamoswape.v">;
-defm VAMOADDE_V : VALU_AMO_E<0b00000, "vamoadde.v">;
-defm VAMOXORE_V : VALU_AMO_E<0b00100, "vamoxore.v">;
-defm VAMOANDE_V : VALU_AMO_E<0b01100, "vamoande.v">;
-defm VAMOORE_V : VALU_AMO_E<0b01000, "vamoore.v">;
-defm VAMOMINE_V : VALU_AMO_E<0b10000, "vamomine.v">;
-defm VAMOMAXE_V : VALU_AMO_E<0b10100, "vamomaxe.v">;
-defm VAMOMINUE_V : VALU_AMO_E<0b11000, "vamominue.v">;
-defm VAMOMAXUE_V : VALU_AMO_E<0b11100, "vamomaxue.v">;
+defm VAMOSWAPE_V : VALU_AMO_E<0b00001, "vamoswape.v">, Sched<[]>;
+defm VAMOADDE_V : VALU_AMO_E<0b00000, "vamoadde.v">, Sched<[]>;
+defm VAMOXORE_V : VALU_AMO_E<0b00100, "vamoxore.v">, Sched<[]>;
+defm VAMOANDE_V : VALU_AMO_E<0b01100, "vamoande.v">, Sched<[]>;
+defm VAMOORE_V : VALU_AMO_E<0b01000, "vamoore.v">, Sched<[]>;
+defm VAMOMINE_V : VALU_AMO_E<0b10000, "vamomine.v">, Sched<[]>;
+defm VAMOMAXE_V : VALU_AMO_E<0b10100, "vamomaxe.v">, Sched<[]>;
+defm VAMOMINUE_V : VALU_AMO_E<0b11000, "vamominue.v">, Sched<[]>;
+defm VAMOMAXUE_V : VALU_AMO_E<0b11100, "vamomaxue.v">, Sched<[]>;
 
 
 // Vector Single-Width Integer Add and Subtract Instructions
 
-defm VADD_VV : VALU_OPIVV<0b000000, "vadd.vv">;
-defm VADD_VX : VALU_OPIVX<0b000000, "vadd.vx">;
-defm VADD_VI : VALU_OPIVI_signed<0b000000, "vadd.vi">;
+defm VADD_VV : VALU_OPIVV<0b000000, "vadd.vv">, Sched<[]>;
+defm VADD_VX : VALU_OPIVX<0b000000, "vadd.vx">, Sched<[]>;
+defm VADD_VI : VALU_OPIVI_signed<0b000000, "vadd.vi">, Sched<[]>;
 
-defm VSUB_VV : VALU_OPIVV<0b000010, "vsub.vv">;
-defm VSUB_VX : VALU_OPIVX<0b000010, "vsub.vx">;
+defm VSUB_VV : VALU_OPIVV<0b000010, "vsub.vv">, Sched<[]>;
+defm VSUB_VX : VALU_OPIVX<0b000010, "vsub.vx">, Sched<[]>;
 
-defm VRSUB_VX : VALU_OPIVX<0b000011, "vrsub.vx">;
-defm VRSUB_VI : VALU_OPIVI_signed<0b000011, "vrsub.vi">;
+defm VRSUB_VX : VALU_OPIVX<0b000011, "vrsub.vx">, Sched<[]>;
+defm VRSUB_VI : VALU_OPIVI_signed<0b000011, "vrsub.vi">, Sched<[]>;
 
 
 // Vector Widening Integer Add and Subtract Instructions
 
-defm VWADDU_VV : VALU_OPMVV<0b110000, "vwaddu.vv">;
-defm VWADDU_VX : VALU_OPMVX<0b110000, "vwaddu.vx">;
-defm VWSUBU_VV : VALU_OPMVV<0b110010, "vwsubu.vv">;
-defm VWSUBU_VX : VALU_OPMVX<0b110010, "vwsubu.vx">;
+defm VWADDU_VV : VALU_OPMVV<0b110000, "vwaddu.vv">, Sched<[]>;
+defm VWADDU_VX : VALU_OPMVX<0b110000, "vwaddu.vx">, Sched<[]>;
+defm VWSUBU_VV : VALU_OPMVV<0b110010, "vwsubu.vv">, Sched<[]>;
+defm VWSUBU_VX : VALU_OPMVX<0b110010, "vwsubu.vx">, Sched<[]>;
 
-defm VWADD_VV : VALU_OPMVV<0b110001, "vwadd.vv">;
-defm VWADD_VX : VALU_OPMVX<0b110001, "vwadd.vx">;
-defm VWSUB_VV : VALU_OPMVV<0b110011, "vwsub.vv">;
-defm VWSUB_VX : VALU_OPMVX<0b110011, "vwsub.vx">;
+defm VWADD_VV : VALU_OPMVV<0b110001, "vwadd.vv">, Sched<[]>;
+defm VWADD_VX : VALU_OPMVX<0b110001, "vwadd.vx">, Sched<[]>;
+defm VWSUB_VV : VALU_OPMVV<0b110011, "vwsub.vv">, Sched<[]>;
+defm VWSUB_VX : VALU_OPMVX<0b110011, "vwsub.vx">, Sched<[]>;
 
-defm VWADDU_WV : VALU_OPMVV<0b110100, "vwaddu.wv">;
-defm VWADDU_WX : VALU_OPMVX<0b110100, "vwaddu.wx">;
-defm VWSUBU_WV : VALU_OPMVV<0b110110, "vwsubu.wv">;
-defm VWSUBU_WX : VALU_OPMVX<0b110110, "vwsubu.wx">;
+defm VWADDU_WV : VALU_OPMVV<0b110100, "vwaddu.wv">, Sched<[]>;
+defm VWADDU_WX : VALU_OPMVX<0b110100, "vwaddu.wx">, Sched<[]>;
+defm VWSUBU_WV : VALU_OPMVV<0b110110, "vwsubu.wv">, Sched<[]>;
+defm VWSUBU_WX : VALU_OPMVX<0b110110, "vwsubu.wx">, Sched<[]>;
 
-defm VWADD_WV : VALU_OPMVV<0b110101, "vwadd.wv">;
-defm VWADD_WX : VALU_OPMVX<0b110101, "vwadd.wx">;
-defm VWSUB_WV : VALU_OPMVV<0b110111, "vwsub.wv">;
-defm VWSUB_WX : VALU_OPMVX<0b110111, "vwsub.wx">;
+defm VWADD_WV : VALU_OPMVV<0b110101, "vwadd.wv">, Sched<[]>;
+defm VWADD_WX : VALU_OPMVX<0b110101, "vwadd.wx">, Sched<[]>;
+defm VWSUB_WV : VALU_OPMVV<0b110111, "vwsub.wv">, Sched<[]>;
+defm VWSUB_WX : VALU_OPMVX<0b110111, "vwsub.wx">, Sched<[]>;
 
 
 // Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
 
-def VADC_VVM : VALU_OPIVV_m<0b010000, "vadc.vvm">;
-def VADC_VXM : VALU_OPIVX_m<0b010000, "vadc.vxm">;
-def VADC_VIM : VALU_OPIVI_m<0b010000, "vadc.vim">;
+def VADC_VVM : VALU_OPIVV_m<0b010000, "vadc.vvm">, Sched<[]>;
+def VADC_VXM : VALU_OPIVX_m<0b010000, "vadc.vxm">, Sched<[]>;
+def VADC_VIM : VALU_OPIVI_m<0b010000, "vadc.vim">, Sched<[]>;
 
-def VMADC_VVM : VALU_OPIVV_m<0b010001, "vmadc.vvm">;
-def VMADC_VXM : VALU_OPIVX_m<0b010001, "vmadc.vxm">;
-def VMADC_VIM : VALU_OPIVI_m<0b010001, "vmadc.vim">;
+def VMADC_VVM : VALU_OPIVV_m<0b010001, "vmadc.vvm">, Sched<[]>;
+def VMADC_VXM : VALU_OPIVX_m<0b010001, "vmadc.vxm">, Sched<[]>;
+def VMADC_VIM : VALU_OPIVI_m<0b010001, "vmadc.vim">, Sched<[]>;
 
-def VMADC_VV : VALU_OPIVV_um<0b010001, "vmadc.vv">;
-def VMADC_VX : VALU_OPIVX_um<0b010001, "vmadc.vx">;
-def VMADC_VI : VALU_OPIVI_um<0b010001, "vmadc.vi">;
+def VMADC_VV : VALU_OPIVV_um<0b010001, "vmadc.vv">, Sched<[]>;
+def VMADC_VX : VALU_OPIVX_um<0b010001, "vmadc.vx">, Sched<[]>;
+def VMADC_VI : VALU_OPIVI_um<0b010001, "vmadc.vi">, Sched<[]>;
 
-def VSBC_VVM : VALU_OPIVV_m<0b010010, "vsbc.vvm">;
-def VSBC_VXM : VALU_OPIVX_m<0b010010, "vsbc.vxm">;
+def VSBC_VVM : VALU_OPIVV_m<0b010010, "vsbc.vvm">, Sched<[]>;
+def VSBC_VXM : VALU_OPIVX_m<0b010010, "vsbc.vxm">, Sched<[]>;
 
-def VMSBC_VVM : VALU_OPIVV_m<0b010011, "vmsbc.vvm">;
-def VMSBC_VXM : VALU_OPIVX_m<0b010011, "vmsbc.vxm">;
+def VMSBC_VVM : VALU_OPIVV_m<0b010011, "vmsbc.vvm">, Sched<[]>;
+def VMSBC_VXM : VALU_OPIVX_m<0b010011, "vmsbc.vxm">, Sched<[]>;
 
-def VMSBC_VV : VALU_OPIVV_um<0b010011, "vmsbc.vv">;
-def VMSBC_VX : VALU_OPIVX_um<0b010011, "vmsbc.vx">;
+def VMSBC_VV : VALU_OPIVV_um<0b010011, "vmsbc.vv">, Sched<[]>;
+def VMSBC_VX : VALU_OPIVX_um<0b010011, "vmsbc.vx">, Sched<[]>;
 
 
 // Vector Bitwise Logical Instructions
 
-defm VAND_VV : VALU_OPIVV<0b001001, "vand.vv">;
-defm VAND_VX : VALU_OPIVX<0b001001, "vand.vx">;
-defm VAND_VI : VALU_OPIVI_signed<0b001001, "vand.vi">;
+defm VAND_VV : VALU_OPIVV<0b001001, "vand.vv">, Sched<[]>;
+defm VAND_VX : VALU_OPIVX<0b001001, "vand.vx">, Sched<[]>;
+defm VAND_VI : VALU_OPIVI_signed<0b001001, "vand.vi">, Sched<[]>;
 
-defm VOR_VV : VALU_OPIVV<0b001010, "vor.vv">;
-defm VOR_VX : VALU_OPIVX<0b001010, "vor.vx">;
-defm VOR_VI : VALU_OPIVI_signed<0b001010, "vor.vi">;
+defm VOR_VV : VALU_OPIVV<0b001010, "vor.vv">, Sched<[]>;
+defm VOR_VX : VALU_OPIVX<0b001010, "vor.vx">, Sched<[]>;
+defm VOR_VI : VALU_OPIVI_signed<0b001010, "vor.vi">, Sched<[]>;
 
-defm VXOR_VV : VALU_OPIVV<0b001011, "vxor.vv">;
-defm VXOR_VX : VALU_OPIVX<0b001011, "vxor.vx">;
-defm VXOR_VI : VALU_OPIVI_signed<0b001011, "vxor.vi">;
+defm VXOR_VV : VALU_OPIVV<0b001011, "vxor.vv">, Sched<[]>;
+defm VXOR_VX : VALU_OPIVX<0b001011, "vxor.vx">, Sched<[]>;
+defm VXOR_VI : VALU_OPIVI_signed<0b001011, "vxor.vi">, Sched<[]>;
 
 
 // Vector Single-Width Bit Shift Instructions
 
-defm VSLL_VV : VALU_OPIVV<0b100101, "vsll.vv">;
-defm VSLL_VX : VALU_OPIVX<0b100101, "vsll.vx">;
-defm VSLL_VI : VALU_OPIVI_unsigned<0b100101, "vsll.vi">;
+defm VSLL_VV : VALU_OPIVV<0b100101, "vsll.vv">, Sched<[]>;
+defm VSLL_VX : VALU_OPIVX<0b100101, "vsll.vx">, Sched<[]>;
+defm VSLL_VI : VALU_OPIVI_unsigned<0b100101, "vsll.vi">, Sched<[]>;
 
-defm VSRL_VV : VALU_OPIVV<0b101000, "vsrl.vv">;
-defm VSRL_VX : VALU_OPIVX<0b101000, "vsrl.vx">;
-defm VSRL_VI : VALU_OPIVI_unsigned<0b101000, "vsrl.vi">;
+defm VSRL_VV : VALU_OPIVV<0b101000, "vsrl.vv">, Sched<[]>;
+defm VSRL_VX : VALU_OPIVX<0b101000, "vsrl.vx">, Sched<[]>;
+defm VSRL_VI : VALU_OPIVI_unsigned<0b101000, "vsrl.vi">, Sched<[]>;
 
-defm VSRA_VV : VALU_OPIVV<0b101001, "vsra.vv">;
-defm VSRA_VX : VALU_OPIVX<0b101001, "vsra.vx">;
-defm VSRA_VI : VALU_OPIVI_unsigned<0b101001, "vsra.vi">;
+defm VSRA_VV : VALU_OPIVV<0b101001, "vsra.vv">, Sched<[]>;
+defm VSRA_VX : VALU_OPIVX<0b101001, "vsra.vx">, Sched<[]>;
+defm VSRA_VI : VALU_OPIVI_unsigned<0b101001, "vsra.vi">, Sched<[]>;
 
 
 // Vector Narrowing Integer Right Shift Instructions
 
-defm VNSRL_WV : VALU_OPIVV<0b101100, "vnsrl.wv">;
-defm VNSRL_WX : VALU_OPIVX<0b101100, "vnsrl.wx">;
-defm VNSRL_WI : VALU_OPIVI_unsigned<0b101100, "vnsrl.wi">;
+defm VNSRL_WV : VALU_OPIVV<0b101100, "vnsrl.wv">, Sched<[]>;
+defm VNSRL_WX : VALU_OPIVX<0b101100, "vnsrl.wx">, Sched<[]>;
+defm VNSRL_WI : VALU_OPIVI_unsigned<0b101100, "vnsrl.wi">, Sched<[]>;
 
-defm VNSRA_WV : VALU_OPIVV<0b101101, "vnsra.wv">;
-defm VNSRA_WX : VALU_OPIVX<0b101101, "vnsra.wx">;
-defm VNSRA_WI : VALU_OPIVI_unsigned<0b101101, "vnsra.wi">;
+defm VNSRA_WV : VALU_OPIVV<0b101101, "vnsra.wv">, Sched<[]>;
+defm VNSRA_WX : VALU_OPIVX<0b101101, "vnsra.wx">, Sched<[]>;
+defm VNSRA_WI : VALU_OPIVI_unsigned<0b101101, "vnsra.wi">, Sched<[]>;
 
 
 // Vector Integer Comparison Instructions
 
-defm VMSEQ_VV : VALU_OPIVV<0b011000, "vmseq.vv">;
-defm VMSEQ_VX : VALU_OPIVX<0b011000, "vmseq.vx">;
-defm VMSEQ_VI : VALU_OPIVI_signed<0b011000, "vmseq.vi">;
+defm VMSEQ_VV : VALU_OPIVV<0b011000, "vmseq.vv">, Sched<[]>;
+defm VMSEQ_VX : VALU_OPIVX<0b011000, "vmseq.vx">, Sched<[]>;
+defm VMSEQ_VI : VALU_OPIVI_signed<0b011000, "vmseq.vi">, Sched<[]>;
 
-defm VMSNE_VV : VALU_OPIVV<0b011001, "vmsne.vv">;
-defm VMSNE_VX : VALU_OPIVX<0b011001, "vmsne.vx">;
-defm VMSNE_VI : VALU_OPIVI_signed<0b011001, "vmsne.vi">;
+defm VMSNE_VV : VALU_OPIVV<0b011001, "vmsne.vv">, Sched<[]>;
+defm VMSNE_VX : VALU_OPIVX<0b011001, "vmsne.vx">, Sched<[]>;
+defm VMSNE_VI : VALU_OPIVI_signed<0b011001, "vmsne.vi">, Sched<[]>;
 
-defm VMSLTU_VV : VALU_OPIVV<0b011010, "vmsltu.vv">;
-defm VMSLTU_VX : VALU_OPIVX<0b011010, "vmsltu.vx">;
+defm VMSLTU_VV : VALU_OPIVV<0b011010, "vmsltu.vv">, Sched<[]>;
+defm VMSLTU_VX : VALU_OPIVX<0b011010, "vmsltu.vx">, Sched<[]>;
 
-defm VMSLT_VV : VALU_OPIVV<0b011011, "vmslt.vv">;
-defm VMSLT_VX : VALU_OPIVX<0b011011, "vmslt.vx">;
+defm VMSLT_VV : VALU_OPIVV<0b011011, "vmslt.vv">, Sched<[]>;
+defm VMSLT_VX : VALU_OPIVX<0b011011, "vmslt.vx">, Sched<[]>;
 
-defm VMSLEU_VV : VALU_OPIVV<0b011100, "vmsleu.vv">;
-defm VMSLEU_VX : VALU_OPIVX<0b011100, "vmsleu.vx">;
-defm VMSLEU_VI : VALU_OPIVI_signed<0b011100, "vmsleu.vi">;
+defm VMSLEU_VV : VALU_OPIVV<0b011100, "vmsleu.vv">, Sched<[]>;
+defm VMSLEU_VX : VALU_OPIVX<0b011100, "vmsleu.vx">, Sched<[]>;
+defm VMSLEU_VI : VALU_OPIVI_signed<0b011100, "vmsleu.vi">, Sched<[]>;
 
-defm VMSLE_VV : VALU_OPIVV<0b011101, "vmsle.vv">;
-defm VMSLE_VX : VALU_OPIVX<0b011101, "vmsle.vx">;
-defm VMSLE_VI : VALU_OPIVI_signed<0b011101, "vmsle.vi">;
+defm VMSLE_VV : VALU_OPIVV<0b011101, "vmsle.vv">, Sched<[]>;
+defm VMSLE_VX : VALU_OPIVX<0b011101, "vmsle.vx">, Sched<[]>;
+defm VMSLE_VI : VALU_OPIVI_signed<0b011101, "vmsle.vi">, Sched<[]>;
 
-defm VMSGTU_VX : VALU_OPIVX<0b011110, "vmsgtu.vx">;
-defm VMSGTU_VI : VALU_OPIVI_signed<0b011110, "vmsgtu.vi">;
+defm VMSGTU_VX : VALU_OPIVX<0b011110, "vmsgtu.vx">, Sched<[]>;
+defm VMSGTU_VI : VALU_OPIVI_signed<0b011110, "vmsgtu.vi">, Sched<[]>;
 
-defm VMSGT_VX : VALU_OPIVX<0b011111, "vmsgt.vx">;
-defm VMSGT_VI : VALU_OPIVI_signed<0b011111, "vmsgt.vi">;
+defm VMSGT_VX : VALU_OPIVX<0b011111, "vmsgt.vx">, Sched<[]>;
+defm VMSGT_VI : VALU_OPIVI_signed<0b011111, "vmsgt.vi">, Sched<[]>;
 
 
 // Vector Integer Min/Max Instructions
 
-defm VMINU_VV : VALU_OPIVV<0b000100, "vminu.vv">;
-defm VMINU_VX : VALU_OPIVX<0b000100, "vminu.vx">;
+defm VMINU_VV : VALU_OPIVV<0b000100, "vminu.vv">, Sched<[]>;
+defm VMINU_VX : VALU_OPIVX<0b000100, "vminu.vx">, Sched<[]>;
 
-defm VMIN_VV : VALU_OPIVV<0b000101, "vmin.vv">;
-defm VMIN_VX : VALU_OPIVX<0b000101, "vmin.vx">;
+defm VMIN_VV : VALU_OPIVV<0b000101, "vmin.vv">, Sched<[]>;
+defm VMIN_VX : VALU_OPIVX<0b000101, "vmin.vx">, Sched<[]>;
 
-defm VMAXU_VV : VALU_OPIVV<0b000110, "vmaxu.vv">;
-defm VMAXU_VX : VALU_OPIVX<0b000110, "vmaxu.vx">;
+defm VMAXU_VV : VALU_OPIVV<0b000110, "vmaxu.vv">, Sched<[]>;
+defm VMAXU_VX : VALU_OPIVX<0b000110, "vmaxu.vx">, Sched<[]>;
 
-defm VMAX_VV : VALU_OPIVV<0b000111, "vmax.vv">;
-defm VMAX_VX : VALU_OPIVX<0b000111, "vmax.vx">;
+defm VMAX_VV : VALU_OPIVV<0b000111, "vmax.vv">, Sched<[]>;
+defm VMAX_VX : VALU_OPIVX<0b000111, "vmax.vx">, Sched<[]>;
 
 
 // Vector Single-Width Integer Multiply Instructions
 
-defm VMUL_VV : VALU_OPMVV<0b100101, "vmul.vv">;
-defm VMUL_VX : VALU_OPMVX<0b100101, "vmul.vx">;
+defm VMUL_VV : VALU_OPMVV<0b100101, "vmul.vv">, Sched<[]>;
+defm VMUL_VX : VALU_OPMVX<0b100101, "vmul.vx">, Sched<[]>;
 
-defm VMULH_VV : VALU_OPMVV<0b100111, "vmulh.vv">;
-defm VMULH_VX : VALU_OPMVX<0b100111, "vmulh.vx">;
+defm VMULH_VV : VALU_OPMVV<0b100111, "vmulh.vv">, Sched<[]>;
+defm VMULH_VX : VALU_OPMVX<0b100111, "vmulh.vx">, Sched<[]>;
 
-defm VMULHU_VV : VALU_OPMVV<0b100100, "vmulhu.vv">;
-defm VMULHU_VX : VALU_OPMVX<0b100100, "vmulhu.vx">;
+defm VMULHU_VV : VALU_OPMVV<0b100100, "vmulhu.vv">, Sched<[]>;
+defm VMULHU_VX : VALU_OPMVX<0b100100, "vmulhu.vx">, Sched<[]>;
 
-defm VMULHSU_VV : VALU_OPMVV<0b100110, "vmulhsu.vv">;
-defm VMULHSU_VX : VALU_OPMVX<0b100110, "vmulhsu.vx">;
+defm VMULHSU_VV : VALU_OPMVV<0b100110, "vmulhsu.vv">, Sched<[]>;
+defm VMULHSU_VX : VALU_OPMVX<0b100110, "vmulhsu.vx">, Sched<[]>;
 
 
 // Vector Integer Divide Instructions
 
-defm VDIVU_VV : VALU_OPMVV<0b100000, "vdivu.vv">;
-defm VDIVU_VX : VALU_OPMVX<0b100000, "vdivu.vx">;
+defm VDIVU_VV : VALU_OPMVV<0b100000, "vdivu.vv">, Sched<[]>;
+defm VDIVU_VX : VALU_OPMVX<0b100000, "vdivu.vx">, Sched<[]>;
 
-defm VDIV_VV : VALU_OPMVV<0b100001, "vdiv.vv">;
-defm VDIV_VX : VALU_OPMVX<0b100001, "vdiv.vx">;
+defm VDIV_VV : VALU_OPMVV<0b100001, "vdiv.vv">, Sched<[]>;
+defm VDIV_VX : VALU_OPMVX<0b100001, "vdiv.vx">, Sched<[]>;
 
-defm VREMU_VV : VALU_OPMVV<0b100010, "vremu.vv">;
-defm VREMU_VX : VALU_OPMVX<0b100010, "vremu.vx">;
+defm VREMU_VV : VALU_OPMVV<0b100010, "vremu.vv">, Sched<[]>;
+defm VREMU_VX : VALU_OPMVX<0b100010, "vremu.vx">, Sched<[]>;
 
-defm VREM_VV : VALU_OPMVV<0b100011, "vrem.vv">;
-defm VREM_VX : VALU_OPMVX<0b100011, "vrem.vx">;
+defm VREM_VV : VALU_OPMVV<0b100011, "vrem.vv">, Sched<[]>;
+defm VREM_VX : VALU_OPMVX<0b100011, "vrem.vx">, Sched<[]>;
 
 
 // Vector Widening Integer Multiply Instructions
 
-defm VWMUL_VV : VALU_OPMVV<0b111011, "vwmul.vv">;
-defm VWMUL_VX : VALU_OPMVX<0b111011, "vwmul.vx">;
+defm VWMUL_VV : VALU_OPMVV<0b111011, "vwmul.vv">, Sched<[]>;
+defm VWMUL_VX : VALU_OPMVX<0b111011, "vwmul.vx">, Sched<[]>;
 
-defm VWMULU_VV : VALU_OPMVV<0b111000, "vwmulu.vv">;
-defm VWMULU_VX : VALU_OPMVX<0b111000, "vwmulu.vx">;
+defm VWMULU_VV : VALU_OPMVV<0b111000, "vwmulu.vv">, Sched<[]>;
+defm VWMULU_VX : VALU_OPMVX<0b111000, "vwmulu.vx">, Sched<[]>;
 
-defm VWMULSU_VV : VALU_OPMVV<0b111010, "vwmulsu.vv">;
-defm VWMULSU_VX : VALU_OPMVX<0b111010, "vwmulsu.vx">;
+defm VWMULSU_VV : VALU_OPMVV<0b111010, "vwmulsu.vv">, Sched<[]>;
+defm VWMULSU_VX : VALU_OPMVX<0b111010, "vwmulsu.vx">, Sched<[]>;
 
 
 // Vector Single-Width Integer Multiply-Add Instructions
 
-defm VMACC_VV : VALU_OPMVV_MulAdd<0b101101, "vmacc.vv">;
-defm VMACC_VX : VALU_OPMVX_MulAdd<0b101101, "vmacc.vx">;
+defm VMACC_VV : VALU_OPMVV_MulAdd<0b101101, "vmacc.vv">, Sched<[]>;
+defm VMACC_VX : VALU_OPMVX_MulAdd<0b101101, "vmacc.vx">, Sched<[]>;
 
-defm VNMSAC_VV : VALU_OPMVV_MulAdd<0b101111, "vnmsac.vv">;
-defm VNMSAC_VX : VALU_OPMVX_MulAdd<0b101111, "vnmsac.vx">;
+defm VNMSAC_VV : VALU_OPMVV_MulAdd<0b101111, "vnmsac.vv">, Sched<[]>;
+defm VNMSAC_VX : VALU_OPMVX_MulAdd<0b101111, "vnmsac.vx">, Sched<[]>;
 
-defm VMADD_VV : VALU_OPMVV_MulAdd<0b101001, "vmadd.vv">;
-defm VMADD_VX : VALU_OPMVX_MulAdd<0b101001, "vmadd.vx">;
+defm VMADD_VV : VALU_OPMVV_MulAdd<0b101001, "vmadd.vv">, Sched<[]>;
+defm VMADD_VX : VALU_OPMVX_MulAdd<0b101001, "vmadd.vx">, Sched<[]>;
 
-defm VNMSUB_VV : VALU_OPMVV_MulAdd<0b101011, "vnmsub.vv">;
-defm VNMSUB_VX : VALU_OPMVX_MulAdd<0b101011, "vnmsub.vx">;
+defm VNMSUB_VV : VALU_OPMVV_MulAdd<0b101011, "vnmsub.vv">, Sched<[]>;
+defm VNMSUB_VX : VALU_OPMVX_MulAdd<0b101011, "vnmsub.vx">, Sched<[]>;
 
 
 // Vector Widening Integer Multiply-Add Instructions
 
-defm VWMACCU_VV : VALU_OPMVV_MulAdd<0b111100, "vwmaccu.vv">;
-defm VWMACCU_VX : VALU_OPMVX_MulAdd<0b111100, "vwmaccu.vx">;
+defm VWMACCU_VV : VALU_OPMVV_MulAdd<0b111100, "vwmaccu.vv">, Sched<[]>;
+defm VWMACCU_VX : VALU_OPMVX_MulAdd<0b111100, "vwmaccu.vx">, Sched<[]>;
 
-defm VWMACC_VV : VALU_OPMVV_MulAdd<0b111101, "vwmacc.vv">;
-defm VWMACC_VX : VALU_OPMVX_MulAdd<0b111101, "vwmacc.vx">;
+defm VWMACC_VV : VALU_OPMVV_MulAdd<0b111101, "vwmacc.vv">, Sched<[]>;
+defm VWMACC_VX : VALU_OPMVX_MulAdd<0b111101, "vwmacc.vx">, Sched<[]>;
 
-defm VWMACCSU_VV : VALU_OPMVV_MulAdd<0b111111, "vwmaccsu.vv">;
-defm VWMACCSU_VX : VALU_OPMVX_MulAdd<0b111111, "vwmaccsu.vx">;
+defm VWMACCSU_VV : VALU_OPMVV_MulAdd<0b111111, "vwmaccsu.vv">, Sched<[]>;
+defm VWMACCSU_VX : VALU_OPMVX_MulAdd<0b111111, "vwmaccsu.vx">, Sched<[]>;
 
-defm VWMACCUS_VX : VALU_OPMVX_MulAdd<0b111110, "vwmaccus.vx">;
+defm VWMACCUS_VX : VALU_OPMVX_MulAdd<0b111110, "vwmaccus.vx">, Sched<[]>;
 
 
 // Vector Quad-Widening Integer Multiply-Add Instructions
 
-defm VQMACCU_VV : VALU_OPIVV_MulAdd<0b111100, "vqmaccu.vv">;
-defm VQMACCU_VX : VALU_OPIVX_MulAdd<0b111100, "vqmaccu.vx">;
+defm VQMACCU_VV : VALU_OPIVV_MulAdd<0b111100, "vqmaccu.vv">, Sched<[]>;
+defm VQMACCU_VX : VALU_OPIVX_MulAdd<0b111100, "vqmaccu.vx">, Sched<[]>;
 
-defm VQMACC_VV : VALU_OPIVV_MulAdd<0b111101, "vqmacc.vv">;
-defm VQMACC_VX : VALU_OPIVX_MulAdd<0b111101, "vqmacc.vx">;
+defm VQMACC_VV : VALU_OPIVV_MulAdd<0b111101, "vqmacc.vv">, Sched<[]>;
+defm VQMACC_VX : VALU_OPIVX_MulAdd<0b111101, "vqmacc.vx">, Sched<[]>;
 
-defm VQMACCSU_VV : VALU_OPIVV_MulAdd<0b111111, "vqmaccsu.vv">;
-defm VQMACCSU_VX : VALU_OPIVX_MulAdd<0b111111, "vqmaccsu.vx">;
+defm VQMACCSU_VV : VALU_OPIVV_MulAdd<0b111111, "vqmaccsu.vv">, Sched<[]>;
+defm VQMACCSU_VX : VALU_OPIVX_MulAdd<0b111111, "vqmaccsu.vx">, Sched<[]>;
 
-defm VQMACCUS_VX : VALU_OPIVX_MulAdd<0b111110, "vqmaccus.vx">;
+defm VQMACCUS_VX : VALU_OPIVX_MulAdd<0b111110, "vqmaccus.vx">, Sched<[]>;
 
 
 // Vector Integer Merge Instructions
 
-def VMERGE_VVM : VALU_OPIVV_m<0b010111, "vmerge.vvm">;
-def VMERGE_VXM : VALU_OPIVX_m<0b010111, "vmerge.vxm">;
-def VMERGE_VIM : VALU_OPIVI_m<0b010111, "vmerge.vim">;
+def VMERGE_VVM : VALU_OPIVV_m<0b010111, "vmerge.vvm">, Sched<[]>;
+def VMERGE_VXM : VALU_OPIVX_m<0b010111, "vmerge.vxm">, Sched<[]>;
+def VMERGE_VIM : VALU_OPIVI_m<0b010111, "vmerge.vim">, Sched<[]>;
 
 
 // Vector Integer Move Instructions
@@ -1094,7 +1094,7 @@ def VMERGE_VIM : VALU_OPIVI_m<0b010111, "vmerge.vim">;
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_V_V : RVInstVA<0b010111, 0b000, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, VLR:$vl),
-               "vmv.v.v", "$vd, $vs1"> {
+               "vmv.v.v", "$vd, $vs1">, Sched<[]> {
   bits<5> vs1;
   let vs2 = 0b00000;
   let Inst{19-15} = vs1;
@@ -1102,7 +1102,7 @@ def VMV_V_V : RVInstVA<0b010111, 0b000, RVV_Unmasked, OPC_OP_V,
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_V_X : RVInstVA<0b010111, 0b100, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins GPR:$rs1, VLR:$vl),
-               "vmv.v.x", "$vd, $rs1"> {
+               "vmv.v.x", "$vd, $rs1">, Sched<[]> {
   bits<5> rs1;
   let vs2 = 0b00000;
   let Inst{19-15} = rs1;
@@ -1110,7 +1110,7 @@ def VMV_V_X : RVInstVA<0b010111, 0b100, RVV_Unmasked, OPC_OP_V,
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_V_I : RVInstVA<0b010111, 0b011, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins simm5:$simm, VLR:$vl),
-               "vmv.v.i", "$vd, $simm"> {
+               "vmv.v.i", "$vd, $simm">, Sched<[]> {
   bits<5> simm;
   let vs2 = 0b00000;
   let Inst{19-15} = simm;
@@ -1119,192 +1119,192 @@ def VMV_V_I : RVInstVA<0b010111, 0b011, RVV_Unmasked, OPC_OP_V,
 
 // Vector Single-Width Saturating Add and Subtract Instructions
 
-defm VSADDU_VV : VALU_OPIVV<0b100000, "vsaddu.vv">;
-defm VSADDU_VX : VALU_OPIVX<0b100000, "vsaddu.vx">;
-defm VSADDU_VI : VALU_OPIVI_signed<0b100000, "vsaddu.vi">;
+defm VSADDU_VV : VALU_OPIVV<0b100000, "vsaddu.vv">, Sched<[]>;
+defm VSADDU_VX : VALU_OPIVX<0b100000, "vsaddu.vx">, Sched<[]>;
+defm VSADDU_VI : VALU_OPIVI_signed<0b100000, "vsaddu.vi">, Sched<[]>;
 
-defm VSADD_VV : VALU_OPIVV<0b100001, "vsadd.vv">;
-defm VSADD_VX : VALU_OPIVX<0b100001, "vsadd.vx">;
-defm VSADD_VI : VALU_OPIVI_signed<0b100001, "vsadd.vi">;
+defm VSADD_VV : VALU_OPIVV<0b100001, "vsadd.vv">, Sched<[]>;
+defm VSADD_VX : VALU_OPIVX<0b100001, "vsadd.vx">, Sched<[]>;
+defm VSADD_VI : VALU_OPIVI_signed<0b100001, "vsadd.vi">, Sched<[]>;
 
-defm VSSUBU_VV : VALU_OPIVV<0b100010, "vssubu.vv">;
-defm VSSUBU_VX : VALU_OPIVX<0b100010, "vssubu.vx">;
+defm VSSUBU_VV : VALU_OPIVV<0b100010, "vssubu.vv">, Sched<[]>;
+defm VSSUBU_VX : VALU_OPIVX<0b100010, "vssubu.vx">, Sched<[]>;
 
-defm VSSUB_VV : VALU_OPIVV<0b100011, "vssub.vv">;
-defm VSSUB_VX : VALU_OPIVX<0b100011, "vssub.vx">;
+defm VSSUB_VV : VALU_OPIVV<0b100011, "vssub.vv">, Sched<[]>;
+defm VSSUB_VX : VALU_OPIVX<0b100011, "vssub.vx">, Sched<[]>;
 
 
 // Vector Single-Width Averaging Add and Subtract Instructions
 
-defm VAADDU_VV : VALU_OPMVV<0b001000, "vaaddu.vv">;
-defm VAADDU_VX : VALU_OPMVX<0b001000, "vaaddu.vx">;
+defm VAADDU_VV : VALU_OPMVV<0b001000, "vaaddu.vv">, Sched<[]>;
+defm VAADDU_VX : VALU_OPMVX<0b001000, "vaaddu.vx">, Sched<[]>;
 
-defm VAADD_VV : VALU_OPMVV<0b001001, "vaadd.vv">;
-defm VAADD_VX : VALU_OPMVX<0b001001, "vaadd.vx">;
+defm VAADD_VV : VALU_OPMVV<0b001001, "vaadd.vv">, Sched<[]>;
+defm VAADD_VX : VALU_OPMVX<0b001001, "vaadd.vx">, Sched<[]>;
 
-defm VASUBU_VV : VALU_OPMVV<0b001010, "vasubu.vv">;
-defm VASUBU_VX : VALU_OPMVX<0b001010, "vasubu.vx">;
+defm VASUBU_VV : VALU_OPMVV<0b001010, "vasubu.vv">, Sched<[]>;
+defm VASUBU_VX : VALU_OPMVX<0b001010, "vasubu.vx">, Sched<[]>;
 
-defm VASUB_VV : VALU_OPMVV<0b001011, "vasub.vv">;
-defm VASUB_VX : VALU_OPMVX<0b001011, "vasub.vx">;
+defm VASUB_VV : VALU_OPMVV<0b001011, "vasub.vv">, Sched<[]>;
+defm VASUB_VX : VALU_OPMVX<0b001011, "vasub.vx">, Sched<[]>;
 
 
 // Vector Single-Width Fractional Multiply Instructions with Rounding and Saturation
 
-defm VSMUL_VV : VALU_OPIVV<0b100111, "vsmul.vv">;
-defm VSMUL_VX : VALU_OPIVX<0b100111, "vsmul.vx">;
+defm VSMUL_VV : VALU_OPIVV<0b100111, "vsmul.vv">, Sched<[]>;
+defm VSMUL_VX : VALU_OPIVX<0b100111, "vsmul.vx">, Sched<[]>;
 
 
 // Vector Single-Width Scaling Shift Instructions
 
-defm VSSRL_VV : VALU_OPIVV<0b101010, "vssrl.vv">;
-defm VSSRL_VX : VALU_OPIVX<0b101010, "vssrl.vx">;
-defm VSSRL_VI : VALU_OPIVI_unsigned<0b101010, "vssrl.vi">;
+defm VSSRL_VV : VALU_OPIVV<0b101010, "vssrl.vv">, Sched<[]>;
+defm VSSRL_VX : VALU_OPIVX<0b101010, "vssrl.vx">, Sched<[]>;
+defm VSSRL_VI : VALU_OPIVI_unsigned<0b101010, "vssrl.vi">, Sched<[]>;
 
-defm VSSRA_VV : VALU_OPIVV<0b101011, "vssra.vv">;
-defm VSSRA_VX : VALU_OPIVX<0b101011, "vssra.vx">;
-defm VSSRA_VI : VALU_OPIVI_unsigned<0b101011, "vssra.vi">;
+defm VSSRA_VV : VALU_OPIVV<0b101011, "vssra.vv">, Sched<[]>;
+defm VSSRA_VX : VALU_OPIVX<0b101011, "vssra.vx">, Sched<[]>;
+defm VSSRA_VI : VALU_OPIVI_unsigned<0b101011, "vssra.vi">, Sched<[]>;
 
 
 // Vector Narrowing Fixed-Point Clip Instructions
 
-defm VNCLIPU_WV : VALU_OPIVV<0b101110, "vnclipu.wv">;
-defm VNCLIPU_WX : VALU_OPIVX<0b101110, "vnclipu.wx">;
-defm VNCLIPU_WI : VALU_OPIVI_unsigned<0b101110, "vnclipu.wi">;
+defm VNCLIPU_WV : VALU_OPIVV<0b101110, "vnclipu.wv">, Sched<[]>;
+defm VNCLIPU_WX : VALU_OPIVX<0b101110, "vnclipu.wx">, Sched<[]>;
+defm VNCLIPU_WI : VALU_OPIVI_unsigned<0b101110, "vnclipu.wi">, Sched<[]>;
 
-defm VNCLIP_WV : VALU_OPIVV<0b101111, "vnclip.wv">;
-defm VNCLIP_WX : VALU_OPIVX<0b101111, "vnclip.wx">;
-defm VNCLIP_WI : VALU_OPIVI_unsigned<0b101111, "vnclip.wi">;
+defm VNCLIP_WV : VALU_OPIVV<0b101111, "vnclip.wv">, Sched<[]>;
+defm VNCLIP_WX : VALU_OPIVX<0b101111, "vnclip.wx">, Sched<[]>;
+defm VNCLIP_WI : VALU_OPIVI_unsigned<0b101111, "vnclip.wi">, Sched<[]>;
 
 
 // Vector Single-Width Floating-Point Add/Subtract Instructions
 
-defm VFADD_VV : VALU_OPFVV<0b000000, "vfadd.vv">;
-defm VFADD_VF : VALU_OPFVF<0b000000, "vfadd.vf">;
+defm VFADD_VV : VALU_OPFVV<0b000000, "vfadd.vv">, Sched<[]>;
+defm VFADD_VF : VALU_OPFVF<0b000000, "vfadd.vf">, Sched<[]>;
 
-defm VFSUB_VV : VALU_OPFVV<0b000010, "vfsub.vv">;
-defm VFSUB_VF : VALU_OPFVF<0b000010, "vfsub.vf">;
-defm VFRSUB_VF : VALU_OPFVF<0b100111, "vfrsub.vf">;
+defm VFSUB_VV : VALU_OPFVV<0b000010, "vfsub.vv">, Sched<[]>;
+defm VFSUB_VF : VALU_OPFVF<0b000010, "vfsub.vf">, Sched<[]>;
+defm VFRSUB_VF : VALU_OPFVF<0b100111, "vfrsub.vf">, Sched<[]>;
 
 
 // Vector Widening Floating-Point Add/Subtract Instructions
 
-defm VFWADD_VV : VALU_OPFVV<0b110000, "vfwadd.vv">;
-defm VFWADD_VF : VALU_OPFVF<0b110000, "vfwadd.vf">;
-defm VFWSUB_VV : VALU_OPFVV<0b110010, "vfwsub.vv">;
-defm VFWSUB_VF : VALU_OPFVF<0b110010, "vfwsub.vf">;
+defm VFWADD_VV : VALU_OPFVV<0b110000, "vfwadd.vv">, Sched<[]>;
+defm VFWADD_VF : VALU_OPFVF<0b110000, "vfwadd.vf">, Sched<[]>;
+defm VFWSUB_VV : VALU_OPFVV<0b110010, "vfwsub.vv">, Sched<[]>;
+defm VFWSUB_VF : VALU_OPFVF<0b110010, "vfwsub.vf">, Sched<[]>;
 
-defm VFWADD_WV : VALU_OPFVV<0b110100, "vfwadd.wv">;
-defm VFWADD_WF : VALU_OPFVF<0b110100, "vfwadd.wf">;
-defm VFWSUB_WV : VALU_OPFVV<0b110110, "vfwsub.wv">;
-defm VFWSUB_WF : VALU_OPFVF<0b110110, "vfwsub.wf">;
+defm VFWADD_WV : VALU_OPFVV<0b110100, "vfwadd.wv">, Sched<[]>;
+defm VFWADD_WF : VALU_OPFVF<0b110100, "vfwadd.wf">, Sched<[]>;
+defm VFWSUB_WV : VALU_OPFVV<0b110110, "vfwsub.wv">, Sched<[]>;
+defm VFWSUB_WF : VALU_OPFVF<0b110110, "vfwsub.wf">, Sched<[]>;
 
 
 // Vector Single-Width Floating-Point Multiply/Divide Instructions
 
-defm VFMUL_VV : VALU_OPFVV<0b100100, "vfmul.vv">;
-defm VFMUL_VF : VALU_OPFVF<0b100100, "vfmul.vf">;
+defm VFMUL_VV : VALU_OPFVV<0b100100, "vfmul.vv">, Sched<[]>;
+defm VFMUL_VF : VALU_OPFVF<0b100100, "vfmul.vf">, Sched<[]>;
 
-defm VFDIV_VV : VALU_OPFVV<0b100000, "vfdiv.vv">;
-defm VFDIV_VF : VALU_OPFVF<0b100000, "vfdiv.vf">;
-defm VFRDIV_VF : VALU_OPFVF<0b100001, "vfrdiv.vf">;
+defm VFDIV_VV : VALU_OPFVV<0b100000, "vfdiv.vv">, Sched<[]>;
+defm VFDIV_VF : VALU_OPFVF<0b100000, "vfdiv.vf">, Sched<[]>;
+defm VFRDIV_VF : VALU_OPFVF<0b100001, "vfrdiv.vf">, Sched<[]>;
 
 
 // Vector Widening Floating-Point Multiply Instructions
 
-defm VFWMUL_VV : VALU_OPFVV<0b111000, "vfwmul.vv">;
-defm VFWMUL_VF : VALU_OPFVF<0b111000, "vfwmul.vf">;
+defm VFWMUL_VV : VALU_OPFVV<0b111000, "vfwmul.vv">, Sched<[]>;
+defm VFWMUL_VF : VALU_OPFVF<0b111000, "vfwmul.vf">, Sched<[]>;
 
 
 // Vector Single-Width Floating-Point Fused Multiply-Add Instructions
 
-defm VFMACC_VV : VALU_OPFVV_MulAdd<0b101100, "vfmacc.vv">;
-defm VFMACC_VF : VALU_OPFVF_MulAdd<0b101100, "vfmacc.vf">;
+defm VFMACC_VV : VALU_OPFVV_MulAdd<0b101100, "vfmacc.vv">, Sched<[]>;
+defm VFMACC_VF : VALU_OPFVF_MulAdd<0b101100, "vfmacc.vf">, Sched<[]>;
 
-defm VFNMACC_VV : VALU_OPFVV_MulAdd<0b101101, "vfnmacc.vv">;
-defm VFNMACC_VF : VALU_OPFVF_MulAdd<0b101101, "vfnmacc.vf">;
+defm VFNMACC_VV : VALU_OPFVV_MulAdd<0b101101, "vfnmacc.vv">, Sched<[]>;
+defm VFNMACC_VF : VALU_OPFVF_MulAdd<0b101101, "vfnmacc.vf">, Sched<[]>;
 
-defm VFMSAC_VV : VALU_OPFVV_MulAdd<0b101110, "vfmsac.vv">;
-defm VFMSAC_VF : VALU_OPFVF_MulAdd<0b101110, "vfmsac.vf">;
+defm VFMSAC_VV : VALU_OPFVV_MulAdd<0b101110, "vfmsac.vv">, Sched<[]>;
+defm VFMSAC_VF : VALU_OPFVF_MulAdd<0b101110, "vfmsac.vf">, Sched<[]>;
 
-defm VFNMSAC_VV : VALU_OPFVV_MulAdd<0b101111, "vfnmsac.vv">;
-defm VFNMSAC_VF : VALU_OPFVF_MulAdd<0b101111, "vfnmsac.vf">;
+defm VFNMSAC_VV : VALU_OPFVV_MulAdd<0b101111, "vfnmsac.vv">, Sched<[]>;
+defm VFNMSAC_VF : VALU_OPFVF_MulAdd<0b101111, "vfnmsac.vf">, Sched<[]>;
 
-defm VFMADD_VV : VALU_OPFVV_MulAdd<0b101000, "vfmadd.vv">;
-defm VFMADD_VF : VALU_OPFVF_MulAdd<0b101000, "vfmadd.vf">;
+defm VFMADD_VV : VALU_OPFVV_MulAdd<0b101000, "vfmadd.vv">, Sched<[]>;
+defm VFMADD_VF : VALU_OPFVF_MulAdd<0b101000, "vfmadd.vf">, Sched<[]>;
 
-defm VFNMADD_VV : VALU_OPFVV_MulAdd<0b101001, "vfnmadd.vv">;
-defm VFNMADD_VF : VALU_OPFVF_MulAdd<0b101001, "vfnmadd.vf">;
+defm VFNMADD_VV : VALU_OPFVV_MulAdd<0b101001, "vfnmadd.vv">, Sched<[]>;
+defm VFNMADD_VF : VALU_OPFVF_MulAdd<0b101001, "vfnmadd.vf">, Sched<[]>;
 
-defm VFMSUB_VV : VALU_OPFVV_MulAdd<0b101010, "vfmsub.vv">;
-defm VFMSUB_VF : VALU_OPFVF_MulAdd<0b101010, "vfmsub.vf">;
+defm VFMSUB_VV : VALU_OPFVV_MulAdd<0b101010, "vfmsub.vv">, Sched<[]>;
+defm VFMSUB_VF : VALU_OPFVF_MulAdd<0b101010, "vfmsub.vf">, Sched<[]>;
 
-defm VFNMSUB_VV : VALU_OPFVV_MulAdd<0b101011, "vfnmsub.vv">;
-defm VFNMSUB_VF : VALU_OPFVF_MulAdd<0b101011, "vfnmsub.vf">;
+defm VFNMSUB_VV : VALU_OPFVV_MulAdd<0b101011, "vfnmsub.vv">, Sched<[]>;
+defm VFNMSUB_VF : VALU_OPFVF_MulAdd<0b101011, "vfnmsub.vf">, Sched<[]>;
 
 
 // Vector Widening Floating-Point Fused Multiply-Add Instructions
 
-defm VFWMACC_VV : VALU_OPFVV_MulAdd<0b111100, "vfwmacc.vv">;
-defm VFWMACC_VF : VALU_OPFVF_MulAdd<0b111100, "vfwmacc.vf">;
+defm VFWMACC_VV : VALU_OPFVV_MulAdd<0b111100, "vfwmacc.vv">, Sched<[]>;
+defm VFWMACC_VF : VALU_OPFVF_MulAdd<0b111100, "vfwmacc.vf">, Sched<[]>;
 
-defm VFWNMACC_VV : VALU_OPFVV_MulAdd<0b111101, "vfwnmacc.vv">;
-defm VFWNMACC_VF : VALU_OPFVF_MulAdd<0b111101, "vfwnmacc.vf">;
+defm VFWNMACC_VV : VALU_OPFVV_MulAdd<0b111101, "vfwnmacc.vv">, Sched<[]>;
+defm VFWNMACC_VF : VALU_OPFVF_MulAdd<0b111101, "vfwnmacc.vf">, Sched<[]>;
 
-defm VFWMSAC_VV : VALU_OPFVV_MulAdd<0b111110, "vfwmsac.vv">;
-defm VFWMSAC_VF : VALU_OPFVF_MulAdd<0b111110, "vfwmsac.vf">;
+defm VFWMSAC_VV : VALU_OPFVV_MulAdd<0b111110, "vfwmsac.vv">, Sched<[]>;
+defm VFWMSAC_VF : VALU_OPFVF_MulAdd<0b111110, "vfwmsac.vf">, Sched<[]>;
 
-defm VFWNMSAC_VV : VALU_OPFVV_MulAdd<0b111111, "vfwnmsac.vv">;
-defm VFWNMSAC_VF : VALU_OPFVF_MulAdd<0b111111, "vfwnmsac.vf">;
+defm VFWNMSAC_VV : VALU_OPFVV_MulAdd<0b111111, "vfwnmsac.vv">, Sched<[]>;
+defm VFWNMSAC_VF : VALU_OPFVF_MulAdd<0b111111, "vfwnmsac.vf">, Sched<[]>;
 
 
 // Vector Floating-Point Square-Root Instruction
 
-defm VFSQRT_V : VALU_OPFVV_VFUNARY1<0b00000, "vfsqrt.v">;
+defm VFSQRT_V : VALU_OPFVV_VFUNARY1<0b00000, "vfsqrt.v">, Sched<[]>;
 
 
 // Vector Floating-Point MIN/MAX Instructions
 
-defm VFMIN_VV : VALU_OPFVV<0b000100, "vfmin.vv">;
-defm VFMIN_VF : VALU_OPFVF<0b000100, "vfmin.vf">;
+defm VFMIN_VV : VALU_OPFVV<0b000100, "vfmin.vv">, Sched<[]>;
+defm VFMIN_VF : VALU_OPFVF<0b000100, "vfmin.vf">, Sched<[]>;
 
-defm VFMAX_VV : VALU_OPFVV<0b000110, "vfmax.vv">;
-defm VFMAX_VF : VALU_OPFVF<0b000110, "vfmax.vf">;
+defm VFMAX_VV : VALU_OPFVV<0b000110, "vfmax.vv">, Sched<[]>;
+defm VFMAX_VF : VALU_OPFVF<0b000110, "vfmax.vf">, Sched<[]>;
 
 
 // Vector Floating-Point Sign-Injection Instructions
 
-defm VFSGNJ_VV : VALU_OPFVV<0b001000, "vfsgnj.vv">;
-defm VFSGNJ_VF : VALU_OPFVF<0b001000, "vfsgnj.vf">;
+defm VFSGNJ_VV : VALU_OPFVV<0b001000, "vfsgnj.vv">, Sched<[]>;
+defm VFSGNJ_VF : VALU_OPFVF<0b001000, "vfsgnj.vf">, Sched<[]>;
 
-defm VFSGNJN_VV : VALU_OPFVV<0b001001, "vfsgnjn.vv">;
-defm VFSGNJN_VF : VALU_OPFVF<0b001001, "vfsgnjn.vf">;
+defm VFSGNJN_VV : VALU_OPFVV<0b001001, "vfsgnjn.vv">, Sched<[]>;
+defm VFSGNJN_VF : VALU_OPFVF<0b001001, "vfsgnjn.vf">, Sched<[]>;
 
-defm VFSGNJX_VV : VALU_OPFVV<0b001010, "vfsgnjx.vv">;
-defm VFSGNJX_VF : VALU_OPFVF<0b001010, "vfsgnjx.vf">;
+defm VFSGNJX_VV : VALU_OPFVV<0b001010, "vfsgnjx.vv">, Sched<[]>;
+defm VFSGNJX_VF : VALU_OPFVF<0b001010, "vfsgnjx.vf">, Sched<[]>;
 
 
 // Vector Floating-Point Compare Instructions
 
-defm VMFEQ_VV : VALU_OPFVV<0b011000, "vmfeq.vv">;
-defm VMFEQ_VF : VALU_OPFVF<0b011000, "vmfeq.vf">;
+defm VMFEQ_VV : VALU_OPFVV<0b011000, "vmfeq.vv">, Sched<[]>;
+defm VMFEQ_VF : VALU_OPFVF<0b011000, "vmfeq.vf">, Sched<[]>;
 
-defm VMFNE_VV : VALU_OPFVV<0b011100, "vmfne.vv">;
-defm VMFNE_VF : VALU_OPFVF<0b011100, "vmfne.vf">;
+defm VMFNE_VV : VALU_OPFVV<0b011100, "vmfne.vv">, Sched<[]>;
+defm VMFNE_VF : VALU_OPFVF<0b011100, "vmfne.vf">, Sched<[]>;
 
-defm VMFLT_VV : VALU_OPFVV<0b011011, "vmflt.vv">;
-defm VMFLT_VF : VALU_OPFVF<0b011011, "vmflt.vf">;
+defm VMFLT_VV : VALU_OPFVV<0b011011, "vmflt.vv">, Sched<[]>;
+defm VMFLT_VF : VALU_OPFVF<0b011011, "vmflt.vf">, Sched<[]>;
 
-defm VMFLE_VV : VALU_OPFVV<0b011001, "vmfle.vv">;
-defm VMFLE_VF : VALU_OPFVF<0b011001, "vmfle.vf">;
+defm VMFLE_VV : VALU_OPFVV<0b011001, "vmfle.vv">, Sched<[]>;
+defm VMFLE_VF : VALU_OPFVF<0b011001, "vmfle.vf">, Sched<[]>;
 
-defm VMFGT_VF : VALU_OPFVF<0b011101, "vmfgt.vf">;
-defm VMFGE_VF : VALU_OPFVF<0b011111, "vmfge.vf">;
+defm VMFGT_VF : VALU_OPFVF<0b011101, "vmfgt.vf">, Sched<[]>;
+defm VMFGE_VF : VALU_OPFVF<0b011111, "vmfge.vf">, Sched<[]>;
 
 
 // Vector Floating-Point Classify Instruction
 
-defm VFCLASS_V : VALU_OPFVV_VFUNARY1<0b10000, "vfclass.v">;
+defm VFCLASS_V : VALU_OPFVV_VFUNARY1<0b10000, "vfclass.v">, Sched<[]>;
 
 
 // Vector Floating-Point Merge Instruction
@@ -1312,7 +1312,7 @@ defm VFCLASS_V : VALU_OPFVV_VFUNARY1<0b10000, "vfclass.v">;
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VFMERGE_VFM : RVInstVA<0b010111, 0b101, RVV_Masked, OPC_OP_V,
                (outs VR:$vd), (ins FPR32:$rs1, VR:$vs2, VLR:$vl, VRV0:$v0),
-               "vfmerge.vfm", "$vd, $vs2, $rs1, $v0"> {
+               "vfmerge.vfm", "$vd, $vs2, $rs1, $v0">, Sched<[]> {
   bits<5> rs1;
   let Inst{19-15} = rs1;
 }
@@ -1323,7 +1323,7 @@ def VFMERGE_VFM : RVInstVA<0b010111, 0b101, RVV_Masked, OPC_OP_V,
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VFMV_V_F : RVInstVA<0b010111, 0b101, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins FPR32:$rs1, VLR:$vl),
-               "vfmv.v.f", "$vd, $rs1"> {
+               "vfmv.v.f", "$vd, $rs1">, Sched<[]> {
   bits<5> rs1;
   let vs2 = 0b00000;
   let Inst{19-15} = rs1;
@@ -1332,110 +1332,111 @@ def VFMV_V_F : RVInstVA<0b010111, 0b101, RVV_Unmasked, OPC_OP_V,
 
 // Single-Width Floating-Point/Integer Type-Convert Instructions
 
-defm VFCVT_XU_F_V : VALU_OPFVV_VFUNARY0<0b00000, "vfcvt.xu.f.v">;
-defm VFCVT_X_F_V : VALU_OPFVV_VFUNARY0<0b00001, "vfcvt.x.f.v">;
-defm VFCVT_F_XU_V : VALU_OPFVV_VFUNARY0<0b00010, "vfcvt.f.xu.v">;
-defm VFCVT_F_X_V : VALU_OPFVV_VFUNARY0<0b00011, "vfcvt.f.x.v">;
+defm VFCVT_XU_F_V : VALU_OPFVV_VFUNARY0<0b00000, "vfcvt.xu.f.v">, Sched<[]>;
+defm VFCVT_X_F_V : VALU_OPFVV_VFUNARY0<0b00001, "vfcvt.x.f.v">, Sched<[]>;
+defm VFCVT_F_XU_V : VALU_OPFVV_VFUNARY0<0b00010, "vfcvt.f.xu.v">, Sched<[]>;
+defm VFCVT_F_X_V : VALU_OPFVV_VFUNARY0<0b00011, "vfcvt.f.x.v">, Sched<[]>;
 
 
 // Widening Floating-Point/Integer Type-Convert Instructions
 
-defm VFWCVT_XU_F_V : VALU_OPFVV_VFUNARY0<0b01000, "vfwcvt.xu.f.v">;
-defm VFWCVT_X_F_V : VALU_OPFVV_VFUNARY0<0b01001, "vfwcvt.x.f.v">;
-defm VFWCVT_F_XU_V : VALU_OPFVV_VFUNARY0<0b01010, "vfwcvt.f.xu.v">;
-defm VFWCVT_F_X_V : VALU_OPFVV_VFUNARY0<0b01011, "vfwcvt.f.x.v">;
-defm VFWCVT_F_F_V : VALU_OPFVV_VFUNARY0<0b01100, "vfwcvt.f.f.v">;
+defm VFWCVT_XU_F_V : VALU_OPFVV_VFUNARY0<0b01000, "vfwcvt.xu.f.v">, Sched<[]>;
+defm VFWCVT_X_F_V : VALU_OPFVV_VFUNARY0<0b01001, "vfwcvt.x.f.v">, Sched<[]>;
+defm VFWCVT_F_XU_V : VALU_OPFVV_VFUNARY0<0b01010, "vfwcvt.f.xu.v">, Sched<[]>;
+defm VFWCVT_F_X_V : VALU_OPFVV_VFUNARY0<0b01011, "vfwcvt.f.x.v">, Sched<[]>;
+defm VFWCVT_F_F_V : VALU_OPFVV_VFUNARY0<0b01100, "vfwcvt.f.f.v">, Sched<[]>;
 
 
 // Narrowing Floating-Point/Integer Type-Convert Instructions
 
-defm VFNCVT_XU_F_W : VALU_OPFVV_VFUNARY0<0b10000, "vfncvt.xu.f.w">;
-defm VFNCVT_X_F_W : VALU_OPFVV_VFUNARY0<0b10001, "vfncvt.x.f.w">;
-defm VFNCVT_F_XU_W : VALU_OPFVV_VFUNARY0<0b10010, "vfncvt.f.xu.w">;
-defm VFNCVT_F_X_W : VALU_OPFVV_VFUNARY0<0b10011, "vfncvt.f.x.w">;
-defm VFNCVT_F_F_W : VALU_OPFVV_VFUNARY0<0b10100, "vfncvt.f.f.w">;
-defm VFNCVT_ROD_F_F_W : VALU_OPFVV_VFUNARY0<0b10101, "vfncvt.rod.f.f.w">;
+defm VFNCVT_XU_F_W : VALU_OPFVV_VFUNARY0<0b10000, "vfncvt.xu.f.w">, Sched<[]>;
+defm VFNCVT_X_F_W : VALU_OPFVV_VFUNARY0<0b10001, "vfncvt.x.f.w">, Sched<[]>;
+defm VFNCVT_F_XU_W : VALU_OPFVV_VFUNARY0<0b10010, "vfncvt.f.xu.w">, Sched<[]>;
+defm VFNCVT_F_X_W : VALU_OPFVV_VFUNARY0<0b10011, "vfncvt.f.x.w">, Sched<[]>;
+defm VFNCVT_F_F_W : VALU_OPFVV_VFUNARY0<0b10100, "vfncvt.f.f.w">, Sched<[]>;
+defm VFNCVT_ROD_F_F_W : VALU_OPFVV_VFUNARY0<0b10101, "vfncvt.rod.f.f.w">, Sched<[]>;
 
 
 // Vector Single-Width Integer Reduction Instructions
 
-defm VREDSUM_VS : VALU_OPMVV<0b000000, "vredsum.vs">;
-defm VREDMAXU_VS : VALU_OPMVV<0b000110, "vredmaxu.vs">;
-defm VREDMAX_VS : VALU_OPMVV<0b000111, "vredmax.vs">;
-defm VREDMINU_VS : VALU_OPMVV<0b000100, "vredminu.vs">;
-defm VREDMIN_VS : VALU_OPMVV<0b000101, "vredmin.vs">;
-defm VREDAND_VS : VALU_OPMVV<0b000001, "vredand.vs">;
-defm VREDOR_VS : VALU_OPMVV<0b000010, "vredor.vs">;
-defm VREDXOR_VS : VALU_OPMVV<0b000011, "vredxor.vs">;
+defm VREDSUM_VS : VALU_OPMVV<0b000000, "vredsum.vs">, Sched<[]>;
+defm VREDMAXU_VS : VALU_OPMVV<0b000110, "vredmaxu.vs">, Sched<[]>;
+defm VREDMAX_VS : VALU_OPMVV<0b000111, "vredmax.vs">, Sched<[]>;
+defm VREDMINU_VS : VALU_OPMVV<0b000100, "vredminu.vs">, Sched<[]>;
+defm VREDMIN_VS : VALU_OPMVV<0b000101, "vredmin.vs">, Sched<[]>;
+defm VREDAND_VS : VALU_OPMVV<0b000001, "vredand.vs">, Sched<[]>;
+defm VREDOR_VS : VALU_OPMVV<0b000010, "vredor.vs">, Sched<[]>;
+defm VREDXOR_VS : VALU_OPMVV<0b000011, "vredxor.vs">, Sched<[]>;
 
 
 // Vector Widening Integer Reduction Instructions
 
-defm VWREDSUMU_VS : VALU_OPIVV<0b110000, "vwredsumu.vs">;
-defm VWREDSUM_VS : VALU_OPIVV<0b110001, "vwredsum.vs">;
+defm VWREDSUMU_VS : VALU_OPIVV<0b110000, "vwredsumu.vs">, Sched<[]>;
+defm VWREDSUM_VS : VALU_OPIVV<0b110001, "vwredsum.vs">, Sched<[]>;
 
 
 // Vector Single-Width Floating-Point Reduction Instructions
 
-defm VFREDOSUM_VS : VALU_OPFVV<0b000011, "vfredosum.vs">;
-defm VFREDSUM_VS : VALU_OPFVV<0b000001, "vfredsum.vs">;
-defm VFREDMAX_VS : VALU_OPFVV<0b000111, "vfredmax.vs">;
-defm VFREDMIN_VS : VALU_OPFVV<0b000101, "vfredmin.vs">;
+defm VFREDOSUM_VS : VALU_OPFVV<0b000011, "vfredosum.vs">, Sched<[]>;
+defm VFREDSUM_VS : VALU_OPFVV<0b000001, "vfredsum.vs">, Sched<[]>;
+defm VFREDMAX_VS : VALU_OPFVV<0b000111, "vfredmax.vs">, Sched<[]>;
+defm VFREDMIN_VS : VALU_OPFVV<0b000101, "vfredmin.vs">, Sched<[]>;
 
 
 // Vector Widening Floating-Point Reduction Instructions
 
-defm VFWREDOSUM_VS : VALU_OPFVV<0b110011, "vfwredosum.vs">;
-defm VFWREDSUM_VS : VALU_OPFVV<0b110001, "vfwredsum.vs">;
+defm VFWREDOSUM_VS : VALU_OPFVV<0b110011, "vfwredosum.vs">, Sched<[]>;
+defm VFWREDSUM_VS : VALU_OPFVV<0b110001, "vfwredsum.vs">, Sched<[]>;
 
 
 // Vector Mask-Register Logical Instructions
 
-def VMAND_MM : VALU_OPMVV_um<0b011001, "vmand.mm">;
-def VMNAND_MM : VALU_OPMVV_um<0b011101, "vmnand.mm">;
-def VMANDNOT_MM : VALU_OPMVV_um<0b011000, "vmandnot.mm">;
-def VMXOR_MM : VALU_OPMVV_um<0b011011, "vmxor.mm">;
-def VMOR_MM : VALU_OPMVV_um<0b011010, "vmor.mm">;
-def VMNOR_MM : VALU_OPMVV_um<0b011110, "vmnor.mm">;
-def VMORNOT_MM : VALU_OPMVV_um<0b011100, "vmornot.mm">;
-def VMXNOR_MM : VALU_OPMVV_um<0b011111, "vmxnor.mm">;
+def VMAND_MM : VALU_OPMVV_um<0b011001, "vmand.mm">, Sched<[]>;
+def VMNAND_MM : VALU_OPMVV_um<0b011101, "vmnand.mm">, Sched<[]>;
+def VMANDNOT_MM : VALU_OPMVV_um<0b011000, "vmandnot.mm">, Sched<[]>;
+def VMXOR_MM : VALU_OPMVV_um<0b011011, "vmxor.mm">, Sched<[]>;
+def VMOR_MM : VALU_OPMVV_um<0b011010, "vmor.mm">, Sched<[]>;
+def VMNOR_MM : VALU_OPMVV_um<0b011110, "vmnor.mm">, Sched<[]>;
+def VMORNOT_MM : VALU_OPMVV_um<0b011100, "vmornot.mm">, Sched<[]>;
+def VMXNOR_MM : VALU_OPMVV_um<0b011111, "vmxnor.mm">, Sched<[]>;
 
 
 // Vector mask population count Instruction
 
-defm VPOPC_M : VALU_OPMVV_VWXUNARY0<0b10000, "vpopc.m">;
+defm VPOPC_M : VALU_OPMVV_VWXUNARY0<0b10000, "vpopc.m">, Sched<[]>;
 
 
 // find-first-set mask bit Instruction
 
-defm VFIRST_M : VALU_OPMVV_VWXUNARY0<0b10001, "vfirst.m">;
+defm VFIRST_M : VALU_OPMVV_VWXUNARY0<0b10001, "vfirst.m">, Sched<[]>;
 
 
 // set-before-first mask bit Instruction
 
-defm VMSBF_M : VALU_OPMVV_VMUNARY0<0b00001, "vmsbf.m">;
+defm VMSBF_M : VALU_OPMVV_VMUNARY0<0b00001, "vmsbf.m">, Sched<[]>;
 
 
 // set-including-first mask bit Instruction
 
-defm VMSIF_M : VALU_OPMVV_VMUNARY0<0b00011, "vmsif.m">;
+defm VMSIF_M : VALU_OPMVV_VMUNARY0<0b00011, "vmsif.m">, Sched<[]>;
 
 
 // set-only-first mask bit Instruction
 
-defm VMSOF_M : VALU_OPMVV_VMUNARY0<0b00010, "vmsof.m">;
+defm VMSOF_M : VALU_OPMVV_VMUNARY0<0b00010, "vmsof.m">, Sched<[]>;
 
 
 // Vector Iota Instruction
 
-defm VIOTA_M : VALU_OPMVV_VMUNARY0<0b10000, "viota.m">;
+defm VIOTA_M : VALU_OPMVV_VMUNARY0<0b10000, "viota.m">, Sched<[]>;
 
 
 // Vector Element Index Instruction
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VID_V_m : RVInstVA<0b010100, 0b010, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VLR:$vl, VMR:$vm), "vid.v", "$vd, $vm"> {
+               (outs VR:$vd), (ins VLR:$vl, VMR:$vm), "vid.v", "$vd, $vm">,
+              Sched<[]> {
   bits<5> vs1;
   let vs1 = 0b10001;
   let vs2 = 0b00000;
@@ -1443,7 +1444,7 @@ def VID_V_m : RVInstVA<0b010100, 0b010, RVV_Masked, OPC_OP_V,
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VID_V_um : RVInstVA<0b010100, 0b010, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VLR:$vl), "vid.v", "$vd"> {
+               (outs VR:$vd), (ins VLR:$vl), "vid.v", "$vd">, Sched<[]> {
   bits<5> vs1;
   let vs1 = 0b10001;
   let vs2 = 0b00000;
@@ -1456,7 +1457,7 @@ def VID_V_um : RVInstVA<0b010100, 0b010, RVV_Unmasked, OPC_OP_V,
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_X_S : RVInstVA<0b010000, 0b010, RVV_Unmasked, OPC_OP_V,
                (outs GPR:$rd), (ins VR:$vs2, VLR:$vl),
-               "vmv.x.s", "$rd, $vs2"> {
+               "vmv.x.s", "$rd, $vs2">, Sched<[]> {
   bits<5> vs1;
   let vs1 = 0b00000;
   let Inst{19-15} = vs1;
@@ -1464,7 +1465,7 @@ def VMV_X_S : RVInstVA<0b010000, 0b010, RVV_Unmasked, OPC_OP_V,
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_S_X : RVInstVA<0b010000, 0b110, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins GPR:$rs1, VLR:$vl),
-               "vmv.s.x", "$vd, $rs1"> {
+               "vmv.s.x", "$vd, $rs1">, Sched<[]> {
   bits<5> rs1;
   let vs2 = 0b00000;
   let Inst{19-15} = rs1;
@@ -1476,7 +1477,7 @@ def VMV_S_X : RVInstVA<0b010000, 0b110, RVV_Unmasked, OPC_OP_V,
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VFMV_F_S : RVInstVA<0b010000, 0b001, RVV_Unmasked, OPC_OP_V,
                (outs FPR32:$rd), (ins VR:$vs2, VLR:$vl),
-               "vfmv.f.s", "$rd, $vs2"> {
+               "vfmv.f.s", "$rd, $vs2">, Sched<[]> {
   bits<5> vs1;
   let vs1 = 0b00000;
   let Inst{19-15} = vs1;
@@ -1484,7 +1485,7 @@ def VFMV_F_S : RVInstVA<0b010000, 0b001, RVV_Unmasked, OPC_OP_V,
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VFMV_S_F : RVInstVA<0b010000, 0b101, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins FPR32:$rs1, VLR:$vl),
-               "vfmv.s.f", "$vd, $rs1"> {
+               "vfmv.s.f", "$vd, $rs1">, Sched<[]> {
   bits<5> rs1;
   let vs2 = 0b00000;
   let Inst{19-15} = rs1;
@@ -1493,22 +1494,22 @@ def VFMV_S_F : RVInstVA<0b010000, 0b101, RVV_Unmasked, OPC_OP_V,
 
 // Vector Slide Instructions
 
-defm VSLIDEUP_VX : VALU_OPIVX<0b001110, "vslideup.vx">;
-defm VSLIDEUP_VI : VALU_OPIVI_unsigned<0b001110, "vslideup.vi">;
+defm VSLIDEUP_VX : VALU_OPIVX<0b001110, "vslideup.vx">, Sched<[]>;
+defm VSLIDEUP_VI : VALU_OPIVI_unsigned<0b001110, "vslideup.vi">, Sched<[]>;
 
-defm VSLIDEDOWN_VX : VALU_OPIVX<0b001111, "vslidedown.vx">;
-defm VSLIDEDOWN_VI : VALU_OPIVI_unsigned<0b001111, "vslidedown.vi">;
+defm VSLIDEDOWN_VX : VALU_OPIVX<0b001111, "vslidedown.vx">, Sched<[]>;
+defm VSLIDEDOWN_VI : VALU_OPIVI_unsigned<0b001111, "vslidedown.vi">, Sched<[]>;
 
-defm VSLIDE1UP_VX : VALU_OPMVX<0b001110, "vslide1up.vx">;
+defm VSLIDE1UP_VX : VALU_OPMVX<0b001110, "vslide1up.vx">, Sched<[]>;
 
-defm VSLIDE1DOWN_VX : VALU_OPMVX<0b001111, "vslide1down.vx">;
+defm VSLIDE1DOWN_VX : VALU_OPMVX<0b001111, "vslide1down.vx">, Sched<[]>;
 
 
 // Vector Register Gather Instructions
 
-defm VRGATHER_VV : VALU_OPIVV<0b001100, "vrgather.vv">;
-defm VRGATHER_VX : VALU_OPIVX<0b001100, "vrgather.vx">;
-defm VRGATHER_VI : VALU_OPIVI_unsigned<0b001100, "vrgather.vi">;
+defm VRGATHER_VV : VALU_OPIVV<0b001100, "vrgather.vv">, Sched<[]>;
+defm VRGATHER_VX : VALU_OPIVX<0b001100, "vrgather.vx">, Sched<[]>;
+defm VRGATHER_VI : VALU_OPIVI_unsigned<0b001100, "vrgather.vi">, Sched<[]>;
 
 
 // Vector Compress Instruction
@@ -1516,7 +1517,7 @@ defm VRGATHER_VI : VALU_OPIVI_unsigned<0b001100, "vrgather.vi">;
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VCOMPRESS_VM : RVInstVA<0b010111, 0b010, RVV_Unmasked, OPC_OP_V,
                (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
-               "vcompress.vm", "$vd, $vs2, $vs1"> {
+               "vcompress.vm", "$vd, $vs2, $vs1">, Sched<[]> {
   bits<5> vs1;
   let Inst{19-15} = vs1;
 }
@@ -1525,19 +1526,20 @@ def VCOMPRESS_VM : RVInstVA<0b010111, 0b010, RVV_Unmasked, OPC_OP_V,
 // Whole Vector Register Move Instructions
 
 foreach nf = 1-8 in {
-  def VMV#nf#R_V : VALU_OPIVI_VMVWholeReg<!add(nf, -1), "vmv"#nf#"r.v">;
+  def VMV#nf#R_V : VALU_OPIVI_VMVWholeReg<!add(nf, -1), "vmv"#nf#"r.v">,
+                   Sched<[]>;
 }
 
 
 // Vector Integer Dot-Product Instructions
 
-defm VDOTU_VV : VALU_OPIVV<0b111000, "vdotu.vv">;
-defm VDOT_VV : VALU_OPIVV<0b111001, "vdot.vv">;
+defm VDOTU_VV : VALU_OPIVV<0b111000, "vdotu.vv">, Sched<[]>;
+defm VDOT_VV : VALU_OPIVV<0b111001, "vdot.vv">, Sched<[]>;
 
 
 // Vector Floating-Point Dot-Product Instruction
 
-defm VFDOT_VV : VALU_OPFVV<0b111001, "vfdot.vv">;
+defm VFDOT_VV : VALU_OPFVV<0b111001, "vfdot.vv">, Sched<[]>;
 
 
 } // Predicates = [HasStdExtV]

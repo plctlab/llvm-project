@@ -624,10 +624,10 @@ class CFGBlock {
     template <bool IsOtherConst> friend class ElementRefImpl;
 
     using CFGBlockPtr =
-        typename std::conditional<IsConst, const CFGBlock *, CFGBlock *>::type;
+        std::conditional_t<IsConst, const CFGBlock *, CFGBlock *>;
 
-    using CFGElementPtr = typename std::conditional<IsConst, const CFGElement *,
-                                                    CFGElement *>::type;
+    using CFGElementPtr =
+        std::conditional_t<IsConst, const CFGElement *, CFGElement *>;
 
   protected:
     CFGBlockPtr Parent;
@@ -675,15 +675,14 @@ class CFGBlock {
     friend class ElementRefIterator;
 
     using CFGBlockRef =
-        typename std::conditional<IsConst, const CFGBlock *, CFGBlock *>::type;
+        std::conditional_t<IsConst, const CFGBlock *, CFGBlock *>;
 
-    using UnderlayingIteratorTy = typename std::conditional<
+    using UnderlayingIteratorTy = std::conditional_t<
         IsConst,
-        typename std::conditional<IsReverse,
-                                  ElementList::const_reverse_iterator,
-                                  ElementList::const_iterator>::type,
-        typename std::conditional<IsReverse, ElementList::reverse_iterator,
-                                  ElementList::iterator>::type>::type;
+        std::conditional_t<IsReverse, ElementList::const_reverse_iterator,
+                           ElementList::const_iterator>,
+        std::conditional_t<IsReverse, ElementList::reverse_iterator,
+                           ElementList::iterator>>;
 
     using IteratorTraits = typename std::iterator_traits<UnderlayingIteratorTy>;
     using ElementRef = typename CFGBlock::ElementRefImpl<IsConst>;
@@ -1213,6 +1212,7 @@ public:
   virtual void compareAlwaysTrue(const BinaryOperator *B, bool isAlwaysTrue) {}
   virtual void compareBitwiseEquality(const BinaryOperator *B,
                                       bool isAlwaysTrue) {}
+  virtual void compareBitwiseOr(const BinaryOperator *B) {}
 };
 
 /// Represents a source-level, intra-procedural CFG that represents the
@@ -1247,9 +1247,11 @@ public:
     bool AddStaticInitBranches = false;
     bool AddCXXNewAllocator = false;
     bool AddCXXDefaultInitExprInCtors = false;
+    bool AddCXXDefaultInitExprInAggregates = false;
     bool AddRichCXXConstructors = false;
     bool MarkElidedCXXConstructors = false;
     bool AddVirtualBaseBranches = false;
+    bool OmitImplicitValueInitializers = false;
 
     BuildOptions() = default;
 

@@ -31,6 +31,13 @@ Checksum HashAlgorithm = {Checksum::BSD};
 #define bit_SSE4_2 bit_SSE42 // clang and gcc have different defines.
 #endif
 
+#ifndef signature_HYGON_ebx // They are not defined in gcc.
+// HYGON: "HygonGenuine".
+#define signature_HYGON_ebx 0x6f677948
+#define signature_HYGON_edx 0x6e65476e
+#define signature_HYGON_ecx 0x656e6975
+#endif
+
 bool hasHardwareCRC32() {
   u32 Eax, Ebx = 0, Ecx = 0, Edx = 0;
   __get_cpuid(0, &Eax, &Ebx, &Ecx, &Edx);
@@ -39,12 +46,14 @@ bool hasHardwareCRC32() {
                        (Ecx == signature_INTEL_ecx);
   const bool IsAMD = (Ebx == signature_AMD_ebx) && (Edx == signature_AMD_edx) &&
                      (Ecx == signature_AMD_ecx);
-  if (!IsIntel && !IsAMD)
+  const bool IsHygon = (Ebx == signature_HYGON_ebx) &&
+                       (Edx == signature_HYGON_edx) &&
+                       (Ecx == signature_HYGON_ecx);
+  if (!IsIntel && !IsAMD && !IsHygon)
     return false;
   __get_cpuid(1, &Eax, &Ebx, &Ecx, &Edx);
   return !!(Ecx & bit_SSE4_2);
 }
-
 #elif defined(__arm__) || defined(__aarch64__)
 #ifndef AT_HWCAP
 #define AT_HWCAP 16
@@ -65,6 +74,9 @@ bool hasHardwareCRC32() {
   return !!(getauxval(AT_HWCAP) & HWCAP_CRC32);
 #endif // SCUDO_FUCHSIA
 }
+#else
+// No hardware CRC32 implemented in Scudo for other architectures.
+bool hasHardwareCRC32() { return false; }
 #endif // defined(__x86_64__) || defined(__i386__)
 
 } // namespace scudo

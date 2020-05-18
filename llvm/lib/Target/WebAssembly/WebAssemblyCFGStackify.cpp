@@ -29,6 +29,7 @@
 #include "llvm/ADT/Statistic.h"
 #include "llvm/CodeGen/MachineDominators.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
+#include "llvm/CodeGen/MachineLoopInfo.h"
 #include "llvm/MC/MCAsmInfo.h"
 using namespace llvm;
 
@@ -276,11 +277,19 @@ void WebAssemblyCFGStackify::placeBlockMarker(MachineBasicBlock &MBB) {
 #endif
     }
 
-    // All previously inserted BLOCK/TRY markers should be after the BLOCK
-    // because they are all nested blocks.
+    // If there is a previously placed BLOCK/TRY marker and its corresponding
+    // END marker is before the current BLOCK's END marker, that should be
+    // placed after this BLOCK. Otherwise it should be placed before this BLOCK
+    // marker.
     if (MI.getOpcode() == WebAssembly::BLOCK ||
-        MI.getOpcode() == WebAssembly::TRY)
-      AfterSet.insert(&MI);
+        MI.getOpcode() == WebAssembly::TRY) {
+      if (BeginToEnd[&MI]->getParent()->getNumber() <= MBB.getNumber())
+        AfterSet.insert(&MI);
+#ifndef NDEBUG
+      else
+        BeforeSet.insert(&MI);
+#endif
+    }
 
 #ifndef NDEBUG
     // All END_(BLOCK|LOOP|TRY) markers should be before the BLOCK.
@@ -315,12 +324,12 @@ void WebAssemblyCFGStackify::placeBlockMarker(MachineBasicBlock &MBB) {
   //   br_on_exn 0, $__cpp_exception
   //   rethrow
   // end_block
-  WebAssembly::ExprType ReturnType = WebAssembly::ExprType::Void;
+  WebAssembly::BlockType ReturnType = WebAssembly::BlockType::Void;
   if (IsBrOnExn) {
     const char *TagName = BrOnExn->getOperand(1).getSymbolName();
     if (std::strcmp(TagName, "__cpp_exception") != 0)
       llvm_unreachable("Only C++ exception is supported");
-    ReturnType = WebAssembly::ExprType::I32;
+    ReturnType = WebAssembly::BlockType::I32;
   }
 
   auto InsertPos = getLatestInsertPos(Header, BeforeSet, AfterSet);
@@ -406,7 +415,7 @@ void WebAssemblyCFGStackify::placeLoopMarker(MachineBasicBlock &MBB) {
   auto InsertPos = getEarliestInsertPos(&MBB, BeforeSet, AfterSet);
   MachineInstr *Begin = BuildMI(MBB, InsertPos, MBB.findDebugLoc(InsertPos),
                                 TII.get(WebAssembly::LOOP))
-                            .addImm(int64_t(WebAssembly::ExprType::Void));
+                            .addImm(int64_t(WebAssembly::BlockType::Void));
 
   // Decide where in Header to put the END_LOOP.
   BeforeSet.clear();
@@ -575,7 +584,7 @@ void WebAssemblyCFGStackify::placeTryMarker(MachineBasicBlock &MBB) {
   MachineInstr *Begin =
       BuildMI(*Header, InsertPos, Header->findDebugLoc(InsertPos),
               TII.get(WebAssembly::TRY))
-          .addImm(int64_t(WebAssembly::ExprType::Void));
+          .addImm(int64_t(WebAssembly::BlockType::Void));
 
   // Decide where in Header to put the END_TRY.
   BeforeSet.clear();
@@ -865,6 +874,10 @@ bool WebAssemblyCFGStackify::fixUnwindMismatches(MachineFunction &MF) {
   // In new CFG, <destination to branch to, register containing exnref>
   DenseMap<MachineBasicBlock *, unsigned> BrDestToExnReg;
 
+  // Destinations for branches that will be newly added, for which a new
+  // BLOCK/END_BLOCK markers are necessary.
+  SmallVector<MachineBasicBlock *, 8> BrDests;
+
   // Gather possibly throwing calls (i.e., previously invokes) whose current
   // unwind destination is not the same as the original CFG.
   for (auto &MBB : reverse(MF)) {
@@ -1074,6 +1087,7 @@ bool WebAssemblyCFGStackify::fixUnwindMismatches(MachineFunction &MF) {
                         ? DebugLoc()
                         : EHPadLayoutPred->rbegin()->getDebugLoc();
       BuildMI(EHPadLayoutPred, DL, TII.get(WebAssembly::BR)).addMBB(Cont);
+      BrDests.push_back(Cont);
     }
   }
 
@@ -1108,6 +1122,9 @@ bool WebAssemblyCFGStackify::fixUnwindMismatches(MachineFunction &MF) {
       MachineInstr *RangeBegin = nullptr, *RangeEnd = nullptr;
       std::tie(RangeBegin, RangeEnd) = Range;
       auto *MBB = RangeBegin->getParent();
+      // Store the first function call from this range, because RangeBegin can
+      // be moved to point EH_LABEL before the call
+      MachineInstr *RangeBeginCall = RangeBegin;
 
       // Include possible EH_LABELs in the range
       if (RangeBegin->getIterator() != MBB->begin() &&
@@ -1125,11 +1142,29 @@ bool WebAssemblyCFGStackify::fixUnwindMismatches(MachineFunction &MF) {
         }
       }
 
+      // Local expression tree before the first call of this range should go
+      // after the nested TRY.
+      SmallPtrSet<const MachineInstr *, 4> AfterSet;
+      AfterSet.insert(RangeBegin);
+      AfterSet.insert(RangeBeginCall);
+      for (auto I = MachineBasicBlock::iterator(RangeBeginCall),
+                E = MBB->begin();
+           I != E; --I) {
+        if (std::prev(I)->isDebugInstr() || std::prev(I)->isPosition())
+          continue;
+        if (WebAssembly::isChild(*std::prev(I), MFI))
+          AfterSet.insert(&*std::prev(I));
+        else
+          break;
+      }
+
       // Create the nested try instruction.
+      auto InsertPos = getLatestInsertPos(
+          MBB, SmallPtrSet<const MachineInstr *, 4>(), AfterSet);
       MachineInstr *NestedTry =
-          BuildMI(*MBB, *RangeBegin, RangeBegin->getDebugLoc(),
+          BuildMI(*MBB, InsertPos, RangeBegin->getDebugLoc(),
                   TII.get(WebAssembly::TRY))
-              .addImm(int64_t(WebAssembly::ExprType::Void));
+              .addImm(int64_t(WebAssembly::BlockType::Void));
 
       // Create the nested EH pad and fill instructions in.
       MachineBasicBlock *NestedEHPad = MF.CreateMachineBasicBlock();
@@ -1156,8 +1191,16 @@ bool WebAssemblyCFGStackify::fixUnwindMismatches(MachineFunction &MF) {
 
       // Fix predecessor-successor relationship.
       NestedCont->transferSuccessors(MBB);
-      if (EHPad)
+      if (EHPad) {
         NestedCont->removeSuccessor(EHPad);
+        // If EHPad does not have any predecessors left after removing
+        // NextedCont predecessor, remove its successor too, because this EHPad
+        // is not reachable from the entry BB anyway. We can't remove EHPad BB
+        // itself because it can contain 'catch' or 'end', which are necessary
+        // for keeping try-catch-end structure.
+        if (EHPad->pred_empty())
+          EHPad->removeSuccessor(BrDest);
+      }
       MBB->addSuccessor(NestedEHPad);
       MBB->addSuccessor(NestedCont);
       NestedEHPad->addSuccessor(BrDest);
@@ -1189,10 +1232,14 @@ bool WebAssemblyCFGStackify::fixUnwindMismatches(MachineFunction &MF) {
   // Recompute the dominator tree.
   getAnalysis<MachineDominatorTree>().runOnMachineFunction(MF);
 
-  // Place block markers for newly added branches.
-  SmallVector <MachineBasicBlock *, 8> BrDests;
-  for (auto &P : BrDestToTryRanges)
-    BrDests.push_back(P.first);
+  // Place block markers for newly added branches, if necessary.
+
+  // If we've created an appendix BB and a branch to it, place a block/end_block
+  // marker for that. For some new branches, those branch destination BBs start
+  // with a hoisted end_try marker, so we don't need a new marker there.
+  if (AppendixBB)
+    BrDests.push_back(AppendixBB);
+
   llvm::sort(BrDests,
              [&](const MachineBasicBlock *A, const MachineBasicBlock *B) {
                auto ANum = A->getNumber();
@@ -1231,54 +1278,28 @@ void WebAssemblyCFGStackify::fixEndsAtEndOfFunction(MachineFunction &MF) {
   if (MFI.getResults().empty())
     return;
 
-  // TODO: Generalize from value types to function types for multivalue
-  WebAssembly::ExprType RetType;
-  switch (MFI.getResults().front().SimpleTy) {
-  case MVT::i32:
-    RetType = WebAssembly::ExprType::I32;
-    break;
-  case MVT::i64:
-    RetType = WebAssembly::ExprType::I64;
-    break;
-  case MVT::f32:
-    RetType = WebAssembly::ExprType::F32;
-    break;
-  case MVT::f64:
-    RetType = WebAssembly::ExprType::F64;
-    break;
-  case MVT::v16i8:
-  case MVT::v8i16:
-  case MVT::v4i32:
-  case MVT::v2i64:
-  case MVT::v4f32:
-  case MVT::v2f64:
-    RetType = WebAssembly::ExprType::V128;
-    break;
-  case MVT::exnref:
-    RetType = WebAssembly::ExprType::Exnref;
-    break;
-  default:
-    llvm_unreachable("unexpected return type");
-  }
+  // MCInstLower will add the proper types to multivalue signatures based on the
+  // function return type
+  WebAssembly::BlockType RetType =
+      MFI.getResults().size() > 1
+          ? WebAssembly::BlockType::Multivalue
+          : WebAssembly::BlockType(
+                WebAssembly::toValType(MFI.getResults().front()));
 
   for (MachineBasicBlock &MBB : reverse(MF)) {
     for (MachineInstr &MI : reverse(MBB)) {
       if (MI.isPosition() || MI.isDebugInstr())
         continue;
-      if (MI.getOpcode() == WebAssembly::END_BLOCK) {
-        if (MFI.getResults().size() > 1)
-          report_fatal_error("Multivalue block signatures not implemented yet");
+      switch (MI.getOpcode()) {
+      case WebAssembly::END_BLOCK:
+      case WebAssembly::END_LOOP:
+      case WebAssembly::END_TRY:
         EndToBegin[&MI]->getOperand(0).setImm(int32_t(RetType));
         continue;
+      default:
+        // Something other than an `end`. We're done.
+        return;
       }
-      if (MI.getOpcode() == WebAssembly::END_LOOP) {
-        if (MFI.getResults().size() > 1)
-          report_fatal_error("Multivalue loop signatures not implemented yet");
-        EndToBegin[&MI]->getOperand(0).setImm(int32_t(RetType));
-        continue;
-      }
-      // Something other than an `end`. We're done.
-      return;
     }
   }
 }

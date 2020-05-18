@@ -18,7 +18,6 @@
 #include "llvm/CodeGen/TargetFrameLowering.h"
 
 namespace llvm {
-class MachineFrameInfo;
 
 class WebAssemblyFrameLowering final : public TargetFrameLowering {
 public:
@@ -29,9 +28,9 @@ public:
   static const size_t RedZoneSize = 128;
 
   WebAssemblyFrameLowering()
-      : TargetFrameLowering(StackGrowsDown, /*StackAlignment=*/16,
+      : TargetFrameLowering(StackGrowsDown, /*StackAlignment=*/Align(16),
                             /*LocalAreaOffset=*/0,
-                            /*TransientStackAlignment=*/16,
+                            /*TransientStackAlignment=*/Align(16),
                             /*StackRealignable=*/true) {}
 
   MachineBasicBlock::iterator
@@ -44,6 +43,7 @@ public:
 
   bool hasFP(const MachineFunction &MF) const override;
   bool hasReservedCallFrame(const MachineFunction &MF) const override;
+  DwarfFrameBase getDwarfFrameBase(const MachineFunction &MF) const override;
 
   bool needsPrologForEH(const MachineFunction &MF) const;
 

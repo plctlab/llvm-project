@@ -47,7 +47,7 @@ void MetadataStreamerV2::verify(StringRef HSAMetadataString) const {
   errs() << "AMDGPU HSA Metadata Parser Test: ";
 
   HSAMD::Metadata FromHSAMetadataString;
-  if (fromString(HSAMetadataString, FromHSAMetadataString)) {
+  if (fromString(std::string(HSAMetadataString), FromHSAMetadataString)) {
     errs() << "FAIL\n";
     return;
   }
@@ -152,8 +152,8 @@ ValueType MetadataStreamerV2::getValueType(Type *Ty, StringRef TypeName) const {
     return ValueType::F64;
   case Type::PointerTyID:
     return getValueType(Ty->getPointerElementType(), TypeName);
-  case Type::VectorTyID:
-    return getValueType(Ty->getVectorElementType(), TypeName);
+  case Type::FixedVectorTyID:
+    return getValueType(cast<VectorType>(Ty)->getElementType(), TypeName);
   default:
     return ValueType::Struct;
   }
@@ -185,10 +185,10 @@ std::string MetadataStreamerV2::getTypeName(Type *Ty, bool Signed) const {
     return "float";
   case Type::DoubleTyID:
     return "double";
-  case Type::VectorTyID: {
-    auto VecTy = cast<VectorType>(Ty);
+  case Type::FixedVectorTyID: {
+    auto VecTy = cast<FixedVectorType>(Ty);
     auto ElTy = VecTy->getElementType();
-    auto NumElements = VecTy->getVectorNumElements();
+    auto NumElements = VecTy->getNumElements();
     return (Twine(getTypeName(ElTy, Signed)) + Twine(NumElements)).str();
   }
   default:
@@ -218,12 +218,13 @@ MetadataStreamerV2::getHSACodeProps(const MachineFunction &MF,
   assert(F.getCallingConv() == CallingConv::AMDGPU_KERNEL ||
          F.getCallingConv() == CallingConv::SPIR_KERNEL);
 
-  unsigned MaxKernArgAlign;
+  Align MaxKernArgAlign;
   HSACodeProps.mKernargSegmentSize = STM.getKernArgSegmentSize(F,
                                                                MaxKernArgAlign);
   HSACodeProps.mGroupSegmentFixedSize = ProgramInfo.LDSSize;
   HSACodeProps.mPrivateSegmentFixedSize = ProgramInfo.ScratchSize;
-  HSACodeProps.mKernargSegmentAlign = std::max(MaxKernArgAlign, 4u);
+  HSACodeProps.mKernargSegmentAlign =
+      std::max(MaxKernArgAlign, Align(4)).value();
   HSACodeProps.mWavefrontSize = STM.getWavefrontSize();
   HSACodeProps.mNumSGPRs = ProgramInfo.NumSGPR;
   HSACodeProps.mNumVGPRs = ProgramInfo.NumVGPR;
@@ -258,7 +259,8 @@ void MetadataStreamerV2::emitPrintf(const Module &Mod) {
 
   for (auto Op : Node->operands())
     if (Op->getNumOperands())
-      Printf.push_back(cast<MDString>(Op->getOperand(0))->getString());
+      Printf.push_back(
+          std::string(cast<MDString>(Op->getOperand(0))->getString()));
 }
 
 void MetadataStreamerV2::emitKernelLanguage(const Function &Func) {
@@ -366,8 +368,8 @@ void MetadataStreamerV2::emitKernelArg(const DataLayout &DL, Type *Ty,
   HSAMetadata.mKernels.back().mArgs.push_back(Kernel::Arg::Metadata());
   auto &Arg = HSAMetadata.mKernels.back().mArgs.back();
 
-  Arg.mName = Name;
-  Arg.mTypeName = TypeName;
+  Arg.mName = std::string(Name);
+  Arg.mTypeName = std::string(TypeName);
   Arg.mSize = DL.getTypeAllocSize(Ty);
   Arg.mAlign = DL.getABITypeAlignment(Ty);
   Arg.mValueKind = ValueKind;
@@ -420,7 +422,12 @@ void MetadataStreamerV2::emitHiddenKernelArgs(const Function &Func) {
   if (HiddenArgNumBytes >= 32) {
     if (Func.getParent()->getNamedMetadata("llvm.printf.fmts"))
       emitKernelArg(DL, Int8PtrTy, ValueKind::HiddenPrintfBuffer);
-    else
+    else if (Func.getParent()->getFunction("__ockl_hostcall_internal")) {
+      // The printf runtime binding pass should have ensured that hostcall and
+      // printf are not used in the same module.
+      assert(!Func.getParent()->getNamedMetadata("llvm.printf.fmts"));
+      emitKernelArg(DL, Int8PtrTy, ValueKind::HiddenHostcallBuffer);
+    } else
       emitKernelArg(DL, Int8PtrTy, ValueKind::HiddenNone);
   }
 
@@ -473,7 +480,7 @@ void MetadataStreamerV2::emitKernel(const MachineFunction &MF,
   HSAMetadata.mKernels.push_back(Kernel::Metadata());
   auto &Kernel = HSAMetadata.mKernels.back();
 
-  Kernel.mName = Func.getName();
+  Kernel.mName = std::string(Func.getName());
   Kernel.mSymbolName = (Twine(Func.getName()) + Twine("@kd")).str();
   emitKernelLanguage(Func);
   emitKernelAttrs(Func);
@@ -592,8 +599,8 @@ StringRef MetadataStreamerV3::getValueType(Type *Ty, StringRef TypeName) const {
     return "f64";
   case Type::PointerTyID:
     return getValueType(Ty->getPointerElementType(), TypeName);
-  case Type::VectorTyID:
-    return getValueType(Ty->getVectorElementType(), TypeName);
+  case Type::FixedVectorTyID:
+    return getValueType(cast<VectorType>(Ty)->getElementType(), TypeName);
   default:
     return "struct";
   }
@@ -625,10 +632,10 @@ std::string MetadataStreamerV3::getTypeName(Type *Ty, bool Signed) const {
     return "float";
   case Type::DoubleTyID:
     return "double";
-  case Type::VectorTyID: {
-    auto VecTy = cast<VectorType>(Ty);
+  case Type::FixedVectorTyID: {
+    auto VecTy = cast<FixedVectorType>(Ty);
     auto ElTy = VecTy->getElementType();
-    auto NumElements = VecTy->getVectorNumElements();
+    auto NumElements = VecTy->getNumElements();
     return (Twine(getTypeName(ElTy, Signed)) + Twine(NumElements)).str();
   }
   default:
@@ -853,7 +860,12 @@ void MetadataStreamerV3::emitHiddenKernelArgs(const Function &Func,
   if (HiddenArgNumBytes >= 32) {
     if (Func.getParent()->getNamedMetadata("llvm.printf.fmts"))
       emitKernelArg(DL, Int8PtrTy, "hidden_printf_buffer", Offset, Args);
-    else
+    else if (Func.getParent()->getFunction("__ockl_hostcall_internal")) {
+      // The printf runtime binding pass should have ensured that hostcall and
+      // printf are not used in the same module.
+      assert(!Func.getParent()->getNamedMetadata("llvm.printf.fmts"));
+      emitKernelArg(DL, Int8PtrTy, "hidden_hostcall_buffer", Offset, Args);
+    } else
       emitKernelArg(DL, Int8PtrTy, "hidden_none", Offset, Args);
   }
 
@@ -883,7 +895,7 @@ MetadataStreamerV3::getHSAKernelProps(const MachineFunction &MF,
 
   auto Kern = HSAMetadataDoc->getMapNode();
 
-  unsigned MaxKernArgAlign;
+  Align MaxKernArgAlign;
   Kern[".kernarg_segment_size"] = Kern.getDocument()->getNode(
       STM.getKernArgSegmentSize(F, MaxKernArgAlign));
   Kern[".group_segment_fixed_size"] =
@@ -891,7 +903,7 @@ MetadataStreamerV3::getHSAKernelProps(const MachineFunction &MF,
   Kern[".private_segment_fixed_size"] =
       Kern.getDocument()->getNode(ProgramInfo.ScratchSize);
   Kern[".kernarg_segment_align"] =
-      Kern.getDocument()->getNode(std::max(uint32_t(4), MaxKernArgAlign));
+      Kern.getDocument()->getNode(std::max(Align(4), MaxKernArgAlign).value());
   Kern[".wavefront_size"] =
       Kern.getDocument()->getNode(STM.getWavefrontSize());
   Kern[".sgpr_count"] = Kern.getDocument()->getNode(ProgramInfo.NumSGPR);

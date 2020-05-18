@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_SymbolFileSymtab_h_
-#define liblldb_SymbolFileSymtab_h_
+#ifndef LLDB_SOURCE_PLUGINS_SYMBOLFILE_SYMTAB_SYMBOLFILESYMTAB_H
+#define LLDB_SOURCE_PLUGINS_SYMBOLFILE_SYMTAB_SYMBOLFILESYMTAB_H
 
 #include <map>
 #include <vector>
@@ -16,7 +16,18 @@
 #include "lldb/Symbol/Symtab.h"
 
 class SymbolFileSymtab : public lldb_private::SymbolFile {
+  /// LLVM RTTI support.
+  static char ID;
+
 public:
+  /// LLVM RTTI support.
+  /// \{
+  bool isA(const void *ClassID) const override {
+    return ClassID == &ID || SymbolFile::isA(ClassID);
+  }
+  static bool classof(const SymbolFile *obj) { return obj->isA(&ID); }
+  /// \}
+
   // Constructors and Destructors
   SymbolFileSymtab(lldb::ObjectFileSP objfile_sp);
 
@@ -98,4 +109,4 @@ private:
   DISALLOW_COPY_AND_ASSIGN(SymbolFileSymtab);
 };
 
-#endif // liblldb_SymbolFileSymtab_h_
+#endif // LLDB_SOURCE_PLUGINS_SYMBOLFILE_SYMTAB_SYMBOLFILESYMTAB_H

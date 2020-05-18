@@ -27,6 +27,7 @@
 #include "llvm/CodeGen/LiveIntervals.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
+#include "llvm/InitializePasses.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -77,9 +78,9 @@ protected:
         Register OutReg = MI.getOperand(0).getReg();
         Register InReg = MI.getOperand(1).getReg();
         DebugLoc DL = MI.getDebugLoc();
-        unsigned GPR3 = Is64Bit ? PPC::X3 : PPC::R3;
+        Register GPR3 = Is64Bit ? PPC::X3 : PPC::R3;
         unsigned Opc1, Opc2;
-        const unsigned OrigRegs[] = {OutReg, InReg, GPR3};
+        const Register OrigRegs[] = {OutReg, InReg, GPR3};
 
         switch (MI.getOpcode()) {
         default:

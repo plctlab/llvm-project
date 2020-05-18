@@ -8,9 +8,9 @@
 
 #include "IndexAction.h"
 #include "Headers.h"
-#include "Logger.h"
 #include "index/Relation.h"
 #include "index/SymbolOrigin.h"
+#include "support/Logger.h"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/Basic/SourceLocation.h"
@@ -160,6 +160,7 @@ public:
   bool BeginInvocation(CompilerInstance &CI) override {
     // We want all comments, not just the doxygen ones.
     CI.getLangOpts().CommentOpts.ParseAllComments = true;
+    CI.getLangOpts().RetainCommentsFromSystemHeaders = true;
     // Index the whole file even if there are warnings and -Werror is set.
     // Avoids some analyses too. Set in two places as we're late to the party.
     CI.getDiagnosticOpts().IgnoreWarnings = true;

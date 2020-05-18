@@ -33,7 +33,7 @@ RISCVSubtarget &RISCVSubtarget::initializeSubtargetDependencies(
     const Triple &TT, StringRef CPU, StringRef FS, StringRef ABIName) {
   // Determine default and user-specified characteristics
   bool Is64Bit = TT.isArch64Bit();
-  std::string CPUName = CPU;
+  std::string CPUName = std::string(CPU);
   if (CPUName.empty())
     CPUName = Is64Bit ? "generic-rv64" : "generic-rv32";
   ParseSubtargetFeatures(CPUName, FS);
@@ -50,8 +50,9 @@ RISCVSubtarget &RISCVSubtarget::initializeSubtargetDependencies(
 RISCVSubtarget::RISCVSubtarget(const Triple &TT, StringRef CPU, StringRef FS,
                                StringRef ABIName, const TargetMachine &TM)
     : RISCVGenSubtargetInfo(TT, CPU, FS),
+      UserReservedRegister(RISCV::NUM_TARGET_REGS),
       FrameLowering(initializeSubtargetDependencies(TT, CPU, FS, ABIName)),
-      InstrInfo(), RegInfo(getHwMode()), TLInfo(TM, *this) {
+      InstrInfo(*this), RegInfo(getHwMode()), TLInfo(TM, *this) {
   CallLoweringInfo.reset(new RISCVCallLowering(*getTargetLowering()));
   Legalizer.reset(new RISCVLegalizerInfo(*this));
 

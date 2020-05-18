@@ -25,7 +25,7 @@
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/MC/MCSubtargetInfo.h"
-#include "llvm/MC/MCTargetOptionsCommandFlags.inc"
+#include "llvm/MC/MCTargetOptionsCommandFlags.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Compression.h"
 #include "llvm/Support/FileUtilities.h"
@@ -40,6 +40,8 @@
 #include "llvm/Support/WithColor.h"
 
 using namespace llvm;
+
+static mc::RegisterMCTargetOptionsFlags MOF;
 
 static cl::opt<std::string>
 InputFilename(cl::Positional, cl::desc("<input file>"), cl::init("-"));
@@ -317,7 +319,7 @@ int main(int argc, char **argv) {
   cl::AddExtraVersionPrinter(TargetRegistry::printRegisteredTargetsForVersion);
 
   cl::ParseCommandLineOptions(argc, argv, "llvm machine code playground\n");
-  const MCTargetOptions MCOptions = InitMCTargetOptionsFromFlags();
+  const MCTargetOptions MCOptions = mc::InitMCTargetOptionsFromFlags();
   setDwarfDebugFlags(argc, argv);
 
   setDwarfDebugProducer();
@@ -351,7 +353,8 @@ int main(int argc, char **argv) {
   std::unique_ptr<MCRegisterInfo> MRI(TheTarget->createMCRegInfo(TripleName));
   assert(MRI && "Unable to create target register info!");
 
-  std::unique_ptr<MCAsmInfo> MAI(TheTarget->createMCAsmInfo(*MRI, TripleName));
+  std::unique_ptr<MCAsmInfo> MAI(
+      TheTarget->createMCAsmInfo(*MRI, TripleName, MCOptions));
   assert(MAI && "Unable to create target asm info!");
 
   MAI->setRelaxELFRelocations(RelaxELFRel);
@@ -398,7 +401,7 @@ int main(int argc, char **argv) {
   }
   for (const auto &Arg : DebugPrefixMap) {
     const auto &KV = StringRef(Arg).split('=');
-    Ctx.addDebugPrefixMapEntry(KV.first, KV.second);
+    Ctx.addDebugPrefixMapEntry(std::string(KV.first), std::string(KV.second));
   }
   if (!MainFileName.empty())
     Ctx.setMainFileName(MainFileName);
@@ -473,9 +476,6 @@ int main(int argc, char **argv) {
   } else {
     assert(FileType == OFT_ObjectFile && "Invalid file type!");
 
-    // Don't waste memory on names of temp labels.
-    Ctx.setUseNamesOnTempLabels(false);
-
     if (!Out->os().supportsSeeking()) {
       BOS = std::make_unique<buffer_ostream>(Out->os());
       OS = BOS.get();
@@ -517,8 +517,8 @@ int main(int argc, char **argv) {
     break;
   }
   if (disassemble)
-    Res = Disassembler::disassemble(*TheTarget, TripleName, *STI, *Str,
-                                    *Buffer, SrcMgr, Out->os());
+    Res = Disassembler::disassemble(*TheTarget, TripleName, *STI, *Str, *Buffer,
+                                    SrcMgr, Ctx, Out->os(), MCOptions);
 
   // Keep output if no errors.
   if (Res == 0) {

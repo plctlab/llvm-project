@@ -402,12 +402,17 @@ ELFFile<ELFT>::getSectionContentsAsArray(const Elf_Shdr *Sec) const {
                        " has an invalid sh_size (" + Twine(Size) +
                        ") which is not a multiple of its sh_entsize (" +
                        Twine(Sec->sh_entsize) + ")");
-  if ((std::numeric_limits<uintX_t>::max() - Offset < Size) ||
-      Offset + Size > Buf.size())
+  if (std::numeric_limits<uintX_t>::max() - Offset < Size)
     return createError("section " + getSecIndexForError(this, Sec) +
                        " has a sh_offset (0x" + Twine::utohexstr(Offset) +
-                       ") + sh_size (0x" + Twine(Size) +
+                       ") + sh_size (0x" + Twine::utohexstr(Size) +
                        ") that cannot be represented");
+  if (Offset + Size > Buf.size())
+    return createError("section " + getSecIndexForError(this, Sec) +
+                       " has a sh_offset (0x" + Twine::utohexstr(Offset) +
+                       ") + sh_size (0x" + Twine::utohexstr(Size) +
+                       ") that is greater than the file size (0x" +
+                       Twine::utohexstr(Buf.size()) + ")");
 
   if (Offset % alignof(T))
     // TODO: this error is untested.
@@ -568,7 +573,7 @@ Expected<const T *> ELFFile<ELFT>::getEntry(const Elf_Shdr *Section,
     return createError("section " + getSecIndexForError(this, Section) +
                        " has invalid sh_entsize: expected " + Twine(sizeof(T)) +
                        ", but got " + Twine(Section->sh_entsize));
-  size_t Pos = Section->sh_offset + Entry * sizeof(T);
+  uint64_t Pos = Section->sh_offset + (uint64_t)Entry * sizeof(T);
   if (Pos + sizeof(T) > Buf.size())
     return createError("unable to access section " +
                        getSecIndexForError(this, Section) + " data at 0x" +
@@ -641,11 +646,12 @@ ELFFile<ELFT>::getSHNDXTable(const Elf_Shdr &Section,
                                                      SymTable.sh_type) +
                        " section (expected SHT_SYMTAB/SHT_DYNSYM)");
 
-  if (V.size() != (SymTable.sh_size / sizeof(Elf_Sym)))
-    return createError("SHT_SYMTAB_SHNDX section has sh_size (" +
-                       Twine(SymTable.sh_size) +
-                       ") which is not equal to the number of symbols (" +
-                       Twine(V.size()) + ")");
+  uint64_t Syms = SymTable.sh_size / sizeof(Elf_Sym);
+  if (V.size() != Syms)
+    return createError("SHT_SYMTAB_SHNDX has " + Twine(V.size()) +
+                       " entries, but the symbol table associated has " +
+                       Twine(Syms));
+
   return V;
 }
 
@@ -664,7 +670,6 @@ ELFFile<ELFT>::getStringTableForSymtab(const Elf_Shdr &Sec,
                                        Elf_Shdr_Range Sections) const {
 
   if (Sec.sh_type != ELF::SHT_SYMTAB && Sec.sh_type != ELF::SHT_DYNSYM)
-    // TODO: this error is untested.
     return createError(
         "invalid sh_type for symbol table, expected SHT_SYMTAB or SHT_DYNSYM");
   auto SectionOrErr = object::getSection<ELFT>(Sections, Sec.sh_link);

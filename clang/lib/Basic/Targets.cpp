@@ -117,11 +117,19 @@ TargetInfo *AllocateTarget(const llvm::Triple &Triple,
     return new XCoreTargetInfo(Triple, Opts);
 
   case llvm::Triple::hexagon:
+    if (os == llvm::Triple::Linux &&
+        Triple.getEnvironment() == llvm::Triple::Musl)
+      return new LinuxTargetInfo<HexagonTargetInfo>(Triple, Opts);
     return new HexagonTargetInfo(Triple, Opts);
 
   case llvm::Triple::lanai:
     return new LanaiTargetInfo(Triple, Opts);
 
+  case llvm::Triple::aarch64_32:
+    if (Triple.isOSDarwin())
+      return new DarwinAArch64TargetInfo(Triple, Opts);
+
+    return nullptr;
   case llvm::Triple::aarch64:
     if (Triple.isOSDarwin())
       return new DarwinAArch64TargetInfo(Triple, Opts);
@@ -378,6 +386,8 @@ TargetInfo *AllocateTarget(const llvm::Triple &Triple,
     switch (os) {
     case llvm::Triple::FreeBSD:
       return new FreeBSDTargetInfo<RISCV64TargetInfo>(Triple, Opts);
+    case llvm::Triple::Fuchsia:
+      return new FuchsiaTargetInfo<RISCV64TargetInfo>(Triple, Opts);
     case llvm::Triple::Linux:
       return new LinuxTargetInfo<RISCV64TargetInfo>(Triple, Opts);
     default:
@@ -470,6 +480,8 @@ TargetInfo *AllocateTarget(const llvm::Triple &Triple,
       return new OpenBSDI386TargetInfo(Triple, Opts);
     case llvm::Triple::FreeBSD:
       return new FreeBSDTargetInfo<X86_32TargetInfo>(Triple, Opts);
+    case llvm::Triple::Fuchsia:
+      return new FuchsiaTargetInfo<X86_32TargetInfo>(Triple, Opts);
     case llvm::Triple::KFreeBSD:
       return new KFreeBSDTargetInfo<X86_32TargetInfo>(Triple, Opts);
     case llvm::Triple::Minix:

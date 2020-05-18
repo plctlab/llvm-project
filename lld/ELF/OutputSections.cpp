@@ -14,12 +14,13 @@
 #include "Target.h"
 #include "lld/Common/Memory.h"
 #include "lld/Common/Strings.h"
-#include "lld/Common/Threads.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/Support/Compression.h"
 #include "llvm/Support/MD5.h"
 #include "llvm/Support/MathExtras.h"
+#include "llvm/Support/Parallel.h"
 #include "llvm/Support/SHA1.h"
+#include <regex>
 
 using namespace llvm;
 using namespace llvm::dwarf;
@@ -88,7 +89,7 @@ static bool canMergeToProgbits(unsigned type) {
 // InputSection post finalizeInputSections(), then you must do the following:
 //
 // 1. Find or create an InputSectionDescription to hold InputSection.
-// 2. Add the InputSection to the InputSectionDesciption::sections.
+// 2. Add the InputSection to the InputSectionDescription::sections.
 // 3. Call commitSection(isec).
 void OutputSection::recordSection(InputSectionBase *isec) {
   partition = isec->partition;
@@ -113,8 +114,7 @@ void OutputSection::commitSection(InputSection *isec) {
     flags = isec->flags;
   } else {
     // Otherwise, check if new type or flags are compatible with existing ones.
-    unsigned mask = SHF_TLS | SHF_LINK_ORDER;
-    if ((flags & mask) != (isec->flags & mask))
+    if ((flags ^ isec->flags) & SHF_TLS)
       error("incompatible section flags for " + name + "\n>>> " + toString(isec) +
             ": 0x" + utohexstr(isec->flags) + "\n>>> output section " + name +
             ": 0x" + utohexstr(flags));
@@ -242,6 +242,25 @@ void OutputSection::sort(llvm::function_ref<int(InputSectionBase *s)> order) {
       sortByOrder(isd->sections, order);
 }
 
+static void nopInstrFill(uint8_t *buf, size_t size) {
+  if (size == 0)
+    return;
+  unsigned i = 0;
+  if (size == 0)
+    return;
+  std::vector<std::vector<uint8_t>> nopFiller = *target->nopInstrs;
+  unsigned num = size / nopFiller.back().size();
+  for (unsigned c = 0; c < num; ++c) {
+    memcpy(buf + i, nopFiller.back().data(), nopFiller.back().size());
+    i += nopFiller.back().size();
+  }
+  unsigned remaining = size - i;
+  if (!remaining)
+    return;
+  assert(nopFiller[remaining - 1].size() == remaining);
+  memcpy(buf + i, nopFiller[remaining - 1].data(), remaining);
+}
+
 // Fill [Buf, Buf + Size) with Filler.
 // This is used for linker script "=fillexp" command.
 static void fill(uint8_t *buf, size_t size,
@@ -271,7 +290,12 @@ template <class ELFT> void OutputSection::maybeCompress() {
   // Write section contents to a temporary buffer and compress it.
   std::vector<uint8_t> buf(size);
   writeTo<ELFT>(buf.data());
-  if (Error e = zlib::compress(toStringRef(buf), compressedData))
+  // We chose 1 as the default compression level because it is the fastest. If
+  // -O2 is given, we use level 6 to compress debug info more by ~15%. We found
+  // that level 7 to 9 doesn't make much difference (~1% more compression) while
+  // they take significant amount of time (~2x), so level 6 seems enough.
+  if (Error e = zlib::compress(toStringRef(buf), compressedData,
+                               config->optimize >= 2 ? 6 : 1))
     fatal("compress failed: " + llvm::toString(std::move(e)));
 
   // Update section headers.
@@ -296,7 +320,7 @@ template <class ELFT> void OutputSection::writeTo(uint8_t *buf) {
   if (type == SHT_NOBITS)
     return;
 
-  // If -compress-debug-section is specified and if this is a debug seciton,
+  // If -compress-debug-section is specified and if this is a debug section,
   // we've already compressed section contents. If that's the case,
   // just write it down.
   if (!compressedData.empty()) {
@@ -325,7 +349,11 @@ template <class ELFT> void OutputSection::writeTo(uint8_t *buf) {
         end = buf + size;
       else
         end = buf + sections[i + 1]->outSecOff;
-      fill(start, end - start, filler);
+      if (isec->nopFiller) {
+        assert(target->nopInstrs);
+        nopInstrFill(start, end - start);
+      } else
+        fill(start, end - start, filler);
     }
   });
 
@@ -351,8 +379,7 @@ static void finalizeShtGroup(OutputSection *os,
 }
 
 void OutputSection::finalize() {
-  std::vector<InputSection *> v = getInputSections(this);
-  InputSection *first = v.empty() ? nullptr : v[0];
+  InputSection *first = getFirstInputSection(this);
 
   if (flags & SHF_LINK_ORDER) {
     // We must preserve the link order dependency of sections with the
@@ -361,8 +388,9 @@ void OutputSection::finalize() {
     // all InputSections in the OutputSection have the same dependency.
     if (auto *ex = dyn_cast<ARMExidxSyntheticSection>(first))
       link = ex->getLinkOrderDep()->getParent()->sectionIndex;
-    else if (auto *d = first->getLinkOrderDep())
-      link = d->getParent()->sectionIndex;
+    else if (first->flags & SHF_LINK_ORDER)
+      if (auto *d = first->getLinkOrderDep())
+        link = d->getParent()->sectionIndex;
   }
 
   if (type == SHT_GROUP) {
@@ -384,18 +412,23 @@ void OutputSection::finalize() {
   flags |= SHF_INFO_LINK;
 }
 
-// Returns true if S matches /Filename.?\.o$/.
-static bool isCrtBeginEnd(StringRef s, StringRef filename) {
-  if (!s.endswith(".o"))
-    return false;
-  s = s.drop_back(2);
-  if (s.endswith(filename))
-    return true;
-  return !s.empty() && s.drop_back().endswith(filename);
+// Returns true if S is in one of the many forms the compiler driver may pass
+// crtbegin files.
+//
+// Gcc uses any of crtbegin[<empty>|S|T].o.
+// Clang uses Gcc's plus clang_rt.crtbegin[<empty>|S|T][-<arch>|<empty>].o.
+
+static bool isCrtbegin(StringRef s) {
+  static std::regex re(R"((clang_rt\.)?crtbegin[ST]?(-.*)?\.o)");
+  s = sys::path::filename(s);
+  return std::regex_match(s.begin(), s.end(), re);
 }
 
-static bool isCrtbegin(StringRef s) { return isCrtBeginEnd(s, "crtbegin"); }
-static bool isCrtend(StringRef s) { return isCrtBeginEnd(s, "crtend"); }
+static bool isCrtend(StringRef s) {
+  static std::regex re(R"((clang_rt\.)?crtend[ST]?(-.*)?\.o)");
+  s = sys::path::filename(s);
+  return std::regex_match(s.begin(), s.end(), re);
+}
 
 // .ctors and .dtors are sorted by this priority from highest to lowest.
 //
@@ -455,7 +488,15 @@ int getPriority(StringRef s) {
   return v;
 }
 
-std::vector<InputSection *> getInputSections(OutputSection *os) {
+InputSection *getFirstInputSection(const OutputSection *os) {
+  for (BaseCommand *base : os->sectionCommands)
+    if (auto *isd = dyn_cast<InputSectionDescription>(base))
+      if (!isd->sections.empty())
+        return isd->sections[0];
+  return nullptr;
+}
+
+std::vector<InputSection *> getInputSections(const OutputSection *os) {
   std::vector<InputSection *> ret;
   for (BaseCommand *base : os->sectionCommands)
     if (auto *isd = dyn_cast<InputSectionDescription>(base))

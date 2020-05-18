@@ -173,9 +173,11 @@ bool TypeMapTy::areTypesIsomorphic(Type *DstTy, Type *SrcTy) {
     if (DSTy->isLiteral() != SSTy->isLiteral() ||
         DSTy->isPacked() != SSTy->isPacked())
       return false;
-  } else if (auto *DSeqTy = dyn_cast<SequentialType>(DstTy)) {
-    if (DSeqTy->getNumElements() !=
-        cast<SequentialType>(SrcTy)->getNumElements())
+  } else if (auto *DArrTy = dyn_cast<ArrayType>(DstTy)) {
+    if (DArrTy->getNumElements() != cast<ArrayType>(SrcTy)->getNumElements())
+      return false;
+  } else if (auto *DVecTy = dyn_cast<VectorType>(DstTy)) {
+    if (DVecTy->getElementCount() != cast<VectorType>(SrcTy)->getElementCount())
       return false;
   }
 
@@ -303,7 +305,8 @@ Type *TypeMapTy::get(Type *Ty, SmallPtrSet<StructType *, 8> &Visited) {
   case Type::ArrayTyID:
     return *Entry = ArrayType::get(ElementTypes[0],
                                    cast<ArrayType>(Ty)->getNumElements());
-  case Type::VectorTyID:
+  case Type::FixedVectorTyID:
+  case Type::ScalableVectorTyID:
     return *Entry = VectorType::get(ElementTypes[0],
                                     cast<VectorType>(Ty)->getNumElements());
   case Type::PointerTyID:
@@ -628,8 +631,8 @@ GlobalVariable *IRLinker::copyGlobalVariableProto(const GlobalVariable *SGVar) {
                          SGVar->isConstant(), GlobalValue::ExternalLinkage,
                          /*init*/ nullptr, SGVar->getName(),
                          /*insertbefore*/ nullptr, SGVar->getThreadLocalMode(),
-                         SGVar->getType()->getAddressSpace());
-  NewDGV->setAlignment(SGVar->getAlignment());
+                         SGVar->getAddressSpace());
+  NewDGV->setAlignment(MaybeAlign(SGVar->getAlignment()));
   NewDGV->copyAttributesFrom(SGVar);
   return NewDGV;
 }
@@ -654,9 +657,9 @@ AttributeList IRLinker::mapAttributeTypes(LLVMContext &C, AttributeList Attrs) {
 Function *IRLinker::copyFunctionProto(const Function *SF) {
   // If there is no linkage to be performed or we are linking from the source,
   // bring SF over.
-  auto *F =
-      Function::Create(TypeMap.get(SF->getFunctionType()),
-                       GlobalValue::ExternalLinkage, SF->getName(), &DstM);
+  auto *F = Function::Create(TypeMap.get(SF->getFunctionType()),
+                             GlobalValue::ExternalLinkage,
+                             SF->getAddressSpace(), SF->getName(), &DstM);
   F->copyAttributesFrom(SF);
   F->setAttributes(mapAttributeTypes(F->getContext(), F->getAttributes()));
   return F;
@@ -671,11 +674,11 @@ IRLinker::copyGlobalIndirectSymbolProto(const GlobalIndirectSymbol *SGIS) {
   auto *Ty = TypeMap.get(SGIS->getValueType());
   GlobalIndirectSymbol *GIS;
   if (isa<GlobalAlias>(SGIS))
-    GIS = GlobalAlias::create(Ty, SGIS->getType()->getPointerAddressSpace(),
+    GIS = GlobalAlias::create(Ty, SGIS->getAddressSpace(),
                               GlobalValue::ExternalLinkage, SGIS->getName(),
                               &DstM);
   else
-    GIS = GlobalIFunc::create(Ty, SGIS->getType()->getPointerAddressSpace(),
+    GIS = GlobalIFunc::create(Ty, SGIS->getAddressSpace(),
                               GlobalValue::ExternalLinkage, SGIS->getName(),
                               nullptr, &DstM);
   GIS->copyAttributesFrom(SGIS);
@@ -695,14 +698,15 @@ GlobalValue *IRLinker::copyGlobalValueProto(const GlobalValue *SGV,
     else if (SGV->getValueType()->isFunctionTy())
       NewGV =
           Function::Create(cast<FunctionType>(TypeMap.get(SGV->getValueType())),
-                           GlobalValue::ExternalLinkage, SGV->getName(), &DstM);
+                           GlobalValue::ExternalLinkage, SGV->getAddressSpace(),
+                           SGV->getName(), &DstM);
     else
-      NewGV = new GlobalVariable(
-          DstM, TypeMap.get(SGV->getValueType()),
-          /*isConstant*/ false, GlobalValue::ExternalLinkage,
-          /*init*/ nullptr, SGV->getName(),
-          /*insertbefore*/ nullptr, SGV->getThreadLocalMode(),
-          SGV->getType()->getAddressSpace());
+      NewGV =
+          new GlobalVariable(DstM, TypeMap.get(SGV->getValueType()),
+                             /*isConstant*/ false, GlobalValue::ExternalLinkage,
+                             /*init*/ nullptr, SGV->getName(),
+                             /*insertbefore*/ nullptr,
+                             SGV->getThreadLocalMode(), SGV->getAddressSpace());
   }
 
   if (ForDefinition)
@@ -918,7 +922,7 @@ IRLinker::linkAppendingVarProto(GlobalVariable *DstGV,
   GlobalVariable *NG = new GlobalVariable(
       DstM, NewType, SrcGV->isConstant(), SrcGV->getLinkage(),
       /*init*/ nullptr, /*name*/ "", DstGV, SrcGV->getThreadLocalMode(),
-      SrcGV->getType()->getAddressSpace());
+      SrcGV->getAddressSpace());
 
   NG->copyAttributesFrom(SrcGV);
   forceRenaming(NG, SrcGV->getName());
@@ -1098,7 +1102,7 @@ Error IRLinker::linkGlobalValueBody(GlobalValue &Dst, GlobalValue &Src) {
 }
 
 void IRLinker::flushRAUWWorklist() {
-  for (const auto Elem : RAUWWorklist) {
+  for (const auto &Elem : RAUWWorklist) {
     GlobalValue *Old;
     Value *New;
     std::tie(Old, New) = Elem;
@@ -1276,11 +1280,17 @@ Error IRLinker::linkModuleFlagsMetadata() {
     }
 
     // Diagnose inconsistent merge behavior types.
-    if (SrcBehaviorValue != DstBehaviorValue)
-      return stringErr("linking module flags '" + ID->getString() +
-                       "': IDs have conflicting behaviors in '" +
-                       SrcM->getModuleIdentifier() + "' and '" +
-                       DstM.getModuleIdentifier() + "'");
+    if (SrcBehaviorValue != DstBehaviorValue) {
+      bool MaxAndWarn = (SrcBehaviorValue == Module::Max &&
+                         DstBehaviorValue == Module::Warning) ||
+                        (DstBehaviorValue == Module::Max &&
+                         SrcBehaviorValue == Module::Warning);
+      if (!MaxAndWarn)
+        return stringErr("linking module flags '" + ID->getString() +
+                         "': IDs have conflicting behaviors in '" +
+                         SrcM->getModuleIdentifier() + "' and '" +
+                         DstM.getModuleIdentifier() + "'");
+    }
 
     auto replaceDstValue = [&](MDNode *New) {
       Metadata *FlagOps[] = {DstOp->getOperand(0), ID, New};
@@ -1288,6 +1298,40 @@ Error IRLinker::linkModuleFlagsMetadata() {
       DstModFlags->setOperand(DstIndex, Flag);
       Flags[ID].first = Flag;
     };
+
+    // Emit a warning if the values differ and either source or destination
+    // request Warning behavior.
+    if ((DstBehaviorValue == Module::Warning ||
+         SrcBehaviorValue == Module::Warning) &&
+        SrcOp->getOperand(2) != DstOp->getOperand(2)) {
+      std::string Str;
+      raw_string_ostream(Str)
+          << "linking module flags '" << ID->getString()
+          << "': IDs have conflicting values ('" << *SrcOp->getOperand(2)
+          << "' from " << SrcM->getModuleIdentifier() << " with '"
+          << *DstOp->getOperand(2) << "' from " << DstM.getModuleIdentifier()
+          << ')';
+      emitWarning(Str);
+    }
+
+    // Choose the maximum if either source or destination request Max behavior.
+    if (DstBehaviorValue == Module::Max || SrcBehaviorValue == Module::Max) {
+      ConstantInt *DstValue =
+          mdconst::extract<ConstantInt>(DstOp->getOperand(2));
+      ConstantInt *SrcValue =
+          mdconst::extract<ConstantInt>(SrcOp->getOperand(2));
+
+      // The resulting flag should have a Max behavior, and contain the maximum
+      // value from between the source and destination values.
+      Metadata *FlagOps[] = {
+          (DstBehaviorValue != Module::Max ? SrcOp : DstOp)->getOperand(0), ID,
+          (SrcValue->getZExtValue() > DstValue->getZExtValue() ? SrcOp : DstOp)
+              ->getOperand(2)};
+      MDNode *Flag = MDNode::get(DstM.getContext(), FlagOps);
+      DstModFlags->setOperand(DstIndex, Flag);
+      Flags[ID].first = Flag;
+      continue;
+    }
 
     // Perform the merge for standard behavior types.
     switch (SrcBehaviorValue) {
@@ -1304,26 +1348,9 @@ Error IRLinker::linkModuleFlagsMetadata() {
       continue;
     }
     case Module::Warning: {
-      // Emit a warning if the values differ.
-      if (SrcOp->getOperand(2) != DstOp->getOperand(2)) {
-        std::string str;
-        raw_string_ostream(str)
-            << "linking module flags '" << ID->getString()
-            << "': IDs have conflicting values ('" << *SrcOp->getOperand(2)
-            << "' from " << SrcM->getModuleIdentifier() << " with '"
-            << *DstOp->getOperand(2) << "' from " << DstM.getModuleIdentifier()
-            << ')';
-        emitWarning(str);
-      }
-      continue;
+      break;
     }
     case Module::Max: {
-      ConstantInt *DstValue =
-          mdconst::extract<ConstantInt>(DstOp->getOperand(2));
-      ConstantInt *SrcValue =
-          mdconst::extract<ConstantInt>(SrcOp->getOperand(2));
-      if (SrcValue->getZExtValue() > DstValue->getZExtValue())
-        overrideDstValue();
       break;
     }
     case Module::Append: {
@@ -1349,6 +1376,7 @@ Error IRLinker::linkModuleFlagsMetadata() {
       break;
     }
     }
+
   }
 
   // Check all of the requirements.

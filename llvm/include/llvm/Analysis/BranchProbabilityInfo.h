@@ -34,6 +34,7 @@ namespace llvm {
 class Function;
 class LoopInfo;
 class raw_ostream;
+class PostDominatorTree;
 class TargetLibraryInfo;
 class Value;
 
@@ -54,8 +55,9 @@ public:
   BranchProbabilityInfo() = default;
 
   BranchProbabilityInfo(const Function &F, const LoopInfo &LI,
-                        const TargetLibraryInfo *TLI = nullptr) {
-    calculate(F, LI, TLI);
+                        const TargetLibraryInfo *TLI = nullptr,
+                        PostDominatorTree *PDT = nullptr) {
+    calculate(F, LI, TLI, PDT);
   }
 
   BranchProbabilityInfo(BranchProbabilityInfo &&Arg)
@@ -73,6 +75,9 @@ public:
     PostDominatedByUnreachable = std::move(RHS.PostDominatedByUnreachable);
     return *this;
   }
+
+  bool invalidate(Function &, const PreservedAnalyses &PA,
+                  FunctionAnalysisManager::Invalidator &);
 
   void releaseMemory();
 
@@ -94,7 +99,7 @@ public:
                                        const BasicBlock *Dst) const;
 
   BranchProbability getEdgeProbability(const BasicBlock *Src,
-                                       succ_const_iterator Dst) const;
+                                       const_succ_iterator Dst) const;
 
   /// Test if an edge is hot relative to other out-edges of the Src.
   ///
@@ -131,7 +136,7 @@ public:
   }
 
   void calculate(const Function &F, const LoopInfo &LI,
-                 const TargetLibraryInfo *TLI = nullptr);
+                 const TargetLibraryInfo *TLI, PostDominatorTree *PDT);
 
   /// Forget analysis results for the given basic block.
   void eraseBlock(const BasicBlock *BB);
@@ -179,7 +184,7 @@ private:
   DenseMap<Edge, BranchProbability> Probs;
 
   /// Track the last function we run over for printing.
-  const Function *LastF;
+  const Function *LastF = nullptr;
 
   /// Track the set of blocks directly succeeded by a returning block.
   SmallPtrSet<const BasicBlock *, 16> PostDominatedByUnreachable;
@@ -187,8 +192,10 @@ private:
   /// Track the set of blocks that always lead to a cold call.
   SmallPtrSet<const BasicBlock *, 16> PostDominatedByColdCall;
 
-  void updatePostDominatedByUnreachable(const BasicBlock *BB);
-  void updatePostDominatedByColdCall(const BasicBlock *BB);
+  void computePostDominatedByUnreachable(const Function &F,
+                                         PostDominatorTree *PDT);
+  void computePostDominatedByColdCall(const Function &F,
+                                      PostDominatorTree *PDT);
   bool calcUnreachableHeuristics(const BasicBlock *BB);
   bool calcMetadataWeights(const BasicBlock *BB);
   bool calcColdCallHeuristics(const BasicBlock *BB);
@@ -233,10 +240,7 @@ class BranchProbabilityInfoWrapperPass : public FunctionPass {
 public:
   static char ID;
 
-  BranchProbabilityInfoWrapperPass() : FunctionPass(ID) {
-    initializeBranchProbabilityInfoWrapperPassPass(
-        *PassRegistry::getPassRegistry());
-  }
+  BranchProbabilityInfoWrapperPass();
 
   BranchProbabilityInfo &getBPI() { return BPI; }
   const BranchProbabilityInfo &getBPI() const { return BPI; }

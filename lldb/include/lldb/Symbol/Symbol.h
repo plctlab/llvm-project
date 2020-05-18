@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef liblldb_Symbol_h_
-#define liblldb_Symbol_h_
+#ifndef LLDB_SYMBOL_SYMBOL_H
+#define LLDB_SYMBOL_SYMBOL_H
 
 #include "lldb/Core/AddressRange.h"
 #include "lldb/Core/Mangled.h"
@@ -43,7 +43,9 @@ public:
 
   bool Compare(ConstString name, lldb::SymbolType type) const;
 
-  void Dump(Stream *s, Target *target, uint32_t index) const;
+  void Dump(Stream *s, Target *target, uint32_t index,
+            Mangled::NamePreference name_preference =
+                Mangled::ePreferDemangled) const;
 
   bool ValueIsAddress() const;
 
@@ -265,4 +267,4 @@ protected:
 
 } // namespace lldb_private
 
-#endif // liblldb_Symbol_h_
+#endif // LLDB_SYMBOL_SYMBOL_H

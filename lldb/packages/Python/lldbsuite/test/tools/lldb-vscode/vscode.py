@@ -111,6 +111,7 @@ class DebugCommunication(object):
         self.exit_status = None
         self.initialize_body = None
         self.thread_stop_reasons = {}
+        self.breakpoint_events = []
         self.sequence = 1
         self.threads = None
         self.recv_thread.start()
@@ -160,7 +161,7 @@ class DebugCommunication(object):
            indicate a new packet is available. Returns True if the caller
            should keep calling this function for more packets.
         '''
-        # If EOF, notify the read thread by enqueing a None.
+        # If EOF, notify the read thread by enqueuing a None.
         if not packet:
             self.enqueue_recv_packet(None)
             return False
@@ -186,7 +187,7 @@ class DebugCommunication(object):
                     self.output[category] = output
                 self.output_condition.notify()
                 self.output_condition.release()
-                # no need to add 'output' packets to our packets list
+                # no need to add 'output' event packets to our packets list
                 return keepGoing
             elif event == 'process':
                 # When a new process is attached or launched, remember the
@@ -200,6 +201,13 @@ class DebugCommunication(object):
                 self._process_stopped()
                 tid = body['threadId']
                 self.thread_stop_reasons[tid] = body
+            elif event == 'breakpoint':
+                # Breakpoint events come in when a breakpoint has locations
+                # added or removed. Keep track of them so we can look for them
+                # in tests.
+                self.breakpoint_events.append(packet)
+                # no need to add 'breakpoint' event packets to our packets list
+                return keepGoing
         elif packet_type == 'response':
             if packet['command'] == 'disconnect':
                 keepGoing = False
@@ -348,6 +356,10 @@ class DebugCommunication(object):
         print('invalid response')
         return None
 
+    def get_completions(self, text):
+        response = self.request_completions(text)
+        return response['body']['targets']
+
     def get_scope_variables(self, scope_name, frameIndex=0, threadId=None):
         stackFrame = self.get_stackFrame(frameIndex=frameIndex,
                                          threadId=threadId)
@@ -438,7 +450,7 @@ class DebugCommunication(object):
     def request_attach(self, program=None, pid=None, waitFor=None, trace=None,
                        initCommands=None, preRunCommands=None,
                        stopCommands=None, exitCommands=None,
-                       attachCommands=None):
+                       attachCommands=None, coreFile=None):
         args_dict = {}
         if pid is not None:
             args_dict['pid'] = pid
@@ -459,6 +471,8 @@ class DebugCommunication(object):
             args_dict['exitCommands'] = exitCommands
         if attachCommands:
             args_dict['attachCommands'] = attachCommands
+        if coreFile:
+            args_dict['coreFile'] = coreFile
         command_dict = {
             'command': 'attach',
             'type': 'request',
@@ -558,7 +572,7 @@ class DebugCommunication(object):
                        disableSTDIO=False, shellExpandArguments=False,
                        trace=False, initCommands=None, preRunCommands=None,
                        stopCommands=None, exitCommands=None, sourcePath=None,
-                       debuggerRoot=None, launchCommands=None):
+                       debuggerRoot=None, launchCommands=None, sourceMap=None):
         args_dict = {
             'program': program
         }
@@ -593,6 +607,8 @@ class DebugCommunication(object):
             args_dict['debuggerRoot'] = debuggerRoot
         if launchCommands:
             args_dict['launchCommands'] = launchCommands
+        if sourceMap:
+            args_dict['sourceMap'] = sourceMap
         command_dict = {
             'command': 'launch',
             'type': 'request',
@@ -715,6 +731,18 @@ class DebugCommunication(object):
         }
         return self.send_recv(command_dict)
 
+    def request_completions(self, text):
+        args_dict = {
+            'text': text,
+            'column': len(text)
+        }
+        command_dict = {
+            'command': 'completions',
+            'type': 'request',
+            'arguments': args_dict
+        }
+        return self.send_recv(command_dict)
+
     def request_stackTrace(self, threadId=None, startFrame=None, levels=None,
                            dump=False):
         if threadId is None:
@@ -764,7 +792,7 @@ class DebugCommunication(object):
             self.threads = body['threads']
             for thread in self.threads:
                 # Copy the thread dictionary so we can add key/value pairs to
-                # it without affecfting the original info from the "threads"
+                # it without affecting the original info from the "threads"
                 # command.
                 tid = thread['id']
                 if tid in self.thread_stop_reasons:
@@ -823,13 +851,17 @@ class DebugCommunication(object):
 
 
 class DebugAdaptor(DebugCommunication):
-    def __init__(self, executable=None, port=None, init_commands=[]):
+    def __init__(self, executable=None, port=None, init_commands=[], log_file=None):
         self.process = None
         if executable is not None:
+            adaptor_env = os.environ.copy()
+            if log_file:
+                adaptor_env['LLDBVSCODE_LOG'] = log_file
             self.process = subprocess.Popen([executable],
                                             stdin=subprocess.PIPE,
                                             stdout=subprocess.PIPE,
-                                            stderr=subprocess.PIPE)
+                                            stderr=subprocess.PIPE,
+                                            env=adaptor_env)
             DebugCommunication.__init__(self, self.process.stdout,
                                         self.process.stdin, init_commands)
         elif port is not None:
@@ -990,7 +1022,7 @@ def main():
         dest='attach',
         default=False,
         help=('Specify this option to attach to a process by name. The '
-              'process name is the basanme of the executable specified with '
+              'process name is the basename of the executable specified with '
               'the --program option.'))
 
     parser.add_option(

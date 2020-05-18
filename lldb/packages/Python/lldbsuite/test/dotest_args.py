@@ -1,4 +1,3 @@
-from __future__ import print_function
 from __future__ import absolute_import
 
 # System modules
@@ -76,14 +75,20 @@ def create_parser():
         '--category',
         metavar='category',
         action='append',
-        dest='categoriesList',
+        dest='categories_list',
         help=textwrap.dedent('''Specify categories of test cases of interest. Can be specified more than once.'''))
     group.add_argument(
         '--skip-category',
         metavar='category',
         action='append',
-        dest='skipCategories',
+        dest='skip_categories',
         help=textwrap.dedent('''Specify categories of test cases to skip. Takes precedence over -G. Can be specified more than once.'''))
+    group.add_argument(
+        '--xfail-category',
+        metavar='category',
+        action='append',
+        dest='xfail_categories',
+        help=textwrap.dedent('''Specify categories of test cases that are expected to fail. Can be specified more than once.'''))
 
     # Configuration options
     group = parser.add_argument_group('Configuration options')
@@ -110,6 +115,14 @@ def create_parser():
         dest='dwarf_version',
         type=int,
         help='Override the DWARF version.')
+    group.add_argument(
+        '--setting',
+        metavar='SETTING=VALUE',
+        dest='settings',
+        type=str,
+        nargs=1,
+        action='append',
+        help='Run "setting set SETTING VALUE" before executing any test.')
     group.add_argument(
         '-s',
         metavar='name',
@@ -150,10 +163,27 @@ def create_parser():
         default='lldb-test-build.noindex',
         help='The root build directory for the tests. It will be removed before running.')
     group.add_argument(
-        '--module-cache-dir',
-        dest='module_cache_dir',
+        '--lldb-module-cache-dir',
+        dest='lldb_module_cache_dir',
         metavar='The clang module cache directory used by LLDB',
-        help='The clang module cache directory used by LLDB. This is not the one used by the makefiles. Defaults to <test build directory>/module-cache-lldb.')
+        help='The clang module cache directory used by LLDB. Defaults to <test build directory>/module-cache-lldb.')
+    group.add_argument(
+        '--clang-module-cache-dir',
+        dest='clang_module_cache_dir',
+        metavar='The clang module cache directory used by Clang',
+        help='The clang module cache directory used in the Make files by Clang while building tests. Defaults to <test build directory>/module-cache-clang.')
+    group.add_argument(
+        '--lldb-libs-dir',
+        dest='lldb_libs_dir',
+        metavar='path',
+        help='The path to LLDB library directory (containing liblldb)')
+    group.add_argument(
+        '--enable-plugin',
+        dest='enabled_plugins',
+        action='append',
+        type=str,
+        metavar='A plugin whose tests will be enabled',
+        help='A plugin whose tests will be enabled. The only currently supported plugin is intel-pt.')
 
     # Configuration options
     group = parser.add_argument_group('Remote platform options')
@@ -172,6 +202,17 @@ def create_parser():
         dest='lldb_platform_working_dir',
         metavar='platform-working-dir',
         help='The directory to use on the remote platform.')
+
+    # Reproducer options
+    group = parser.add_argument_group('Reproducer options')
+    group.add_argument(
+        '--capture-path',
+        metavar='reproducer path',
+        help='The reproducer capture path')
+    group.add_argument(
+        '--replay-path',
+        metavar='reproducer path',
+        help='The reproducer replay path')
 
     # Test-suite behaviour
     group = parser.add_argument_group('Runtime behaviour options')

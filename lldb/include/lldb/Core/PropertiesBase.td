@@ -18,11 +18,13 @@ class Global {
 class DefaultTrue {
   int DefaultUnsignedValue = 1;
   bit HasDefaultUnsignedValue = 1;
+  bit HasDefaultBooleanValue = 1;
 }
 
 class DefaultFalse {
   int DefaultUnsignedValue = 0;
   bit HasDefaultUnsignedValue = 1;
+  bit HasDefaultBooleanValue = 1;
 }
 
 // Gives the property a default string value.
@@ -46,4 +48,10 @@ class DefaultUnsignedValue<int value> {
 // Gives the property enum values.
 class EnumValues<string enum> {
   string EnumValues = enum;
+}
+
+// Determines the element type for arrays and dictionaries.
+class ElementType<string value> {
+  string ElementType = value;
+  bit HasElementType = 1;
 }
