@@ -16,7 +16,11 @@
 namespace llvm {
 
 bool DWARFYAML::Data::isEmpty() const {
-  return 0 == DebugStrings.size() + AbbrevDecls.size();
+  return 0 == DebugStrings.size() + AbbrevDecls.size() + ARanges.size() +
+                  DebugRanges.size() + PubNames.Entries.size() +
+                  PubTypes.Entries.size() + GNUPubNames.Entries.size() +
+                  GNUPubTypes.Entries.size() + CompileUnits.size() +
+                  DebugLines.size();
 }
 
 namespace yaml {
@@ -28,8 +32,8 @@ void MappingTraits<DWARFYAML::Data>::mapping(IO &IO, DWARFYAML::Data &DWARF) {
   IO.mapOptional("debug_abbrev", DWARF.AbbrevDecls);
   if (!DWARF.ARanges.empty() || !IO.outputting())
     IO.mapOptional("debug_aranges", DWARF.ARanges);
-  if (!DWARF.Ranges.empty() || !IO.outputting())
-    IO.mapOptional("debug_ranges", DWARF.Ranges);
+  if (!DWARF.DebugRanges.empty() || !IO.outputting())
+    IO.mapOptional("debug_ranges", DWARF.DebugRanges);
   if (!DWARF.PubNames.Entries.empty() || !IO.outputting())
     IO.mapOptional("debug_pubnames", DWARF.PubNames);
   if (!DWARF.PubTypes.Entries.empty() || !IO.outputting())
@@ -82,10 +86,10 @@ void MappingTraits<DWARFYAML::RangeEntry>::mapping(
 }
 
 void MappingTraits<DWARFYAML::Ranges>::mapping(IO &IO,
-                                               DWARFYAML::Ranges &Ranges) {
-  IO.mapRequired("Offset", Ranges.Offset);
-  IO.mapRequired("AddrSize", Ranges.AddrSize);
-  IO.mapRequired("Entries", Ranges.Entries);
+                                               DWARFYAML::Ranges &DebugRanges) {
+  IO.mapRequired("Offset", DebugRanges.Offset);
+  IO.mapRequired("AddrSize", DebugRanges.AddrSize);
+  IO.mapRequired("Entries", DebugRanges.Entries);
 }
 
 void MappingTraits<DWARFYAML::PubEntry>::mapping(IO &IO,
