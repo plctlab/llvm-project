@@ -4444,6 +4444,9 @@ static Value *EmitTargetArchBuiltinExpr(CodeGenFunction *CGF,
   case llvm::Triple::ppc64:
   case llvm::Triple::ppc64le:
     return CGF->EmitPPCBuiltinExpr(BuiltinID, E);
+  case llvm::Triple::riscv32:
+  case llvm::Triple::riscv64:
+    return CGF->EmitRISCVBuiltinExpr(BuiltinID, E);
   case llvm::Triple::r600:
   case llvm::Triple::amdgcn:
     return CGF->EmitAMDGPUBuiltinExpr(BuiltinID, E);
@@ -14486,6 +14489,17 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
       return Builder.CreateFence(AO, SSID);
     }
     LLVM_FALLTHROUGH;
+  }
+  default:
+    return nullptr;
+  }
+}
+
+Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID, const CallExpr *E) {
+  switch (BuiltinID) {
+  case RISCV::BI__builtin_riscv_vsetvl: {
+    Value *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl);
+    return Builder.CreateCall(F);
   }
   default:
     return nullptr;
