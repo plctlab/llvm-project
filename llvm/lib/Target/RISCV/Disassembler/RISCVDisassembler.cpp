@@ -296,8 +296,7 @@ static DecodeStatus decodeRVCInstrRdRs2(MCInst &Inst, unsigned Insn,
 static DecodeStatus decodeRVCInstrRdRs1Rs2(MCInst &Inst, unsigned Insn,
                                            uint64_t Address,
                                            const void *Decoder);
-
-#include "RISCVGenDisassemblerTables.inc"
+#include "RISCVGenDisassemblerTables.inc"                      
 
 static DecodeStatus decodeRVCInstrSImm(MCInst &Inst, unsigned Insn,
                                        uint64_t Address, const void *Decoder) {

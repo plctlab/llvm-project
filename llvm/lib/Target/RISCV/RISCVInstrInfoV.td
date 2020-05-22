@@ -81,7 +81,12 @@ def VMR: RegisterOperand<VRV0> {
   let ParserMatchClass = VRMaskAsmOperand;
   let PrintMethod = "printVMR";
   let EncoderMethod = "getVMR";
-  let DecoderMethod = "decodeVMR";
+  // let DecoderMethod = "decodeVMR";
+}
+
+def Zero : Operand<XLenVT>, ImmLeaf<XLenVT, [{return Imm == 0;}]> {
+  let ParserMatchClass = ImmZeroAsmOperand;
+  let PrintMethod = "printZero";
 }
 
 //===----------------------------------------------------------------------===//
@@ -92,13 +97,13 @@ let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 multiclass VLoad_UnitStride<bits<3> nf, bits<3> mop,
                             bits<3> width, string opcodestr> {
   def _m  : RVInstVLoad<nf, mop, width, RVV_Masked, OPC_LOAD_FP,
-                  (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5, VMR:$vm),
-                  opcodestr, "$vd, ${imm5}(${rs1}), $vm"> {
+                  (outs VR:$vd), (ins GPR:$rs1, Zero:$zero, VMR:$vm),
+                  opcodestr, "$vd, ${zero}(${rs1}), $vm"> {
     let Inst{24-20} = 0b00000;
   }
   def _um : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
-                  (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5),
-                  opcodestr, "$vd, ${imm5}(${rs1})"> {
+                  (outs VR:$vd), (ins GPR:$rs1, Zero:$zero),
+                  opcodestr, "$vd, ${zero}(${rs1})"> {
     let Inst{24-20} = 0b00000;
   }
 }
@@ -107,13 +112,13 @@ let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 multiclass VLoad_UnitStrideFF<bits<3> nf, bits<3> mop,
                               bits<3> width, string opcodestr> {
   def _m  : RVInstVLoad<nf, mop, width, RVV_Masked, OPC_LOAD_FP,
-                    (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5, VMR:$vm),
-                    opcodestr, "$vd, ${imm5}(${rs1}), $vm"> {
+                    (outs VR:$vd), (ins GPR:$rs1, Zero:$zero, VMR:$vm),
+                    opcodestr, "$vd, ${zero}(${rs1}), $vm"> {
     let Inst{24-20} = 0b10000;
   }
   def _um : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
-                    (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5),
-                    opcodestr, "$vd, ${imm5}(${rs1})"> {
+                    (outs VR:$vd), (ins GPR:$rs1, Zero:$zero),
+                    opcodestr, "$vd, ${zero}(${rs1})"> {
     let Inst{24-20} = 0b10000;
   }
 }
@@ -122,13 +127,13 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 multiclass VStore_UnitStride<bits<3> nf, bits<3> mop,
                              bits<3> width, string opcodestr> {
   def _m  : RVInstVStore<nf, mop, width, RVV_Masked, OPC_STORE_FP,
-                     (outs), (ins VR:$vs3, GPR:$rs1, VLR:$vl, simm5:$imm5, VMR:$vm),
-                     opcodestr, "$vs3, ${imm5}(${rs1}), $vm"> {
+                     (outs), (ins VR:$vs3, GPR:$rs1, Zero:$zero, VMR:$vm),
+                     opcodestr, "$vs3, ${zero}(${rs1}), $vm"> {
     let Inst{24-20} = 0b00000;
   }
   def _um : RVInstVStore<nf, mop, width, RVV_Unmasked, OPC_STORE_FP,
-                     (outs), (ins VR:$vs3, GPR:$rs1, VLR:$vl, simm5:$imm5),
-                     opcodestr, "$vs3, ${imm5}(${rs1})"> {
+                     (outs), (ins VR:$vs3, GPR:$rs1, Zero:$zero),
+                     opcodestr, "$vs3, ${zero}(${rs1})"> {
     let Inst{24-20} = 0b00000;
   }
 }
@@ -137,14 +142,14 @@ let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 multiclass VLoad_Strided<bits<3> nf, bits<3> mop,
                          bits<3> width, string opcodestr> {
   def _m  : RVInstVLoad<nf, mop, width, RVV_Masked, OPC_LOAD_FP,
-                  (outs VR:$vd), (ins GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5, VMR:$vm),
-                  opcodestr, "$vd, ${imm5}(${rs1}), $rs2, $vm"> {
+                  (outs VR:$vd), (ins GPR:$rs1, GPR:$rs2, Zero:$zero, VMR:$vm),
+                  opcodestr, "$vd, ${zero}(${rs1}), $rs2, $vm"> {
     bits<5> rs2;
     let Inst{24-20} = rs2;
   }
   def _um : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
-                  (outs VR:$vd), (ins GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5),
-                  opcodestr, "$vd, ${imm5}(${rs1}), $rs2"> {
+                  (outs VR:$vd), (ins GPR:$rs1, GPR:$rs2, Zero:$zero),
+                  opcodestr, "$vd, ${zero}(${rs1}), $rs2"> {
     bits<5> rs2;
     let Inst{24-20} = rs2;
   }
@@ -154,14 +159,14 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 multiclass VStore_Strided<bits<3> nf, bits<3> mop,
                           bits<3> width, string opcodestr> {
   def _m  : RVInstVStore<nf, mop, width, RVV_Masked, OPC_STORE_FP,
-                   (outs), (ins VR:$vs3, GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5, VMR:$vm),
-                   opcodestr, "$vs3, ${imm5}(${rs1}), $rs2, $vm"> {
+                   (outs), (ins VR:$vs3, GPR:$rs1, GPR:$rs2, Zero:$zero, VMR:$vm),
+                   opcodestr, "$vs3, ${zero}(${rs1}), $rs2, $vm"> {
     bits<5> rs2;
     let Inst{24-20} = rs2;
   }
   def _um : RVInstVStore<nf, mop, width, RVV_Unmasked, OPC_STORE_FP,
-                   (outs), (ins VR:$vs3, GPR:$rs1, GPR:$rs2, VLR:$vl, simm5:$imm5),
-                   opcodestr, "$vs3, ${imm5}(${rs1}), $rs2"> {
+                   (outs), (ins VR:$vs3, GPR:$rs1, GPR:$rs2, Zero:$zero),
+                   opcodestr, "$vs3, ${zero}(${rs1}), $rs2"> {
     bits<5> rs2;
     let Inst{24-20} = rs2;
   }
@@ -171,14 +176,14 @@ let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 multiclass VLoad_Indexed<bits<3> nf, bits<3> mop,
                          bits<3> width, string opcodestr> {
   def _m  : RVInstVLoad<nf, mop, width, RVV_Masked, OPC_LOAD_FP,
-                  (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5, VMR:$vm),
-                  opcodestr, "$vd, ${imm5}(${rs1}), $vs2, $vm"> {
+                  (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, Zero:$zero, VMR:$vm),
+                  opcodestr, "$vd, ${zero}(${rs1}), $vs2, $vm"> {
     bits<5> vs2;
     let Inst{24-20} = vs2;
   }
   def _um : RVInstVLoad<nf, mop, width, RVV_Unmasked, OPC_LOAD_FP,
-                  (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5),
-                  opcodestr, "$vd, ${imm5}(${rs1}), $vs2"> {
+                  (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, Zero:$zero),
+                  opcodestr, "$vd, ${zero}(${rs1}), $vs2"> {
     bits<5> vs2;
     let Inst{24-20} = vs2;
   }
@@ -188,14 +193,14 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 multiclass VStore_Indexed<bits<3> nf, bits<3> mop,
                           bits<3> width, string opcodestr> {
   def _m  : RVInstVStore<nf, mop, width, RVV_Masked, OPC_STORE_FP,
-                   (outs), (ins VR:$vs3, GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5, VMR:$vm),
-                   opcodestr, "$vs3, ${imm5}(${rs1}), $vs2, $vm"> {
+                   (outs), (ins VR:$vs3, GPR:$rs1, VR:$vs2, Zero:$zero, VMR:$vm),
+                   opcodestr, "$vs3, ${zero}(${rs1}), $vs2, $vm"> {
     bits<5> vs2;
     let Inst{24-20} = vs2;
   }
   def _um : RVInstVStore<nf, mop, width, RVV_Unmasked, OPC_STORE_FP,
-                   (outs), (ins VR:$vs3, GPR:$rs1, VR:$vs2, VLR:$vl, simm5:$imm5),
-                   opcodestr, "$vs3, ${imm5}(${rs1}), $vs2"> {
+                   (outs), (ins VR:$vs3, GPR:$rs1, VR:$vs2, Zero:$zero),
+                   opcodestr, "$vs3, ${zero}(${rs1}), $vs2"> {
     bits<5> vs2;
     let Inst{24-20} = vs2;
   }
@@ -204,16 +209,16 @@ multiclass VStore_Indexed<bits<3> nf, bits<3> mop,
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 class VLoad_WholeReg<bits<3> nf, string opcodestr>
     : RVInstVLoad<nf, 0b000, 0b111, RVV_Unmasked, OPC_LOAD_FP,
-                  (outs VR:$vd), (ins GPR:$rs1, VLR:$vl, simm5:$imm5),
-                  opcodestr, "$vd, ${imm5}(${rs1})"> {
+                  (outs VR:$vd), (ins GPR:$rs1, Zero:$zero),
+                  opcodestr, "$vd, ${zero}(${rs1})"> {
   let Inst{24-20} = 0b01000;
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 class VStore_WholeReg<bits<3> nf, string opcodestr>
     : RVInstVStore<nf, 0b000, 0b111, RVV_Unmasked, OPC_STORE_FP,
-                   (outs), (ins VR:$vs3, GPR:$rs1, VLR:$vl, simm5:$imm5),
-                   opcodestr, "$vs3, ${imm5}(${rs1})"> {
+                   (outs), (ins VR:$vs3, GPR:$rs1, Zero:$zero),
+                   opcodestr, "$vs3, ${zero}(${rs1})"> {
   let Inst{24-20} = 0b01000;
 }
 
@@ -221,30 +226,30 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_AMO_W<bits<5> amoop, string opcodestr> {
   def _wd_m  : RVInstVAMO<amoop, 0b1, 0b110, RVV_Masked, OPC_AMO,
                (outs VR:$vd_wd),
-               (ins GPR:$rs1, VR:$vs2, VR:$vd, VLR:$vl, simm5:$imm5, VMR:$vm),
-               opcodestr, "$vd_wd, ${imm5}(${rs1}), $vs2, $vd, $vm"> {
+               (ins GPR:$rs1, VR:$vs2, VR:$vd, Zero:$zero, VMR:$vm),
+               opcodestr, "$vd_wd, ${zero}(${rs1}), $vs2, $vd, $vm"> {
     let Constraints = "$vd = $vd_wd";
     bits<5> vd;
     let Inst{11-7}  = vd;
   }
   def _wd_um : RVInstVAMO<amoop, 0b1, 0b110, RVV_Unmasked, OPC_AMO,
                (outs VR:$vd_wd),
-               (ins GPR:$rs1, VR:$vs2, VR:$vd, VLR:$vl, simm5:$imm5),
-               opcodestr, "$vd_wd, ${imm5}(${rs1}), $vs2, $vd"> {
+               (ins GPR:$rs1, VR:$vs2, VR:$vd, Zero:$zero),
+               opcodestr, "$vd_wd, ${zero}(${rs1}), $vs2, $vd"> {
     let Constraints = "$vd = $vd_wd";
     bits<5> vd;
     let Inst{11-7}  = vd;
   }
   def _m  : RVInstVAMO<amoop, 0b0, 0b110, RVV_Masked, OPC_AMO,
                (outs),
-               (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl, simm5:$imm5, VMR:$vm),
-               opcodestr, "x0, ${imm5}(${rs1}), $vs2, $vs3, $vm"> {
+               (ins GPR:$rs1, VR:$vs2, VR:$vs3, Zero:$zero, VMR:$vm),
+               opcodestr, "x0, ${zero}(${rs1}), $vs2, $vs3, $vm"> {
     bits<5> vs3;
     let Inst{11-7}  = vs3;
   }
   def _um : RVInstVAMO<amoop, 0b0, 0b110, RVV_Unmasked, OPC_AMO,
-               (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl, simm5:$imm5),
-               opcodestr, "x0, ${imm5}(${rs1}), $vs2, $vs3"> {
+               (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, Zero:$zero),
+               opcodestr, "x0, ${zero}(${rs1}), $vs2, $vs3"> {
     bits<5> vs3;
     let Inst{11-7}  = vs3;
   }
@@ -254,30 +259,30 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_AMO_E<bits<5> amoop, string opcodestr> {
   def _wd_m  : RVInstVAMO<amoop, 0b1, 0b111, RVV_Masked, OPC_AMO,
                (outs VR:$vd_wd),
-               (ins GPR:$rs1, VR:$vs2, VR:$vd, VLR:$vl, simm5:$imm5, VMR:$vm),
-               opcodestr, "$vd_wd, ${imm5}(${rs1}), $vs2, $vd, $vm"> {
+               (ins GPR:$rs1, VR:$vs2, VR:$vd, Zero:$zero, VMR:$vm),
+               opcodestr, "$vd_wd, ${zero}(${rs1}), $vs2, $vd, $vm"> {
     let Constraints = "$vd = $vd_wd";
     bits<5> vd;
     let Inst{11-7}  = vd;
   }
   def _wd_um : RVInstVAMO<amoop, 0b1, 0b111, RVV_Unmasked, OPC_AMO,
                (outs VR:$vd_wd),
-               (ins GPR:$rs1, VR:$vs2, VR:$vd, VLR:$vl, simm5:$imm5),
-               opcodestr, "$vd_wd, ${imm5}(${rs1}), $vs2, $vd"> {
+               (ins GPR:$rs1, VR:$vs2, VR:$vd, Zero:$zero),
+               opcodestr, "$vd_wd, ${zero}(${rs1}), $vs2, $vd"> {
     let Constraints = "$vd = $vd_wd";
     bits<5> vd;
     let Inst{11-7}  = vd;
   }
   def _m  : RVInstVAMO<amoop, 0b0, 0b111, RVV_Masked, OPC_AMO,
                (outs),
-               (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl, simm5:$imm5, VMR:$vm),
-               opcodestr, "x0, ${imm5}(${rs1}), $vs2, $vs3, $vm"> {
+               (ins GPR:$rs1, VR:$vs2, VR:$vs3, Zero:$zero, VMR:$vm),
+               opcodestr, "x0, ${zero}(${rs1}), $vs2, $vs3, $vm"> {
     bits<5> vs3;
     let Inst{11-7}  = vs3;
   }
   def _um : RVInstVAMO<amoop, 0b0, 0b111, RVV_Unmasked, OPC_AMO,
-               (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, VLR:$vl, simm5:$imm5),
-               opcodestr, "x0, ${imm5}(${rs1}), $vs2, $vs3"> {
+               (outs), (ins GPR:$rs1, VR:$vs2, VR:$vs3, Zero:$zero),
+               opcodestr, "x0, ${zero}(${rs1}), $vs2, $vs3"> {
     bits<5> vs3;
     let Inst{11-7}  = vs3;
   }
@@ -286,13 +291,13 @@ multiclass VALU_AMO_E<bits<5> amoop, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPIVV<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b000, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VMR:$vm),
                opcodestr, "$vd, $vs2, $vs1, $vm"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
   }
   def _um : RVInstVA<funct6, 0b000, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, VR:$vs1),
                opcodestr, "$vd, $vs2, $vs1"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
@@ -302,8 +307,8 @@ multiclass VALU_OPIVV<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVV_m<bits<6> funct6, string opcodestr> 
     : RVInstVA<funct6, 0b000, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VLR:$vl, VRV0:$v0),
-               opcodestr, "$vd, $vs2, $vs1, $v0"> {
+               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VRV0:$v0),
+               opcodestr, "$vd, $vs2, $vs1, v0"> {
   bits<5> vs1;
   let Inst{19-15} = vs1;
 }
@@ -311,7 +316,7 @@ class VALU_OPIVV_m<bits<6> funct6, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVV_um<bits<6> funct6, string opcodestr> 
     : RVInstVA<funct6, 0b000, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, VR:$vs1),
                opcodestr, "$vd, $vs2, $vs1"> {
   bits<5> vs1;
   let Inst{19-15} = vs1;
@@ -320,13 +325,13 @@ class VALU_OPIVV_um<bits<6> funct6, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPIVV_MulAdd<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b000, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VMR:$vm),
                opcodestr, "$vd, $vs1, $vs2, $vm"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
   }
   def _um : RVInstVA<funct6, 0b000, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2),
                opcodestr, "$vd, $vs1, $vs2"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
@@ -336,13 +341,13 @@ multiclass VALU_OPIVV_MulAdd<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPFVV<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b001, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VMR:$vm),
                opcodestr, "$vd, $vs2, $vs1, $vm"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
   }
   def _um : RVInstVA<funct6, 0b001, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, VR:$vs1),
                opcodestr, "$vd, $vs2, $vs1"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
@@ -352,12 +357,12 @@ multiclass VALU_OPFVV<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPFVV_VFUNARY0<bits<5> vs1, string opcodestr> {
   def _m  : RVInstVA<0b100010, 0b001, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, VMR:$vm),
                opcodestr, "$vd, $vs2, $vm"> {
     let Inst{19-15} = vs1;
   }  
   def _um : RVInstVA<0b100010, 0b001, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2),
                opcodestr, "$vd, $vs2"> {
     let Inst{19-15} = vs1;
   }
@@ -366,12 +371,12 @@ multiclass VALU_OPFVV_VFUNARY0<bits<5> vs1, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPFVV_VFUNARY1<bits<5> vs1, string opcodestr> {
   def _m  : RVInstVA<0b100011, 0b001, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, VMR:$vm),
                opcodestr, "$vd, $vs2, $vm"> {
     let Inst{19-15} = vs1;
   }
   def _um : RVInstVA<0b100011, 0b001, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2),
                opcodestr, "$vd, $vs2"> {
     let Inst{19-15} = vs1;
   }
@@ -380,13 +385,13 @@ multiclass VALU_OPFVV_VFUNARY1<bits<5> vs1, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPFVV_MulAdd<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b001, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VMR:$vm),
                opcodestr, "$vd, $vs1, $vs2, $vm"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
   }
   def _um : RVInstVA<funct6, 0b001, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2),
                opcodestr, "$vd, $vs1, $vs2"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
@@ -396,13 +401,13 @@ multiclass VALU_OPFVV_MulAdd<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPMVV<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b010, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VMR:$vm),
                opcodestr, "$vd, $vs2, $vs1, $vm"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
   }
   def _um : RVInstVA<funct6, 0b010, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, VR:$vs1),
                opcodestr, "$vd, $vs2, $vs1"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
@@ -412,7 +417,7 @@ multiclass VALU_OPMVV<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPMVV_um<bits<6> funct6, string opcodestr>
     : RVInstVA<funct6, 0b010, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VR:$vs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, VR:$vs1),
                opcodestr, "$vd, $vs2, $vs1"> {
   bits<5> vs1;
   let Inst{19-15} = vs1;
@@ -421,12 +426,12 @@ class VALU_OPMVV_um<bits<6> funct6, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPMVV_VWXUNARY0<bits<5> vs1, string opcodestr> {
   def _m  : RVInstVA<0b010000, 0b010, RVV_Masked, OPC_OP_V,
-               (outs GPR:$rd), (ins VR:$vs2, VLR:$vl, VMR:$vm),
+               (outs GPR:$rd), (ins VR:$vs2, VMR:$vm),
                opcodestr, "$rd, $vs2, $vm"> {
     let Inst{19-15} = vs1;
   }
   def _um : RVInstVA<0b010000, 0b010, RVV_Unmasked, OPC_OP_V,
-               (outs GPR:$rd), (ins VR:$vs2, VLR:$vl),
+               (outs GPR:$rd), (ins VR:$vs2),
                opcodestr, "$rd, $vs2"> {
     let Inst{19-15} = vs1;
   }
@@ -435,12 +440,12 @@ multiclass VALU_OPMVV_VWXUNARY0<bits<5> vs1, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPMVV_VMUNARY0<bits<5> vs1, string opcodestr> {
   def _m  : RVInstVA<0b010100, 0b010, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, VMR:$vm),
                opcodestr, "$vd, $vs2, $vm"> {
     let Inst{19-15} = vs1;
   }
   def _um : RVInstVA<0b010100, 0b010, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2),
                opcodestr, "$vd, $vs2"> {
     let Inst{19-15} = vs1;
   }
@@ -449,13 +454,13 @@ multiclass VALU_OPMVV_VMUNARY0<bits<5> vs1, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPMVV_MulAdd<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b010, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VMR:$vm),
                opcodestr, "$vd, $vs1, $vs2, $vm"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
   }
   def _um : RVInstVA<funct6, 0b010, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs1, VR:$vs2, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs1, VR:$vs2),
                opcodestr, "$vd, $vs1, $vs2"> {
     bits<5> vs1;
     let Inst{19-15} = vs1;
@@ -465,13 +470,13 @@ multiclass VALU_OPMVV_MulAdd<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPIVI_signed<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b011, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, simm5:$simm, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, simm5:$simm, VMR:$vm),
                opcodestr, "$vd, $vs2, $simm, $vm"> {
     bits<5> simm;
     let Inst{19-15} = simm;
   }
   def _um : RVInstVA<funct6, 0b011, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, simm5:$simm, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, simm5:$simm),
                opcodestr, "$vd, $vs2, $simm"> {
     bits<5> simm;
     let Inst{19-15} = simm;
@@ -481,13 +486,13 @@ multiclass VALU_OPIVI_signed<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPIVI_unsigned<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b011, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, uimm5:$uimm, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, uimm5:$uimm, VMR:$vm),
                opcodestr, "$vd, $vs2, $uimm, $vm"> {
     bits<5> uimm;
     let Inst{19-15} = uimm;
   }
   def _um : RVInstVA<funct6, 0b011, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, uimm5:$uimm, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, uimm5:$uimm),
                opcodestr, "$vd, $vs2, $uimm"> {
     bits<5> uimm;
     let Inst{19-15} = uimm;
@@ -497,8 +502,8 @@ multiclass VALU_OPIVI_unsigned<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVI_m<bits<6> funct6, string opcodestr> 
     : RVInstVA<funct6, 0b011, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, simm5:$simm, VLR:$vl, VRV0:$v0),
-               opcodestr, "$vd, $vs2, $simm, $v0"> {
+               (outs VR:$vd), (ins VR:$vs2, simm5:$simm, VRV0:$v0),
+               opcodestr, "$vd, $vs2, $simm, v0"> {
   bits<5> simm;
   let Inst{19-15} = simm;
 }
@@ -506,7 +511,7 @@ class VALU_OPIVI_m<bits<6> funct6, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVI_um<bits<6> funct6, string opcodestr> 
     : RVInstVA<funct6, 0b011, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, simm5:$simm, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, simm5:$simm),
                opcodestr, "$vd, $vs2, $simm"> {
   bits<5> simm;
   let Inst{19-15} = simm;
@@ -515,7 +520,7 @@ class VALU_OPIVI_um<bits<6> funct6, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVI_VMVWholeReg<bits<5> simm, string opcodestr>
     : RVInstVA<0b100111, 0b011, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2),
                opcodestr, "$vd, $vs2"> {
   let Inst{19-15} = simm;
 }
@@ -523,13 +528,13 @@ class VALU_OPIVI_VMVWholeReg<bits<5> simm, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPIVX<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b100, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VMR:$vm),
                opcodestr, "$vd, $vs2, $rs1, $vm"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
   }
   def _um : RVInstVA<funct6, 0b100, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1),
                opcodestr, "$vd, $vs2, $rs1"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
@@ -539,8 +544,8 @@ multiclass VALU_OPIVX<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVX_m<bits<6> funct6, string opcodestr> 
     : RVInstVA<funct6, 0b100, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl, VRV0:$v0),
-               opcodestr, "$vd, $vs2, $rs1, $v0"> {
+               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VRV0:$v0),
+               opcodestr, "$vd, $vs2, $rs1, v0"> {
   bits<5> rs1;
   let Inst{19-15} = rs1;
 }
@@ -548,7 +553,7 @@ class VALU_OPIVX_m<bits<6> funct6, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class VALU_OPIVX_um<bits<6> funct6, string opcodestr> 
     : RVInstVA<funct6, 0b100, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1),
                opcodestr, "$vd, $vs2, $rs1"> {
   bits<5> rs1;
   let Inst{19-15} = rs1;
@@ -557,13 +562,13 @@ class VALU_OPIVX_um<bits<6> funct6, string opcodestr>
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPIVX_MulAdd<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b100, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VMR:$vm),
                opcodestr, "$vd, $rs1, $vs2, $vm"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
   }
   def _um : RVInstVA<funct6, 0b100, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VLR:$vl),
+               (outs VR:$vd), (ins GPR:$rs1, VR:$vs2),
                opcodestr, "$vd, $rs1, $vs2"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
@@ -573,13 +578,13 @@ multiclass VALU_OPIVX_MulAdd<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPFVF<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b101, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, FPR32:$rs1, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, FPR32:$rs1, VMR:$vm),
                opcodestr, "$vd, $vs2, $rs1, $vm"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
   }
   def _um : RVInstVA<funct6, 0b101, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, FPR32:$rs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, FPR32:$rs1),
                opcodestr, "$vd, $vs2, $rs1"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
@@ -589,13 +594,13 @@ multiclass VALU_OPFVF<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPFVF_MulAdd<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b101, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins FPR32:$rs1, VR:$vs2, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins FPR32:$rs1, VR:$vs2, VMR:$vm),
                opcodestr, "$vd, $rs1, $vs2, $vm"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
   }
   def _um : RVInstVA<funct6, 0b101, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins FPR32:$rs1, VR:$vs2, VLR:$vl),
+               (outs VR:$vd), (ins FPR32:$rs1, VR:$vs2),
                opcodestr, "$vd, $rs1, $vs2"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
@@ -605,13 +610,13 @@ multiclass VALU_OPFVF_MulAdd<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPMVX<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b110, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VMR:$vm),
                opcodestr, "$vd, $vs2, $rs1, $vm"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
   }
   def _um : RVInstVA<funct6, 0b110, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs2, GPR:$rs1),
                opcodestr, "$vd, $vs2, $rs1"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
@@ -621,13 +626,13 @@ multiclass VALU_OPMVX<bits<6> funct6, string opcodestr> {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPMVX_MulAdd<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b110, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VLR:$vl, VMR:$vm),
+               (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VMR:$vm),
                opcodestr, "$vd, $rs1, $vs2, $vm"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
   }
   def _um : RVInstVA<funct6, 0b110, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins GPR:$rs1, VR:$vs2, VLR:$vl),
+               (outs VR:$vd), (ins GPR:$rs1, VR:$vs2),
                opcodestr, "$vd, $rs1, $vs2"> {
     bits<5> rs1;
     let Inst{19-15} = rs1;
@@ -646,7 +651,7 @@ let Predicates = [HasStdExtV] in {
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSETVLI: RVInstVSet<0b0, OPC_OP_V, 
-                      (outs VLR:$vl, GPR:$rd),
+                      (outs GPR:$rd),
                       (ins GPR:$rs1, vtypei:$vtyi),
                       "vsetvli", "$rd, $rs1, $vtyi">, Sched<[]> {
   bits<11> vtyi;
@@ -654,7 +659,7 @@ def VSETVLI: RVInstVSet<0b0, OPC_OP_V,
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VSETVL: RVInstVSet<0b1, OPC_OP_V, 
-                      (outs VLR:$vl, GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
+                      (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
                       "vsetvl", "$rd, $rs1, $rs2">, Sched<[]> {
   bits<5> rs2;
   let Inst{30-25} = 0b000000;
@@ -1093,7 +1098,7 @@ def VMERGE_VIM : VALU_OPIVI_m<0b010111, "vmerge.vim">, Sched<[]>;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_V_V : RVInstVA<0b010111, 0b000, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VR:$vs1, VLR:$vl),
+               (outs VR:$vd), (ins VR:$vs1),
                "vmv.v.v", "$vd, $vs1">, Sched<[]> {
   bits<5> vs1;
   let vs2 = 0b00000;
@@ -1101,7 +1106,7 @@ def VMV_V_V : RVInstVA<0b010111, 0b000, RVV_Unmasked, OPC_OP_V,
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_V_X : RVInstVA<0b010111, 0b100, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins GPR:$rs1, VLR:$vl),
+               (outs VR:$vd), (ins GPR:$rs1),
                "vmv.v.x", "$vd, $rs1">, Sched<[]> {
   bits<5> rs1;
   let vs2 = 0b00000;
@@ -1109,7 +1114,7 @@ def VMV_V_X : RVInstVA<0b010111, 0b100, RVV_Unmasked, OPC_OP_V,
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_V_I : RVInstVA<0b010111, 0b011, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins simm5:$simm, VLR:$vl),
+               (outs VR:$vd), (ins simm5:$simm),
                "vmv.v.i", "$vd, $simm">, Sched<[]> {
   bits<5> simm;
   let vs2 = 0b00000;
@@ -1311,8 +1316,8 @@ defm VFCLASS_V : VALU_OPFVV_VFUNARY1<0b10000, "vfclass.v">, Sched<[]>;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VFMERGE_VFM : RVInstVA<0b010111, 0b101, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins FPR32:$rs1, VR:$vs2, VLR:$vl, VRV0:$v0),
-               "vfmerge.vfm", "$vd, $vs2, $rs1, $v0">, Sched<[]> {
+               (outs VR:$vd), (ins FPR32:$rs1, VR:$vs2, VRV0:$v0),
+               "vfmerge.vfm", "$vd, $vs2, $rs1, v0">, Sched<[]> {
   bits<5> rs1;
   let Inst{19-15} = rs1;
 }
@@ -1322,7 +1327,7 @@ def VFMERGE_VFM : RVInstVA<0b010111, 0b101, RVV_Masked, OPC_OP_V,
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VFMV_V_F : RVInstVA<0b010111, 0b101, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins FPR32:$rs1, VLR:$vl),
+               (outs VR:$vd), (ins FPR32:$rs1),
                "vfmv.v.f", "$vd, $rs1">, Sched<[]> {
   bits<5> rs1;
   let vs2 = 0b00000;
@@ -1435,7 +1440,7 @@ defm VIOTA_M : VALU_OPMVV_VMUNARY0<0b10000, "viota.m">, Sched<[]>;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VID_V_m : RVInstVA<0b010100, 0b010, RVV_Masked, OPC_OP_V,
-               (outs VR:$vd), (ins VLR:$vl, VMR:$vm), "vid.v", "$vd, $vm">,
+               (outs VR:$vd), (ins VMR:$vm), "vid.v", "$vd, $vm">,
               Sched<[]> {
   bits<5> vs1;
   let vs1 = 0b10001;
@@ -1444,7 +1449,7 @@ def VID_V_m : RVInstVA<0b010100, 0b010, RVV_Masked, OPC_OP_V,
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VID_V_um : RVInstVA<0b010100, 0b010, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins VLR:$vl), "vid.v", "$vd">, Sched<[]> {
+               (outs VR:$vd), (ins), "vid.v", "$vd">, Sched<[]> {
   bits<5> vs1;
   let vs1 = 0b10001;
   let vs2 = 0b00000;
@@ -1456,7 +1461,7 @@ def VID_V_um : RVInstVA<0b010100, 0b010, RVV_Unmasked, OPC_OP_V,
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_X_S : RVInstVA<0b010000, 0b010, RVV_Unmasked, OPC_OP_V,
-               (outs GPR:$rd), (ins VR:$vs2, VLR:$vl),
+               (outs GPR:$rd), (ins VR:$vs2),
                "vmv.x.s", "$rd, $vs2">, Sched<[]> {
   bits<5> vs1;
   let vs1 = 0b00000;
@@ -1464,7 +1469,7 @@ def VMV_X_S : RVInstVA<0b010000, 0b010, RVV_Unmasked, OPC_OP_V,
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_S_X : RVInstVA<0b010000, 0b110, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins GPR:$rs1, VLR:$vl),
+               (outs VR:$vd), (ins GPR:$rs1),
                "vmv.s.x", "$vd, $rs1">, Sched<[]> {
   bits<5> rs1;
   let vs2 = 0b00000;
@@ -1476,7 +1481,7 @@ def VMV_S_X : RVInstVA<0b010000, 0b110, RVV_Unmasked, OPC_OP_V,
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VFMV_F_S : RVInstVA<0b010000, 0b001, RVV_Unmasked, OPC_OP_V,
-               (outs FPR32:$rd), (ins VR:$vs2, VLR:$vl),
+               (outs FPR32:$rd), (ins VR:$vs2),
                "vfmv.f.s", "$rd, $vs2">, Sched<[]> {
   bits<5> vs1;
   let vs1 = 0b00000;
@@ -1484,7 +1489,7 @@ def VFMV_F_S : RVInstVA<0b010000, 0b001, RVV_Unmasked, OPC_OP_V,
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VFMV_S_F : RVInstVA<0b010000, 0b101, RVV_Unmasked, OPC_OP_V,
-               (outs VR:$vd), (ins FPR32:$rs1, VLR:$vl),
+               (outs VR:$vd), (ins FPR32:$rs1),
                "vfmv.s.f", "$vd, $rs1">, Sched<[]> {
   bits<5> rs1;
   let vs2 = 0b00000;
@@ -1552,447 +1557,447 @@ let EmitPriority = 0 in {
 
 
 def : InstAlias<"vsetvli $rd, $rs1, $uimm",
-                (VSETVLI  VL, GPR:$rd, GPR:$rs1, uimm11:$uimm)>;
+                (VSETVLI  GPR:$rd, GPR:$rs1, uimm11:$uimm)>;
 
 
 def : InstAlias<"vlb.v $vd, (${rs1})",
-                (VLB_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLB_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlb.v $vd, (${rs1}), $vm",
-                (VLB_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLB_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vlh.v $vd, (${rs1})",
-                (VLH_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLH_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlh.v $vd, (${rs1}), $vm",
-                (VLH_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLH_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vlw.v $vd, (${rs1})",
-                (VLW_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLW_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlw.v $vd, (${rs1}), $vm",
-                (VLW_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLW_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vlbu.v $vd, (${rs1})",
-                (VLBU_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLBU_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlbu.v $vd, (${rs1}), $vm",
-                (VLBU_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLBU_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vlhu.v $vd, (${rs1})",
-                (VLHU_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLHU_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlhu.v $vd, (${rs1}), $vm",
-                (VLHU_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLHU_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vlwu.v $vd, (${rs1})",
-                (VLWU_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLWU_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlwu.v $vd, (${rs1}), $vm",
-                (VLWU_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLWU_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vle.v $vd, (${rs1})",
-                (VLE_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLE_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vle.v $vd, (${rs1}), $vm",
-                (VLE_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLE_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 
 def : InstAlias<"vsb.v $vs3, (${rs1})",
-                (VSB_V_um  VR:$vs3, GPR:$rs1, VL, 0)>;
+                (VSB_V_um  VR:$vs3, GPR:$rs1, 0)>;
 def : InstAlias<"vsb.v $vs3, (${rs1}), $vm",
-                (VSB_V_m  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VSB_V_m  VR:$vs3, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vsh.v $vs3, (${rs1})",
-                (VSH_V_um  VR:$vs3, GPR:$rs1, VL, 0)>;
+                (VSH_V_um  VR:$vs3, GPR:$rs1, 0)>;
 def : InstAlias<"vsh.v $vs3, (${rs1}), $vm",
-                (VSH_V_m  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VSH_V_m  VR:$vs3, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vsw.v $vs3, (${rs1})",
-                (VSW_V_um  VR:$vs3, GPR:$rs1, VL, 0)>;
+                (VSW_V_um  VR:$vs3, GPR:$rs1, 0)>;
 def : InstAlias<"vsw.v $vs3, (${rs1}), $vm",
-                (VSW_V_m  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VSW_V_m  VR:$vs3, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vse.v $vs3, (${rs1})",
-                (VSE_V_um  VR:$vs3, GPR:$rs1, VL, 0)>;
+                (VSE_V_um  VR:$vs3, GPR:$rs1, 0)>;
 def : InstAlias<"vse.v $vs3, (${rs1}), $vm",
-                (VSE_V_m  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VSE_V_m  VR:$vs3, GPR:$rs1, 0, VMR:$vm)>;
 
 
 def : InstAlias<"vlsb.v $vd, (${rs1}), $rs2",
-                (VLSB_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VLSB_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vlsb.v $vd, (${rs1}), $rs2, $vm",
-                (VLSB_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VLSB_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 def : InstAlias<"vlsh.v $vd, (${rs1}), $rs2",
-                (VLSH_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VLSH_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vlsh.v $vd, (${rs1}), $rs2, $vm",
-                (VLSH_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VLSH_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 def : InstAlias<"vlsw.v $vd, (${rs1}), $rs2",
-                (VLSW_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VLSW_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vlsw.v $vd, (${rs1}), $rs2, $vm",
-                (VLSW_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VLSW_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 def : InstAlias<"vlsbu.v $vd, (${rs1}), $rs2",
-                (VLSBU_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VLSBU_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vlsbu.v $vd, (${rs1}), $rs2, $vm",
-                (VLSBU_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VLSBU_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 def : InstAlias<"vlshu.v $vd, (${rs1}), $rs2",
-                (VLSHU_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VLSHU_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vlshu.v $vd, (${rs1}), $rs2, $vm",
-                (VLSHU_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VLSHU_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 def : InstAlias<"vlswu.v $vd, (${rs1}), $rs2",
-                (VLSWU_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VLSWU_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vlswu.v $vd, (${rs1}), $rs2, $vm",
-                (VLSWU_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VLSWU_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 def : InstAlias<"vlse.v $vd, (${rs1}), $rs2",
-                (VLSE_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VLSE_V_um  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vlse.v $vd, (${rs1}), $rs2, $vm",
-                (VLSE_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VLSE_V_m  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 
 def : InstAlias<"vssb.v $vs3, (${rs1}), $rs2",
-                (VSSB_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VSSB_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vssb.v $vs3, (${rs1}), $rs2, $vm",
-                (VSSB_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VSSB_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 def : InstAlias<"vssh.v $vs3, (${rs1}), $rs2",
-                (VSSH_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VSSH_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vssh.v $vs3, (${rs1}), $rs2, $vm",
-                (VSSH_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VSSH_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 def : InstAlias<"vssw.v $vs3, (${rs1}), $rs2",
-                (VSSW_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VSSW_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vssw.v $vs3, (${rs1}), $rs2, $vm",
-                (VSSW_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VSSW_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 def : InstAlias<"vsse.v $vs3, (${rs1}), $rs2",
-                (VSSE_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                (VSSE_V_um  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
 def : InstAlias<"vsse.v $vs3, (${rs1}), $rs2, $vm",
-                (VSSE_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                (VSSE_V_m  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 
 
 def : InstAlias<"vlxb.v $vd, (${rs1}), $vs2",
-                (VLXB_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VLXB_V_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vlxb.v $vd, (${rs1}), $vs2, $vm",
-                (VLXB_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VLXB_V_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vlxh.v $vd, (${rs1}), $vs2",
-                (VLXH_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VLXH_V_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vlxh.v $vd, (${rs1}), $vs2, $vm",
-                (VLXH_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VLXH_V_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vlxw.v $vd, (${rs1}), $vs2",
-                (VLXW_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VLXW_V_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vlxw.v $vd, (${rs1}), $vs2, $vm",
-                (VLXW_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VLXW_V_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vlxbu.v $vd, (${rs1}), $vs2",
-                (VLXBU_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VLXBU_V_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vlxbu.v $vd, (${rs1}), $vs2, $vm",
-                (VLXBU_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VLXBU_V_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vlxhu.v $vd, (${rs1}), $vs2",
-                (VLXHU_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VLXHU_V_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vlxhu.v $vd, (${rs1}), $vs2, $vm",
-                (VLXHU_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VLXHU_V_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vlxwu.v $vd, (${rs1}), $vs2",
-                (VLXWU_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VLXWU_V_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vlxwu.v $vd, (${rs1}), $vs2, $vm",
-                (VLXWU_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VLXWU_V_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vlxe.v $vd, (${rs1}), $vs2",
-                (VLXE_V_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VLXE_V_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vlxe.v $vd, (${rs1}), $vs2, $vm",
-                (VLXE_V_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VLXE_V_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 
 def : InstAlias<"vsxb.v $vs3, (${rs1}), $vs2",
-                (VSXB_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VSXB_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vsxb.v $vs3, (${rs1}), $vs2, $vm",
-                (VSXB_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VSXB_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vsxh.v $vs3, (${rs1}), $vs2",
-                (VSXH_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VSXH_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vsxh.v $vs3, (${rs1}), $vs2, $vm",
-                (VSXH_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VSXH_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vsxw.v $vs3, (${rs1}), $vs2",
-                (VSXW_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VSXW_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vsxw.v $vs3, (${rs1}), $vs2, $vm",
-                (VSXW_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VSXW_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vsxe.v $vs3, (${rs1}), $vs2",
-                (VSXE_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VSXE_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vsxe.v $vs3, (${rs1}), $vs2, $vm",
-                (VSXE_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VSXE_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vsuxb.v $vs3, (${rs1}), $vs2",
-                (VSUXB_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VSUXB_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vsuxb.v $vs3, (${rs1}), $vs2, $vm",
-                (VSUXB_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VSUXB_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vsuxh.v $vs3, (${rs1}), $vs2",
-                (VSUXH_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VSUXH_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vsuxh.v $vs3, (${rs1}), $vs2, $vm",
-                (VSUXH_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VSUXH_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vsuxw.v $vs3, (${rs1}), $vs2",
-                (VSUXW_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VSUXW_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vsuxw.v $vs3, (${rs1}), $vs2, $vm",
-                (VSUXW_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VSUXW_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vsuxe.v $vs3, (${rs1}), $vs2",
-                (VSUXE_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VSUXE_V_um  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vsuxe.v $vs3, (${rs1}), $vs2, $vm",
-                (VSUXE_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VSUXE_V_m  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 
 
 def : InstAlias<"vlbff.v $vd, (${rs1})",
-                (VLBFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLBFF_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlbff.v $vd, (${rs1}), $vm",
-                (VLBFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLBFF_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vlhff.v $vd, (${rs1})",
-                (VLHFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLHFF_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlhff.v $vd, (${rs1}), $vm",
-                (VLHFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLHFF_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vlwff.v $vd, (${rs1})",
-                (VLWFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLWFF_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlwff.v $vd, (${rs1}), $vm",
-                (VLWFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLWFF_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vlbuff.v $vd, (${rs1})",
-                (VLBUFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLBUFF_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlbuff.v $vd, (${rs1}), $vm",
-                (VLBUFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLBUFF_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vlhuff.v $vd, (${rs1})",
-                (VLHUFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLHUFF_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlhuff.v $vd, (${rs1}), $vm",
-                (VLHUFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLHUFF_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vlwuff.v $vd, (${rs1})",
-                (VLWUFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLWUFF_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vlwuff.v $vd, (${rs1}), $vm",
-                (VLWUFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLWUFF_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 def : InstAlias<"vleff.v $vd, (${rs1})",
-                (VLEFF_V_um  VR:$vd, GPR:$rs1, VL, 0)>;
+                (VLEFF_V_um  VR:$vd, GPR:$rs1, 0)>;
 def : InstAlias<"vleff.v $vd, (${rs1}), $vm",
-                (VLEFF_V_m  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                (VLEFF_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 
 
 foreach nf = 2-8 in {
 
   def : InstAlias<"vlseg"#nf#"b.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"B_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"b.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"B_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"h.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"H_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"h.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"H_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"w.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"W_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"w.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"W_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"bu.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"BU_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"bu.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"BU_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"hu.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"HU_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"hu.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"HU_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"wu.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"WU_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"wu.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"WU_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"e.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"E_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"e.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"E_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 
   def : InstAlias<"vsseg"#nf#"b.v $vs3, (${rs1})",
                   (!cast<RVInstVStore>("VSSEG"#nf#"B_V_um")
-                  VR:$vs3, GPR:$rs1, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, 0)>;
   def : InstAlias<"vsseg"#nf#"b.v $vs3, (${rs1}), $vm",
                   (!cast<RVInstVStore>("VSSEG"#nf#"B_V_m")
-                  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vsseg"#nf#"h.v $vs3, (${rs1})",
                   (!cast<RVInstVStore>("VSSEG"#nf#"H_V_um")
-                  VR:$vs3, GPR:$rs1, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, 0)>;
   def : InstAlias<"vsseg"#nf#"h.v $vs3, (${rs1}), $vm",
                   (!cast<RVInstVStore>("VSSEG"#nf#"H_V_m")
-                  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vsseg"#nf#"w.v $vs3, (${rs1})",
                   (!cast<RVInstVStore>("VSSEG"#nf#"W_V_um")
-                  VR:$vs3, GPR:$rs1, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, 0)>;
   def : InstAlias<"vsseg"#nf#"w.v $vs3, (${rs1}), $vm",
                   (!cast<RVInstVStore>("VSSEG"#nf#"W_V_m")
-                  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vsseg"#nf#"e.v $vs3, (${rs1})",
                   (!cast<RVInstVStore>("VSSEG"#nf#"E_V_um")
-                  VR:$vs3, GPR:$rs1, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, 0)>;
   def : InstAlias<"vsseg"#nf#"e.v $vs3, (${rs1}), $vm",
                   (!cast<RVInstVStore>("VSSEG"#nf#"E_V_m")
-                  VR:$vs3, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, 0, VMR:$vm)>;
 
 
   def : InstAlias<"vlsseg"#nf#"b.v $vd, (${rs1}), $rs2",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"B_V_um")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vlsseg"#nf#"b.v $vd, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"B_V_m")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
   def : InstAlias<"vlsseg"#nf#"h.v $vd, (${rs1}), $rs2",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"H_V_um")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vlsseg"#nf#"h.v $vd, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"H_V_m")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
   def : InstAlias<"vlsseg"#nf#"w.v $vd, (${rs1}), $rs2",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"W_V_um")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vlsseg"#nf#"w.v $vd, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"W_V_m")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
   def : InstAlias<"vlsseg"#nf#"bu.v $vd, (${rs1}), $rs2",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"BU_V_um")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vlsseg"#nf#"bu.v $vd, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"BU_V_m")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
   def : InstAlias<"vlsseg"#nf#"hu.v $vd, (${rs1}), $rs2",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"HU_V_um")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vlsseg"#nf#"hu.v $vd, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"HU_V_m")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
   def : InstAlias<"vlsseg"#nf#"wu.v $vd, (${rs1}), $rs2",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"WU_V_um")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vlsseg"#nf#"wu.v $vd, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"WU_V_m")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
   def : InstAlias<"vlsseg"#nf#"e.v $vd, (${rs1}), $rs2",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"E_V_um")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vlsseg"#nf#"e.v $vd, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVLoad>("VLSSEG"#nf#"E_V_m")
-                  VR:$vd, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 
   def : InstAlias<"vssseg"#nf#"b.v $vs3, (${rs1}), $rs2",
                   (!cast<RVInstVStore>("VSSSEG"#nf#"B_V_um")
-                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vssseg"#nf#"b.v $vs3, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVStore>("VSSSEG"#nf#"B_V_m")
-                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
   def : InstAlias<"vssseg"#nf#"h.v $vs3, (${rs1}), $rs2",
                   (!cast<RVInstVStore>("VSSSEG"#nf#"H_V_um")
-                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vssseg"#nf#"h.v $vs3, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVStore>("VSSSEG"#nf#"H_V_m")
-                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
   def : InstAlias<"vssseg"#nf#"w.v $vs3, (${rs1}), $rs2",
                   (!cast<RVInstVStore>("VSSSEG"#nf#"W_V_um")
-                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vssseg"#nf#"w.v $vs3, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVStore>("VSSSEG"#nf#"W_V_m")
-                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
   def : InstAlias<"vssseg"#nf#"e.v $vs3, (${rs1}), $rs2",
                   (!cast<RVInstVStore>("VSSSEG"#nf#"E_V_um")
-                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
   def : InstAlias<"vssseg"#nf#"e.v $vs3, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVStore>("VSSSEG"#nf#"E_V_m")
-                  VR:$vs3, GPR:$rs1, GPR:$rs2, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 
 
   def : InstAlias<"vlxseg"#nf#"b.v $vd, (${rs1}), $vs2",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"B_V_um")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vlxseg"#nf#"b.v $vd, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"B_V_m")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
   def : InstAlias<"vlxseg"#nf#"h.v $vd, (${rs1}), $vs2",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"H_V_um")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vlxseg"#nf#"h.v $vd, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"H_V_m")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
   def : InstAlias<"vlxseg"#nf#"w.v $vd, (${rs1}), $vs2",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"W_V_um")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vlxseg"#nf#"w.v $vd, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"W_V_m")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
   def : InstAlias<"vlxseg"#nf#"bu.v $vd, (${rs1}), $vs2",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"BU_V_um")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vlxseg"#nf#"bu.v $vd, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"BU_V_m")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
   def : InstAlias<"vlxseg"#nf#"hu.v $vd, (${rs1}), $vs2",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"HU_V_um")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vlxseg"#nf#"hu.v $vd, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"HU_V_m")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
   def : InstAlias<"vlxseg"#nf#"wu.v $vd, (${rs1}), $vs2",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"WU_V_um")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vlxseg"#nf#"wu.v $vd, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"WU_V_m")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
   def : InstAlias<"vlxseg"#nf#"e.v $vd, (${rs1}), $vs2",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"E_V_um")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vlxseg"#nf#"e.v $vd, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVLoad>("VLXSEG"#nf#"E_V_m")
-                  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 
   def : InstAlias<"vsxseg"#nf#"b.v $vs3, (${rs1}), $vs2",
                   (!cast<RVInstVStore>("VSXSEG"#nf#"B_V_um")
-                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vsxseg"#nf#"b.v $vs3, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVStore>("VSXSEG"#nf#"B_V_m")
-                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
   def : InstAlias<"vsxseg"#nf#"h.v $vs3, (${rs1}), $vs2",
                   (!cast<RVInstVStore>("VSXSEG"#nf#"H_V_um")
-                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vsxseg"#nf#"h.v $vs3, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVStore>("VSXSEG"#nf#"H_V_m")
-                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
   def : InstAlias<"vsxseg"#nf#"w.v $vs3, (${rs1}), $vs2",
                   (!cast<RVInstVStore>("VSXSEG"#nf#"W_V_um")
-                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vsxseg"#nf#"w.v $vs3, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVStore>("VSXSEG"#nf#"W_V_m")
-                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
   def : InstAlias<"vsxseg"#nf#"e.v $vs3, (${rs1}), $vs2",
                   (!cast<RVInstVStore>("VSXSEG"#nf#"E_V_um")
-                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, VR:$vs2, 0)>;
   def : InstAlias<"vsxseg"#nf#"e.v $vs3, (${rs1}), $vs2, $vm",
                   (!cast<RVInstVStore>("VSXSEG"#nf#"E_V_m")
-                  VR:$vs3, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                  VR:$vs3, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 
 
   def : InstAlias<"vlseg"#nf#"bff.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"BFF_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"bff.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"BFF_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"hff.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"HFF_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"hff.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"HFF_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"wff.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"WFF_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"wff.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"WFF_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"buff.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"BUFF_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"buff.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"BUFF_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"huff.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"HUFF_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"huff.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"HUFF_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"wuff.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"WUFF_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"wuff.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"WUFF_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
   def : InstAlias<"vlseg"#nf#"eff.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"EFF_V_um")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vlseg"#nf#"eff.v $vd, (${rs1}), $vm",
                   (!cast<RVInstVLoad>("VLSEG"#nf#"EFF_V_m")
-                  VR:$vd, GPR:$rs1, VL, 0, VMR:$vm)>;
+                  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 }
 
 
@@ -2000,228 +2005,228 @@ foreach nf = 1-8 in {
 
   def : InstAlias<"vl"#nf#"r.v $vd, (${rs1})",
                   (!cast<RVInstVLoad>("VL"#nf#"R_V")
-                  VR:$vd, GPR:$rs1, VL, 0)>;
+                  VR:$vd, GPR:$rs1, 0)>;
   def : InstAlias<"vs"#nf#"r.v $vs3, (${rs1})",
                   (!cast<RVInstVStore>("VS"#nf#"R_V")
-                  VR:$vs3, GPR:$rs1, VL, 0)>;
+                  VR:$vs3, GPR:$rs1, 0)>;
 }
 
 
 def : InstAlias<"vamoswapw.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOSWAPW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOSWAPW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamoswapw.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOSWAPW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOSWAPW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamoswapw.v x0, (${rs1}), $vs2, $vd",
-                (VAMOSWAPW_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOSWAPW_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamoswapw.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOSWAPW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOSWAPW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamoaddw.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOADDW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOADDW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamoaddw.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOADDW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOADDW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamoaddw.v x0, (${rs1}), $vs2, $vd",
-                (VAMOADDW_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOADDW_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamoaddw.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOADDW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOADDW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamoxorw.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOXORW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOXORW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamoxorw.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOXORW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOXORW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamoxorw.v x0, (${rs1}), $vs2, $vd",
-                (VAMOXORW_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOXORW_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamoxorw.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOXORW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOXORW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamoandw.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOANDW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOANDW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamoandw.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOANDW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOANDW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamoandw.v x0, (${rs1}), $vs2, $vd",
-                (VAMOANDW_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOANDW_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamoandw.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOANDW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOANDW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamoorw.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOORW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOORW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamoorw.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOORW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOORW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamoorw.v x0, (${rs1}), $vs2, $vd",
-                (VAMOORW_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOORW_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamoorw.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOORW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOORW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamominw.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOMINW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOMINW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamominw.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMINW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOMINW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamominw.v x0, (${rs1}), $vs2, $vd",
-                (VAMOMINW_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOMINW_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamominw.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMINW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOMINW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamomaxw.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOMAXW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOMAXW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamomaxw.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMAXW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOMAXW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamomaxw.v x0, (${rs1}), $vs2, $vd",
-                (VAMOMAXW_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOMAXW_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamomaxw.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMAXW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOMAXW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamominuw.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOMINUW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOMINUW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamominuw.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMINUW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOMINUW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamominuw.v x0, (${rs1}), $vs2, $vd",
-                (VAMOMINUW_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOMINUW_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamominuw.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMINUW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOMINUW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamomaxuw.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOMAXUW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOMAXUW_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamomaxuw.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMAXUW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOMAXUW_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamomaxuw.v x0, (${rs1}), $vs2, $vd",
-                (VAMOMAXUW_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOMAXUW_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamomaxuw.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMAXUW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOMAXUW_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamoswape.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOSWAPE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOSWAPE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamoswape.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOSWAPE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOSWAPE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamoswape.v x0, (${rs1}), $vs2, $vd",
-                (VAMOSWAPE_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOSWAPE_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamoswape.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOSWAPE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOSWAPE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamoadde.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOADDE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOADDE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamoadde.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOADDE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOADDE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamoadde.v x0, (${rs1}), $vs2, $vd",
-                (VAMOADDE_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOADDE_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamoadde.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOADDE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOADDE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamoxore.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOXORE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOXORE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamoxore.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOXORE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOXORE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamoxore.v x0, (${rs1}), $vs2, $vd",
-                (VAMOXORE_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOXORE_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamoxore.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOXORE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOXORE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamoande.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOANDE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOANDE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamoande.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOANDE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOANDE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamoande.v x0, (${rs1}), $vs2, $vd",
-                (VAMOANDE_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOANDE_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamoande.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOANDE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOANDE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamoore.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOORE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOORE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamoore.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOORE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOORE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamoore.v x0, (${rs1}), $vs2, $vd",
-                (VAMOORE_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOORE_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamoore.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOORE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOORE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamomine.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOMINE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOMINE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamomine.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMINE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOMINE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamomine.v x0, (${rs1}), $vs2, $vd",
-                (VAMOMINE_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOMINE_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamomine.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMINE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOMINE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamomaxe.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOMAXE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOMAXE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamomaxe.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMAXE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOMAXE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamomaxe.v x0, (${rs1}), $vs2, $vd",
-                (VAMOMAXE_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOMAXE_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamomaxe.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMAXE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOMAXE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamominue.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOMINUE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOMINUE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamominue.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMINUE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOMINUE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamominue.v x0, (${rs1}), $vs2, $vd",
-                (VAMOMINUE_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOMINUE_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamominue.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMINUE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOMINUE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 def : InstAlias<"vamomaxue.v $vd, (${rs1}), $vs2, $vd",
-                (VAMOMAXUE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0)>;
+                (VAMOMAXUE_V_wd_um  VR:$vd, GPR:$rs1, VR:$vs2, 0)>;
 def : InstAlias<"vamomaxue.v $vd, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMAXUE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, VL, 0, VMR:$vm)>;
+                (VAMOMAXUE_V_wd_m  VR:$vd, GPR:$rs1, VR:$vs2, 0, VMR:$vm)>;
 def : InstAlias<"vamomaxue.v x0, (${rs1}), $vs2, $vd",
-                (VAMOMAXUE_V_um GPR:$rs1, VR:$vs2, VR:$vd, VL, 0)>;
+                (VAMOMAXUE_V_um GPR:$rs1, VR:$vs2, VR:$vd, 0)>;
 def : InstAlias<"vamomaxue.v x0, (${rs1}), $vs2, $vd, $vm",
-                (VAMOMAXUE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, VL, 0, VMR:$vm)>;
+                (VAMOMAXUE_V_m  GPR:$rs1, VR:$vs2, VR:$vd, 0, VMR:$vm)>;
 
 
 def : InstAlias<"vwcvt.x.x.v $vd, $vs2",
-                (VWADD_VX_um  VR:$vd, VR:$vs2, X0, VL)>;
+                (VWADD_VX_um  VR:$vd, VR:$vs2, X0)>;
 def : InstAlias<"vwcvt.x.x.v $vd, $vs2, $vm",
-                (VWADD_VX_m  VR:$vd, VR:$vs2, X0, VL, VMR:$vm)>;
+                (VWADD_VX_m  VR:$vd, VR:$vs2, X0, VMR:$vm)>;
 def : InstAlias<"vwcvtu.x.x.v $vd, $vs2",
-                (VWADDU_VX_um  VR:$vd, VR:$vs2, X0, VL)>;
+                (VWADDU_VX_um  VR:$vd, VR:$vs2, X0)>;
 def : InstAlias<"vwcvtu.x.x.v $vd, $vs2, $vm",
-                (VWADDU_VX_m  VR:$vd, VR:$vs2, X0, VL, VMR:$vm)>;
+                (VWADDU_VX_m  VR:$vd, VR:$vs2, X0, VMR:$vm)>;
 
 
 def : InstAlias<"vnot.v $vd, $vs2",
-                (VXOR_VI_um  VR:$vd, VR:$vs2, -1, VL)>;
+                (VXOR_VI_um  VR:$vd, VR:$vs2, -1)>;
 def : InstAlias<"vnot.v $vd, $vs2, $vm",
-                (VXOR_VI_m  VR:$vd, VR:$vs2, -1, VL, VMR:$vm)>;
+                (VXOR_VI_m  VR:$vd, VR:$vs2, -1, VMR:$vm)>;
 
 
 def : InstAlias<"vmsgt.vv $vd, $vs2, $vs1",
-                (VMSLT_VV_um  VR:$vd, VR:$vs1, VR:$vs2, VL)>;
+                (VMSLT_VV_um  VR:$vd, VR:$vs1, VR:$vs2)>;
 def : InstAlias<"vmsgt.vv $vd, $vs2, $vs1, $vm",
-                (VMSLT_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VL, VMR:$vm)>;
+                (VMSLT_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VMR:$vm)>;
 def : InstAlias<"vmsgtu.vv $vd, $vs2, $vs1",
-                (VMSLTU_VV_um  VR:$vd, VR:$vs1, VR:$vs2, VL)>;
+                (VMSLTU_VV_um  VR:$vd, VR:$vs1, VR:$vs2)>;
 def : InstAlias<"vmsgtu.vv $vd, $vs2, $vs1, $vm",
-                (VMSLTU_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VL, VMR:$vm)>;
+                (VMSLTU_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VMR:$vm)>;
 def : InstAlias<"vmsge.vv $vd, $vs2, $vs1",
-                (VMSLE_VV_um  VR:$vd, VR:$vs1, VR:$vs2, VL)>;
+                (VMSLE_VV_um  VR:$vd, VR:$vs1, VR:$vs2)>;
 def : InstAlias<"vmsge.vv $vd, $vs2, $vs1, $vm",
-                (VMSLE_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VL, VMR:$vm)>;
+                (VMSLE_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VMR:$vm)>;
 def : InstAlias<"vmsgeu.vv $vd, $vs2, $vs1",
-                (VMSLEU_VV_um  VR:$vd, VR:$vs1, VR:$vs2, VL)>;
+                (VMSLEU_VV_um  VR:$vd, VR:$vs1, VR:$vs2)>;
 def : InstAlias<"vmsgeu.vv $vd, $vs2, $vs1, $vm",
-                (VMSLEU_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VL, VMR:$vm)>;
+                (VMSLEU_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VMR:$vm)>;
 
 
 def : InstAlias<"vmfgt.vv $vd, $vs2, $vs1",
-                (VMFLT_VV_um  VR:$vd, VR:$vs1, VR:$vs2, VL)>;
+                (VMFLT_VV_um  VR:$vd, VR:$vs1, VR:$vs2)>;
 def : InstAlias<"vmfgt.vv $vd, $vs2, $vs1, $vm",
-                (VMFLT_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VL, VMR:$vm)>;
+                (VMFLT_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VMR:$vm)>;
 def : InstAlias<"vmfge.vv $vd, $vs2, $vs1",
-                (VMFLE_VV_um  VR:$vd, VR:$vs1, VR:$vs2, VL)>;
+                (VMFLE_VV_um  VR:$vd, VR:$vs1, VR:$vs2)>;
 def : InstAlias<"vmfge.vv $vd, $vs2, $vs1, $vm",
-                (VMFLE_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VL, VMR:$vm)>;
+                (VMFLE_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VMR:$vm)>;
 
 
 def : InstAlias<"vmcpy.m $vd, $vs2",
-                (VMAND_MM  VR:$vd, VR:$vs2, VR:$vs2, VL)>;
+                (VMAND_MM  VR:$vd, VR:$vs2, VR:$vs2)>;
 def : InstAlias<"vmclr.m $vd",
-                (VMXOR_MM  VR:$vd, VR:$vd, VR:$vd, VL)>;
+                (VMXOR_MM  VR:$vd, VR:$vd, VR:$vd)>;
 def : InstAlias<"vmset.m $vd",
-                (VMXNOR_MM  VR:$vd, VR:$vd, VR:$vd, VL)>;
+                (VMXNOR_MM  VR:$vd, VR:$vd, VR:$vd)>;
 def : InstAlias<"vmnot.m $vd, $vs2",
-                (VMNAND_MM  VR:$vd, VR:$vs2, VR:$vs2, VL)>;
+                (VMNAND_MM  VR:$vd, VR:$vs2, VR:$vs2)>;
 
 }
 
@@ -2272,10 +2277,10 @@ let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
 
 
 class PatVrVr<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode VR:$rs1, VR:$rs2, VLR:$vl), (Inst VR:$rs1, VR:$rs2, VLR:$vl)>;
+    : Pat<(OpNode VR:$rs1, VR:$rs2), (Inst VR:$rs1, VR:$rs2)>;
 
 class PatVrIm<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode VR:$rs1, (RISCVBROADCAST simm5:$imm), VLR:$vl), (Inst VR:$rs1, simm5:$imm, VLR:$vl)>; 
+    : Pat<(OpNode VR:$rs1, (RISCVBROADCAST simm5:$imm)), (Inst VR:$rs1, simm5:$imm)>; 
 
 def : PatVrVr<int_riscv_vadd, VADD_VV_um>;
 def : PatVrVr<int_riscv_vsub, VSUB_VV_um>;
@@ -2288,11 +2293,11 @@ def : PatVrVr<int_riscv_vxor, VXOR_VV_um>;
 */
 
 // TODO exploit immediate offset
-def : Pat<(int_riscv_vlw GPR:$rs1, VLR:$vl),
-          (VLW_V_um GPR:$rs1, VLR:$vl, 0)>;
+def : Pat<(int_riscv_vlw GPR:$rs1),
+          (VLW_V_um GPR:$rs1, 0)>;
 
-def : Pat<(int_riscv_vsw VR:$vs3, GPR:$rs1, VLR:$vl),
-          (VSW_V_um VR:$vs3, GPR:$rs1, VLR:$vl, 0)>;
+def : Pat<(int_riscv_vsw VR:$vs3, GPR:$rs1),
+          (VSW_V_um VR:$vs3, GPR:$rs1, 0)>;
 
 def : Pat<(RISCVSETVL GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
 

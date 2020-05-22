@@ -1,0 +1,1594 @@
+# RUN: llvm-mc -disassemble --triple riscv64 -mattr m,+a,+f,+d,+c,+v < %s | \
+# RUN:         FileCheck %s
+
+# CHECK: vsetvli a0, a1, e8,m1,d1
+[0x57,0xf5,0x05,0x00]
+vsetvli a0, a1, 0
+
+# CHECK: vsetvli a0, a1, e1024,m8,d8
+[0x57,0xf5,0xf5,0x7f]
+vsetvli a0, a1, 0x7ff
+
+# CHECK: vlb.v v0, 0(a1)
+[0x07,0x80,0x05,0x12]
+vlb.v v0, (a1)
+ 
+# CHECK: vlh.v v0, 0(a1)
+[0x07,0xd0,0x05,0x12]
+vlh.v v0, (a1)
+
+# CHECK: vlw.v v0, 0(a1)
+[0x07,0xe0,0x05,0x12]
+vlw.v v0, (a1)
+
+# CHECK: vlbu.v v0, 0(a1)
+[0x07,0x80,0x05,0x02]
+vlbu.v v0, (a1)
+
+# CHECK: vlhu.v v0, 0(a1)
+[0x07,0xd0,0x05,0x02]
+vlhu.v v0, (a1)
+
+# CHECK: vlwu.v v0, 0(a1)
+[0x07,0xe0,0x05,0x02]
+vlwu.v v0, (a1)
+
+# CHECK: vle.v v0, 0(a1)
+[0x07,0xf0,0x05,0x02]
+vle.v v0, (a1)
+
+# CHECK: vsb.v v0, 0(a1)
+[0x27,0x80,0x05,0x02]
+vsb.v v0, (a1)
+
+# CHECK: vsh.v v0, 0(a1)
+[0x27,0xd0,0x05,0x02]
+vsh.v v0, (a1)
+
+# CHECK: vsw.v v0, 0(a1)
+[0x27,0xe0,0x05,0x02]
+vsw.v v0, (a1)
+
+# CHECK: vse.v v0, 0(a1)
+[0x27,0xf0,0x05,0x02]
+vse.v v0, (a1)
+
+# CHECK: vlsb.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0x1a]
+vlsb.v v0, (a1), a2
+ 
+# CHECK: vlsh.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0x1a]
+vlsh.v v0, (a1), a2
+
+# CHECK: vlsw.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0x1a]
+vlsw.v v0, (a1), a2
+
+# CHECK: vlsbu.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0x0a]
+vlsbu.v v0, (a1), a2
+
+# CHECK: vlshu.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0x0a]
+vlshu.v v0, (a1), a2
+
+# CHECK: vlswu.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0x0a]
+vlswu.v v0, (a1), a2
+
+# CHECK: vlse.v v0, 0(a1), a2
+[0x07,0xf0,0xc5,0x0a]
+vlse.v v0, (a1), a2
+
+# CHECK: vssb.v v0, 0(a1), a2
+[0x27,0x80,0xc5,0x0a]
+vssb.v v0, (a1), a2
+
+# CHECK: vssh.v v0, 0(a1), a2
+[0x27,0xd0,0xc5,0x0a]
+vssh.v v0, (a1), a2
+
+# CHECK: vssw.v v0, 0(a1), a2
+[0x27,0xe0,0xc5,0x0a]
+vssw.v v0, (a1), a2
+
+# CHECK: vsse.v v0, 0(a1), a2
+[0x27,0xf0,0xc5,0x0a]
+vsse.v v0, (a1), a2
+
+# CHECK: vlxb.v v0, 0(a1), v2
+[0x07,0x80,0x25,0x1e]
+vlxb.v v0, (a1), v2
+ 
+# CHECK: vlxh.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0x1e]
+vlxh.v v0, (a1), v2
+
+# CHECK: vlxw.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0x1e]
+vlxw.v v0, (a1), v2
+
+# CHECK: vlxbu.v v0, 0(a1), v2
+[0x07,0x80,0x25,0x0e]
+vlxbu.v v0, (a1), v2
+
+# CHECK: vlxhu.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0x0e]
+vlxhu.v v0, (a1), v2
+
+# CHECK: vlxwu.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0x0e]
+vlxwu.v v0, (a1), v2
+
+# CHECK: vlxe.v v0, 0(a1), v2
+[0x07,0xf0,0x25,0x0e]
+vlxe.v v0, (a1), v2
+
+# CHECK: vsxb.v v0, 0(a1), v2
+[0x27,0x80,0x25,0x0e]
+vsxb.v v0, (a1), v2
+
+# CHECK: vsxh.v v0, 0(a1), v2
+[0x27,0xd0,0x25,0x0e]
+vsxh.v v0, (a1), v2
+
+# CHECK: vsxw.v v0, 0(a1), v2
+[0x27,0xe0,0x25,0x0e]
+vsxw.v v0, (a1), v2
+
+# CHECK: vsxe.v v0, 0(a1), v2
+[0x27,0xf0,0x25,0x0e]
+vsxe.v v0, (a1), v2
+
+# CHECK: vsuxb.v v0, 0(a1), v2
+[0x27,0x80,0x25,0x1e]
+vsuxb.v v0, (a1), v2
+
+# CHECK: vsuxh.v v0, 0(a1), v2
+[0x27,0xd0,0x25,0x1e]
+vsuxh.v v0, (a1), v2
+
+# CHECK: vsuxw.v v0, 0(a1), v2
+[0x27,0xe0,0x25,0x1e]
+vsuxw.v v0, (a1), v2
+
+# CHECK: vsuxe.v v0, 0(a1), v2
+[0x27,0xf0,0x25,0x1e]
+vsuxe.v v0, (a1), v2
+
+# CHECK: vlbff.v v0, 0(a1)
+[0x07,0x80,0x05,0x13]
+vlbff.v v0, (a1)
+ 
+# CHECK: vlhff.v v0, 0(a1)
+[0x07,0xd0,0x05,0x13]
+vlhff.v v0, (a1)
+
+# CHECK: vlwff.v v0, 0(a1)
+[0x07,0xe0,0x05,0x13]
+vlwff.v v0, (a1)
+
+# CHECK: vlbuff.v v0, 0(a1)
+[0x07,0x80,0x05,0x03]
+vlbuff.v v0, (a1)
+
+# CHECK: vlhuff.v v0, 0(a1)
+[0x07,0xd0,0x05,0x03]
+vlhuff.v v0, (a1)
+
+# CHECK: vlwuff.v v0, 0(a1)
+[0x07,0xe0,0x05,0x03]
+vlwuff.v v0, (a1)
+
+# CHECK: vleff.v v0, 0(a1)
+[0x07,0xf0,0x05,0x03]
+vleff.v v0, (a1)
+
+# CHECK: vlseg2b.v v0, 0(a1)
+[0x07,0x80,0x05,0x32]
+vlseg2b.v v0, (a1)
+
+# CHECK: vlseg2h.v v0, 0(a1)
+[0x07,0xd0,0x05,0x32]
+vlseg2h.v v0, (a1)
+
+# CHECK: vlseg2w.v v0, 0(a1)
+[0x07,0xe0,0x05,0x32]
+vlseg2w.v v0, (a1)
+
+# CHECK: vlseg2bu.v v0, 0(a1)
+[0x07,0x80,0x05,0x22]
+vlseg2bu.v v0, (a1)
+
+# CHECK: vlseg2hu.v v0, 0(a1)
+[0x07,0xd0,0x05,0x22]
+vlseg2hu.v v0, (a1)
+
+# CHECK: vlseg2wu.v v0, 0(a1)
+[0x07,0xe0,0x05,0x22]
+vlseg2wu.v v0, (a1)
+
+# CHECK: vlseg2e.v v0, 0(a1)
+[0x07,0xf0,0x05,0x22]
+vlseg2e.v v0, (a1)
+
+# CHECK: vsseg2b.v v0, 0(a1)
+[0x27,0x80,0x05,0x22]
+vsseg2b.v v0, (a1)
+
+# CHECK: vsseg2h.v v0, 0(a1)
+[0x27,0xd0,0x05,0x22]
+vsseg2h.v v0, (a1)
+
+# CHECK: vsseg2w.v v0, 0(a1)
+[0x27,0xe0,0x05,0x22]
+vsseg2w.v v0, (a1)
+
+# CHECK: vsseg2e.v v0, 0(a1)
+[0x27,0xf0,0x05,0x22]
+vsseg2e.v v0, (a1)
+
+# CHECK: vlseg3b.v v0, 0(a1)
+[0x07,0x80,0x05,0x52]
+vlseg3b.v v0, (a1)
+
+# CHECK: vlseg3h.v v0, 0(a1)
+[0x07,0xd0,0x05,0x52]
+vlseg3h.v v0, (a1)
+
+# CHECK: vlseg3w.v v0, 0(a1)
+[0x07,0xe0,0x05,0x52]
+vlseg3w.v v0, (a1)
+
+# CHECK: vlseg3bu.v v0, 0(a1)
+[0x07,0x80,0x05,0x42]
+vlseg3bu.v v0, (a1)
+
+# CHECK: vlseg3hu.v v0, 0(a1)
+[0x07,0xd0,0x05,0x42]
+vlseg3hu.v v0, (a1)
+
+# CHECK: vlseg3wu.v v0, 0(a1)
+[0x07,0xe0,0x05,0x42]
+vlseg3wu.v v0, (a1)
+
+# CHECK: vlseg3e.v v0, 0(a1)
+[0x07,0xf0,0x05,0x42]
+vlseg3e.v v0, (a1)
+
+# CHECK: vsseg3b.v v0, 0(a1)
+[0x27,0x80,0x05,0x42]
+vsseg3b.v v0, (a1)
+
+# CHECK: vsseg3h.v v0, 0(a1)
+[0x27,0xd0,0x05,0x42]
+vsseg3h.v v0, (a1)
+
+# CHECK: vsseg3w.v v0, 0(a1)
+[0x27,0xe0,0x05,0x42]
+vsseg3w.v v0, (a1)
+
+# CHECK: vsseg3e.v v0, 0(a1)
+[0x27,0xf0,0x05,0x42]
+vsseg3e.v v0, (a1)
+
+# CHECK: vlseg4b.v v0, 0(a1)
+[0x07,0x80,0x05,0x72]
+vlseg4b.v v0, (a1)
+
+# CHECK: vlseg4h.v v0, 0(a1)
+[0x07,0xd0,0x05,0x72]
+vlseg4h.v v0, (a1)
+
+# CHECK: vlseg4w.v v0, 0(a1)
+[0x07,0xe0,0x05,0x72]
+vlseg4w.v v0, (a1)
+
+# CHECK: vlseg4bu.v v0, 0(a1)
+[0x07,0x80,0x05,0x62]
+vlseg4bu.v v0, (a1)
+
+# CHECK: vlseg4hu.v v0, 0(a1)
+[0x07,0xd0,0x05,0x62]
+vlseg4hu.v v0, (a1)
+
+# CHECK: vlseg4wu.v v0, 0(a1)
+[0x07,0xe0,0x05,0x62]
+vlseg4wu.v v0, (a1)
+
+# CHECK: vlseg4e.v v0, 0(a1)
+[0x07,0xf0,0x05,0x62]
+vlseg4e.v v0, (a1)
+
+# CHECK: vsseg4b.v v0, 0(a1)
+[0x27,0x80,0x05,0x62]
+vsseg4b.v v0, (a1)
+
+# CHECK: vsseg4h.v v0, 0(a1)
+[0x27,0xd0,0x05,0x62]
+vsseg4h.v v0, (a1)
+
+# CHECK: vsseg4w.v v0, 0(a1)
+[0x27,0xe0,0x05,0x62]
+vsseg4w.v v0, (a1)
+
+# CHECK: vsseg4e.v v0, 0(a1)
+[0x27,0xf0,0x05,0x62]
+vsseg4e.v v0, (a1)
+
+# CHECK: vlseg5b.v v0, 0(a1)
+[0x07,0x80,0x05,0x92]
+vlseg5b.v v0, (a1)
+
+# CHECK: vlseg5h.v v0, 0(a1)
+[0x07,0xd0,0x05,0x92]
+vlseg5h.v v0, (a1)
+
+# CHECK: vlseg5w.v v0, 0(a1)
+[0x07,0xe0,0x05,0x92]
+vlseg5w.v v0, (a1)
+
+# CHECK: vlseg5bu.v v0, 0(a1)
+[0x07,0x80,0x05,0x82]
+vlseg5bu.v v0, (a1)
+
+# CHECK: vlseg5hu.v v0, 0(a1)
+[0x07,0xd0,0x05,0x82]
+vlseg5hu.v v0, (a1)
+
+# CHECK: vlseg5wu.v v0, 0(a1)
+[0x07,0xe0,0x05,0x82]
+vlseg5wu.v v0, (a1)
+
+# CHECK: vlseg5e.v v0, 0(a1)
+[0x07,0xf0,0x05,0x82]
+vlseg5e.v v0, (a1)
+
+# CHECK: vsseg5b.v v0, 0(a1)
+[0x27,0x80,0x05,0x82]
+vsseg5b.v v0, (a1)
+
+# CHECK: vsseg5h.v v0, 0(a1)
+[0x27,0xd0,0x05,0x82]
+vsseg5h.v v0, (a1)
+
+# CHECK: vsseg5w.v v0, 0(a1)
+[0x27,0xe0,0x05,0x82]
+vsseg5w.v v0, (a1)
+
+# CHECK: vsseg5e.v v0, 0(a1)
+[0x27,0xf0,0x05,0x82]
+vsseg5e.v v0, (a1)
+
+# CHECK: vlseg6b.v v0, 0(a1)
+[0x07,0x80,0x05,0xb2]
+vlseg6b.v v0, (a1)
+
+# CHECK: vlseg6h.v v0, 0(a1)
+[0x07,0xd0,0x05,0xb2]
+vlseg6h.v v0, (a1)
+
+# CHECK: vlseg6w.v v0, 0(a1)
+[0x07,0xe0,0x05,0xb2]
+vlseg6w.v v0, (a1)
+
+# CHECK: vlseg6bu.v v0, 0(a1)
+[0x07,0x80,0x05,0xa2]
+vlseg6bu.v v0, (a1)
+
+# CHECK: vlseg6hu.v v0, 0(a1)
+[0x07,0xd0,0x05,0xa2]
+vlseg6hu.v v0, (a1)
+
+# CHECK: vlseg6wu.v v0, 0(a1)
+[0x07,0xe0,0x05,0xa2]
+vlseg6wu.v v0, (a1)
+
+# CHECK: vlseg6e.v v0, 0(a1)
+[0x07,0xf0,0x05,0xa2]
+vlseg6e.v v0, (a1)
+
+# CHECK: vsseg6b.v v0, 0(a1)
+[0x27,0x80,0x05,0xa2]
+vsseg6b.v v0, (a1)
+
+# CHECK: vsseg6h.v v0, 0(a1)
+[0x27,0xd0,0x05,0xa2]
+vsseg6h.v v0, (a1)
+
+# CHECK: vsseg6w.v v0, 0(a1)
+[0x27,0xe0,0x05,0xa2]
+vsseg6w.v v0, (a1)
+
+# CHECK: vsseg6e.v v0, 0(a1)
+[0x27,0xf0,0x05,0xa2]
+vsseg6e.v v0, (a1)
+
+# CHECK: vlseg7b.v v0, 0(a1)
+[0x07,0x80,0x05,0xd2]
+vlseg7b.v v0, (a1)
+
+# CHECK: vlseg7h.v v0, 0(a1)
+[0x07,0xd0,0x05,0xd2]
+vlseg7h.v v0, (a1)
+
+# CHECK: vlseg7w.v v0, 0(a1)
+[0x07,0xe0,0x05,0xd2]
+vlseg7w.v v0, (a1)
+
+# CHECK: vlseg7bu.v v0, 0(a1)
+[0x07,0x80,0x05,0xc2]
+vlseg7bu.v v0, (a1)
+
+# CHECK: vlseg7hu.v v0, 0(a1)
+[0x07,0xd0,0x05,0xc2]
+vlseg7hu.v v0, (a1)
+
+# CHECK: vlseg7wu.v v0, 0(a1)
+[0x07,0xe0,0x05,0xc2]
+vlseg7wu.v v0, (a1)
+
+# CHECK: vlseg7e.v v0, 0(a1)
+[0x07,0xf0,0x05,0xc2]
+vlseg7e.v v0, (a1)
+
+# CHECK: vsseg7b.v v0, 0(a1)
+[0x27,0x80,0x05,0xc2]
+vsseg7b.v v0, (a1)
+
+# CHECK: vsseg7h.v v0, 0(a1)
+[0x27,0xd0,0x05,0xc2]
+vsseg7h.v v0, (a1)
+
+# CHECK: vsseg7w.v v0, 0(a1)
+[0x27,0xe0,0x05,0xc2]
+vsseg7w.v v0, (a1)
+
+# CHECK: vsseg7e.v v0, 0(a1)
+[0x27,0xf0,0x05,0xc2]
+vsseg7e.v v0, (a1)
+
+# CHECK: vlseg8b.v v0, 0(a1)
+[0x07,0x80,0x05,0xf2]
+vlseg8b.v v0, (a1)
+
+# CHECK: vlseg8h.v v0, 0(a1)
+[0x07,0xd0,0x05,0xf2]
+vlseg8h.v v0, (a1)
+
+# CHECK: vlseg8w.v v0, 0(a1)
+[0x07,0xe0,0x05,0xf2]
+vlseg8w.v v0, (a1)
+
+# CHECK: vlseg8bu.v v0, 0(a1)
+[0x07,0x80,0x05,0xe2]
+vlseg8bu.v v0, (a1)
+
+# CHECK: vlseg8hu.v v0, 0(a1)
+[0x07,0xd0,0x05,0xe2]
+vlseg8hu.v v0, (a1)
+
+# CHECK: vlseg8wu.v v0, 0(a1)
+[0x07,0xe0,0x05,0xe2]
+vlseg8wu.v v0, (a1)
+
+# CHECK: vlseg8e.v v0, 0(a1)
+[0x07,0xf0,0x05,0xe2]
+vlseg8e.v v0, (a1)
+
+# CHECK: vsseg8b.v v0, 0(a1)
+[0x27,0x80,0x05,0xe2]
+vsseg8b.v v0, (a1)
+
+# CHECK: vsseg8h.v v0, 0(a1)
+[0x27,0xd0,0x05,0xe2]
+vsseg8h.v v0, (a1)
+
+# CHECK: vsseg8w.v v0, 0(a1)
+[0x27,0xe0,0x05,0xe2]
+vsseg8w.v v0, (a1)
+
+# CHECK: vsseg8e.v v0, 0(a1)
+[0x27,0xf0,0x05,0xe2]
+vsseg8e.v v0, (a1)
+
+# CHECK: vlsseg2b.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0x3a]
+vlsseg2b.v v0, (a1), a2
+
+# CHECK: vlsseg2h.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0x3a]
+vlsseg2h.v v0, (a1), a2
+
+# CHECK: vlsseg2w.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0x3a]
+vlsseg2w.v v0, (a1), a2
+
+# CHECK: vlsseg2bu.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0x2a]
+vlsseg2bu.v v0, (a1), a2
+
+# CHECK: vlsseg2hu.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0x2a]
+vlsseg2hu.v v0, (a1), a2
+
+# CHECK: vlsseg2wu.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0x2a]
+vlsseg2wu.v v0, (a1), a2
+
+# CHECK: vlsseg2e.v v0, 0(a1), a2
+[0x07,0xf0,0xc5,0x2a]
+vlsseg2e.v v0, (a1), a2
+
+# CHECK: vssseg2b.v v0, 0(a1), a2
+[0x27,0x80,0xc5,0x2a]
+vssseg2b.v v0, (a1), a2
+
+# CHECK: vssseg2h.v v0, 0(a1), a2
+[0x27,0xd0,0xc5,0x2a]
+vssseg2h.v v0, (a1), a2
+
+# CHECK: vssseg2w.v v0, 0(a1), a2
+[0x27,0xe0,0xc5,0x2a]
+vssseg2w.v v0, (a1), a2
+
+# CHECK: vssseg2e.v v0, 0(a1), a2
+[0x27,0xf0,0xc5,0x2a]
+vssseg2e.v v0, (a1), a2
+
+# CHECK: vlsseg3b.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0x5a]
+vlsseg3b.v v0, (a1), a2
+
+# CHECK: vlsseg3h.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0x5a]
+vlsseg3h.v v0, (a1), a2
+
+# CHECK: vlsseg3w.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0x5a]
+vlsseg3w.v v0, (a1), a2
+
+# CHECK: vlsseg3bu.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0x4a]
+vlsseg3bu.v v0, (a1), a2
+
+# CHECK: vlsseg3hu.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0x4a]
+vlsseg3hu.v v0, (a1), a2
+
+# CHECK: vlsseg3wu.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0x4a]
+vlsseg3wu.v v0, (a1), a2
+
+# CHECK: vlsseg3e.v v0, 0(a1), a2
+[0x07,0xf0,0xc5,0x4a]
+vlsseg3e.v v0, (a1), a2
+
+# CHECK: vssseg3b.v v0, 0(a1), a2
+[0x27,0x80,0xc5,0x4a]
+vssseg3b.v v0, (a1), a2
+
+# CHECK: vssseg3h.v v0, 0(a1), a2
+[0x27,0xd0,0xc5,0x4a]
+vssseg3h.v v0, (a1), a2
+
+# CHECK: vssseg3w.v v0, 0(a1), a2
+[0x27,0xe0,0xc5,0x4a]
+vssseg3w.v v0, (a1), a2
+
+# CHECK: vssseg3e.v v0, 0(a1), a2
+[0x27,0xf0,0xc5,0x4a]
+vssseg3e.v v0, (a1), a2
+
+# CHECK: vlsseg4b.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0x7a]
+vlsseg4b.v v0, (a1), a2
+
+# CHECK: vlsseg4h.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0x7a]
+vlsseg4h.v v0, (a1), a2
+
+# CHECK: vlsseg4w.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0x7a]
+vlsseg4w.v v0, (a1), a2
+
+# CHECK: vlsseg4bu.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0x6a]
+vlsseg4bu.v v0, (a1), a2
+
+# CHECK: vlsseg4hu.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0x6a]
+vlsseg4hu.v v0, (a1), a2
+
+# CHECK: vlsseg4wu.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0x6a]
+vlsseg4wu.v v0, (a1), a2
+
+# CHECK: vlsseg4e.v v0, 0(a1), a2
+[0x07,0xf0,0xc5,0x6a]
+vlsseg4e.v v0, (a1), a2
+
+# CHECK: vssseg4b.v v0, 0(a1), a2
+[0x27,0x80,0xc5,0x6a]
+vssseg4b.v v0, (a1), a2
+
+# CHECK: vssseg4h.v v0, 0(a1), a2
+[0x27,0xd0,0xc5,0x6a]
+vssseg4h.v v0, (a1), a2
+
+# CHECK: vssseg4w.v v0, 0(a1), a2
+[0x27,0xe0,0xc5,0x6a]
+vssseg4w.v v0, (a1), a2
+
+# CHECK: vssseg4e.v v0, 0(a1), a2
+[0x27,0xf0,0xc5,0x6a]
+vssseg4e.v v0, (a1), a2
+
+# CHECK: vlsseg5b.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0x9a]
+vlsseg5b.v v0, (a1), a2
+
+# CHECK: vlsseg5h.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0x9a]
+vlsseg5h.v v0, (a1), a2
+
+# CHECK: vlsseg5w.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0x9a]
+vlsseg5w.v v0, (a1), a2
+
+# CHECK: vlsseg5bu.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0x8a]
+vlsseg5bu.v v0, (a1), a2
+
+# CHECK: vlsseg5hu.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0x8a]
+vlsseg5hu.v v0, (a1), a2
+
+# CHECK: vlsseg5wu.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0x8a]
+vlsseg5wu.v v0, (a1), a2
+
+# CHECK: vlsseg5e.v v0, 0(a1), a2
+[0x07,0xf0,0xc5,0x8a]
+vlsseg5e.v v0, (a1), a2
+
+# CHECK: vssseg5b.v v0, 0(a1), a2
+[0x27,0x80,0xc5,0x8a]
+vssseg5b.v v0, (a1), a2
+
+# CHECK: vssseg5h.v v0, 0(a1), a2
+[0x27,0xd0,0xc5,0x8a]
+vssseg5h.v v0, (a1), a2
+
+# CHECK: vssseg5w.v v0, 0(a1), a2
+[0x27,0xe0,0xc5,0x8a]
+vssseg5w.v v0, (a1), a2
+
+# CHECK: vssseg5e.v v0, 0(a1), a2
+[0x27,0xf0,0xc5,0x8a]
+vssseg5e.v v0, (a1), a2
+
+# CHECK: vlsseg6b.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0xba]
+vlsseg6b.v v0, (a1), a2
+
+# CHECK: vlsseg6h.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0xba]
+vlsseg6h.v v0, (a1), a2
+
+# CHECK: vlsseg6w.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0xba]
+vlsseg6w.v v0, (a1), a2
+
+# CHECK: vlsseg6bu.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0xaa]
+vlsseg6bu.v v0, (a1), a2
+
+# CHECK: vlsseg6hu.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0xaa]
+vlsseg6hu.v v0, (a1), a2
+
+# CHECK: vlsseg6wu.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0xaa]
+vlsseg6wu.v v0, (a1), a2
+
+# CHECK: vlsseg6e.v v0, 0(a1), a2
+[0x07,0xf0,0xc5,0xaa]
+vlsseg6e.v v0, (a1), a2
+
+# CHECK: vssseg6b.v v0, 0(a1), a2
+[0x27,0x80,0xc5,0xaa]
+vssseg6b.v v0, (a1), a2
+
+# CHECK: vssseg6h.v v0, 0(a1), a2
+[0x27,0xd0,0xc5,0xaa]
+vssseg6h.v v0, (a1), a2
+
+# CHECK: vssseg6w.v v0, 0(a1), a2
+[0x27,0xe0,0xc5,0xaa]
+vssseg6w.v v0, (a1), a2
+
+# CHECK: vssseg6e.v v0, 0(a1), a2
+[0x27,0xf0,0xc5,0xaa]
+vssseg6e.v v0, (a1), a2
+
+# CHECK: vlsseg7b.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0xda]
+vlsseg7b.v v0, (a1), a2
+
+# CHECK: vlsseg7h.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0xda]
+vlsseg7h.v v0, (a1), a2
+
+# CHECK: vlsseg7w.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0xda]
+vlsseg7w.v v0, (a1), a2
+
+# CHECK: vlsseg7bu.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0xca]
+vlsseg7bu.v v0, (a1), a2
+
+# CHECK: vlsseg7hu.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0xca]
+vlsseg7hu.v v0, (a1), a2
+
+# CHECK: vlsseg7wu.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0xca]
+vlsseg7wu.v v0, (a1), a2
+
+# CHECK: vlsseg7e.v v0, 0(a1), a2
+[0x07,0xf0,0xc5,0xca]
+vlsseg7e.v v0, (a1), a2
+
+# CHECK: vssseg7b.v v0, 0(a1), a2
+[0x27,0x80,0xc5,0xca]
+vssseg7b.v v0, (a1), a2
+
+# CHECK: vssseg7h.v v0, 0(a1), a2
+[0x27,0xd0,0xc5,0xca]
+vssseg7h.v v0, (a1), a2
+
+# CHECK: vssseg7w.v v0, 0(a1), a2
+[0x27,0xe0,0xc5,0xca]
+vssseg7w.v v0, (a1), a2
+
+# CHECK: vssseg7e.v v0, 0(a1), a2
+[0x27,0xf0,0xc5,0xca]
+vssseg7e.v v0, (a1), a2
+
+# CHECK: vlsseg8b.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0xfa]
+vlsseg8b.v v0, (a1), a2
+
+# CHECK: vlsseg8h.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0xfa]
+vlsseg8h.v v0, (a1), a2
+
+# CHECK: vlsseg8w.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0xfa]
+vlsseg8w.v v0, (a1), a2
+
+# CHECK: vlsseg8bu.v v0, 0(a1), a2
+[0x07,0x80,0xc5,0xea]
+vlsseg8bu.v v0, (a1), a2
+
+# CHECK: vlsseg8hu.v v0, 0(a1), a2
+[0x07,0xd0,0xc5,0xea]
+vlsseg8hu.v v0, (a1), a2
+
+# CHECK: vlsseg8wu.v v0, 0(a1), a2
+[0x07,0xe0,0xc5,0xea]
+vlsseg8wu.v v0, (a1), a2
+
+# CHECK: vlsseg8e.v v0, 0(a1), a2
+[0x07,0xf0,0xc5,0xea]
+vlsseg8e.v v0, (a1), a2
+
+# CHECK: vssseg8b.v v0, 0(a1), a2
+[0x27,0x80,0xc5,0xea]
+vssseg8b.v v0, (a1), a2
+
+# CHECK: vssseg8h.v v0, 0(a1), a2
+[0x27,0xd0,0xc5,0xea]
+vssseg8h.v v0, (a1), a2
+
+# CHECK: vssseg8w.v v0, 0(a1), a2
+[0x27,0xe0,0xc5,0xea]
+vssseg8w.v v0, (a1), a2
+
+# CHECK: vssseg8e.v v0, 0(a1), a2
+[0x27,0xf0,0xc5,0xea]
+vssseg8e.v v0, (a1), a2
+
+# CHECK: vlxseg2b.v v0, 0(a1), v2
+[0x07,0x80,0x25,0x3e]
+vlxseg2b.v v0, (a1), v2
+
+# CHECK: vlxseg2h.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0x3e]
+vlxseg2h.v v0, (a1), v2
+
+# CHECK: vlxseg2w.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0x3e]
+vlxseg2w.v v0, (a1), v2
+
+# CHECK: vlxseg2bu.v v0, 0(a1), v2
+[0x07,0x80,0x25,0x2e]
+vlxseg2bu.v v0, (a1), v2
+
+# CHECK: vlxseg2hu.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0x2e]
+vlxseg2hu.v v0, (a1), v2
+
+# CHECK: vlxseg2wu.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0x2e]
+vlxseg2wu.v v0, (a1), v2
+
+# CHECK: vlxseg2e.v v0, 0(a1), v2
+[0x07,0xf0,0x25,0x2e]
+vlxseg2e.v v0, (a1), v2
+
+# CHECK: vsxseg2b.v v0, 0(a1), v2
+[0x27,0x80,0x25,0x2e]
+vsxseg2b.v v0, (a1), v2
+
+# CHECK: vsxseg2h.v v0, 0(a1), v2
+[0x27,0xd0,0x25,0x2e]
+vsxseg2h.v v0, (a1), v2
+
+# CHECK: vsxseg2w.v v0, 0(a1), v2
+[0x27,0xe0,0x25,0x2e]
+vsxseg2w.v v0, (a1), v2
+
+# CHECK: vsxseg2e.v v0, 0(a1), v2
+[0x27,0xf0,0x25,0x2e]
+vsxseg2e.v v0, (a1), v2
+
+# CHECK: vlxseg3b.v v0, 0(a1), v2
+[0x07,0x80,0x25,0x5e]
+vlxseg3b.v v0, (a1), v2
+
+# CHECK: vlxseg3h.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0x5e]
+vlxseg3h.v v0, (a1), v2
+
+# CHECK: vlxseg3w.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0x5e]
+vlxseg3w.v v0, (a1), v2
+
+# CHECK: vlxseg3bu.v v0, 0(a1), v2
+[0x07,0x80,0x25,0x4e]
+vlxseg3bu.v v0, (a1), v2
+
+# CHECK: vlxseg3hu.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0x4e]
+vlxseg3hu.v v0, (a1), v2
+
+# CHECK: vlxseg3wu.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0x4e]
+vlxseg3wu.v v0, (a1), v2
+
+# CHECK: vlxseg3e.v v0, 0(a1), v2
+[0x07,0xf0,0x25,0x4e]
+vlxseg3e.v v0, (a1), v2
+
+# CHECK: vsxseg3b.v v0, 0(a1), v2
+[0x27,0x80,0x25,0x4e]
+vsxseg3b.v v0, (a1), v2
+
+# CHECK: vsxseg3h.v v0, 0(a1), v2
+[0x27,0xd0,0x25,0x4e]
+vsxseg3h.v v0, (a1), v2
+
+# CHECK: vsxseg3w.v v0, 0(a1), v2
+[0x27,0xe0,0x25,0x4e]
+vsxseg3w.v v0, (a1), v2
+
+# CHECK: vsxseg3e.v v0, 0(a1), v2
+[0x27,0xf0,0x25,0x4e]
+vsxseg3e.v v0, (a1), v2
+
+# CHECK: vlxseg4b.v v0, 0(a1), v2
+[0x07,0x80,0x25,0x7e]
+vlxseg4b.v v0, (a1), v2
+
+# CHECK: vlxseg4h.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0x7e]
+vlxseg4h.v v0, (a1), v2
+
+# CHECK: vlxseg4w.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0x7e]
+vlxseg4w.v v0, (a1), v2
+
+# CHECK: vlxseg4bu.v v0, 0(a1), v2
+[0x07,0x80,0x25,0x6e]
+vlxseg4bu.v v0, (a1), v2
+
+# CHECK: vlxseg4hu.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0x6e]
+vlxseg4hu.v v0, (a1), v2
+
+# CHECK: vlxseg4wu.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0x6e]
+vlxseg4wu.v v0, (a1), v2
+
+# CHECK: vlxseg4e.v v0, 0(a1), v2
+[0x07,0xf0,0x25,0x6e]
+vlxseg4e.v v0, (a1), v2
+
+# CHECK: vsxseg4b.v v0, 0(a1), v2
+[0x27,0x80,0x25,0x6e]
+vsxseg4b.v v0, (a1), v2
+
+# CHECK: vsxseg4h.v v0, 0(a1), v2
+[0x27,0xd0,0x25,0x6e]
+vsxseg4h.v v0, (a1), v2
+
+# CHECK: vsxseg4w.v v0, 0(a1), v2
+[0x27,0xe0,0x25,0x6e]
+vsxseg4w.v v0, (a1), v2
+
+# CHECK: vsxseg4e.v v0, 0(a1), v2
+[0x27,0xf0,0x25,0x6e]
+vsxseg4e.v v0, (a1), v2
+
+# CHECK: vlxseg5b.v v0, 0(a1), v2
+[0x07,0x80,0x25,0x9e]
+vlxseg5b.v v0, (a1), v2
+
+# CHECK: vlxseg5h.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0x9e]
+vlxseg5h.v v0, (a1), v2
+
+# CHECK: vlxseg5w.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0x9e]
+vlxseg5w.v v0, (a1), v2
+
+# CHECK: vlxseg5bu.v v0, 0(a1), v2
+[0x07,0x80,0x25,0x8e]
+vlxseg5bu.v v0, (a1), v2
+
+# CHECK: vlxseg5hu.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0x8e]
+vlxseg5hu.v v0, (a1), v2
+
+# CHECK: vlxseg5wu.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0x8e]
+vlxseg5wu.v v0, (a1), v2
+
+# CHECK: vlxseg5e.v v0, 0(a1), v2
+[0x07,0xf0,0x25,0x8e]
+vlxseg5e.v v0, (a1), v2
+
+# CHECK: vsxseg5b.v v0, 0(a1), v2
+[0x27,0x80,0x25,0x8e]
+vsxseg5b.v v0, (a1), v2
+
+# CHECK: vsxseg5h.v v0, 0(a1), v2
+[0x27,0xd0,0x25,0x8e]
+vsxseg5h.v v0, (a1), v2
+
+# CHECK: vsxseg5w.v v0, 0(a1), v2
+[0x27,0xe0,0x25,0x8e]
+vsxseg5w.v v0, (a1), v2
+
+# CHECK: vsxseg5e.v v0, 0(a1), v2
+[0x27,0xf0,0x25,0x8e]
+vsxseg5e.v v0, (a1), v2
+
+# CHECK: vlxseg6b.v v0, 0(a1), v2
+[0x07,0x80,0x25,0xbe]
+vlxseg6b.v v0, (a1), v2
+
+# CHECK: vlxseg6h.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0xbe]
+vlxseg6h.v v0, (a1), v2
+
+# CHECK: vlxseg6w.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0xbe]
+vlxseg6w.v v0, (a1), v2
+
+# CHECK: vlxseg6bu.v v0, 0(a1), v2
+[0x07,0x80,0x25,0xae]
+vlxseg6bu.v v0, (a1), v2
+
+# CHECK: vlxseg6hu.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0xae]
+vlxseg6hu.v v0, (a1), v2
+
+# CHECK: vlxseg6wu.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0xae]
+vlxseg6wu.v v0, (a1), v2
+
+# CHECK: vlxseg6e.v v0, 0(a1), v2
+[0x07,0xf0,0x25,0xae]
+vlxseg6e.v v0, (a1), v2
+
+# CHECK: vsxseg6b.v v0, 0(a1), v2
+[0x27,0x80,0x25,0xae]
+vsxseg6b.v v0, (a1), v2
+
+# CHECK: vsxseg6h.v v0, 0(a1), v2
+[0x27,0xd0,0x25,0xae]
+vsxseg6h.v v0, (a1), v2
+
+# CHECK: vsxseg6w.v v0, 0(a1), v2
+[0x27,0xe0,0x25,0xae]
+vsxseg6w.v v0, (a1), v2
+
+# CHECK: vsxseg6e.v v0, 0(a1), v2
+[0x27,0xf0,0x25,0xae]
+vsxseg6e.v v0, (a1), v2
+
+# CHECK: vlxseg7b.v v0, 0(a1), v2
+[0x07,0x80,0x25,0xde]
+vlxseg7b.v v0, (a1), v2
+
+# CHECK: vlxseg7h.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0xde]
+vlxseg7h.v v0, (a1), v2
+
+# CHECK: vlxseg7w.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0xde]
+vlxseg7w.v v0, (a1), v2
+
+# CHECK: vlxseg7bu.v v0, 0(a1), v2
+[0x07,0x80,0x25,0xce]
+vlxseg7bu.v v0, (a1), v2
+
+# CHECK: vlxseg7hu.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0xce]
+vlxseg7hu.v v0, (a1), v2
+
+# CHECK: vlxseg7wu.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0xce]
+vlxseg7wu.v v0, (a1), v2
+
+# CHECK: vlxseg7e.v v0, 0(a1), v2
+[0x07,0xf0,0x25,0xce]
+vlxseg7e.v v0, (a1), v2
+
+# CHECK: vsxseg7b.v v0, 0(a1), v2
+[0x27,0x80,0x25,0xce]
+vsxseg7b.v v0, (a1), v2
+
+# CHECK: vsxseg7h.v v0, 0(a1), v2
+[0x27,0xd0,0x25,0xce]
+vsxseg7h.v v0, (a1), v2
+
+# CHECK: vsxseg7w.v v0, 0(a1), v2
+[0x27,0xe0,0x25,0xce]
+vsxseg7w.v v0, (a1), v2
+
+# CHECK: vsxseg7e.v v0, 0(a1), v2
+[0x27,0xf0,0x25,0xce]
+vsxseg7e.v v0, (a1), v2
+
+# CHECK: vlxseg8b.v v0, 0(a1), v2
+[0x07,0x80,0x25,0xfe]
+vlxseg8b.v v0, (a1), v2
+
+# CHECK: vlxseg8h.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0xfe]
+vlxseg8h.v v0, (a1), v2
+
+# CHECK: vlxseg8w.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0xfe]
+vlxseg8w.v v0, (a1), v2
+
+# CHECK: vlxseg8bu.v v0, 0(a1), v2
+[0x07,0x80,0x25,0xee]
+vlxseg8bu.v v0, (a1), v2
+
+# CHECK: vlxseg8hu.v v0, 0(a1), v2
+[0x07,0xd0,0x25,0xee]
+vlxseg8hu.v v0, (a1), v2
+
+# CHECK: vlxseg8wu.v v0, 0(a1), v2
+[0x07,0xe0,0x25,0xee]
+vlxseg8wu.v v0, (a1), v2
+
+# CHECK: vlxseg8e.v v0, 0(a1), v2
+[0x07,0xf0,0x25,0xee]
+vlxseg8e.v v0, (a1), v2
+
+# CHECK: vsxseg8b.v v0, 0(a1), v2
+[0x27,0x80,0x25,0xee]
+vsxseg8b.v v0, (a1), v2
+
+# CHECK: vsxseg8h.v v0, 0(a1), v2
+[0x27,0xd0,0x25,0xee]
+vsxseg8h.v v0, (a1), v2
+
+# CHECK: vsxseg8w.v v0, 0(a1), v2
+[0x27,0xe0,0x25,0xee]
+vsxseg8w.v v0, (a1), v2
+
+# CHECK: vsxseg8e.v v0, 0(a1), v2
+[0x27,0xf0,0x25,0xee]
+vsxseg8e.v v0, (a1), v2
+
+# CHECK: vlseg2bff.v v0, 0(a1)
+[0x07,0x80,0x05,0x33]
+vlseg2bff.v v0, (a1)
+
+# CHECK: vlseg2hff.v v0, 0(a1)
+[0x07,0xd0,0x05,0x33]
+vlseg2hff.v v0, (a1)
+
+# CHECK: vlseg2wff.v v0, 0(a1)
+[0x07,0xe0,0x05,0x33]
+vlseg2wff.v v0, (a1)
+
+# CHECK: vlseg2buff.v v0, 0(a1)
+[0x07,0x80,0x05,0x23]
+vlseg2buff.v v0, (a1)
+
+# CHECK: vlseg2huff.v v0, 0(a1)
+[0x07,0xd0,0x05,0x23]
+vlseg2huff.v v0, (a1)
+
+# CHECK: vlseg2wuff.v v0, 0(a1)
+[0x07,0xe0,0x05,0x23]
+vlseg2wuff.v v0, (a1)
+
+# CHECK: vlseg2eff.v v0, 0(a1)
+[0x07,0xf0,0x05,0x23]
+vlseg2eff.v v0, (a1)
+
+# CHECK: vlseg3bff.v v0, 0(a1)
+[0x07,0x80,0x05,0x53]
+vlseg3bff.v v0, (a1)
+
+# CHECK: vlseg3hff.v v0, 0(a1)
+[0x07,0xd0,0x05,0x53]
+vlseg3hff.v v0, (a1)
+
+# CHECK: vlseg3wff.v v0, 0(a1)
+[0x07,0xe0,0x05,0x53]
+vlseg3wff.v v0, (a1)
+
+# CHECK: vlseg3buff.v v0, 0(a1)
+[0x07,0x80,0x05,0x43]
+vlseg3buff.v v0, (a1)
+
+# CHECK: vlseg3huff.v v0, 0(a1)
+[0x07,0xd0,0x05,0x43]
+vlseg3huff.v v0, (a1)
+
+# CHECK: vlseg3wuff.v v0, 0(a1)
+[0x07,0xe0,0x05,0x43]
+vlseg3wuff.v v0, (a1)
+
+# CHECK: vlseg3eff.v v0, 0(a1)
+[0x07,0xf0,0x05,0x43]
+vlseg3eff.v v0, (a1)
+
+# CHECK: vlseg4bff.v v0, 0(a1)
+[0x07,0x80,0x05,0x73]
+vlseg4bff.v v0, (a1)
+
+# CHECK: vlseg4hff.v v0, 0(a1)
+[0x07,0xd0,0x05,0x73]
+vlseg4hff.v v0, (a1)
+
+# CHECK: vlseg4wff.v v0, 0(a1)
+[0x07,0xe0,0x05,0x73]
+vlseg4wff.v v0, (a1)
+
+# CHECK: vlseg4buff.v v0, 0(a1)
+[0x07,0x80,0x05,0x63]
+vlseg4buff.v v0, (a1)
+
+# CHECK: vlseg4huff.v v0, 0(a1)
+[0x07,0xd0,0x05,0x63]
+vlseg4huff.v v0, (a1)
+
+# CHECK: vlseg4wuff.v v0, 0(a1)
+[0x07,0xe0,0x05,0x63]
+vlseg4wuff.v v0, (a1)
+
+# CHECK: vlseg4eff.v v0, 0(a1)
+[0x07,0xf0,0x05,0x63]
+vlseg4eff.v v0, (a1)
+
+# CHECK: vlseg5bff.v v0, 0(a1)
+[0x07,0x80,0x05,0x93]
+vlseg5bff.v v0, (a1)
+
+# CHECK: vlseg5hff.v v0, 0(a1)
+[0x07,0xd0,0x05,0x93]
+vlseg5hff.v v0, (a1)
+
+# CHECK: vlseg5wff.v v0, 0(a1)
+[0x07,0xe0,0x05,0x93]
+vlseg5wff.v v0, (a1)
+
+# CHECK: vlseg5buff.v v0, 0(a1)
+[0x07,0x80,0x05,0x83]
+vlseg5buff.v v0, (a1)
+
+# CHECK: vlseg5huff.v v0, 0(a1)
+[0x07,0xd0,0x05,0x83]
+vlseg5huff.v v0, (a1)
+
+# CHECK: vlseg5wuff.v v0, 0(a1)
+[0x07,0xe0,0x05,0x83]
+vlseg5wuff.v v0, (a1)
+
+# CHECK: vlseg5eff.v v0, 0(a1)
+[0x07,0xf0,0x05,0x83]
+vlseg5eff.v v0, (a1)
+
+# CHECK: vlseg6bff.v v0, 0(a1)
+[0x07,0x80,0x05,0xb3]
+vlseg6bff.v v0, (a1)
+
+# CHECK: vlseg6hff.v v0, 0(a1)
+[0x07,0xd0,0x05,0xb3]
+vlseg6hff.v v0, (a1)
+
+# CHECK: vlseg6wff.v v0, 0(a1)
+[0x07,0xe0,0x05,0xb3]
+vlseg6wff.v v0, (a1)
+
+# CHECK: vlseg6buff.v v0, 0(a1)
+[0x07,0x80,0x05,0xa3]
+vlseg6buff.v v0, (a1)
+
+# CHECK: vlseg6huff.v v0, 0(a1)
+[0x07,0xd0,0x05,0xa3]
+vlseg6huff.v v0, (a1)
+
+# CHECK: vlseg6wuff.v v0, 0(a1)
+[0x07,0xe0,0x05,0xa3]
+vlseg6wuff.v v0, (a1)
+
+# CHECK: vlseg6eff.v v0, 0(a1)
+[0x07,0xf0,0x05,0xa3]
+vlseg6eff.v v0, (a1)
+
+# CHECK: vlseg7bff.v v0, 0(a1)
+[0x07,0x80,0x05,0xd3]
+vlseg7bff.v v0, (a1)
+
+# CHECK: vlseg7hff.v v0, 0(a1)
+[0x07,0xd0,0x05,0xd3]
+vlseg7hff.v v0, (a1)
+
+# CHECK: vlseg7wff.v v0, 0(a1)
+[0x07,0xe0,0x05,0xd3]
+vlseg7wff.v v0, (a1)
+
+# CHECK: vlseg7buff.v v0, 0(a1)
+[0x07,0x80,0x05,0xc3]
+vlseg7buff.v v0, (a1)
+
+# CHECK: vlseg7huff.v v0, 0(a1)
+[0x07,0xd0,0x05,0xc3]
+vlseg7huff.v v0, (a1)
+
+# CHECK: vlseg7wuff.v v0, 0(a1)
+[0x07,0xe0,0x05,0xc3]
+vlseg7wuff.v v0, (a1)
+
+# CHECK: vlseg7eff.v v0, 0(a1)
+[0x07,0xf0,0x05,0xc3]
+vlseg7eff.v v0, (a1)
+
+# CHECK: vlseg8bff.v v0, 0(a1)
+[0x07,0x80,0x05,0xf3]
+vlseg8bff.v v0, (a1)
+
+# CHECK: vlseg8hff.v v0, 0(a1)
+[0x07,0xd0,0x05,0xf3]
+vlseg8hff.v v0, (a1)
+
+# CHECK: vlseg8wff.v v0, 0(a1)
+[0x07,0xe0,0x05,0xf3]
+vlseg8wff.v v0, (a1)
+
+# CHECK: vlseg8buff.v v0, 0(a1)
+[0x07,0x80,0x05,0xe3]
+vlseg8buff.v v0, (a1)
+
+# CHECK: vlseg8huff.v v0, 0(a1)
+[0x07,0xd0,0x05,0xe3]
+vlseg8huff.v v0, (a1)
+
+# CHECK: vlseg8wuff.v v0, 0(a1)
+[0x07,0xe0,0x05,0xe3]
+vlseg8wuff.v v0, (a1)
+
+# CHECK: vlseg8eff.v v0, 0(a1)
+[0x07,0xf0,0x05,0xe3]
+vlseg8eff.v v0, (a1)
+
+# CHECK: vl1r.v v3, 0(a1)
+[0x87,0xf1,0x85,0x02]
+vl1r.v v3, (a1)
+
+# CHECK: vs1r.v v3, 0(a1)
+[0xa7,0xf1,0x85,0x02]
+vs1r.v v3, (a1)
+
+# CHECK: vl2r.v v3, 0(a1)
+[0x87,0xf1,0x85,0x22]
+vl2r.v v3, (a1)
+
+# CHECK: vs2r.v v3, 0(a1)
+[0xa7,0xf1,0x85,0x22]
+vs2r.v v3, (a1)
+
+# CHECK: vl3r.v v3, 0(a1)
+[0x87,0xf1,0x85,0x42]
+vl3r.v v3, (a1)
+
+# CHECK: vs3r.v v3, 0(a1)
+[0xa7,0xf1,0x85,0x42]
+vs3r.v v3, (a1)
+
+# CHECK: vl4r.v v3, 0(a1)
+[0x87,0xf1,0x85,0x62]
+vl4r.v v3, (a1)
+
+# CHECK: vs4r.v v3, 0(a1)
+[0xa7,0xf1,0x85,0x62]
+vs4r.v v3, (a1)
+
+# CHECK: vl5r.v v3, 0(a1)
+[0x87,0xf1,0x85,0x82]
+vl5r.v v3, (a1)
+
+# CHECK: vs5r.v v3, 0(a1)
+[0xa7,0xf1,0x85,0x82]
+vs5r.v v3, (a1)
+
+# CHECK: vl6r.v v3, 0(a1)
+[0x87,0xf1,0x85,0xa2]
+vl6r.v v3, (a1)
+
+# CHECK: vs6r.v v3, 0(a1)
+[0xa7,0xf1,0x85,0xa2]
+vs6r.v v3, (a1)
+
+# CHECK: vl7r.v v3, 0(a1)
+[0x87,0xf1,0x85,0xc2]
+vl7r.v v3, (a1)
+
+# CHECK: vs7r.v v3, 0(a1)
+[0xa7,0xf1,0x85,0xc2]
+vs7r.v v3, (a1)
+
+# CHECK: vl8r.v v3, 0(a1)
+[0x87,0xf1,0x85,0xe2]
+vl8r.v v3, (a1)
+
+# CHECK: vs8r.v v3, 0(a1)
+[0xa7,0xf1,0x85,0xe2]
+vs8r.v v3, (a1)
+
+# CHECK: vamoswapw.v v0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x0e]
+vamoswapw.v v0, (a1), v2, v0
+
+# CHECK: vamoswapw.v x0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x0a]
+vamoswapw.v x0, (a1), v2, v0
+
+# CHECK: vamoaddw.v v0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x06]
+vamoaddw.v v0, (a1), v2, v0
+
+# CHECK: vamoaddw.v x0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x02]
+vamoaddw.v x0, (a1), v2, v0
+
+# CHECK: vamoxorw.v v0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x26]
+vamoxorw.v v0, (a1), v2, v0
+
+# CHECK: vamoxorw.v x0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x22]
+vamoxorw.v x0, (a1), v2, v0
+
+# CHECK: vamoandw.v v0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x66]
+vamoandw.v v0, (a1), v2, v0
+
+# CHECK: vamoandw.v x0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x62]
+vamoandw.v x0, (a1), v2, v0
+
+# CHECK: vamoorw.v v0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x46]
+vamoorw.v v0, (a1), v2, v0
+
+# CHECK: vamoorw.v x0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x42]
+vamoorw.v x0, (a1), v2, v0
+
+# CHECK: vamominw.v v0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x86]
+vamominw.v v0, (a1), v2, v0
+
+# CHECK: vamominw.v x0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0x82]
+vamominw.v x0, (a1), v2, v0
+
+# CHECK: vamomaxw.v v0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0xa6]
+vamomaxw.v v0, (a1), v2, v0
+
+# CHECK: vamomaxw.v x0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0xa2]
+vamomaxw.v x0, (a1), v2, v0
+
+# CHECK: vamominuw.v v0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0xc6]
+vamominuw.v v0, (a1), v2, v0
+
+# CHECK: vamominuw.v x0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0xc2]
+vamominuw.v x0, (a1), v2, v0
+
+# CHECK: vamomaxuw.v v0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0xe6]
+vamomaxuw.v v0, (a1), v2, v0
+
+# CHECK: vamomaxuw.v x0, 0(a1), v2, v0
+[0x2f,0xe0,0x25,0xe2]
+vamomaxuw.v x0, (a1), v2, v0
+
+# CHECK: vamoswape.v v0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x0e]
+vamoswape.v v0, (a1), v2, v0
+
+# CHECK: vamoswape.v x0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x0a]
+vamoswape.v x0, (a1), v2, v0
+
+# CHECK: vamoadde.v v0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x06]
+vamoadde.v v0, (a1), v2, v0
+
+# CHECK: vamoadde.v x0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x02]
+vamoadde.v x0, (a1), v2, v0
+
+# CHECK: vamoxore.v v0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x26]
+vamoxore.v v0, (a1), v2, v0
+
+# CHECK: vamoxore.v x0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x22]
+vamoxore.v x0, (a1), v2, v0
+
+# CHECK: vamoande.v v0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x66]
+vamoande.v v0, (a1), v2, v0
+
+# CHECK: vamoande.v x0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x62]
+vamoande.v x0, (a1), v2, v0
+
+# CHECK: vamoore.v v0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x46]
+vamoore.v v0, (a1), v2, v0
+
+# CHECK: vamoore.v x0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x42]
+vamoore.v x0, (a1), v2, v0
+
+# CHECK: vamomine.v v0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x86]
+vamomine.v v0, (a1), v2, v0
+
+# CHECK: vamomine.v x0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0x82]
+vamomine.v x0, (a1), v2, v0
+
+# CHECK: vamomaxe.v v0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0xa6]
+vamomaxe.v v0, (a1), v2, v0
+
+# CHECK: vamomaxe.v x0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0xa2]
+vamomaxe.v x0, (a1), v2, v0
+
+# CHECK: vamominue.v v0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0xc6]
+vamominue.v v0, (a1), v2, v0
+
+# CHECK: vamominue.v x0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0xc2]
+vamominue.v x0, (a1), v2, v0
+
+# CHECK: vamomaxue.v v0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0xe6]
+vamomaxue.v v0, (a1), v2, v0
+
+# CHECK: vamomaxue.v x0, 0(a1), v2, v0
+[0x2f,0xf0,0x25,0xe2]
+vamomaxue.v x0, (a1), v2, v0
+
+# CHECK: vwadd.vx v0, v1, zero
+[0x57,0x60,0x10,0xc6]
+vwcvt.x.x.v v0, v1
+
+# CHECK: vwaddu.vx v0, v1, zero
+[0x57,0x60,0x10,0xc2]
+vwcvtu.x.x.v v0, v1
+
+# CHECK: vxor.vi v0, v1, -1
+[0x57,0xb0,0x1f,0x2e]
+vnot.v v0, v1
+
+# CHECK: vmslt.vv v0, v2, v1
+[0x57,0x80,0x20,0x6e]
+vmsgt.vv v0, v1, v2
+
+# CHECK: vmsltu.vv v0, v2, v1
+[0x57,0x80,0x20,0x6a]
+vmsgtu.vv v0, v1, v2
+
+# CHECK: vmsle.vv v0, v2, v1
+[0x57,0x80,0x20,0x76]
+vmsge.vv v0, v1, v2
+
+# CHECK: vmsleu.vv v0, v2, v1
+[0x57,0x80,0x20,0x72]
+vmsgeu.vv v0, v1, v2
+
+# CHECK: vmflt.vv v0, v2, v1
+[0x57,0x90,0x20,0x6e]
+vmfgt.vv v0, v1, v2
+
+# CHECK: vmfle.vv v0, v2, v1
+[0x57,0x90,0x20,0x66]
+vmfge.vv v0, v1, v2
+
+# CHECK: vmand.mm v0, v1, v1
+[0x57,0xa0,0x10,0x66]
+vmcpy.m v0, v1
+
+# CHECK: vmxor.mm v0, v0, v0
+[0x57,0x20,0x00,0x6e]
+vmclr.m v0
+
+# CHECK: vmxnor.mm v0, v0, v0
+[0x57,0x20,0x00,0x7e]
+vmset.m v0
+
+# CHECK: vmnand.mm v0, v1, v1
+[0x57,0xa0,0x10,0x76]
+vmnot.m v0, v1
+
+# CHECK: vmsle.vi v0, v1, 3
+[0x57,0xb0,0x11,0x76]
+vmslt.vi v0, v1, 4
+
+# CHECK: vmsleu.vi v0, v1, 3
+[0x57,0xb0,0x11,0x72]
+vmsltu.vi v0, v1, 4
+
+# CHECK: vmsgt.vi v0, v1, 3
+[0x57,0xb0,0x11,0x7e]
+vmsge.vi v0, v1, 4
+
+# CHECK: vmsgtu.vi v0, v1, 3
+[0x57,0xb0,0x11,0x7a]
+vmsgeu.vi v0, v1, 4
+
+# CHECK: addi   t0, a2, -1
+#                    vmsgt.vx v0, v1, t0
+[0x93,0x02,0xf6,0xff]
+#            encoding: [0x57,0xb0,0x11,0x7e]
+vmsge.vx v0, v1, a2
+
+# CHECK: addi   t0, a2, -1
+#                    vmsgtu.vx v0, v1, t0
+[0x93,0x02,0xf6,0xff]
+#            encoding: [0x57,0xb0,0x11,0x7a]
+vmsgeu.vx v0, v1, a2
