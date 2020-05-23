@@ -81,7 +81,7 @@ class RVInstVA<bits<6> funct6, bits<3> funct3, RVVMaskCond m, RISCVOpcode opcode
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther> {
   bits<5> vs2;
   bits<5> vd;
-
+  bits<5> rd;
   let Inst{31-26} = funct6;
   let Inst{25}    = m.Value;
   let Inst{24-20} = vs2;

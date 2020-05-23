@@ -429,11 +429,13 @@ multiclass VALU_OPMVV_VWXUNARY0<bits<5> vs1, string opcodestr> {
                (outs GPR:$rd), (ins VR:$vs2, VMR:$vm),
                opcodestr, "$rd, $vs2, $vm"> {
     let Inst{19-15} = vs1;
+    let Inst{11-7} = rd;
   }
   def _um : RVInstVA<0b010000, 0b010, RVV_Unmasked, OPC_OP_V,
                (outs GPR:$rd), (ins VR:$vs2),
                opcodestr, "$rd, $vs2"> {
     let Inst{19-15} = vs1;
+    let Inst{11-7} = rd;
   }
 }
 
@@ -1466,6 +1468,7 @@ def VMV_X_S : RVInstVA<0b010000, 0b010, RVV_Unmasked, OPC_OP_V,
   bits<5> vs1;
   let vs1 = 0b00000;
   let Inst{19-15} = vs1;
+  let Inst{11-7} = rd;
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VMV_S_X : RVInstVA<0b010000, 0b110, RVV_Unmasked, OPC_OP_V,
@@ -1486,6 +1489,7 @@ def VFMV_F_S : RVInstVA<0b010000, 0b001, RVV_Unmasked, OPC_OP_V,
   bits<5> vs1;
   let vs1 = 0b00000;
   let Inst{19-15} = vs1;
+  let Inst{11-7} = rd;
 }
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def VFMV_S_F : RVInstVA<0b010000, 0b101, RVV_Unmasked, OPC_OP_V,
