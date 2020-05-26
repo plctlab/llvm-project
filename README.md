@@ -37,3 +37,8 @@ You can use **llvm-mc** to assemble RVV assembly file and generate an object fil
 
 	$ llvm-mc test.s -triple=riscv32 --mattr=+v -riscv-no-aliases -show-encoding --filetype=obj -o=test.o
 
+## How to Disassemble RVV Object code
+
+You can use **llvm-objdump** to disassemble RVV object code file and generate assembly file:
+
+	$ llvm-objdump test.o --mattr=+v 
