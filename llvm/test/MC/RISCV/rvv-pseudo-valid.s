@@ -2,11 +2,11 @@
 # RUN:     | FileCheck -check-prefixes=CHECK-ASM,CHECK-ASM-AND-OBJ %s
 
 
-# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e8,m1,d1
+# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e8,m1,tu,mu
 # CHECK-ASM: encoding: [0x57,0xf5,0x05,0x00]
 vsetvli a0, a1, 0
 
-# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e1024,m8,d8
+# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e1024,mf8,ta,ma
 # CHECK-ASM: encoding: [0x57,0xf5,0xf5,0x7f]
 vsetvli a0, a1, 0x7ff
 

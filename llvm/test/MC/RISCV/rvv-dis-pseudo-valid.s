@@ -1,11 +1,11 @@
 # RUN: llvm-mc -disassemble --triple riscv64 -mattr m,+a,+f,+d,+c,+v < %s | \
 # RUN:         FileCheck %s
 
-# CHECK: vsetvli a0, a1, e8,m1,d1
+# CHECK: vsetvli a0, a1, e8,m1,tu,mu
 [0x57,0xf5,0x05,0x00]
 vsetvli a0, a1, 0
 
-# CHECK: vsetvli a0, a1, e1024,m8,d8
+# CHECK: vsetvli a0, a1, e1024,mf8,ta,ma
 [0x57,0xf5,0xf5,0x7f]
 vsetvli a0, a1, 0x7ff
 

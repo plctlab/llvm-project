@@ -6,25 +6,25 @@
 # CHECK-ASM: encoding: [0xd7,0xf6,0xc6,0x80]
 vsetvl a3, a3, a2
 
-# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e16,m2,d4
+# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e16,m2,ta,mu
 # CHECK-ASM: encoding: [0x57,0xf5,0x55,0x04]
-vsetvli a0, a1, e16,m2,d4
+vsetvli a0, a1, e16,m2,ta,mu
 
-# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e1024,m8,d8
+# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e1024,mf8,ta,mu
 # CHECK-ASM: encoding: [0x57,0xf5,0xf5,0x07]
-vsetvli a0, a1, e1024, m8, d8
+vsetvli a0, a1, e1024,mf8,ta,mu
 
-# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e8,m1,d1
+# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e8,m1,tu,mu
 # CHECK-ASM: encoding: [0x57,0xf5,0x05,0x00]
-vsetvli a0, a1, e8
+vsetvli a0, a1, e8,m1,tu,mu
 
-# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e8,m2,d1
+# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e8,m2,tu,mu
 # CHECK-ASM: encoding: [0x57,0xf5,0x15,0x00]
-vsetvli a0, a1, e8, m2
+vsetvli a0, a1, e8,m2,tu,mu
 
-# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e16,m1,d4
+# CHECK-ASM-AND-OBJ: vsetvli a0, a1, e16,m1,ta,mu
 # CHECK-ASM: encoding: [0x57,0xf5,0x45,0x04]
-vsetvli a0, a1, e16, d4
+vsetvli a0, a1, e16,m1,ta,mu
 
 # CHECK-ASM-AND-OBJ: vlb.v v0, 0(a1)
 # CHECK-ASM: encoding: [0x07,0x80,0x05,0x12]

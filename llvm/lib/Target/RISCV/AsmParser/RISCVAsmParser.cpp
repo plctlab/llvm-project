@@ -313,10 +313,27 @@ struct RISCVOperand : public MCParsedAsmOperand {
     EDIV_8,
   };
 
+  enum class TA {
+    TA_0 = 0,
+    TA_1,
+  };
+
+  enum class MA {
+    MA_0 = 0,
+    MA_1,
+  };
+
+  enum class FLMUL {
+    FLMUL_0 = 0,
+    FLMUL_1,
+  };
+
   struct VtyiOp {
     VSEW Sew;
     VLMUL Lmul;
-    VEDIV Ediv;
+    TA Ta;
+    MA Ma;
+    FLMUL Flmul;
     unsigned Encoding;
   };
 
@@ -836,18 +853,25 @@ static StringRef getSEWStr(VSEW sew) {
     llvm_unreachable("SEW must be [8|16|32|64|128|256|512|1024]");
   }
 
-  static StringRef getLMULStr(VLMUL lmul) {
+  static StringRef getLMULStr(VLMUL lmul, FLMUL flmul) {
+    std::string prefix;
+    if (flmul == FLMUL::FLMUL_1)
+      prefix = "mf";
+    else 
+      prefix = "m";
+
     switch (lmul) {
     case VLMUL::LMUL_1:
-      return "m1";
+      return prefix + "1";
     case VLMUL::LMUL_2:
-      return "m2";
+      return prefix + "2";
     case VLMUL::LMUL_4:
-      return "m4";
+      return prefix + "4";
     case VLMUL::LMUL_8:
-      return "m8";
+      return prefix + "8";
     }
-    llvm_unreachable("LMUL must be [1|2|4|8]");
+
+    llvm_unreachable("LMUL must be [1|2|4|8]"); 
   }
 
   static StringRef getEDIVStr(VEDIV ediv) {
@@ -864,13 +888,36 @@ static StringRef getSEWStr(VSEW sew) {
     llvm_unreachable("EDIV must be [1|2|4|8]");
   }
 
+  static StringRef getTAStr(TA ta) {
+    switch (ta) {
+      case TA::TA_0:
+        return "tu";
+      case TA::TA_1:
+        return "ta";
+    }
+    llvm_unreachable("TA must be [0|1]");
+  }
+
+  static StringRef getMAStr(MA ma) {
+    switch (ma) {
+      case MA::MA_0:
+        return "mu";
+      case MA::MA_1:
+        return "ma";
+    }
+    llvm_unreachable("MA must be [0|1]");
+  }
+  
+
   StringRef getVTypeI(SmallVectorImpl<char> &Out) const {
     assert(Kind == KindTy::VTypeI && "Invalid access!");
     Twine vtypei(getSEWStr(Vtyi.Sew));
     vtypei.concat(Twine(","));
-    vtypei.concat(Twine(getLMULStr(Vtyi.Lmul)));
+    vtypei.concat(Twine(getLMULStr(Vtyi.Lmul, Vtyi.Flmul)));
     vtypei.concat(Twine(","));
-    vtypei.concat(Twine(getEDIVStr(Vtyi.Ediv)));
+    vtypei.concat(Twine(getTAStr(Vtyi.Ta)));
+    vtypei.concat(Twine(","));
+    vtypei.concat(Twine(getMAStr(Vtyi.Ma)));
 
     return vtypei.toStringRef(Out);
   }
@@ -949,13 +996,16 @@ static StringRef getSEWStr(VSEW sew) {
   }
 
   static std::unique_ptr<RISCVOperand>
-  createVTypeI(APInt sew, APInt lmul, APInt ediv, SMLoc S, bool IsRV64) {
+  createVTypeI(APInt sew, APInt lmul, bool ta, bool ma, bool flmul, SMLoc S, bool IsRV64) {
     auto Op = std::make_unique<RISCVOperand>(KindTy::VTypeI);
     sew.ashrInPlace(3);
     Op->Vtyi.Sew = static_cast<VSEW>(sew.logBase2());
     Op->Vtyi.Lmul = static_cast<VLMUL>(lmul.logBase2());
-    Op->Vtyi.Ediv = static_cast<VEDIV>(ediv.logBase2());
-    Op->Vtyi.Encoding = (ediv.logBase2() << 5) | (sew.logBase2() << 2)
+    Op->Vtyi.Ta = static_cast<TA>(ta);
+    Op->Vtyi.Ma = static_cast<MA>(ma);
+    Op->Vtyi.Flmul = static_cast<FLMUL>(flmul);
+
+    Op->Vtyi.Encoding = (ma << 7) | (ta << 6) | (flmul << 5) | (sew.logBase2() << 2)
                                                 | lmul.logBase2();
     Op->StartLoc = S;
     Op->IsRV64 = IsRV64;
@@ -1721,7 +1771,9 @@ RISCVAsmParser::parseVTypeImmOperand(OperandVector &Operands) {
 
   APInt sew(16, 1);
   APInt lmul(16, 1);
-  APInt ediv(16, 1);
+  bool ta = 0;
+  bool ma = 0;
+  bool flmul = 0;
 
   StringRef Name = getLexer().getTok().getIdentifier();
   if (!Name.consume_front("e"))
@@ -1732,20 +1784,23 @@ RISCVAsmParser::parseVTypeImmOperand(OperandVector &Operands) {
     return MatchOperand_NoMatch;
   getLexer().Lex();
   if (getLexer().is(AsmToken::EndOfStatement)) {
-    Operands.push_back(RISCVOperand::createVTypeI(sew, lmul, ediv, S, isRV64()));
+    Operands.push_back(RISCVOperand::createVTypeI(sew, lmul, ta, ma, flmul, S, isRV64()));
     return MatchOperand_Success;
   }
   if(!getLexer().is(AsmToken::Comma))
     return MatchOperand_NoMatch;
   getLexer().Lex();
   Name = getLexer().getTok().getIdentifier();
+
   if (Name.consume_front("m")) {
+    if (Name.consume_front("f")) 
+      flmul = 1;
     lmul = APInt(16, Name, 10);
     if (lmul != 1 && lmul != 2 && lmul != 4 && lmul != 8)
       return MatchOperand_NoMatch;
     getLexer().Lex();
     if (getLexer().is(AsmToken::EndOfStatement)) {
-      Operands.push_back(RISCVOperand::createVTypeI(sew, lmul, ediv, S, isRV64()));
+      Operands.push_back(RISCVOperand::createVTypeI(sew, lmul, ta, ma, flmul, S, isRV64()));
       return MatchOperand_Success;
     }
     if(!getLexer().is(AsmToken::Comma))
@@ -1753,16 +1808,31 @@ RISCVAsmParser::parseVTypeImmOperand(OperandVector &Operands) {
     getLexer().Lex();
     Name = getLexer().getTok().getIdentifier();
   }
-  if (!Name.consume_front("d"))
-    return MatchOperand_NoMatch;
-  ediv = APInt(16, Name, 10);
-  if (ediv != 1 && ediv != 2 && ediv != 4 && ediv != 8)
-    return MatchOperand_NoMatch;
-  getLexer().Lex();
-  if (getLexer().getKind() != AsmToken::EndOfStatement)
-    return MatchOperand_NoMatch;
-  Operands.push_back(RISCVOperand::createVTypeI(sew, lmul, ediv, S, isRV64()));
-  return MatchOperand_Success;
+
+  if (Name.consume_front("t")) {
+    if (Name.consume_front("a"))
+      ta = 1;
+    getLexer().Lex();
+    if (getLexer().is(AsmToken::EndOfStatement)) {
+      Operands.push_back(RISCVOperand::createVTypeI(sew, lmul, ta, ma, flmul, S, isRV64()));
+      return MatchOperand_Success;
+    }
+    if (!getLexer().is(AsmToken::Comma))
+      return MatchOperand_NoMatch;
+    getLexer().Lex();
+    Name = getLexer().getTok().getIdentifier();
+  }
+
+  if (Name.consume_front("m")) {
+    if (Name.consume_front("a"))
+      ma = 1;
+    getLexer().Lex();
+    if (getLexer().getKind() != AsmToken::EndOfStatement)
+      return MatchOperand_NoMatch;
+    Operands.push_back(RISCVOperand::createVTypeI(sew, lmul, ta, ma, flmul, S, isRV64()));
+    return MatchOperand_Success;
+  }
+  return MatchOperand_NoMatch;
 }
 
 OperandMatchResultTy

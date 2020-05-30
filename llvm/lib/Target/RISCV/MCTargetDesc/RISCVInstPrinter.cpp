@@ -153,14 +153,31 @@ void RISCVInstPrinter::printAtomicMemOp(const MCInst *MI, unsigned OpNo,
 void RISCVInstPrinter::printVTypeI(const MCInst *MI, unsigned OpNo,
                                    const MCSubtargetInfo &STI, raw_ostream &O) {
   unsigned Imm = MI->getOperand(OpNo).getImm();
-  unsigned ediv = (Imm >> 5) & 0x3;
-  unsigned sew = (Imm >> 2) & 0x7;
-  unsigned lmul = Imm & 0x3;
+  unsigned Ma = (Imm >> 7) & 0x1;
+  unsigned Ta = (Imm >> 6) & 0x1;
+  unsigned FLmul = (Imm >> 5) & 0x1;
+  unsigned Sew = (Imm >> 2) & 0x7;
+  unsigned Lmul = Imm & 0x3;
 
-  ediv = 0x1 << ediv;
-  lmul = 0x1 << lmul;
-  sew = 0x1 << (sew + 3);
-  O << "e" << sew << ",m" << lmul << ",d" << ediv;
+  Sew = 0x1 << (Sew + 3);
+  O << "e" << Sew;
+
+  Lmul = 0x1 << Lmul;
+  if (FLmul)
+    O << ",mf" << Lmul;
+  else 
+    O << ",m" << Lmul; 
+
+  if (Ta)
+    O << ",ta";
+  else
+    O << ",tu";
+  
+  if (Ma)
+    O << ",ma";
+  else
+    O << ",mu";
+
 }
 
 void RISCVInstPrinter::printVMR(const MCInst *MI, unsigned OpNo,
