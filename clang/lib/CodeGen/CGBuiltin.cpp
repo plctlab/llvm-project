@@ -14499,7 +14499,10 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID, const CallExpr 
   switch (BuiltinID) {
   case RISCV::BI__builtin_riscv_vsetvl: {
     Value *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl);
-    return Builder.CreateCall(F);
+    SmallVector<Value *, 2> Args(E->getNumArgs());
+    Args[0] = EmitScalarExpr(E->getArg(0));
+    Args[1] = EmitScalarExpr(E->getArg(1));
+    return Builder.CreateCall(F, Args);
   }
   default:
     return nullptr;
