@@ -32,7 +32,7 @@ enum NodeType : unsigned {
   BuildPairF64,
   SplitF64,
   TAIL,
-  SETVL,
+  VSETVL,
   BROADCAST,
   // RV64I shifts, directly matching the semantics of the named RISC-V
   // instructions.

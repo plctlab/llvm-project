@@ -14495,7 +14495,8 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
   }
 }
 
-Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID, const CallExpr *E) {
+Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
+                                             const CallExpr *E) {
   switch (BuiltinID) {
   case RISCV::BI__builtin_riscv_vsetvl: {
     Value *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl);

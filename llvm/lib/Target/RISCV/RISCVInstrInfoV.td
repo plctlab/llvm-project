@@ -26,7 +26,7 @@ def SDT_RISCVSETVL : SDTypeProfile<2, 2, [SDTCisVT<0, i32>,
                                           SDTCisSameAs<0, 2>,
                                           SDTCisSameAs<0, 3>]>;
 
-def RISCVSETVL : SDNode<"RISCVISD::SETVL", SDT_RISCVSETVL>;
+def RISCVSETVL : SDNode<"RISCVISD::VSETVL", SDT_RISCVSETVL>;
 
 def SDT_RISCVBROADCAST : SDTypeProfile<1, 1, [SDTCisVT<0, nxv1i32>,
                                               SDTCisVT<1, i32>]>;
