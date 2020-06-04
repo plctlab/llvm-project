@@ -22,7 +22,7 @@ def RVV_Masked : RVVMaskCond<0b0>;
 
 
 // Format for Vector Load Instructions under LOAD-FP major opcode
-class RVInstVLoad<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
+class RVInstVLoadNoMew<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
                   RISCVOpcode opcode, dag outs, dag ins,
                   string opcodestr, string argstr>
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther /* TODO */> {
@@ -38,8 +38,25 @@ class RVInstVLoad<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
   let Opcode = opcode.Value;
 }
 
+class RVInstVLoad<bits<3> nf, bits<1> mew, bits<2> mop, bits<3> width,
+                     RVVMaskCond m, RISCVOpcode opcode, dag outs, dag ins,
+                     string opcodestr, string argstr>
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther /* TODO */> {
+  bits<5> rs1;
+  bits<5> vd;
+
+  let Inst{31-29} = nf;
+  let Inst{28} = mew;
+  let Inst{27-26} = mop;
+  let Inst{25} = m.Value;
+  let Inst{19-15} = rs1;
+  let Inst{14-12} = width;
+  let Inst{11-7}  = vd;
+  let Opcode = opcode.Value;
+}
+
 // Format for Vector Store Instructions under STORE-FP major opcode
-class RVInstVStore<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
+class RVInstVStoreNoMew<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
                    RISCVOpcode opcode, dag outs, dag ins,
                    string opcodestr, string argstr>
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther /* TODO */> {
@@ -52,6 +69,23 @@ class RVInstVStore<bits<3> nf, bits<3> mop, bits<3> width, RVVMaskCond m,
   let Inst{19-15} = rs1;
   let Inst{14-12} = width;
   let Inst{11-7}  = vs3;
+  let Opcode = opcode.Value;
+}
+
+class RVInstVStore<bits<3> nf, bits<1> mew, bits<2> mop, bits<3> width, RVVMaskCond m,
+                      RISCVOpcode opcode, dag outs, dag ins, 
+                      string opcodestr, string argstr>
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther /* TODO */> {
+  bits<5> rs1;
+  bits<5> vs3;
+
+  let Inst{31-29} = nf;
+  let Inst{28} = mew;
+  let Inst{27-26} = mop;
+  let Inst{25} = m.Value;
+  let Inst{19-15} = rs1;
+  let Inst{14-12} = width;
+  let Inst{11-7} = vs3;
   let Opcode = opcode.Value;
 }
 
