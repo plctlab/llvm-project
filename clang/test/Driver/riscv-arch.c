@@ -9,6 +9,17 @@
 // RUN: %clang -target riscv32-unknown-elf -march=rv32imafd -### %s \
 // RUN: -fsyntax-only 2>&1 | FileCheck %s
 
+// RUN: %clang -target riscv32-unknown-elf -march=rv32iv -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck %s
+// RUN: %clang -target riscv32-unknown-elf -march=rv32imv -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck %s
+// RUN: %clang -target riscv32-unknown-elf -march=rv32imav -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck %s
+// RUN: %clang -target riscv32-unknown-elf -march=rv32imafv -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck %s
+// RUN: %clang -target riscv32-unknown-elf -march=rv32imafdv -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck %s
+
 // RUN: %clang -target riscv32-unknown-elf -march=rv32ic -### %s \
 // RUN: -fsyntax-only 2>&1 | FileCheck %s
 // RUN: %clang -target riscv32-unknown-elf -march=rv32imc -### %s \
@@ -48,6 +59,17 @@
 // RUN: %clang -target riscv64-unknown-elf -march=rv64imaf -### %s \
 // RUN: -fsyntax-only 2>&1 | FileCheck %s
 // RUN: %clang -target riscv64-unknown-elf -march=rv64imafd -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck %s
+
+// RUN: %clang -target riscv64-unknown-elf -march=rv64iv -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck %s
+// RUN: %clang -target riscv64-unknown-elf -march=rv64imv -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck %s
+// RUN: %clang -target riscv64-unknown-elf -march=rv64imav -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck %s
+// RUN: %clang -target riscv64-unknown-elf -march=rv64imafv -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck %s
+// RUN: %clang -target riscv64-unknown-elf -march=rv64imafdv -### %s \
 // RUN: -fsyntax-only 2>&1 | FileCheck %s
 
 // RUN: %clang -target riscv64-unknown-elf -march=rv64ic -### %s \
@@ -90,6 +112,10 @@
 // RUN: -fsyntax-only 2>&1 | FileCheck -check-prefix=RV32M %s
 // RV32M: error: invalid arch name 'rv32m'
 
+// RUN: %clang -target riscv32-unknown-elf -march=rv32v -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck -check-prefix=RV32V %s
+// RV32V: error: invalid arch name 'rv32v'
+
 // RUN: %clang -target riscv32-unknown-elf -march=rv32id -### %s \
 // RUN: -fsyntax-only 2>&1 | FileCheck -check-prefix=RV32ID %s
 // RV32ID: error: invalid arch name 'rv32id'
@@ -117,6 +143,10 @@
 // RUN: %clang -target riscv64-unknown-elf -march=rv64m -### %s \
 // RUN: -fsyntax-only 2>&1 | FileCheck -check-prefix=RV64M %s
 // RV64M: error: invalid arch name 'rv64m'
+
+// RUN: %clang -target riscv64-unknown-elf -march=rv64v -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck -check-prefix=RV64V %s
+// RV64V: error: invalid arch name 'rv64v'
 
 // RUN: %clang -target riscv64-unknown-elf -march=rv64id -### %s \
 // RUN: -fsyntax-only 2>&1 | FileCheck -check-prefix=RV64ID %s
@@ -165,6 +195,11 @@
 // RUN: -fsyntax-only 2>&1 | FileCheck -check-prefix=RV32-LETTER %s
 // RV32-LETTER: error: invalid arch name 'rv32q',
 // RV32-LETTER: first letter should be 'e', 'i' or 'g'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32v -### %s \
+// RUN: -fsyntax-only 2>&1 | FileCheck -check-prefix=RV32-LETTER %s
+// RV32-LETTER: error: invalid arch name 'rv32v',
+// RV32-LETTER: first letter should be 'i'
 
 // RUN: %clang -target riscv32-unknown-elf -march=rv32imcq -### %s \
 // RUN: -fsyntax-only 2>&1 | FileCheck -check-prefix=RV32-ORDER %s

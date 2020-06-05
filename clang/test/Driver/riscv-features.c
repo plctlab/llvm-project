@@ -31,3 +31,4 @@
 // DEFAULT-LINUX-SAME: "-target-feature" "+f"
 // DEFAULT-LINUX-SAME: "-target-feature" "+d"
 // DEFAULT-LINUX-SAME: "-target-feature" "+c"
+// DEFAULT-LINUX-SAME: "-target-feature" "+v"

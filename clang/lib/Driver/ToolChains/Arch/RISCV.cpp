@@ -374,7 +374,7 @@ static bool getArchFeatures(const Driver &D, StringRef MArch,
     // TODO: Use version number when setting target features
     switch (c) {
     default:
-      // Currently LLVM supports only "mafdc".
+      // Currently LLVM supports only "mafdcv".
       D.Diag(diag::err_drv_invalid_riscv_ext_arch_name)
           << MArch << "unsupported standard user-level extension"
           << std::string(1, c);
@@ -398,6 +398,9 @@ static bool getArchFeatures(const Driver &D, StringRef MArch,
       break;
     case 'b':
       Features.push_back("+experimental-b");
+      break;
+    case 'v';
+      Features.push_back("+v");
       break;
     }
 
@@ -615,8 +618,8 @@ StringRef riscv::getRISCVArch(const llvm::opt::ArgList &Args,
   // Clang does not have `--with-arch=` or `--with-abi=`, so we use `-march=`
   // and `-mabi=` respectively instead.
   //
-  // Clang does not yet support MULTILIB_REUSE, so we use `rv{XLEN}imafdc`
-  // instead of `rv{XLEN}gc` though they are (currently) equivalent.
+  // Clang does not yet support MULTILIB_REUSE, so we use `rv{XLEN}imafdcv`
+  // instead of `rv{XLEN}gcv` though they are (currently) equivalent.
 
   // 1. If `-march=` is specified, use it.
   if (const Arg *A = Args.getLastArg(options::OPT_march_EQ))
@@ -625,17 +628,17 @@ StringRef riscv::getRISCVArch(const llvm::opt::ArgList &Args,
   // 2. Choose a default based on `-mabi=`
   //
   // ilp32e -> rv32e
-  // ilp32 | ilp32f | ilp32d -> rv32imafdc
-  // lp64 | lp64f | lp64d -> rv64imafdc
+  // ilp32 | ilp32f | ilp32d -> rv32imafdcv
+  // lp64 | lp64f | lp64d -> rv64imafdcv
   if (const Arg *A = Args.getLastArg(options::OPT_mabi_EQ)) {
     StringRef MABI = A->getValue();
 
     if (MABI.equals_lower("ilp32e"))
       return "rv32e";
     else if (MABI.startswith_lower("ilp32"))
-      return "rv32imafdc";
+      return "rv32imafdcv";
     else if (MABI.startswith_lower("lp64"))
-      return "rv64imafdc";
+      return "rv64imafdcv";
   }
 
   // 3. Choose a default based on the triple
