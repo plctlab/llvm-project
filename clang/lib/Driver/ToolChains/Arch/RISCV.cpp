@@ -399,7 +399,7 @@ static bool getArchFeatures(const Driver &D, StringRef MArch,
     case 'b':
       Features.push_back("+experimental-b");
       break;
-    case 'v';
+    case 'v':
       Features.push_back("+v");
       break;
     }
