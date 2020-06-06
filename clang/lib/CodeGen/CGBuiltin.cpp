@@ -40,6 +40,7 @@
 #include "llvm/IR/IntrinsicsNVPTX.h"
 #include "llvm/IR/IntrinsicsPowerPC.h"
 #include "llvm/IR/IntrinsicsR600.h"
+#include "llvm/IR/IntrinsicsRISCV.h"
 #include "llvm/IR/IntrinsicsS390.h"
 #include "llvm/IR/IntrinsicsWebAssembly.h"
 #include "llvm/IR/IntrinsicsX86.h"
@@ -14499,7 +14500,7 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
                                              const CallExpr *E) {
   switch (BuiltinID) {
   case RISCV::BI__builtin_riscv_vsetvl: {
-    Value *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl);
+    Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl);
     SmallVector<Value *, 2> Args(E->getNumArgs());
     Args[0] = EmitScalarExpr(E->getArg(0));
     Args[1] = EmitScalarExpr(E->getArg(1));
