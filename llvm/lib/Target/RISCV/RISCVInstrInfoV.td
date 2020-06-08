@@ -420,6 +420,20 @@ multiclass VALU_OPMVV_VMUNARY0<bits<5> vs1, string opcodestr> {
   }
 }
 
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in 
+multiclass VALU_OPMVV_VXUNARY0<bits<5> vs1, string opcodestr> {
+  def _m : RVInstVA<0b010010, 0b000, RVV_Masked, OPC_OP_V,
+              (outs VR:$vd), (ins VR:$vs2, VMR:$vm),
+              opcodestr, "$vd, $vs2, $vm"> {
+    let Inst{19-15} = vs1;
+  }
+  def _um : RVInstVA<0b010010, 0b000, RVV_Unmasked, OPC_OP_V,
+              (outs VR:$vd), (ins VR:$vs2),
+              opcodestr, "$vd, $vs2"> {
+    let Inst{19-15} = vs1;
+  }
+}
+
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 multiclass VALU_OPMVV_MulAdd<bits<6> funct6, string opcodestr> {
   def _m  : RVInstVA<funct6, 0b010, RVV_Masked, OPC_OP_V,
@@ -1350,11 +1364,9 @@ defm VMFLE_VF : VALU_OPFVF<0b011001, "vmfle.vf">, Sched<[]>;
 defm VMFGT_VF : VALU_OPFVF<0b011101, "vmfgt.vf">, Sched<[]>;
 defm VMFGE_VF : VALU_OPFVF<0b011111, "vmfge.vf">, Sched<[]>;
 
-
 // Vector Floating-Point Classify Instruction
 
 defm VFCLASS_V : VALU_OPFVV_VFUNARY1<0b10000, "vfclass.v">, Sched<[]>;
-
 
 // Vector Floating-Point Merge Instruction
 
@@ -1385,6 +1397,8 @@ defm VFCVT_XU_F_V : VALU_OPFVV_VFUNARY0<0b00000, "vfcvt.xu.f.v">, Sched<[]>;
 defm VFCVT_X_F_V : VALU_OPFVV_VFUNARY0<0b00001, "vfcvt.x.f.v">, Sched<[]>;
 defm VFCVT_F_XU_V : VALU_OPFVV_VFUNARY0<0b00010, "vfcvt.f.xu.v">, Sched<[]>;
 defm VFCVT_F_X_V : VALU_OPFVV_VFUNARY0<0b00011, "vfcvt.f.x.v">, Sched<[]>;
+defm VFCVT_RTZ_XU_F_V : VALU_OPFVV_VFUNARY0<0b00110, "vfcvt.rtz.xu.f.v">, Sched<[]>;
+defm VFCVT_RTZ_X_F_V : VALU_OPFVV_VFUNARY0<0b00111, "vfcvt.rtz.x.f.v">, Sched<[]>;
 
 
 // Widening Floating-Point/Integer Type-Convert Instructions
@@ -1394,6 +1408,8 @@ defm VFWCVT_X_F_V : VALU_OPFVV_VFUNARY0<0b01001, "vfwcvt.x.f.v">, Sched<[]>;
 defm VFWCVT_F_XU_V : VALU_OPFVV_VFUNARY0<0b01010, "vfwcvt.f.xu.v">, Sched<[]>;
 defm VFWCVT_F_X_V : VALU_OPFVV_VFUNARY0<0b01011, "vfwcvt.f.x.v">, Sched<[]>;
 defm VFWCVT_F_F_V : VALU_OPFVV_VFUNARY0<0b01100, "vfwcvt.f.f.v">, Sched<[]>;
+defm VFWCVT_RTZ_XU_F_V : VALU_OPFVV_VFUNARY0<0b01110, "vfwcvt.rtz.xu.f.v">, Sched<[]>;
+defm VFWCVT_RTZ_X_F_V : VALU_OPFVV_VFUNARY0<0b01111, "vfwcvt.rtz.x.f.v">, Sched<[]>;
 
 
 // Narrowing Floating-Point/Integer Type-Convert Instructions
@@ -1404,6 +1420,8 @@ defm VFNCVT_F_XU_W : VALU_OPFVV_VFUNARY0<0b10010, "vfncvt.f.xu.w">, Sched<[]>;
 defm VFNCVT_F_X_W : VALU_OPFVV_VFUNARY0<0b10011, "vfncvt.f.x.w">, Sched<[]>;
 defm VFNCVT_F_F_W : VALU_OPFVV_VFUNARY0<0b10100, "vfncvt.f.f.w">, Sched<[]>;
 defm VFNCVT_ROD_F_F_W : VALU_OPFVV_VFUNARY0<0b10101, "vfncvt.rod.f.f.w">, Sched<[]>;
+defm VFNCVT_RTZ_XU_F_W : VALU_OPFVV_VFUNARY0<0b10110, "vfncvt.rtz.xu.f.w">, Sched<[]>;
+defm VFNCVT_RTZ_X_F_W : VALU_OPFVV_VFUNARY0<0b10111, "vfncvt.rtz.x.f.w">, Sched<[]>;
 
 
 // Vector Single-Width Integer Reduction Instructions
@@ -1437,6 +1455,13 @@ defm VFREDMIN_VS : VALU_OPFVV<0b000101, "vfredmin.vs">, Sched<[]>;
 defm VFWREDOSUM_VS : VALU_OPFVV<0b110011, "vfwredosum.vs">, Sched<[]>;
 defm VFWREDSUM_VS : VALU_OPFVV<0b110001, "vfwredsum.vs">, Sched<[]>;
 
+// Vector Integer Extension Instructions
+defm VZEXT_VF8 : VALU_OPMVV_VXUNARY0<0b00010, "vzext.vf8">, Sched<[]>;
+defm VSEXT_VF8 : VALU_OPMVV_VXUNARY0<0b00011, "vsext.vf8">, Sched<[]>;
+defm VZEXT_VF4 : VALU_OPMVV_VXUNARY0<0b00100, "vzext.vf4">, Sched<[]>;
+defm VSEXT_VF4 : VALU_OPMVV_VXUNARY0<0b00101, "vsext.vf4">, Sched<[]>;
+defm VZEXT_VF2 : VALU_OPMVV_VXUNARY0<0b00110, "vzext.vf2">, Sched<[]>;
+defm VSEXT_VF2 : VALU_OPMVV_VXUNARY0<0b00111, "vsext.vf2">, Sched<[]>;
 
 // Vector Mask-Register Logical Instructions
 
@@ -1552,8 +1577,10 @@ defm VSLIDEDOWN_VX : VALU_OPIVX<0b001111, "vslidedown.vx">, Sched<[]>;
 defm VSLIDEDOWN_VI : VALU_OPIVI_unsigned<0b001111, "vslidedown.vi">, Sched<[]>;
 
 defm VSLIDE1UP_VX : VALU_OPMVX<0b001110, "vslide1up.vx">, Sched<[]>;
+defm VFSLIDE1UP_VF : VALU_OPFVF<0b001110, "vfslide1up.vf">, Sched<[]>;
 
 defm VSLIDE1DOWN_VX : VALU_OPMVX<0b001111, "vslide1down.vx">, Sched<[]>;
+defm VDSLIDE1DOWN_VF : VALU_OPFVF<0b001111, "vfslide1down.vf">, Sched<[]>;
 
 
 // Vector Register Gather Instructions

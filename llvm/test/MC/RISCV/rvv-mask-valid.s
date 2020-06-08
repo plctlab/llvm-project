@@ -2333,6 +2333,14 @@ vfcvt.f.x.v	v0, v1, v0.t
 # CHECK-ASM-AND-OBJ: vfcvt.f.x.v	v0, v1, v0.t    
 # CHECK-ASM: encoding: [0x57,0x90,0x11,0x88]
 
+vfcvt.rtz.xu.f.v	v0, v1
+# CHECK-ASM-AND-OBJ: vfcvt.rtz.xu.f.v	v0, v1
+# encoding: [0x57,0x10,0x13,0x88]
+
+vfcvt.rtz.x.f.v	v0, v1     
+# CHECK-ASM-AND-OBJ: vfcvt.rtz.x.f.v	v0, v1     
+# encoding: [0x57,0x90,0x13,0x88]
+
 vfwcvt.xu.f.v	v0, v1, v0.t    
 # CHECK-ASM-AND-OBJ: vfwcvt.xu.f.v	v0, v1, v0.t    
 # CHECK-ASM: encoding: [0x57,0x10,0x14,0x88]
@@ -2352,6 +2360,14 @@ vfwcvt.f.x.v	v0, v1, v0.t
 vfwcvt.f.f.v	v0, v1, v0.t    
 # CHECK-ASM-AND-OBJ: vfwcvt.f.f.v	v0, v1, v0.t    
 # CHECK-ASM: encoding: [0x57,0x10,0x16,0x88]
+
+vfwcvt.rtz.xu.f.v v0, v1, v0.t
+# CHECK-ASM-AND-OBJ: vfwcvt.rtz.xu.f.v v0, v1, v0.t
+# CHECK: [0x57,0x10,0x17,0x88]
+
+vfwcvt.rtz.x.f.v v0, v1, v0.t
+# CHECK-ASM-AND-OBJ: vfwcvt.rtz.x.f.v v0, v1, v0.t
+# CHECK: [0x57,0x90,0x17,0x88]
 
 vfncvt.xu.f.w	v0, v1, v0.t    
 # CHECK-ASM-AND-OBJ: vfncvt.xu.f.w	v0, v1, v0.t    
@@ -2376,6 +2392,14 @@ vfncvt.f.f.w	v0, v1, v0.t
 vfncvt.rod.f.f.w	v0, v1, v0.t 
 # CHECK-ASM-AND-OBJ: vfncvt.rod.f.f.w	v0, v1, v0.t 
 # CHECK-ASM: encoding: [0x57,0x90,0x1a,0x88]
+
+vfncvt.rtz.x.f.w	v0, v1, v0.t 
+# CHECK-ASM-AND-OBJ: vfncvt.rtz.x.f.w	v0, v1, v0.t 
+# CHECK: [0x57,0x90,0x1b,0x88]
+
+vfncvt.rtz.xu.f.w	v0, v1, v0.t
+# CHECK-ASM-AND-OBJ: vfncvt.rtz.xu.f.w	v0, v1, v0.t 
+# CHECK: [0x57,0x10,0x1b,0x88]
 
 vredsum.vs	v0, v1, v0, v0.t 
 # CHECK-ASM-AND-OBJ: vredsum.vs	v0, v1, v0, v0.t 
@@ -2441,6 +2465,30 @@ vfwredsum.vs	v0, v1, v0, v0.t
 # CHECK-ASM-AND-OBJ: vfwredsum.vs	v0, v1, v0, v0.t 
 # CHECK-ASM: encoding: [0x57,0x10,0x10,0xc4]
 
+vzext.vf2 v0, v1, v0.t
+# CHECK-ASM-AND-OBJ: 	vzext.vf2 v0, v1, v0.t
+# CHECK: [0x57,0x00,0x13,0x48]
+
+vsext.vf2 v0, v1, v0.t
+# CHECK-ASM-AND-OBJ: 	vsext.vf2 v0, v1, v0.t	
+# CHECK: [0x57,0x80,0x13,0x48]
+
+vzext.vf4 v0, v1, v0.t
+# CHECK-ASM-AND-OBJ: 	vzext.vf4 v0, v1, v0.t 	
+# CHECK: [0x57,0x00,0x12,0x48]
+
+vsext.vf4 v0, v1, v0.t
+# CHECK-ASM-AND-OBJ: 	vsext.vf4 v0, v1, v0.t 	
+# CHECK: [0x57,0x80,0x12,0x48]
+
+vzext.vf8 v0, v1, v0.t
+# CHECK-ASM-AND-OBJ: 	vzext.vf8 v0, v1, v0.t 	
+# CHECK: [0x57,0x00,0x11,0x48]
+
+vsext.vf8 v0, v1, v0.t
+# CHECK-ASM-AND-OBJ: 	vsext.vf8 v0, v1, v0.t 	
+# CHECK: [0x57,0x80,0x11,0x48]
+
 vpopc.m	a0, v1, v0.t            
 # CHECK-ASM-AND-OBJ: vpopc.m	a0, v1, v0.t            
 # CHECK-ASM: encoding: [0x57,0x25,0x18,0x40]
@@ -2492,6 +2540,14 @@ vslide1up.vx	v0, v1, a0, v0.t
 vslide1down.vx	v0, v1, a0, v0.t 
 # CHECK-ASM-AND-OBJ: vslide1down.vx	v0, v1, a0, v0.t 
 # CHECK-ASM: encoding: [0x57,0x60,0x15,0x3c]
+
+ vfslide1up.vf v0, v1, ft0, v0.t
+# CHECK-ASM-AND-OBJ:  vfslide1up.vf v0, v1, ft0, v0.t
+# CHECK: [0x57,0x50,0x10,0x38]
+ 
+  vfslide1down.vf v0, v1, ft0, v0.t
+# CHECK-ASM-AND-OBJ:  vfslide1down.vf v0, v1, ft0, v0.t
+# CHECK: [0x57,0x50,0x10,0x3c]
 
 vrgather.vv	v0, v1, v0, v0.t 
 # CHECK-ASM-AND-OBJ: vrgather.vv	v0, v1, v0, v0.t 
