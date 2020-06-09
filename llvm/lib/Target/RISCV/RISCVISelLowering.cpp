@@ -838,15 +838,19 @@ SDValue RISCVTargetLowering::lowerShiftRightParts(SDValue Op, SelectionDAG &DAG,
 
 SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
                                                      SelectionDAG &DAG) const {
-  unsigned IntNo = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
+  unsigned IntrinsicID = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
   SDLoc DL(Op);
-  switch (IntNo) {
+  switch (IntrinsicID) {
   default:
     return SDValue();    // Don't custom lower most intrinsics.
   case Intrinsic::thread_pointer: {
     EVT PtrVT = getPointerTy(DAG.getDataLayout());
     return DAG.getRegister(RISCV::X4, PtrVT);
   }
+  case Intrinsic::riscv_vsetvl:
+    return lowerSETVL(Op, DAG);
+  case Intrinsic::experimental_vector_splatvector:
+    return lowerSPLAT_VECTOR(Op, DAG);
   }
 }
 
@@ -1187,19 +1191,6 @@ static MachineBasicBlock *emitReadCycleWidePseudo(MachineInstr &MI,
   MI.eraseFromParent();
 
   return DoneMBB;
-}
-
-SDValue RISCVTargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
-                                                     SelectionDAG &DAG) const {
-  unsigned IntrinsicID = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
-  switch (IntrinsicID) {
-  default:
-    return SDValue(); // Don't custom lower most intrinsics
-  case Intrinsic::riscv_vsetvl:
-    return lowerSETVL(Op, DAG);
-  case Intrinsic::experimental_vector_splatvector:
-    return lowerSPLAT_VECTOR(Op, DAG);
-  }
 }
 
 SDValue RISCVTargetLowering::lowerSPLAT_VECTOR(SDValue Op, SelectionDAG &DAG) const {
