@@ -2452,6 +2452,20 @@ def VectorSize : TypeAttr {
   let ASTNode = 0;
 }
 
+def RISCVVectorType : TypeAttr {
+  let Spellings = [GNU<"riscv_vector_type">];
+  let Args = [IntArgument<"LMUL">, IntArgument<"ELEN">];
+  let Documentation = [Undocumented];
+  let ASTNode = 0;
+}
+
+def RISCVMaskType : TypeAttr {
+  let Spellings = [GNU<"riscv_mask_type">];
+  let Args = [IntArgument<"MLEN">];
+  let Documentation = [Undocumented];
+  let ASTNode = 0;
+}
+
 def VecTypeHint : InheritableAttr {
   // Does not have a [[]] spelling because it is an OpenCL-related attribute.
   let Spellings = [GNU<"vec_type_hint">];
