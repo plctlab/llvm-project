@@ -2,7 +2,7 @@
 
 This is the RISC-V Vector Extension in LLVM implemented by PLCT Group, ISRC, Institute of software, Chinese Academy of Sciences.
 
-The assembly instructions of RVV current stable release, v0.8, are now supported.
+The assembly instructions of RVV current stable release, v0.9, are now supported.
 
 ## How to Build LLVM for RISC-V Target
 
