@@ -40,6 +40,7 @@
 #include "llvm/IR/IntrinsicsNVPTX.h"
 #include "llvm/IR/IntrinsicsPowerPC.h"
 #include "llvm/IR/IntrinsicsR600.h"
+#include "llvm/IR/IntrinsicsRISCV.h"
 #include "llvm/IR/IntrinsicsS390.h"
 #include "llvm/IR/IntrinsicsWebAssembly.h"
 #include "llvm/IR/IntrinsicsX86.h"
@@ -4444,6 +4445,9 @@ static Value *EmitTargetArchBuiltinExpr(CodeGenFunction *CGF,
   case llvm::Triple::ppc64:
   case llvm::Triple::ppc64le:
     return CGF->EmitPPCBuiltinExpr(BuiltinID, E);
+  case llvm::Triple::riscv32:
+  case llvm::Triple::riscv64:
+    return CGF->EmitRISCVBuiltinExpr(BuiltinID, E);
   case llvm::Triple::r600:
   case llvm::Triple::amdgcn:
     return CGF->EmitAMDGPUBuiltinExpr(BuiltinID, E);
@@ -14491,6 +14495,20 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
     return nullptr;
   }
 }
+
+Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID, const CallExpr *E) {
+  switch (BuiltinID) {
+  case RISCV::BI__builtin_riscv_vsetvl: {
+    Value * avl = EmitScalarExpr(E->getArg(0));
+    Value * vtypei = EmitScalarExpr(E->getArg(1));
+    Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl);
+    return Builder.CreateCall(F, {avl, vtypei});
+  }
+  default:
+    return nullptr;
+  }
+}
+
 
 /// Handle a SystemZ function in which the final argument is a pointer
 /// to an int that receives the post-instruction CC value.  At the LLVM level
