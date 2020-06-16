@@ -1195,8 +1195,6 @@ SDValue RISCVTargetLowering::lowerINTRINSIC_WO_CHAIN(SDValue Op,
   switch (IntrinsicID) {
   default:
     return SDValue(); // Don't custom lower most intrinsics
-  case Intrinsic::riscv_setvl:
-    return lowerSETVL(Op, DAG);
   case Intrinsic::experimental_vector_splatvector:
     return lowerSPLAT_VECTOR(Op, DAG);
   }
@@ -1211,14 +1209,6 @@ SDValue RISCVTargetLowering::lowerSPLAT_VECTOR(SDValue Op, SelectionDAG &DAG) co
     return DAG.getNode(RISCVISD::BROADCAST, DL, VT, SplatVal);
   }
   return SDValue();
-}
-
-SDValue RISCVTargetLowering::lowerSETVL(SDValue Op, SelectionDAG &DAG) const {
-  SDLoc DL(Op);
-  MVT XLenVT = Subtarget.getXLenVT();
-  SDVTList ResultVTs = DAG.getVTList(XLenVT, XLenVT);
-  SDValue Ops[] = { Op.getOperand(1), Op.getOperand(2) };
-  return DAG.getNode(RISCVISD::SETVL, DL, ResultVTs, Ops);
 }
 
 static MachineBasicBlock *emitSplitF64Pseudo(MachineInstr &MI,

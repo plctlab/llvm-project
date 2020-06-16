@@ -20,14 +20,6 @@ include "RISCVInstrFormatsV.td"
 // RISC-V vector extension specific DAG Nodes.
 //===----------------------------------------------------------------------===//
 
-
-def SDT_RISCVSETVL : SDTypeProfile<2, 2, [SDTCisVT<0, i32>,
-                                          SDTCisSameAs<0, 1>,
-                                          SDTCisSameAs<0, 2>,
-                                          SDTCisSameAs<0, 3>]>;
-
-def RISCVSETVL : SDNode<"RISCVISD::SETVL", SDT_RISCVSETVL>;
-
 def SDT_RISCVBROADCAST : SDTypeProfile<1, 1, [SDTCisVT<0, nxv1i32>,
                                               SDTCisVT<1, i32>]>;
 
@@ -2681,6 +2673,6 @@ def : Pat<(int_riscv_vlw GPR:$rs1),
 def : Pat<(int_riscv_vsw VR:$vs3, GPR:$rs1),
           (VSE32_V_um VR:$vs3, GPR:$rs1, 0)>;
 
-def : Pat<(RISCVSETVL GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
 
 } // Predicates = [HasStdExtV]

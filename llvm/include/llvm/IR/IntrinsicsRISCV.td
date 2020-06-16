@@ -68,7 +68,7 @@ let TargetPrefix = "riscv" in {
 //===----------------------------------------------------------------------===//
 // Vector extension
 
-def int_riscv_setvl : Intrinsic<[llvm_i32_ty],
+def int_riscv_vsetvl : Intrinsic<[llvm_i32_ty],
                                 [llvm_i32_ty, llvm_i32_ty],
                                 [IntrNoMem]>;
 
