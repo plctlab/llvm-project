@@ -10216,6 +10216,32 @@ ABIArgInfo RISCVABIInfo::coerceAndExpandFPCCEligibleStruct(
   return ABIArgInfo::getCoerceAndExpand(CoerceToType, UnpaddedCoerceToType);
 }
 
+/// hasRISCVVectorField - Return true if T is a structure containing any
+/// RISCV vector. Note that it also returns true when T is RISCV vector.
+static bool hasRISCVVectorField(ASTContext &Context, QualType T) {
+  if (const VectorType *VT = T->getAs<VectorType>()) {
+    return VT->getVectorKind() == VectorType::RISCVVector;
+  }
+
+  if (const RecordType *RT = T->getAs<RecordType>()) {
+    const RecordDecl *RD = RT->getDecl();
+    if (const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(RD)) {
+      for (const CXXBaseSpecifier &Base : CXXRD->bases()) {
+        if (hasRISCVVectorField(Context, Base.getType()))
+          return true;
+      }
+    }
+
+    for (FieldDecl *FD : RD->fields()) {
+      QualType FQT = FD->getType();
+      if (hasRISCVVectorField(Context, FQT))
+        return true;
+    }
+  }
+
+  return false;
+}
+
 ABIArgInfo RISCVABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
                                               int &ArgGPRsLeft,
                                               int &ArgFPRsLeft) const {
@@ -10316,7 +10342,9 @@ ABIArgInfo RISCVABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
 
   // Aggregates which are <= 2*XLen will be passed in registers if possible,
   // so coerce to integers.
-  if (Size <= 2 * XLen) {
+  if (isAggregateTypeForABI(Ty)
+      && Size <= 2 * XLen
+      && !hasRISCVVectorField(getContext(), Ty)) {
     unsigned Alignment = getContext().getTypeAlign(Ty);
 
     // Use a single XLen int if possible, 2*XLen if 2*XLen alignment is
@@ -10332,6 +10360,11 @@ ABIArgInfo RISCVABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
           llvm::IntegerType::get(getVMContext(), XLen), 2));
     }
   }
+
+  if (Ty->isVectorType()) {
+    return ABIArgInfo::getDirect();
+  }
+
   return getNaturalAlignIndirect(Ty, /*ByVal=*/false);
 }
 

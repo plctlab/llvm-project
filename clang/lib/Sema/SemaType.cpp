@@ -7747,6 +7747,132 @@ static void HandleArmMveStrictPolymorphismAttr(TypeProcessingState &State,
                               CurType, CurType);
 }
 
+static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
+                                      Sema &S) {
+  if (Attr.getNumArgs() != 2) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_wrong_number_arguments) << Attr
+                                                                      << 1;
+    Attr.setInvalid();
+    return;
+  }
+
+  Expr *LMULExpr = static_cast<Expr *>(Attr.getArgAsExpr(0));
+  llvm::APSInt LMULInt(32);
+
+  if (LMULExpr->isTypeDependent() || LMULExpr->isValueDependent() ||
+      !LMULExpr->isIntegerConstantExpr(LMULInt, S.Context)) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
+        << Attr << AANT_ArgumentIntegerConstant << LMULExpr->getSourceRange();
+    Attr.setInvalid();
+    return;
+  }
+
+  Expr *ELENExpr = static_cast<Expr *>(Attr.getArgAsExpr(1));
+  llvm::APSInt ELENInt(32);
+
+  if (ELENExpr->isTypeDependent() || ELENExpr->isValueDependent() ||
+      !ELENExpr->isIntegerConstantExpr(ELENInt, S.Context)) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
+        << Attr << AANT_ArgumentIntegerConstant << ELENExpr->getSourceRange();
+    Attr.setInvalid();
+    return;
+  }
+
+  unsigned LMUL = static_cast<unsigned>(LMULInt.getZExtValue());
+  unsigned ELEN = static_cast<unsigned>(ELENInt.getZExtValue());
+
+  const BuiltinType *BTy = CurType->getAs<BuiltinType>();
+
+  if (BTy->isFloatingType()) {
+    switch (ELEN) {
+    case 64:
+      CurType = S.Context.DoubleTy;
+      break;
+    case 32:
+      CurType = S.Context.FloatTy;
+      break;
+    case 16:
+      CurType = S.Context.Float16Ty;
+      break;
+    default:
+        S.Diag(Attr.getLoc(), diag::err_attribute_invalid_size)
+            << Attr << ELENExpr->getSourceRange();
+        Attr.setInvalid();
+        return;
+    }
+  } else if (BTy->isSignedInteger()) {
+    switch (ELEN) {
+    case 64:
+      CurType = S.Context.LongLongTy;
+      break;
+    case 32:
+      CurType = S.Context.IntTy;
+      break;
+    case 16:
+      CurType = S.Context.ShortTy;
+      break;
+    case 8:
+      CurType = S.Context.SignedCharTy;
+      break;
+    default:
+        S.Diag(Attr.getLoc(), diag::err_attribute_invalid_size)
+            << Attr << ELENExpr->getSourceRange();
+        Attr.setInvalid();
+        return;
+    }
+  } else if (BTy->isUnsignedInteger()) {
+    switch (ELEN) {
+    case 64:
+      CurType = S.Context.UnsignedLongLongTy;
+      break;
+    case 32:
+      CurType = S.Context.UnsignedIntTy;
+      break;
+    case 16:
+      CurType = S.Context.UnsignedShortTy;
+      break;
+    case 8:
+      CurType = S.Context.UnsignedCharTy;
+      break;
+    default:
+        S.Diag(Attr.getLoc(), diag::err_attribute_invalid_size)
+            << Attr << ELENExpr->getSourceRange();
+        Attr.setInvalid();
+        return;
+    }
+  } else {
+      S.Diag(Attr.getLoc(), diag::err_attribute_wrong_decl_type)
+        << Attr << ELENExpr->getSourceRange();
+    Attr.setInvalid();
+    return;
+  }
+
+  CurType = S.Context.getVectorType(CurType, LMUL, VectorType::RISCVVector);
+}
+
+static void HandleRISCVMaskTypeAttr(QualType &CurType, const ParsedAttr &Attr,
+                                    Sema &S) {
+  if (Attr.getNumArgs() != 1) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_wrong_number_arguments) << Attr;
+    Attr.setInvalid();
+    return;
+  }
+
+  Expr *MLENExpr = static_cast<Expr *>(Attr.getArgAsExpr(0));
+  llvm::APSInt MLENInt(32);
+
+  if (MLENExpr->isTypeDependent() || MLENExpr->isValueDependent() ||
+      !MLENExpr->isIntegerConstantExpr(MLENInt, S.Context)) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
+        << Attr << AANT_ArgumentIntegerConstant << MLENExpr->getSourceRange();
+    Attr.setInvalid();
+    return;
+  }
+
+  unsigned MLEN = static_cast<unsigned>(MLENInt.getZExtValue());
+  CurType = S.Context.getVectorType(S.Context.BoolTy, MLEN, VectorType::RISCVVector);
+}
+
 /// Handle OpenCL Access Qualifier Attribute.
 static void HandleOpenCLAccessAttr(QualType &CurType, const ParsedAttr &Attr,
                                    Sema &S) {
@@ -7998,6 +8124,14 @@ static void processTypeAttrs(TypeProcessingState &state, QualType &type,
       attr.setUsedAsTypeAttr();
       break;
     }
+    case ParsedAttr::AT_RISCVVectorType:
+      HandleRISCVVectorTypeAttr(type, attr, state.getSema());
+      attr.setUsedAsTypeAttr();
+      break;
+    case ParsedAttr::AT_RISCVMaskType:
+      HandleRISCVMaskTypeAttr(type, attr, state.getSema());
+      attr.setUsedAsTypeAttr();
+      break;
     case ParsedAttr::AT_OpenCLAccess:
       HandleOpenCLAccessAttr(type, attr, state.getSema());
       attr.setUsedAsTypeAttr();

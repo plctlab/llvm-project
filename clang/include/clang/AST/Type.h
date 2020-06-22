@@ -3243,7 +3243,10 @@ public:
     NeonVector,
 
     /// is ARM Neon polynomial vector
-    NeonPolyVector
+    NeonPolyVector,
+
+    /// is RISCV Vector
+    RISCVVector
   };
 
 protected:
