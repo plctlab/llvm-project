@@ -2673,6 +2673,11 @@ def : Pat<(int_riscv_vlw GPR:$rs1),
 def : Pat<(int_riscv_vsw VR:$vs3, GPR:$rs1),
           (VSE32_V_um VR:$vs3, GPR:$rs1, 0)>;
 
+def : Pat<(nxv1i32 (load GPR:$src)), (VLE32_V_um GPR:$src, 0)>;
+
+def : Pat<(store VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
+
+
 def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
 
 } // Predicates = [HasStdExtV]
