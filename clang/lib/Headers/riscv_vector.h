@@ -7,7 +7,7 @@
 #define __RISCV_VECTOR_H__
 
 #include <stddef.h>
-
+#include <stdint.h>
 #include <stdbool.h>
 
 #define RISCV_VECTOR_NAME(LMUL, SEW, NAME) v##NAME##SEW##m##LMUL##_t
@@ -171,13 +171,13 @@ RISCV_MASK_TYPE(64);
 #undef RISCV_MASK_NAME
 #undef RISCV_MASK_TYPE
 #undef RISCV_VECTOR_GROUP
-  
+
 typedef struct {
   size_t _vl;
 } _VL_T;
 
-#define _E8 8 
-#define _M1 1 
+#define _E8 8
+#define _M1 1
 
 static inline _VL_T vsetvl_e8m1(size_t avl)
 {
@@ -187,5 +187,16 @@ static inline _VL_T vsetvl_e8m1(size_t avl)
   return new_vl;
 }
 
+static inline void vsw_v_i32m1(vint32m1_t src, int32_t* dst) {
+  __builtin_riscv_vsw(src, dst);
+}
 
-#endif 
+static inline vint32m1_t vlw_v_i32m1(const int32_t* src) {
+  return __builtin_riscv_vlw(src);
+}
+
+static inline vint32m1_t vadd_vv_i32m1(vint32m1_t x, vint32m1_t y) {
+  return __builtin_riscv_vadd(x, y);
+}
+
+#endif

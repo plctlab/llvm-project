@@ -14504,6 +14504,24 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID, const CallExpr 
     Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl);
     return Builder.CreateCall(F, {avl, vtypei});
   }
+  case RISCV::BI__builtin_riscv_vsw: {
+    Value* Src = EmitScalarExpr(E->getArg(0));
+    Value* Dst = EmitScalarExpr(E->getArg(1));
+    Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsw);
+    return Builder.CreateCall(F, { Src, Dst });
+  }
+  case RISCV::BI__builtin_riscv_vlw: {
+    Value* Src = EmitScalarExpr(E->getArg(0));
+    Function *F = CGM.getIntrinsic(Intrinsic::riscv_vlw);
+    return Builder.CreateCall(F, { Src });
+  }
+  case RISCV::BI__builtin_riscv_vadd: {
+    Value* SrcX = EmitScalarExpr(E->getArg(0));
+    Value* SrcY = EmitScalarExpr(E->getArg(1));
+    Function *F = CGM.getIntrinsic(Intrinsic::riscv_vadd);
+    return Builder.CreateCall(F, { SrcX, SrcY });
+  }
+
   default:
     return nullptr;
   }
