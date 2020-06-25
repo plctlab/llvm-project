@@ -85,8 +85,11 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
     addRegisterClass(MVT::f32, &RISCV::FPR32RegClass);
   if (Subtarget.hasStdExtD())
     addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
-  if (STI.hasStdExtV())
+  if (STI.hasStdExtV()) {
     addRegisterClass(MVT::nxv1i32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1f32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv8f32, &RISCV::VRRegClass);
+  }
 
   // Compute derived properties from the register classes.
   computeRegisterProperties(STI.getRegisterInfo());
@@ -1647,7 +1650,8 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
     Reg = State.AllocateReg(ArgFPR32s, ArgFPR64s);
   else if (ValVT == MVT::f64 && !UseGPRForF64)
     Reg = State.AllocateReg(ArgFPR64s, ArgFPR32s);
-  else if (ValVT == MVT::nxv1i32)
+  // TODO: handle all scalable vectors
+  else if (ValVT == MVT::nxv1i32 || ValVT == MVT::nxv8f32 || ValVT == MVT::nxv1f32)
     Reg = State.AllocateReg(ArgVRs);
   else
     Reg = State.AllocateReg(ArgGPRs);
@@ -1779,6 +1783,9 @@ static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
     RC = &RISCV::FPR64RegClass;
     break;
   case MVT::nxv1i32:
+  case MVT::nxv1f32:
+  case MVT::nxv8f32:
+    // TODO: handle all scalable vectors
     RC = &RISCV::VRRegClass;
     break;
   }

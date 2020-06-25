@@ -10,6 +10,8 @@
 //  Declarations that describe the RISC-V register files
 //===----------------------------------------------------------------------===//
 
+
+
 let Namespace = "RISCV" in {
 class RISCVReg<bits<5> Enc, string n, list<string> alt = []> : Register<n> {
   let HWEncoding{4-0} = Enc;
@@ -270,7 +272,45 @@ let RegAltNameIndices = [ABIRegAltName] in {
   def V31 : RISCVReg<31,"v31", ["v31"]>;
 }
 
-def VR : RegisterClass<"RISCV", [nxv1i32], 32, (sequence "V%u", 0, 31)>;
+// let VI8 = [nxv1i8, nxv2i8, nxv4i8, nxv8i8],
+//     VI16 = [nxv1i16, nxv2i16, nxv4i16, nxv8i16],
+//     VI32 = [nxv1i32, nxv2i32, nxv4i32, nxv8i32],
+//     VI64 = [nxv1i64, nxv2i64, nxv4i64, nxv8i64],
+//     VF16 = [nxv2f16, nxv4f16, nxv8f16],
+//     VF32 = [nxv1f32, nxv2f32, nxv4f32, nxv8f32],
+//     VF64 = [nxv1f64, nxv2f64, nxv4f64, nxv8f64],
+//     VI = !listconcat(VI8, VI16, VI32, VI64),
+//     VF = !listconcat(VF16, VF32, VF64),
+//     V = !listconcat(VI, VF) in {
+
+class VRClass<list<ValueType> types>
+  : RegisterClass<"RISCV", types, 32, (sequence "V%u", 0, 31)> {}
+
+def VRI32 : VRClass<[nxv1i32, nxv2i32, nxv4i32, nxv8i32]>;
+
+def VRFy32 : VRClass<[nxv1f32, nxv2f32, nxv4f32, nxv8f32]>;
+
+def VR32 : VRClass<[nxv1i32, nxv2i32, nxv4i32, nxv8i32,
+                    nxv1f32, nxv2f32, nxv4f32, nxv8f32]>;
+
+
+// def VI8R : VRClass<VI8>;
+// def VI16R : VRClass<VI16>;
+// def VI32R : VRClass<VI32>;
+// def VI64R : VRClass<VI64>;
+
+// def VF16R : VRClass<VF16>;
+// def VF32R : VRClass<VF32>;
+// def VF64R : VRClass<VF64>;
+
+// def V8R : VRClass<!listconcat(VI8)>;
+// def V16R : VRClass<!listconcat(VI16, VF16)>;
+// def V32R : VRClass<!listconcat(VI32, VF32)>;
+// def V64R : VRClass<!listconcat(VI64, VF64)>;
+
+// }
+
+def VR : RegisterClass<"RISCV", [nxv1i32, nxv1f32, nxv8f32], 32, (sequence "V%u", 0, 31)>;
 
 def VRV0 : RegisterClass<"RISCV", [nxv1i32], 32, (add V0)>;
 

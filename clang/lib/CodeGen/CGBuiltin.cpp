@@ -14496,37 +14496,32 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
   }
 }
 
-Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID, const CallExpr *E) {
-  switch (BuiltinID) {
-  case RISCV::BI__builtin_riscv_vsetvl: {
-    Value * avl = EmitScalarExpr(E->getArg(0));
-    Value * vtypei = EmitScalarExpr(E->getArg(1));
-    Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl);
-    return Builder.CreateCall(F, {avl, vtypei});
-  }
-  case RISCV::BI__builtin_riscv_vsw: {
-    Value* Src = EmitScalarExpr(E->getArg(0));
-    Value* Dst = EmitScalarExpr(E->getArg(1));
-    Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsw);
-    return Builder.CreateCall(F, { Src, Dst });
-  }
-  case RISCV::BI__builtin_riscv_vlw: {
-    Value* Src = EmitScalarExpr(E->getArg(0));
-    Function *F = CGM.getIntrinsic(Intrinsic::riscv_vlw);
-    return Builder.CreateCall(F, { Src });
-  }
-  case RISCV::BI__builtin_riscv_vadd: {
-    Value* SrcX = EmitScalarExpr(E->getArg(0));
-    Value* SrcY = EmitScalarExpr(E->getArg(1));
-    Function *F = CGM.getIntrinsic(Intrinsic::riscv_vadd);
-    return Builder.CreateCall(F, { SrcX, SrcY });
-  }
+Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
+                                             const CallExpr *E) {
+  static DenseMap<unsigned, unsigned> Table{
+#define ENTRY(name) {RISCV::BI__builtin_riscv_##name, Intrinsic::riscv_##name}
+      ENTRY(vsetvl),
+      ENTRY(vle32_v_f32m1),
+      ENTRY(vle32_v_f32m8),
+      ENTRY(vse32_v_f32m1),
+      ENTRY(vse32_v_f32m8),
+      ENTRY(vfmacc_vf_f32m1),
+      ENTRY(vfmacc_vf_f32m8),
+      ENTRY(vfmv_f_s_f32m1_f32)
+#undef ENTRY
+  };
 
-  default:
+  auto Iter = Table.find(BuiltinID);
+  if (Iter == Table.end())
     return nullptr;
-  }
-}
 
+  Function* F = CGM.getIntrinsic(Iter->second);
+
+  auto Eval = [&](const Expr *arg) { return EmitScalarExpr(arg); };
+  SmallVector<Value *, 4> Args(map_range(E->arguments(), Eval));
+
+  return Builder.CreateCall(F, Args);
+}
 
 /// Handle a SystemZ function in which the final argument is a pointer
 /// to an int that receives the post-instruction CC value.  At the LLVM level

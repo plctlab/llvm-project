@@ -1,14 +1,15 @@
- 
-/*===---- riscv_vector.h - rvv intrinsics -------------------------------------===
+
+/*===---- riscv_vector.h - rvv intrinsics
+ * -------------------------------------===
  *
  */
 
 #ifndef __RISCV_VECTOR_H__
 #define __RISCV_VECTOR_H__
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 #define RISCV_VECTOR_NAME(LMUL, SEW, NAME) v##NAME##SEW##m##LMUL##_t
 
@@ -172,31 +173,56 @@ RISCV_MASK_TYPE(64);
 #undef RISCV_MASK_TYPE
 #undef RISCV_VECTOR_GROUP
 
-typedef struct {
-  size_t _vl;
-} _VL_T;
-
 #define _E8 8
 #define _M1 1
 
-static inline _VL_T vsetvl_e8m1(size_t avl)
-{
-  _VL_T new_vl;
-  int vtype = _E8 | _M1;
-  new_vl._vl = __builtin_riscv_vsetvl(avl, vtype);
-  return new_vl;
+#define _E32 32
+#define _M8 8
+
+
+static inline size_t vsetvl(size_t avl, int e, int m) {
+  int vtype = e | m;
+  return  __builtin_riscv_vsetvl(avl, vtype);
 }
 
-static inline void vsw_v_i32m1(vint32m1_t src, int32_t* dst) {
-  __builtin_riscv_vsw(src, dst);
+static inline size_t vsetvl_e8m1(size_t avl) {
+  return vsetvl(avl, _E8, _M1);
 }
 
-static inline vint32m1_t vlw_v_i32m1(const int32_t* src) {
-  return __builtin_riscv_vlw(src);
+static inline size_t vsetvl_e32m8(size_t avl) {
+  return vsetvl(avl, _E32, _M8);
 }
 
-static inline vint32m1_t vadd_vv_i32m1(vint32m1_t x, vint32m1_t y) {
-  return __builtin_riscv_vadd(x, y);
+typedef float float32_t;
+
+static inline vfloat32m1_t vle32_v_f32m1(const float32_t *base) {
+  return __builtin_riscv_vle32_v_f32m1(base);
+}
+
+static inline vfloat32m8_t vle32_v_f32m8(const float32_t *base) {
+  return __builtin_riscv_vle32_v_f32m8(base);
+}
+
+static inline void vse32_v_f32m1(float32_t *base, vfloat32m1_t value) {
+  __builtin_riscv_vse32_v_f32m1(value, base);
+}
+
+static inline void vse32_v_f32m8(float32_t *base, vfloat32m8_t value) {
+  __builtin_riscv_vse32_v_f32m8(value, base);
+}
+
+static inline vfloat32m1_t vfmacc_vf_f32m1(vfloat32m1_t acc, float32_t op1,
+                                           vfloat32m1_t op2) {
+  return __builtin_riscv_vfmacc_vf_f32m1(acc, op1, op2);
+}
+
+static inline vfloat32m8_t vfmacc_vf_f32m8(vfloat32m8_t acc, float32_t op1,
+                                           vfloat32m8_t op2) {
+  return __builtin_riscv_vfmacc_vf_f32m8(acc, op1, op2);
+}
+
+static inline float32_t vfmv_f_s_f32m1_f32 (vfloat32m1_t src) {
+  return __builtin_riscv_vfmv_f_s_f32m1_f32(src);
 }
 
 #endif
