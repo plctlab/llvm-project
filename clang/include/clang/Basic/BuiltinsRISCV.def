@@ -18,10 +18,22 @@
 
 BUILTIN(__builtin_riscv_vsetvl, "iii", "n")
 
-BUILTIN(__builtin_riscv_vsw, "vq1ii*", "n")
 
-BUILTIN(__builtin_riscv_vlw, "q1iCi*", "n")
+BUILTIN(__builtin_riscv_vle32_v_f32m1, "q1ffC*", "n")
 
-BUILTIN(__builtin_riscv_vadd, "q1iq1iq1i", "n")
+BUILTIN(__builtin_riscv_vle32_v_f32m8, "q8ffC*", "n")
+
+
+BUILTIN(__builtin_riscv_vse32_v_f32m1, "vq1ff*", "n")
+
+BUILTIN(__builtin_riscv_vse32_v_f32m8, "vq8ff*", "n")
+
+
+BUILTIN(__builtin_riscv_vfmacc_vf_f32m1, "q1fq1ffq1f", "n")
+
+BUILTIN(__builtin_riscv_vfmacc_vf_f32m8, "q8fq8ffq8f", "n")
+
+
+BUILTIN(__builtin_riscv_vfmv_f_s_f32m1_f32, "fq1f", "n")
 
 #undef BUILTIN
