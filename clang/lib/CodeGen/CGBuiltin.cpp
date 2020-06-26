@@ -14523,7 +14523,16 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
 
   Tys.push_back(ConvertType(E->getCallReturnType(getContext())));
 
-  Function* F = CGM.getIntrinsic(Iter->second, Tys);
+  Function* F = nullptr;
+  switch (Iter->second) {
+  case Intrinsic::riscv_vsetvl:
+    F = CGM.getIntrinsic(Iter->second, Tys);
+    break;
+  default:
+    F = CGM.getIntrinsic(Iter->second);
+  }
+
+  // Function* F = CGM.getIntrinsic(Iter->second, Tys);
 
   return Builder.CreateCall(F, Args);
 }
