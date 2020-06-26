@@ -189,6 +189,10 @@ static inline size_t vsetvl_e8m1(size_t avl) {
   return vsetvl(avl, _E8, _M1);
 }
 
+static inline size_t vsetvl_e32m1(size_t avl) {
+  return vsetvl(avl, _E32, _M1);
+}
+
 static inline size_t vsetvl_e32m8(size_t avl) {
   return vsetvl(avl, _E32, _M8);
 }
