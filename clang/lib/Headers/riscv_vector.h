@@ -180,8 +180,8 @@ RISCV_MASK_TYPE(64);
 #define _M8 8
 
 
-static inline size_t vsetvl(size_t avl, int e, int m) {
-  int vtype = e | m;
+static inline size_t vsetvl(size_t avl, size_t e, size_t m) {
+  size_t vtype = e | m;
   return  __builtin_riscv_vsetvl(avl, vtype);
 }
 

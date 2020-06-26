@@ -14515,10 +14515,15 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   if (Iter == Table.end())
     return nullptr;
 
-  Function* F = CGM.getIntrinsic(Iter->second);
+  SmallVector<Value *, 4> Args(map_range(
+      E->arguments(), [&](const Expr *arg) { return EmitScalarExpr(arg); }));
 
-  auto Eval = [&](const Expr *arg) { return EmitScalarExpr(arg); };
-  SmallVector<Value *, 4> Args(map_range(E->arguments(), Eval));
+  SmallVector<llvm::Type *, 4> Tys(
+      map_range(Args, [](const Value *V) { return V->getType(); }));
+
+  Tys.push_back(ConvertType(E->getCallReturnType(getContext())));
+
+  Function* F = CGM.getIntrinsic(Iter->second, Tys);
 
   return Builder.CreateCall(F, Args);
 }
