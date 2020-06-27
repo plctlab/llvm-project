@@ -780,7 +780,7 @@ foreach nf = 2-8 in {
   defm VLSSEG#nf#E512_V : VLoad_Strided<!add(nf, -1), 0b1, 0b10,
                                        0b110, "vlsseg"#nf#"e512.v">, Sched<[]>;
   defm VLSSEG#nf#E1024_V : VLoad_Strided<!add(nf, -1), 0b1, 0b10,
-                                       0b111, "vlsseg"#nf#"e61024.v">, Sched<[]>;
+                                       0b111, "vlsseg"#nf#"e1024.v">, Sched<[]>;
 
   defm VSSSEG#nf#E8_V : VStore_Strided<!add(nf, -1), 0b0, 0b10,
                                        0b000, "vssseg"#nf#"e8.v">, Sched<[]>;
@@ -2090,6 +2090,30 @@ foreach nf = 2-8 in {
   def : InstAlias<"vssseg"#nf#"e64.v $vs3, (${rs1}), $rs2, $vm",
                   (!cast<RVInstVStore>("VSSSEG"#nf#"E64_V_m")
                   VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
+  def : InstAlias<"vssseg"#nf#"e128.v $vs3, (${rs1}), $rs2",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"E128_V_um")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
+  def : InstAlias<"vssseg"#nf#"e128.v $vs3, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"E128_V_m")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
+  def : InstAlias<"vssseg"#nf#"e256.v $vs3, (${rs1}), $rs2",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"E256_V_um")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
+  def : InstAlias<"vssseg"#nf#"e256.v $vs3, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"E256_V_m")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
+  def : InstAlias<"vssseg"#nf#"e512.v $vs3, (${rs1}), $rs2",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"E512_V_um")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
+  def : InstAlias<"vssseg"#nf#"e512.v $vs3, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"E512_V_m")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
+  def : InstAlias<"vssseg"#nf#"e1024.v $vs3, (${rs1}), $rs2",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"E1024_V_um")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0)>;
+  def : InstAlias<"vssseg"#nf#"e1024.v $vs3, (${rs1}), $rs2, $vm",
+                  (!cast<RVInstVStore>("VSSSEG"#nf#"E1024_V_m")
+                  VR:$vs3, GPR:$rs1, GPR:$rs2, 0, VMR:$vm)>;
 
 
   def : InstAlias<"vlxseg"#nf#"ei8.v $vd, (${rs1}), $vs2",
@@ -2593,6 +2617,8 @@ def : InstAlias<"vmfge.vv $vd, $vs2, $vs1, $vm",
                 (VMFLE_VV_m  VR:$vd, VR:$vs1, VR:$vs2, VMR:$vm)>;
 
 
+def : InstAlias<"vmmv.m $vd, $vs2",
+                (VMAND_MM  VR:$vd, VR:$vs2, VR:$vs2)>;
 def : InstAlias<"vmcpy.m $vd, $vs2",
                 (VMAND_MM  VR:$vd, VR:$vs2, VR:$vs2)>;
 def : InstAlias<"vmclr.m $vd",

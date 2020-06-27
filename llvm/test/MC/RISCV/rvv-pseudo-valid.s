@@ -4,10 +4,10 @@
 # RUN:     | FileCheck -check-prefixes=CHECK-ASM,CHECK-ASM-AND-OBJ %s
 # RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=+v < %s \
 # RUN:     | llvm-objdump --mattr=+v -M no-aliases -d -r - \
-# RUN:     | FileCheck -check-prefixes=CHECK-OBJ,CHECK-ASM-AND-OBJ %s
+# RUN:     | FileCheck -check-prefixes=CHECK-ASM-AND-OBJ %s
 # RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=+v < %s \
 # RUN:     | llvm-objdump --mattr=+v -M no-aliases -d -r - \
-# RUN:     | FileCheck -check-prefixes=CHECK-OBJ,CHECK-ASM-AND-OBJ %s
+# RUN:     | FileCheck -check-prefixes=CHECK-ASM-AND-OBJ %s
 
 vsetvli	a0, a1, e8,m1,tu,mu     
 # CHECK-ASM-AND-OBJ: vsetvli	a0, a1, e8,m1,tu,mu     
@@ -545,6 +545,22 @@ vssseg2e64.v	v0, (a1), a2
 # CHECK-ASM-AND-OBJ: vssseg2e64.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x2a]
 
+vssseg2e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ:  vssseg2e128.v	v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0x3a]
+
+vssseg2e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ:  vssseg2e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0x3a]
+
+vssseg2e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ:  vssseg2e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0x3a]
+
+vssseg2e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ:  vssseg2e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x3a]
+
 vlsseg3e128.v	v0, (a1), a2   
 # CHECK-ASM-AND-OBJ: vlsseg3e128.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x07,0x80,0xc5,0x5a]
@@ -588,6 +604,22 @@ vssseg3e32.v	v0, (a1), a2
 vssseg3e64.v	v0, (a1), a2   
 # CHECK-ASM-AND-OBJ: vssseg3e64.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x4a]
+
+vssseg3e128.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg3e128.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0x5a]
+
+vssseg3e256.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg3e256.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0x5a]
+
+vssseg3e512.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg3e512.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0x5a]
+
+vssseg3e1024.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg3e1024.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x5a]
 
 vlsseg4e128.v	v0, (a1), a2   
 # CHECK-ASM-AND-OBJ: vlsseg4e128.v	v0, 0(a1), a2   
@@ -633,6 +665,22 @@ vssseg4e64.v	v0, (a1), a2
 # CHECK-ASM-AND-OBJ: vssseg4e64.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x6a]
 
+vssseg4e128.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg4e128.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0x7a]
+
+vssseg4e256.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg4e256.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0x7a]
+
+vssseg4e512.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg4e512.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0x7a]
+
+vssseg4e1024.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg4e1024.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x7a]
+
 vlsseg5e128.v	v0, (a1), a2   
 # CHECK-ASM-AND-OBJ: vlsseg5e128.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x07,0x80,0xc5,0x9a]
@@ -676,6 +724,22 @@ vssseg5e32.v	v0, (a1), a2
 vssseg5e64.v	v0, (a1), a2   
 # CHECK-ASM-AND-OBJ: vssseg5e64.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x8a]
+
+vssseg5e128.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg5e128.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0x9a]
+
+vssseg5e256.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg5e256.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0x9a]
+
+vssseg5e512.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg5e512.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0x9a]
+
+vssseg5e1024.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg5e1024.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x9a]
 
 vlsseg6e128.v	v0, (a1), a2   
 # CHECK-ASM-AND-OBJ: vlsseg6e128.v	v0, 0(a1), a2   
@@ -721,6 +785,22 @@ vssseg6e64.v	v0, (a1), a2
 # CHECK-ASM-AND-OBJ: vssseg6e64.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0xaa]
 
+vssseg6e128.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg6e128.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0xba]
+
+vssseg6e256.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg6e256.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0xba]
+
+vssseg6e512.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg6e512.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0xba]
+
+vssseg6e1024.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg6e1024.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0xba]
+
 vlsseg7e128.v	v0, (a1), a2   
 # CHECK-ASM-AND-OBJ: vlsseg7e128.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x07,0x80,0xc5,0xda]
@@ -765,6 +845,22 @@ vssseg7e64.v	v0, (a1), a2
 # CHECK-ASM-AND-OBJ: vssseg7e64.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0xca]
 
+vssseg7e128.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg7e128.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0xda]
+
+vssseg7e256.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg7e256.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0xda]
+
+vssseg7e512.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg7e512.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0xda]
+
+vssseg7e1024.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg7e1024.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0xda]
+
 vlsseg8e128.v	v0, (a1), a2   
 # CHECK-ASM-AND-OBJ: vlsseg8e128.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x07,0x80,0xc5,0xfa]
@@ -808,6 +904,22 @@ vssseg8e32.v	v0, (a1), a2
 vssseg8e64.v	v0, (a1), a2   
 # CHECK-ASM-AND-OBJ: vssseg8e64.v	v0, 0(a1), a2   
 # CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0xea]
+
+vssseg8e128.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg8e128.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0xfa]
+
+vssseg8e256.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg8e256.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0xfa]
+
+vssseg8e512.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg8e512.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0xfa]
+
+vssseg8e1024.v	v0, (a1), a2   
+# CHECK-ASM-AND-OBJ: 	vssseg8e1024.v	v0, 0(a1), a2   
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0xfa]
 
 vlxseg2ei128.v	v0, (a1), v2   
 # CHECK-ASM-AND-OBJ: vlxseg2ei128.v	v0, 0(a1), v2   
@@ -1600,5 +1712,775 @@ vmsge.vx v0, v1, a2
 # CHECK-ASM: encoding: [0x93,0x02,0xf6,0xff]
 #            encoding: [0x57,0xb0,0x11,0x7a]
 vmsgeu.vx v0, v1, a2
+
+vle128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vle128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0x80,0x05,0x12]
+
+  vle256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vle256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xd0,0x05,0x12]
+
+  vle512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vle512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xe0,0x05,0x12]
+
+  vle1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vle1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xf0,0x05,0x12]
+
+  vlseg2e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg2e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0x80,0x05,0x32]
+
+  vlseg2e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg2e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xd0,0x05,0x32]
+
+  vlseg2e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg2e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xe0,0x05,0x32]
+
+  vlseg2e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg2e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xf0,0x05,0x32]
+
+  vlseg3e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg3e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0x80,0x05,0x52]
+
+  vlseg3e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg3e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xd0,0x05,0x52]
+
+  vlseg3e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg3e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xe0,0x05,0x52]
+
+  vlseg3e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg3e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xf0,0x05,0x52]
+
+  vlseg4e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg4e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0x80,0x05,0x72]
+
+  vlseg4e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg4e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xd0,0x05,0x72]
+
+  vlseg4e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg4e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xe0,0x05,0x72]
+
+  vlseg4e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg4e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xf0,0x05,0x72]
+
+  vlseg5e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg5e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0x80,0x05,0x92]
+
+  vlseg5e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg5e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xd0,0x05,0x92]
+
+  vlseg5e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg5e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xe0,0x05,0x92]
+
+  vlseg5e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg5e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xf0,0x05,0x92]
+
+  vlseg6e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg6e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0x80,0x05,0xb2]
+
+  vlseg6e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg6e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xd0,0x05,0xb2]
+
+  vlseg6e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg6e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xe0,0x05,0xb2]
+
+  vlseg6e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg6e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xf0,0x05,0xb2]
+
+  vlseg7e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg7e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0x80,0x05,0xd2]
+
+  vlseg7e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg7e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xd0,0x05,0xd2]
+
+  vlseg7e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg7e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xe0,0x05,0xd2]
+
+  vlseg7e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg7e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xf0,0x05,0xd2]
+
+  vlseg8e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg8e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0x80,0x05,0xf2]
+
+  vlseg8e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg8e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xd0,0x05,0xf2]
+
+  vlseg8e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg8e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xe0,0x05,0xf2]
+
+  vlseg8e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vlseg8e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x07,0xf0,0x05,0xf2]
+
+  vlxei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0x80,0x25,0x1e]
+
+  vlxei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xd0,0x25,0x1e]
+
+  vlxei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xe0,0x25,0x1e]
+
+  vlxei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xf0,0x25,0x1e]
+
+  vlxseg2ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg2ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0x80,0x25,0x3e]
+
+  vlxseg2ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg2ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xd0,0x25,0x3e]
+
+  vlxseg2ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg2ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xe0,0x25,0x3e]
+
+  vlxseg2ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg2ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xf0,0x25,0x3e]
+
+  vlxseg3ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg3ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0x80,0x25,0x5e]
+
+  vlxseg3ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg3ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xd0,0x25,0x5e]
+
+  vlxseg3ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg3ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xe0,0x25,0x5e]
+
+  vlxseg3ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg3ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xf0,0x25,0x5e]
+
+  vlxseg4ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg4ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0x80,0x25,0x7e]
+
+  vlxseg4ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg4ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xd0,0x25,0x7e]
+
+  vlxseg4ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg4ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xe0,0x25,0x7e]
+
+  vlxseg4ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg4ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xf0,0x25,0x7e]
+
+  vlxseg5ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg5ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0x80,0x25,0x9e]
+
+  vlxseg5ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg5ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xd0,0x25,0x9e]
+
+  vlxseg5ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg5ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xe0,0x25,0x9e]
+
+  vlxseg5ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg5ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xf0,0x25,0x9e]
+
+  vlxseg6ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg6ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0x80,0x25,0xbe]
+
+  vlxseg6ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg6ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xd0,0x25,0xbe]
+
+  vlxseg6ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg6ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xe0,0x25,0xbe]
+
+  vlxseg6ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg6ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xf0,0x25,0xbe]
+
+  vlxseg7ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg7ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0x80,0x25,0xde]
+
+  vlxseg7ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg7ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xd0,0x25,0xde]
+
+  vlxseg7ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg7ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xe0,0x25,0xde]
+
+  vlxseg7ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg7ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xf0,0x25,0xde]
+
+  vlxseg8ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg8ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0x80,0x25,0xfe]
+
+  vlxseg8ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg8ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xd0,0x25,0xfe]
+
+  vlxseg8ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg8ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xe0,0x25,0xfe]
+
+  vlxseg8ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vlxseg8ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x07,0xf0,0x25,0xfe]
+
+  vlse128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlse128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0x80,0xc5,0x1a]
+
+  vlse256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlse256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xd0,0xc5,0x1a]
+
+  vlse512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlse512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xe0,0xc5,0x1a]
+
+  vlse1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlse1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xf0,0xc5,0x1a]
+
+  vlsseg2e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg2e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0x80,0xc5,0x3a]
+
+  vlsseg2e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg2e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xd0,0xc5,0x3a]
+
+  vlsseg2e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg2e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xe0,0xc5,0x3a]
+
+  vlsseg2e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg2e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xf0,0xc5,0x3a]
+
+  vlsseg3e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg3e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0x80,0xc5,0x5a]
+
+  vlsseg3e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg3e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xd0,0xc5,0x5a]
+
+  vlsseg3e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg3e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xe0,0xc5,0x5a]
+
+  vlsseg3e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg3e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xf0,0xc5,0x5a]
+
+  vlsseg4e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg4e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0x80,0xc5,0x7a]
+
+  vlsseg4e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg4e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xd0,0xc5,0x7a]
+
+  vlsseg4e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg4e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xe0,0xc5,0x7a]
+
+  vlsseg4e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg4e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xf0,0xc5,0x7a]
+
+  vlsseg5e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg5e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0x80,0xc5,0x9a]
+
+  vlsseg5e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg5e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xd0,0xc5,0x9a]
+
+  vlsseg5e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg5e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xe0,0xc5,0x9a]
+
+  vlsseg5e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg5e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xf0,0xc5,0x9a]
+
+  vlsseg6e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg6e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0x80,0xc5,0xba]
+
+  vlsseg6e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg6e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xd0,0xc5,0xba]
+
+  vlsseg6e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg6e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xe0,0xc5,0xba]
+
+  vlsseg6e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg6e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xf0,0xc5,0xba]
+
+  vlsseg7e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg7e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0x80,0xc5,0xda]
+
+  vlsseg7e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg7e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xd0,0xc5,0xda]
+
+  vlsseg7e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg7e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xe0,0xc5,0xda]
+
+  vlsseg7e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg7e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xf0,0xc5,0xda]
+
+  vlsseg8e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg8e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0x80,0xc5,0xfa]
+
+  vlsseg8e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg8e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xd0,0xc5,0xfa]
+
+  vlsseg8e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg8e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xe0,0xc5,0xfa]
+
+  vlsseg8e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vlsseg8e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x07,0xf0,0xc5,0xfa]
+
+  vse128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vse128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0x80,0x05,0x12]
+
+  vse256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vse256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xd0,0x05,0x12]
+
+  vse512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vse512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xe0,0x05,0x12]
+
+  vse1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vse1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xf0,0x05,0x12]
+
+  vsseg2e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg2e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0x80,0x05,0x32]
+
+  vsseg2e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg2e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xd0,0x05,0x32]
+
+  vsseg2e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg2e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xe0,0x05,0x32]
+
+  vsseg2e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg2e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xf0,0x05,0x32]
+
+  vsseg3e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg3e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0x80,0x05,0x52]
+
+  vsseg3e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg3e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xd0,0x05,0x52]
+
+  vsseg3e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg3e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xe0,0x05,0x52]
+
+  vsseg3e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg3e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xf0,0x05,0x52]
+
+  vsseg4e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg4e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0x80,0x05,0x72]
+
+  vsseg4e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg4e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xd0,0x05,0x72]
+
+  vsseg4e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg4e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xe0,0x05,0x72]
+
+  vsseg4e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg4e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xf0,0x05,0x72]
+
+  vsseg5e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg5e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0x80,0x05,0x92]
+
+  vsseg5e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg5e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xd0,0x05,0x92]
+
+  vsseg5e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg5e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xe0,0x05,0x92]
+
+  vsseg5e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg5e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xf0,0x05,0x92]
+
+  vsseg6e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg6e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0x80,0x05,0xb2]
+
+  vsseg6e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg6e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xd0,0x05,0xb2]
+
+  vsseg6e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg6e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xe0,0x05,0xb2]
+
+  vsseg6e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg6e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xf0,0x05,0xb2]
+
+  vsseg7e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg7e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0x80,0x05,0xd2]
+
+  vsseg7e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg7e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xd0,0x05,0xd2]
+
+  vsseg7e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg7e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xe0,0x05,0xd2]
+
+  vsseg7e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg7e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xf0,0x05,0xd2]
+
+  vsseg8e128.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg8e128.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0x80,0x05,0xf2]
+
+  vsseg8e256.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg8e256.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xd0,0x05,0xf2]
+
+  vsseg8e512.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg8e512.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xe0,0x05,0xf2]
+
+  vsseg8e1024.v v0, (a1)
+# CHECK-ASM-AND-OBJ: 	vsseg8e1024.v v0, 0(a1)
+# CHECK-ASM: encoding:  [0x27,0xf0,0x05,0xf2]
+
+  vsxei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0x80,0x25,0x1e]
+
+  vsxei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xd0,0x25,0x1e]
+
+  vsxei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xe0,0x25,0x1e]
+
+  vsxei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xf0,0x25,0x1e]
+
+  vsxseg2ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg2ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0x80,0x25,0x3e]
+
+  vsxseg2ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg2ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xd0,0x25,0x3e]
+
+  vsxseg2ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg2ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xe0,0x25,0x3e]
+
+  vsxseg2ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg2ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xf0,0x25,0x3e]
+
+  vsxseg3ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg3ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0x80,0x25,0x5e]
+
+  vsxseg3ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg3ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xd0,0x25,0x5e]
+
+  vsxseg3ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg3ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xe0,0x25,0x5e]
+
+  vsxseg3ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg3ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xf0,0x25,0x5e]
+
+  vsxseg4ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg4ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0x80,0x25,0x7e]
+
+  vsxseg4ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg4ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xd0,0x25,0x7e]
+
+  vsxseg4ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg4ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xe0,0x25,0x7e]
+
+  vsxseg4ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg4ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xf0,0x25,0x7e]
+
+  vsxseg5ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg5ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0x80,0x25,0x9e]
+
+  vsxseg5ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg5ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xd0,0x25,0x9e]
+
+  vsxseg5ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg5ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xe0,0x25,0x9e]
+
+  vsxseg5ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg5ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xf0,0x25,0x9e]
+
+  vsxseg6ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg6ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0x80,0x25,0xbe]
+
+  vsxseg6ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg6ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xd0,0x25,0xbe]
+
+  vsxseg6ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg6ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xe0,0x25,0xbe]
+
+  vsxseg6ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg6ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xf0,0x25,0xbe]
+
+  vsxseg7ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg7ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0x80,0x25,0xde]
+
+  vsxseg7ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg7ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xd0,0x25,0xde]
+
+  vsxseg7ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg7ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xe0,0x25,0xde]
+
+  vsxseg7ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg7ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xf0,0x25,0xde]
+
+  vsxseg8ei128.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg8ei128.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0x80,0x25,0xfe]
+
+  vsxseg8ei256.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg8ei256.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xd0,0x25,0xfe]
+
+  vsxseg8ei512.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg8ei512.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xe0,0x25,0xfe]
+
+  vsxseg8ei1024.v v0, (a1), v2
+# CHECK-ASM-AND-OBJ: 	vsxseg8ei1024.v v0, 0(a1), v2
+# CHECK-ASM: encoding:  [0x27,0xf0,0x25,0xfe]
+
+  vsse128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vsse128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0x1a]
+
+  vsse256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vsse256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0x1a]
+
+  vsse512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vsse512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0x1a]
+
+  vsse1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vsse1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x1a]
+
+  vssseg2e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg2e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0x3a]
+
+  vssseg2e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg2e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0x3a]
+
+  vssseg2e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg2e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0x3a]
+
+  vssseg2e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg2e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x3a]
+
+  vssseg3e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg3e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0x5a]
+
+  vssseg3e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg3e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0x5a]
+
+  vssseg3e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg3e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0x5a]
+
+  vssseg3e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg3e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x5a]
+
+  vssseg4e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg4e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0x7a]
+
+  vssseg4e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg4e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0x7a]
+
+  vssseg4e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg4e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0x7a]
+
+  vssseg4e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg4e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x7a]
+
+  vssseg5e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg5e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0x9a]
+
+  vssseg5e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg5e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0x9a]
+
+  vssseg5e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg5e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0x9a]
+
+  vssseg5e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg5e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0x9a]
+
+  vssseg6e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg6e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0xba]
+
+  vssseg6e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg6e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0xba]
+
+  vssseg6e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg6e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0xba]
+
+  vssseg6e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg6e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0xba]
+
+  vssseg7e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg7e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0xda]
+
+  vssseg7e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg7e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0xda]
+
+  vssseg7e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg7e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0xda]
+
+  vssseg7e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg7e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0xda]
+
+  vssseg8e128.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg8e128.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0x80,0xc5,0xfa]
+
+  vssseg8e256.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg8e256.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xd0,0xc5,0xfa]
+
+  vssseg8e512.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg8e512.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xe0,0xc5,0xfa]
+
+  vssseg8e1024.v v0, (a1), a2
+# CHECK-ASM-AND-OBJ: 	vssseg8e1024.v v0, 0(a1), a2
+# CHECK-ASM: encoding:  [0x27,0xf0,0xc5,0xfa]
+
+
 
 

@@ -1675,7 +1675,7 @@ llvm::Value *CodeGenFunction::EmitLoadOfScalar(Address Addr, bool Volatile,
       const auto *VTy = cast<llvm::VectorType>(EltTy);
 
       // Handle vectors of size 3 like size 4 for better performance.
-      if (VTy->getNumElements() == 3) {
+      if (!isa<llvm::ScalableVectorType>(VTy) && VTy->getNumElements() == 3) {
 
         // Bitcast to vec4 type.
         llvm::VectorType *vec4Ty =
@@ -1790,7 +1790,7 @@ void CodeGenFunction::EmitStoreOfScalar(llvm::Value *Value, Address Addr,
       llvm::Type *SrcTy = Value->getType();
       auto *VecTy = dyn_cast<llvm::VectorType>(SrcTy);
       // Handle vec3 special.
-      if (VecTy && VecTy->getNumElements() == 3) {
+      if (VecTy && !isa<llvm::ScalableVectorType>(VecTy) && VecTy->getNumElements() == 3) {
         // Our source is a vec3, do a shuffle vector to make it a vec4.
         Value = Builder.CreateShuffleVector(Value, llvm::UndefValue::get(VecTy),
                                             ArrayRef<int>{0, 1, 2, -1},
