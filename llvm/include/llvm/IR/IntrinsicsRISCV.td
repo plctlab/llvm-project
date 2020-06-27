@@ -78,7 +78,7 @@ let TargetPrefix = "riscv" in {
 
 def int_riscv_vsetvl : Intrinsic<[llvm_anyint_ty],
                                  [llvm_anyint_ty, llvm_anyint_ty],
-                                 [IntrNoMem]>;
+                                 [IntrNoMem, IntrHasSideEffects]>;
 
 def int_riscv_vadd : Intrinsic<[llvm_nxv1i32_ty],
                                [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
