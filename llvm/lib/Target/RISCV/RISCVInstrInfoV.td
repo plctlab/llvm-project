@@ -626,7 +626,7 @@ let Predicates = [HasStdExtV] in {
 
 // Configuration-Setting Instructions
 
-let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+let hasSideEffects = 1, mayLoad = 0, mayStore = 0 in
 def VSETVLI: RVInstVSet<0b0, OPC_OP_V, 
                       (outs GPR:$rd),
                       (ins GPR:$rs1, vtypei:$vtyi),
@@ -634,7 +634,7 @@ def VSETVLI: RVInstVSet<0b0, OPC_OP_V,
   bits<11> vtyi;
   let Inst{30-20} = vtyi;
 }
-let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+let hasSideEffects = 1, mayLoad = 0, mayStore = 0 in
 def VSETVL: RVInstVSet<0b1, OPC_OP_V, 
                       (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
                       "vsetvl", "$rd, $rs1, $rs2">, Sched<[]> {

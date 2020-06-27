@@ -173,59 +173,60 @@ RISCV_MASK_TYPE(64);
 #undef RISCV_MASK_TYPE
 #undef RISCV_VECTOR_GROUP
 
-#define _E8 8
-#define _M1 1
+#define _E8 (0x0 << 2)
+#define _E32 (0x2 << 2)
 
-#define _E32 32
-#define _M8 8
+#define _M1 (0x0)
+#define _M8 (0x3)
 
+#define __DEFAULT_FN_ATTRS __attribute__((always_inline, nothrow))
 
-static inline size_t vsetvl(size_t avl, size_t e, size_t m) {
+static __DEFAULT_FN_ATTRS size_t vsetvl(size_t avl, size_t e, size_t m) {
   size_t vtype = e | m;
   return  __builtin_riscv_vsetvl(avl, vtype);
 }
 
-static inline size_t vsetvl_e8m1(size_t avl) {
+static __DEFAULT_FN_ATTRS size_t vsetvl_e8m1(size_t avl) {
   return vsetvl(avl, _E8, _M1);
 }
 
-static inline size_t vsetvl_e32m1(size_t avl) {
+static __DEFAULT_FN_ATTRS size_t vsetvl_e32m1(size_t avl) {
   return vsetvl(avl, _E32, _M1);
 }
 
-static inline size_t vsetvl_e32m8(size_t avl) {
+static __DEFAULT_FN_ATTRS size_t vsetvl_e32m8(size_t avl) {
   return vsetvl(avl, _E32, _M8);
 }
 
 typedef float float32_t;
 
-static inline vfloat32m1_t vle32_v_f32m1(const float32_t *base) {
+static __DEFAULT_FN_ATTRS vfloat32m1_t vle32_v_f32m1(const float32_t *base) {
   return __builtin_riscv_vle32_v_f32m1(base);
 }
 
-static inline vfloat32m8_t vle32_v_f32m8(const float32_t *base) {
+static __DEFAULT_FN_ATTRS vfloat32m8_t vle32_v_f32m8(const float32_t *base) {
   return __builtin_riscv_vle32_v_f32m8(base);
 }
 
-static inline void vse32_v_f32m1(float32_t *base, vfloat32m1_t value) {
+static __DEFAULT_FN_ATTRS void vse32_v_f32m1(float32_t *base, vfloat32m1_t value) {
   __builtin_riscv_vse32_v_f32m1(value, base);
 }
 
-static inline void vse32_v_f32m8(float32_t *base, vfloat32m8_t value) {
+static __DEFAULT_FN_ATTRS void vse32_v_f32m8(float32_t *base, vfloat32m8_t value) {
   __builtin_riscv_vse32_v_f32m8(value, base);
 }
 
-static inline vfloat32m1_t vfmacc_vf_f32m1(vfloat32m1_t acc, float32_t op1,
+static __DEFAULT_FN_ATTRS vfloat32m1_t vfmacc_vf_f32m1(vfloat32m1_t acc, float32_t op1,
                                            vfloat32m1_t op2) {
   return __builtin_riscv_vfmacc_vf_f32m1(acc, op1, op2);
 }
 
-static inline vfloat32m8_t vfmacc_vf_f32m8(vfloat32m8_t acc, float32_t op1,
+static __DEFAULT_FN_ATTRS vfloat32m8_t vfmacc_vf_f32m8(vfloat32m8_t acc, float32_t op1,
                                            vfloat32m8_t op2) {
   return __builtin_riscv_vfmacc_vf_f32m8(acc, op1, op2);
 }
 
-static inline float32_t vfmv_f_s_f32m1_f32 (vfloat32m1_t src) {
+static __DEFAULT_FN_ATTRS float32_t vfmv_f_s_f32m1_f32 (vfloat32m1_t src) {
   return __builtin_riscv_vfmv_f_s_f32m1_f32(src);
 }
 
