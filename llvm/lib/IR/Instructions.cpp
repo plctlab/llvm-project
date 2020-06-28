@@ -1317,6 +1317,10 @@ bool AllocaInst::isStaticAlloca() const {
   // Must be constant size.
   if (!isa<ConstantInt>(getArraySize())) return false;
 
+  // Dangerous !!! It could change the behavior of AArch64 SVE.
+  if (getAllocatedType()->getTypeID() == Type::TypeID::ScalableVectorTyID)
+    return false;
+
   // Must be in the entry block.
   const BasicBlock *Parent = getParent();
   return Parent == &Parent->getParent()->front() && !isUsedWithInAlloca();

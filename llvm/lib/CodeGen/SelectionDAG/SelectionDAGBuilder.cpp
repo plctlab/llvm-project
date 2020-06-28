@@ -3890,48 +3890,99 @@ void SelectionDAGBuilder::visitAlloca(const AllocaInst &I) {
   Type *Ty = I.getAllocatedType();
   const TargetLowering &TLI = DAG.getTargetLoweringInfo();
   auto &DL = DAG.getDataLayout();
-  uint64_t TySize = DL.getTypeAllocSize(Ty);
-  MaybeAlign Alignment = std::max(DL.getPrefTypeAlign(Ty), I.getAlign());
 
-  SDValue AllocSize = getValue(I.getArraySize());
+  Type* AllocType = I.getAllocatedType();
 
-  EVT IntPtr = TLI.getPointerTy(DAG.getDataLayout(), DL.getAllocaAddrSpace());
-  if (AllocSize.getValueType() != IntPtr)
-    AllocSize = DAG.getZExtOrTrunc(AllocSize, dl, IntPtr);
+  if (AllocType->getTypeID() == Type::ScalableVectorTyID) {
+    ScalableVectorType* SVecTy = cast<ScalableVectorType>(AllocType);
 
-  AllocSize = DAG.getNode(ISD::MUL, dl, IntPtr,
-                          AllocSize,
-                          DAG.getConstant(TySize, dl, IntPtr));
+    EVT IntPtr = TLI.getPointerTy(DAG.getDataLayout(), DL.getAllocaAddrSpace());
 
-  // Handle alignment.  If the requested alignment is less than or equal to
-  // the stack alignment, ignore it.  If the size is greater than or equal to
-  // the stack alignment, we note this in the DYNAMIC_STACKALLOC node.
-  Align StackAlign = DAG.getSubtarget().getFrameLowering()->getStackAlign();
-  if (Alignment <= StackAlign)
-    Alignment = None;
+    APInt MinNumElem(IntPtr.getSizeInBits(), SVecTy->getMinNumElements(), true);
 
-  const uint64_t StackAlignMask = StackAlign.value() - 1U;
-  // Round the size of the allocation up to the stack alignment size
-  // by add SA-1 to the size. This doesn't overflow because we're computing
-  // an address inside an alloca.
-  SDNodeFlags Flags;
-  Flags.setNoUnsignedWrap(true);
-  AllocSize = DAG.getNode(ISD::ADD, dl, AllocSize.getValueType(), AllocSize,
-                          DAG.getConstant(StackAlignMask, dl, IntPtr), Flags);
+    // TODO: Here is a misuse of getVscale.
+    // We need VLEN to calculate the space requirements of scalable vectors
+    // but there is no such interface present at the moment.
+    SDValue NumElem = DAG.getVScale(dl, IntPtr, MinNumElem);
 
-  // Mask out the low bits for alignment purposes.
-  AllocSize = DAG.getNode(ISD::AND, dl, AllocSize.getValueType(), AllocSize,
-                          DAG.getConstant(~StackAlignMask, dl, IntPtr));
+    uint64_t ElemSize = DL.getTypeAllocSize(SVecTy->getElementType());
 
-  SDValue Ops[] = {
-      getRoot(), AllocSize,
-      DAG.getConstant(Alignment ? Alignment->value() : 0, dl, IntPtr)};
-  SDVTList VTs = DAG.getVTList(AllocSize.getValueType(), MVT::Other);
-  SDValue DSA = DAG.getNode(ISD::DYNAMIC_STACKALLOC, dl, VTs, Ops);
-  setValue(&I, DSA);
-  DAG.setRoot(DSA.getValue(1));
+    SDValue VecSize = DAG.getNode(ISD::MUL, dl, IntPtr, NumElem,
+                            DAG.getConstant(ElemSize, dl, IntPtr));
 
-  assert(FuncInfo.MF->getFrameInfo().hasVarSizedObjects());
+    MaybeAlign Alignment = std::max(DL.getPrefTypeAlign(Ty), I.getAlign());
+    // Handle alignment.  If the requested alignment is less than or equal to
+    // the stack alignment, ignore it.  If the size is greater than or equal to
+    // the stack alignment, we note this in the DYNAMIC_STACKALLOC node.
+    Align StackAlign = DAG.getSubtarget().getFrameLowering()->getStackAlign();
+    if (Alignment <= StackAlign)
+      Alignment = None;
+
+    const uint64_t StackAlignMask = StackAlign.value() - 1U;
+    // Round the size of the allocation up to the stack alignment size
+    // by add SA-1 to the size. This doesn't overflow because we're computing
+    // an address inside an alloca.
+    SDNodeFlags Flags;
+    Flags.setNoUnsignedWrap(true);
+    VecSize = DAG.getNode(ISD::ADD, dl, VecSize.getValueType(), VecSize,
+                            DAG.getConstant(StackAlignMask, dl, IntPtr), Flags);
+
+    // Mask out the low bits for alignment purposes.
+    VecSize = DAG.getNode(ISD::AND, dl, VecSize.getValueType(), VecSize,
+                            DAG.getConstant(~StackAlignMask, dl, IntPtr));
+
+    SDValue Ops[] = {
+        getRoot(), VecSize,
+        DAG.getConstant(Alignment ? Alignment->value() : 0, dl, IntPtr)};
+    SDVTList VTs = DAG.getVTList(VecSize.getValueType(), MVT::Other);
+    SDValue DSA = DAG.getNode(ISD::DYNAMIC_STACKALLOC, dl, VTs, Ops);
+    setValue(&I, DSA);
+    DAG.setRoot(DSA.getValue(1));
+
+    assert(FuncInfo.MF->getFrameInfo().hasVarSizedObjects());
+  } else {
+    uint64_t TySize = DL.getTypeAllocSize(Ty);
+    MaybeAlign Alignment = std::max(DL.getPrefTypeAlign(Ty), I.getAlign());
+
+    SDValue AllocSize = getValue(I.getArraySize());
+
+    EVT IntPtr = TLI.getPointerTy(DAG.getDataLayout(), DL.getAllocaAddrSpace());
+    if (AllocSize.getValueType() != IntPtr)
+      AllocSize = DAG.getZExtOrTrunc(AllocSize, dl, IntPtr);
+
+    AllocSize = DAG.getNode(ISD::MUL, dl, IntPtr, AllocSize,
+                            DAG.getConstant(TySize, dl, IntPtr));
+
+    // Handle alignment.  If the requested alignment is less than or equal to
+    // the stack alignment, ignore it.  If the size is greater than or equal to
+    // the stack alignment, we note this in the DYNAMIC_STACKALLOC node.
+    Align StackAlign = DAG.getSubtarget().getFrameLowering()->getStackAlign();
+    if (Alignment <= StackAlign)
+      Alignment = None;
+
+    const uint64_t StackAlignMask = StackAlign.value() - 1U;
+    // Round the size of the allocation up to the stack alignment size
+    // by add SA-1 to the size. This doesn't overflow because we're computing
+    // an address inside an alloca.
+    SDNodeFlags Flags;
+    Flags.setNoUnsignedWrap(true);
+    AllocSize = DAG.getNode(ISD::ADD, dl, AllocSize.getValueType(), AllocSize,
+                            DAG.getConstant(StackAlignMask, dl, IntPtr), Flags);
+
+    // Mask out the low bits for alignment purposes.
+    AllocSize = DAG.getNode(ISD::AND, dl, AllocSize.getValueType(), AllocSize,
+                            DAG.getConstant(~StackAlignMask, dl, IntPtr));
+
+    SDValue Ops[] = {
+        getRoot(), AllocSize,
+        DAG.getConstant(Alignment ? Alignment->value() : 0, dl, IntPtr)};
+    SDVTList VTs = DAG.getVTList(AllocSize.getValueType(), MVT::Other);
+    SDValue DSA = DAG.getNode(ISD::DYNAMIC_STACKALLOC, dl, VTs, Ops);
+    setValue(&I, DSA);
+    DAG.setRoot(DSA.getValue(1));
+
+    assert(FuncInfo.MF->getFrameInfo().hasVarSizedObjects());
+  }
 }
 
 void SelectionDAGBuilder::visitLoad(const LoadInst &I) {
