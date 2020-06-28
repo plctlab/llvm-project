@@ -321,6 +321,9 @@ def VRV0 : RegisterClass<"RISCV", [nxv1i32], 32, (add V0)>;
 let RegAltNameIndices = [ABIRegAltName] in
 def VL: RISCVReg<0, "vl", ["vl"]>;
 
+let RegAltNameIndices = [ABIRegAltName] in
+def VLENB: RISCVReg<1, "vlenb", ["vlenb"]>;
+
 def VLR: RegisterClass<"RISCV", [XLenVT], 32, (add VL)> {
   let RegInfos = RegInfoByHwMode<
     [RV32,              RV64,              DefaultMode],
