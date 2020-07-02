@@ -2454,7 +2454,9 @@ def VectorSize : TypeAttr {
 
 def RISCVVectorType : TypeAttr {
   let Spellings = [GNU<"riscv_vector_type">];
-  let Args = [IntArgument<"LMUL">, IntArgument<"ELEN">];
+  let Args = [IntArgument<"ELEN">,
+              IntArgument<"LMUL">,
+              IntArgument<"IsLMULFractional">/*1 for true and 0 for false*/];
   let Documentation = [Undocumented];
   let ASTNode = 0;
 }

@@ -182,6 +182,8 @@ foreach( f ${files} ${cuda_wrapper_files} ${ppc_wrapper_files} ${openmp_wrapper_
   copy_header_to_output_dir(${CMAKE_CURRENT_SOURCE_DIR} ${f})
 endforeach( f )
 
+clang_generate_header(-gen-riscv-vector-header riscv_vector.td riscv_vector.h)
+
 # Generate header files and copy them to the build directory
 # Generate arm_neon.h
 clang_generate_header(-gen-arm-neon arm_neon.td arm_neon.h)
