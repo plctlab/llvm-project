@@ -7749,37 +7749,48 @@ static void HandleArmMveStrictPolymorphismAttr(TypeProcessingState &State,
 
 static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
                                       Sema &S) {
-  if (Attr.getNumArgs() != 2) {
-    S.Diag(Attr.getLoc(), diag::err_attribute_wrong_number_arguments) << Attr
-                                                                      << 1;
+  if (Attr.getNumArgs() != 3) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_wrong_number_arguments)
+        << Attr << 3;
     Attr.setInvalid();
     return;
   }
 
-  Expr *LMULExpr = static_cast<Expr *>(Attr.getArgAsExpr(0));
-  llvm::APSInt LMULInt(32);
-
-  if (LMULExpr->isTypeDependent() || LMULExpr->isValueDependent() ||
-      !LMULExpr->isIntegerConstantExpr(LMULInt, S.Context)) {
-    S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
-        << Attr << AANT_ArgumentIntegerConstant << LMULExpr->getSourceRange();
-    Attr.setInvalid();
-    return;
-  }
-
-  Expr *ELENExpr = static_cast<Expr *>(Attr.getArgAsExpr(1));
+  Expr *ELENExpr = static_cast<Expr *>(Attr.getArgAsExpr(0));
   llvm::APSInt ELENInt(32);
-
-  if (ELENExpr->isTypeDependent() || ELENExpr->isValueDependent() ||
-      !ELENExpr->isIntegerConstantExpr(ELENInt, S.Context)) {
+  if (!ELENExpr->isIntegerConstantExpr(ELENInt, S.Context)) {
     S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
         << Attr << AANT_ArgumentIntegerConstant << ELENExpr->getSourceRange();
     Attr.setInvalid();
     return;
   }
-
-  unsigned LMUL = static_cast<unsigned>(LMULInt.getZExtValue());
   unsigned ELEN = static_cast<unsigned>(ELENInt.getZExtValue());
+
+  Expr *LMULExpr = static_cast<Expr *>(Attr.getArgAsExpr(1));
+  llvm::APSInt LMULInt(32);
+
+  if (!LMULExpr->isIntegerConstantExpr(LMULInt, S.Context)) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
+        << Attr << AANT_ArgumentIntegerConstant << LMULExpr->getSourceRange();
+    Attr.setInvalid();
+    return;
+  }
+  unsigned LMUL = static_cast<unsigned>(LMULInt.getZExtValue());
+
+  Expr* FractExpr = static_cast<Expr*>(Attr.getArgAsExpr(2));
+  llvm::APSInt FractInt(32);
+
+  if (!FractExpr->isIntegerConstantExpr(FractInt, S.Context)) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
+        << Attr << AANT_ArgumentIntegerConstant << FractExpr->getSourceRange();
+    Attr.setInvalid();
+  }
+  bool IsFract = static_cast<bool>(FractInt.getZExtValue());
+
+  if (IsFract) {
+    S.Diag(Attr.getLoc(), diag::warn_riscv_fractional_lmul_unsupported)
+      << Attr << FractExpr->getSourceRange();
+  }
 
   const BuiltinType *BTy = CurType->getAs<BuiltinType>();
 

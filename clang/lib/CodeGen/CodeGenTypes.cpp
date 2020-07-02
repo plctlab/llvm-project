@@ -649,13 +649,9 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
   case Type::ExtVector:
   case Type::Vector: {
     const VectorType *VT = cast<VectorType>(Ty);
-    if (VT->getVectorKind() == VectorType::RISCVVector) {
-      ResultType = llvm::VectorType::get(ConvertType(VT->getElementType()),
-                                         VT->getNumElements(), true);
-      break;
-    }
-    ResultType = llvm::VectorType::get(ConvertType(VT->getElementType()),
-                                       VT->getNumElements());
+    llvm::Type* Ty = ConvertType(VT->getElementType());
+    bool IsScalable = VT->getVectorKind() == VectorType::RISCVVector;
+    ResultType = llvm::VectorType::get(Ty, VT->getNumElements(), IsScalable);
     break;
   }
   case Type::ConstantMatrix: {

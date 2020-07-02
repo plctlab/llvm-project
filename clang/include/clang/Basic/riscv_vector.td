@@ -1,4 +1,4 @@
-//===--- RISCVVector.td - RISC-V Vector compiler interface
+//===--- riscv_vector.td - RISC-V Vector compiler interface
 //-----------------===//
 //
 //  Part of the LLVM Project, under the Apache License v2.0 with LLVM
@@ -6,51 +6,33 @@
 //  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-/*
-class RISCVBuiltin<string suffix, string prototype,
-                 string type_range>
-{
-  string Suffix = suffix;
-  string Prototype = prototype;
-  string TypeRange = type_range;
 
-  bit HasMask = 1;;
-  bit HasVL = 1;
-  bit HasMergeOperand = 1;
+class RISCVBuiltin<string inst, list<string> prototype, string type_range,
+                   string name = ""> {
+  string Instruction = inst;
+  list<string> Prototype = prototype;
+  string TypeRange = type_range;
+  bit MayMask = 0;
+  bit MaskedOff = 0;
+  bit HasVL = 0;
   bit HasSideEffects = 0;
   list<int> LMUL = [1, 2, 4, 8];
-   
+  string IntrinsicName = name;
+  bit BasePolymorphic = 0;
+  bit SEWPolymorphic = 0;
+  bit LMULPolymorphic = 0;
+  bit TuplePolymorphic = 0;
+  code Body = [{}];
 }
 
-//===----------------------------------------------------------------------===//
-// Builtin definitions.
-//===----------------------------------------------------------------------===//
-let HasVL = 0, HasMask = 0, HasSideEffects = 1, LMUL = [1] in
-{
-  def vsetvl : RISCVBuiltin<"", "iii", "n">;
+let SEWPolymorphic = 1, LMULPolymorphic = 1 in {
+  def : RISCVBuiltin<"vsetvl_e%s%l", ["z", "z","z", "z"], "n"> {
+      let Body = [{ return __builtin_riscv_vsetvl(arg1, (_E%s | _%L)); }];
+  }
 }
 
-let HasVL = 0, HasMask = 0, HasSideEffects = 1, LMUL = [2] in
-{
-  def vsetvl : RISCVBuiltin<"", "iii", "n">;
+let BasePolymorphic = 1,
+    SEWPolymorphic = 1, LMULPolymorphic = 1 in {
+  def : RISCVBuiltin<"vle%s_v_%b%s%l", ["q", "eC*"], "n">;
+  def : RISCVBuiltin<"vse%s_v_%b%s%l", ["v", "eC*", "q"], "n">;
 }
-
-let HasVL = 0, HasMask = 0, HasSideEffects = 1, LMUL = [4] in
-{
-  def vsetvl : RISCVBuiltin<"", "iii", "n">;
-}
-
-let HasVL = 0, HasMask = 0, HasSideEffects = 1, LMUL = [8] in
-{
-  def vsetvl : RISCVBuiltin<"", "iii", "n">;
-}
-
-def vadd : RISCVBuiltin<"v", "vvv", "csil">;
-def vsub : RISCVnBuiltin<"v", "vvv", "csil">;
-
-let HasMergeOperand = 0 in
-{
-  def vfmadd : RISCVBuiltin<"v", "vvvv", "fd">;
-  def vfmacc : RISCVBuiltin<"v", "vvvv", "fd">;
-}
-*/
