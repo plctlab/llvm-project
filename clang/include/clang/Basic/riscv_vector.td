@@ -27,12 +27,12 @@ class RISCVBuiltin<string inst, list<string> prototype, string type_range,
 
 let SEWPolymorphic = 1, LMULPolymorphic = 1 in {
   def : RISCVBuiltin<"vsetvl_e%s%l", ["z", "z","z", "z"], "n"> {
-      let Body = [{ return __builtin_riscv_vsetvl(arg1, (_E%s | _%L)); }];
+      let Body = [{ return __builtin_riscv_vsetvl(arg1, (_E%s | _M%L)); }];
   }
 }
 
 let BasePolymorphic = 1,
     SEWPolymorphic = 1, LMULPolymorphic = 1 in {
-  def : RISCVBuiltin<"vle%s_v_%b%s%l", ["q", "eC*"], "n">;
-  def : RISCVBuiltin<"vse%s_v_%b%s%l", ["v", "eC*", "q"], "n">;
+  def : RISCVBuiltin<"vle%s_v_%b%sm%l", ["q", "eC*"], "n">;
+  def : RISCVBuiltin<"vse%s_v_%b%sm%l", ["v", "eC*", "q"], "n">;
 }
