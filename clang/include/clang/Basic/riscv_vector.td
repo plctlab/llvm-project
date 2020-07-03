@@ -78,10 +78,19 @@ class RISCVBuiltin<string name, list<string> prototype, string attrs> {
 
   // if not empty, use it as the function's body.
   code Body = [{}];
+
+  bit GenIntrinsic = 1;
+  bit GenBuiltin = 1;
 }
 
-def : RISCVBuiltin<"vsetvl_e%sm%l", ["z", "z","z", "z"], "n"> {
-  let Body = [{ return __builtin_riscv_vsetvl(arg1, (_E%s | _M%L)); }];
+let GenBuiltin = 0 in {
+  def : RISCVBuiltin<"vsetvl_e%sm%l", ["z", "z"], "n"> {
+    let Body = [{ return __builtin_riscv_vsetvl(arg1, (_E%s | _M%L)); }];
+  }
+}
+
+let GenIntrinsic = 0 in {
+  def : RISCVBuiltin<"vsetvl", ["z", "z", "z"], "n">;
 }
 
 def : RISCVBuiltin<"vle%s_v_%b%sm%l", ["q", "eC*"], "n">;

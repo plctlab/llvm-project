@@ -6,18 +6,6 @@ namespace {
 
 using namespace llvm;
 
-// Simple decorator for raw_ostream, which skips
-// leading spaces in outputed strings.
-struct SkipWhiteSpace {
-  raw_ostream &OS;
-
-  raw_ostream &operator<<(const char *Str) {
-    while (isspace(*Str))
-      Str++;
-    return OS << Str;
-  }
-};
-
 // Interface for writable objects.
 template <typename T>
 auto operator<<(raw_ostream &OS, const T &Object)
@@ -145,31 +133,17 @@ constexpr auto EofOrFail(Ts... Messages) {
 
 } // namespace simple_parser_combinators
 
-const char *LicenseDeclaration = R"(
-/*===---- riscv_vector.h - RISC-V Vector Extensions ------------------------===
- *
- * Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
- * See https://llvm.org/LICENSE.txt for license information.
- * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
- *
- *===-----------------------------------------------------------------------===
- */
-)";
+// Simple decorator for raw_ostream, which skips
+// leading spaces in outputed strings.
+struct SkipWhiteSpace {
+  raw_ostream &OS;
 
-const char *HeaderGuard = R"(
-#ifndef __RISCV_VECTOR_H__
-#define __RISCV_VECTOR_H__
-)";
-
-const char *EndIf = R"(
-#endif
-)";
-
-const char *Dependencies = R"(
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-)";
+  raw_ostream &operator<<(const char *Str) {
+    while (isspace(*Str))
+      Str++;
+    return OS << Str;
+  }
+};
 
 struct BaseType {
   enum { INTEGER, UNSIGNED_INTEGER, FLOATING_POINT };
@@ -313,10 +287,10 @@ struct LengthMultiplier {
   static void Enum(function_ref<void(LengthMultiplier LMUL)> F) {
     for (unsigned Mul : {1, 2, 4, 8}) {
       F({Mul, false});
-    }
 
-    for (unsigned Mul : {2, 4, 8}) {
-      F({Mul, true});
+      // for (unsigned Mul : {2, 4, 8}) {
+      //   F({Mul, true});
+      // }
     }
   }
 
@@ -331,6 +305,53 @@ struct LengthMultiplier {
         return;
       F(LMUL);
     });
+  }
+};
+
+struct ElementType {
+  BaseType BT;
+  StdElemWidth SEW;
+
+  auto Abbr() const {
+    struct {
+      const ElementType &AT;
+
+      void Write(raw_ostream &OS) const {
+        if (AT.BT.ID == BaseType::FLOATING_POINT) {
+          switch (AT.SEW.Width) {
+          case 16:
+            OS << "h";
+            break;
+          case 32:
+            OS << "f";
+            break;
+          case 64:
+            OS << "d";
+            break;
+          default:
+            llvm_unreachable("Unhandled SEW");
+          }
+        } else {
+          switch (AT.SEW.Width) {
+          case 8:
+            OS << "c";
+            break;
+          case 16:
+            OS << "s";
+            break;
+          case 32:
+            OS << "i";
+            break;
+          case 64:
+            OS << "i";
+            break;
+          default:
+            llvm_unreachable("Unhandled SEW");
+          }
+        }
+      }
+    } Wrapper{*this};
+    return Wrapper;
   }
 };
 
@@ -451,9 +472,16 @@ struct GeneratorParams {
     return Wrapper;
   }
 
-  auto Vector() const { return VectorType{*Base, *SEW, *LMUL}; }
+  auto Vector() const {
+    assert(Base.hasValue());
+    assert(SEW.hasValue());
+    assert(LMUL.hasValue());
+    return VectorType{*Base, *SEW, *LMUL};
+  }
 
   unsigned MaskLength() const {
+    assert(LMUL.hasValue());
+    assert(SEW.hasValue());
     return LMUL->IsFract ? (SEW->Width / LMUL->Mul) : (SEW->Width * LMUL->Mul);
   }
 };
@@ -505,38 +533,63 @@ private:
 public:
   enum SpecClass { ATOM, VECTOR, DEPENDENT };
 
+  StringRef RawSpec;
   DenseSet<StringRef> Prefixes;
   DenseSet<StringRef> Postfixes;
   std::string Base;
   SpecClass SC;
 
-  TypeSpecifier(StringRef Text) : TypeSpecifier(Text.data()) {}
-
-  TypeSpecifier(const char *Text) : SC(ATOM) {
+  TypeSpecifier(StringRef Text) : RawSpec(Text), SC(ATOM) {
     (Many((Match('U'), InsertPrefix("unsigned"))),
-     ((Match('v'), SetBase("void"))                   //
-      | (Match('b'), SetBase("bool"))                 //
-      | (Match('c'), SetBase("int8_t"))               //
-      | (Match('s'), SetBase("int16_t"))              //
-      | (Match('i'), SetBase("int32_t"))              //
-      | (Match('l'), SetBase("int64_t"))              //
-      | (Match('h'), SetBase("float16_t"))            //
-      | (Match('f'), SetBase("float32_t"))            //
-      | (Match('d'), SetBase("float64_t"))            //
-      | (Match('z'), SetBase("size_t"))               //
-      | (Match('e'), Act([&] { SC = DEPENDENT; }))    //
-      | (Match('q'), Act([&] { SC = VECTOR; }))),     //
-     Many((Match('*'), InsertPostfix("*"))            //
-          | (Match('&'), InsertPostfix("&"))          //
-          | (Match('C'), InsertPostfix("const"))      //
-          | (Match('D'), InsertPostfix("volatile"))), //
-     EofOrFail("Failed to parse the type specification `", Text, "'"))(Text);
+     ((Match('v'), SetBase("void"))                                    //
+      | (Match('b'), SetBase("bool"))                                  //
+      | (Match('c'), SetBase("int8_t"))                                //
+      | (Match('s'), SetBase("int16_t"))                               //
+      | (Match('i'), SetBase("int32_t"))                               //
+      | (Match('l'), SetBase("int64_t"))                               //
+      | (Match('h'), SetBase("float16_t"))                             //
+      | (Match('f'), SetBase("float32_t"))                             //
+      | (Match('d'), SetBase("float64_t"))                             //
+      | (Match('z'), SetBase("size_t"))                                //
+      | (Match('e'), Act([&] { SC = DEPENDENT; }))                     //
+      | (Match('q'), Act([&] { SC = VECTOR; }))),                      //
+     Many((Match('*'), InsertPostfix("*"))                             //
+          | (Match('&'), InsertPostfix("&"))                           //
+          | (Match('C'), InsertPostfix("const"))                       //
+          | (Match('D'), InsertPostfix("volatile"))),                  //
+     EofOrFail("Failed to parse the type specification `", Text, "'")) //
+        (Text.data());
   }
 
-  auto ToWritable(GeneratorParams GP) const {
+  auto Abbr(const GeneratorParams &GP) const {
     struct {
-      GeneratorParams GP;
-      TypeSpecifier Spec;
+      const GeneratorParams &GP;
+      const TypeSpecifier &Spec;
+
+      void Write(raw_ostream &OS) const {
+        Many((Match('q'), Act([&] {
+                OS << "q";
+                if (GP.LMUL->IsFract)
+                  llvm_unreachable(
+                      "Fractional LMUL not supported at the moment");
+                OS << GP.LMUL->Mul;
+                OS << ElementType{*GP.Base, *GP.SEW}.Abbr();
+              })) |
+             (Match('e'), Act([&] {
+                OS << ElementType{*GP.Base, *GP.SEW}.Abbr();
+              }))             //
+             | WriteChar(OS)) //
+            (Spec.RawSpec.data());
+      }
+    } Wrapper{GP, *this};
+
+    return Wrapper;
+  }
+
+  auto ConcreteType(const GeneratorParams &GP) const {
+    struct {
+      const GeneratorParams &GP;
+      const TypeSpecifier &Spec;
 
       void Write(raw_ostream &OS) const {
         switch (Spec.SC) {
@@ -624,28 +677,18 @@ ParserUnitTest TestPostfix[]{
     {"vD", {}, "void", {"volatile"}} //
 };
 
-struct RISCVBuiltin {
-  StringRef Name;
-  std::vector<TypeSpecifier> Prototype;
-  std::vector<StringRef> Attributes;
-  bool MayMask;
-  bool MaskedOff;
-  bool HasVL;
-  std::string Body;
-  bool HasSideEffects;
-  bool BasePolymorphic;
-  bool SEWPolymorphic;
-  bool LMULPolymorphic;
-  bool TuplePolymorphic;
-
+class RISCVBuiltin {
+public:
   RISCVBuiltin(const Record *Rec)
       : Name(Rec->getValueAsString("Name")),
+        AttrStr(Rec->getValueAsString("Attributes")),
         MayMask(Rec->getValueAsBit("MayMask")),
         MaskedOff(Rec->getValueAsBit("MaskedOff")),
         HasVL(Rec->getValueAsBit("HasVL")),
         Body(Rec->getValue("Body")->getValue()->getAsUnquotedString()),
-        HasSideEffects(false), BasePolymorphic(false), SEWPolymorphic(false),
-        LMULPolymorphic(false), TuplePolymorphic(false) {
+        GenIntrinsic(Rec->getValueAsBit("GenIntrinsic")),
+        GenBuiltin(Rec->getValueAsBit("GenBuiltin")), BasePolymorphic(false),
+        SEWPolymorphic(false), LMULPolymorphic(false), TuplePolymorphic(false) {
 
     for (StringRef Type : Rec->getValueAsListOfStrings("Prototype")) {
       Prototype.emplace_back(Type);
@@ -657,7 +700,6 @@ struct RISCVBuiltin {
 
     Attributes.push_back("always_inline");
 
-    StringRef AttrStr = Rec->getValueAsString("Attributes");
     (Many((Match('n'), InsertAttr("nothrow"))                         //
           | (Match('r'), InsertAttr("noreturn"))                      //
           | (Match('U'), InsertAttr("pure"))                          //
@@ -669,6 +711,82 @@ struct RISCVBuiltin {
     CheckPolymorphism(Body);
   }
 
+  void Write(raw_ostream &OS) const {
+    if (GenIntrinsic) {
+      OS << "// Intrinsics for " << Name << "\n\n";
+
+      Yield([&](GeneratorParams GP) {
+        Write(OS, GP, false, false, false);
+        OS << "\n\n";
+
+        if (HasVL) {
+          Write(OS, GP, false, false, true);
+          OS << "\n\n";
+        }
+
+        if (MayMask) {
+          Write(OS, GP, true, MaskedOff, false);
+          OS << "\n\n";
+
+          if (HasVL) {
+            Write(OS, GP, false, MaskedOff, true);
+            OS << "\n\n";
+          }
+        }
+      });
+    }
+  }
+
+  auto Builtin() const {
+    struct {
+      const RISCVBuiltin &RB;
+
+      void Write(raw_ostream &OS) const {
+        if (RB.GenBuiltin) {
+          OS << "// Builtins for " << RB.Name << "\n\n";
+
+          RB.Yield([&](GeneratorParams GP) {
+            Write(OS, GP, false, false, false);
+            OS << "\n\n";
+
+            if (RB.HasVL) {
+              Write(OS, GP, false, false, true);
+              OS << "\n\n";
+            }
+
+            if (RB.MayMask) {
+              Write(OS, GP, true, RB.MaskedOff, false);
+              OS << "\n\n";
+
+              if (RB.HasVL) {
+                Write(OS, GP, false, RB.MaskedOff, true);
+                OS << "\n\n";
+              }
+            }
+          });
+        }
+      }
+
+      void Write(raw_ostream &OS, GeneratorParams GP, bool HasMask,
+                 bool MaskedOff, bool HasVL) const {
+        OS << "BUILTIN(__builtin_riscv_";
+
+        OS << GP.Format(RB.Name) << ", \"";
+
+        for (const TypeSpecifier &Spec : RB.Prototype) {
+          OS << Spec.Abbr(GP);
+          // OS << Spec.ConcreteType(GP);
+        }
+
+        OS << "\", \"" << RB.AttrStr << "\")";
+      }
+
+    } Wrapper{*this};
+
+    return Wrapper;
+  }
+
+private:
   void CheckPolymorphism(StringRef Str) {
     (Many((MatchNot('%', [&](auto Text) { return ++Text; }))            //
           | (Match('%'),                                                //
@@ -718,30 +836,6 @@ struct RISCVBuiltin {
       YieldSEW(None);
   }
 
-  void Write(raw_ostream &OS) const {
-    OS << "// Intrinsics for " << Name << "\n\n";
-
-    Yield([&](GeneratorParams GP) {
-      Write(OS, GP, false, false, false);
-      OS << "\n\n";
-
-      if (HasVL) {
-        Write(OS, GP, false, false, true);
-        OS << "\n\n";
-      }
-
-      if (MayMask) {
-        Write(OS, GP, true, MaskedOff, false);
-        OS << "\n\n";
-
-        if (HasVL) {
-          Write(OS, GP, false, MaskedOff, true);
-          OS << "\n\n";
-        }
-      }
-    });
-  }
-
   void Write(raw_ostream &OS, GeneratorParams GP, bool HasMask, bool MaskedOff,
              bool HasVL) const {
 
@@ -762,7 +856,7 @@ struct RISCVBuiltin {
     assert(Prototype.size());
     const TypeSpecifier &RetTy = Prototype[0];
 
-    OS << RetTy.ToWritable(GP) << " ";
+    OS << RetTy.ConcreteType(GP) << " ";
     OS << GP.Format(Name);
 
     if (HasMask)
@@ -783,7 +877,7 @@ struct RISCVBuiltin {
 
     for (unsigned I = 1, E = Prototype.size(); I != E; ++I) {
       const TypeSpecifier &Spec = Prototype[I];
-      OS << Spec.ToWritable(GP);
+      OS << Spec.ConcreteType(GP);
 
       OS << " arg" << I;
 
@@ -829,6 +923,22 @@ struct RISCVBuiltin {
 
     OS << "\n}";
   }
+
+private:
+  StringRef Name;
+  std::vector<TypeSpecifier> Prototype;
+  std::vector<StringRef> Attributes;
+  StringRef AttrStr;
+  bool MayMask;
+  bool MaskedOff;
+  bool HasVL;
+  std::string Body;
+  bool GenIntrinsic;
+  bool GenBuiltin;
+  bool BasePolymorphic;
+  bool SEWPolymorphic;
+  bool LMULPolymorphic;
+  bool TuplePolymorphic;
 };
 
 } // namespace
@@ -836,9 +946,24 @@ struct RISCVBuiltin {
 namespace clang {
 
 void EmitRISCVVectorHeader(RecordKeeper &Keeper, raw_ostream &OS) {
-  SkipWhiteSpace{OS} << LicenseDeclaration;
-  SkipWhiteSpace{OS} << HeaderGuard << "\n";
-  SkipWhiteSpace{OS} << Dependencies << "\n";
+  SkipWhiteSpace{OS} << R"(
+/*===---- riscv_vector.h - RISC-V Vector Extensions ------------------------===
+ *
+ * Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+ * See https://llvm.org/LICENSE.txt for license information.
+ * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+ *
+ *===-----------------------------------------------------------------------===
+ */
+
+#ifndef __RISCV_VECTOR_H__
+#define __RISCV_VECTOR_H__
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+)";
 
   // Emit definitions of all vector types.
   VectorType::Enum([&](VectorType VT) { OS << VectorTypeDef{VT} << "\n\n"; });
@@ -864,7 +989,30 @@ void EmitRISCVVectorHeader(RecordKeeper &Keeper, raw_ostream &OS) {
     OS << RISCVBuiltin(Rec) << "\n\n";
   }
 
-  SkipWhiteSpace{OS} << EndIf;
+  SkipWhiteSpace{OS} << R"(
+#endif
+)";
+}
+
+void EmitRISCVBuiltins(RecordKeeper &Keeper, raw_ostream &OS) {
+  SkipWhiteSpace{OS} << R"(
+//===-- BuiltinsRISCV.def - RISC-V Vector Builtin function database --*- C++ -*-==//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+)";
+
+  for (const Record *Rec : Keeper.getAllDerivedDefinitions("RISCVBuiltin")) {
+    OS << RISCVBuiltin(Rec).Builtin() << "\n\n";
+  }
+
+  SkipWhiteSpace{OS} << R"(
+#undef BUILTIN
+)";
 }
 
 } // namespace clang
