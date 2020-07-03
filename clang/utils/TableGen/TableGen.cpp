@@ -85,7 +85,8 @@ enum ActionType {
   GenOptDocs,
   GenDataCollectors,
   GenTestPragmaAttributeSupportedAttributes,
-  GenRISCVVectorHeader
+  GenRISCVVectorHeader,
+  GenRISCVBuiltins
 };
 
 namespace {
@@ -233,7 +234,9 @@ cl::opt<ActionType> Action(
                    "Generate a list of attributes supported by #pragma clang "
                    "attribute for testing purposes"),
         clEnumValN(GenRISCVVectorHeader, "gen-riscv-vector-header",
-                   "Generate type definitions for RISC-V Vector extension")));
+                   "Generate type definitions for RISC-V Vector extension"),
+        clEnumValN(GenRISCVBuiltins, "gen-riscv-builtins","Generate Builtin "
+                   "declarations for RISC-V Vector extension")));
 
 cl::opt<std::string>
 ClangComponent("clang-component",
@@ -431,6 +434,9 @@ bool ClangTableGenMain(raw_ostream &OS, RecordKeeper &Records) {
     break;
   case GenRISCVVectorHeader:
     EmitRISCVVectorHeader(Records, OS);
+    break;
+  case GenRISCVBuiltins:
+    EmitRISCVBuiltins(Records, OS);
     break;
   }
 

@@ -123,6 +123,9 @@ void EmitTestPragmaAttributeSupportedAttributes(llvm::RecordKeeper &Records,
                                                 llvm::raw_ostream &OS);
 
 void EmitRISCVVectorHeader(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+
+void EmitRISCVBuiltins(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+
 } // end namespace clang
 
 #endif
