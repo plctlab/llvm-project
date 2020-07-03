@@ -18,13 +18,18 @@ struct SkipWhiteSpace {
   }
 };
 
-// Interface of writable objects.
+// Interface for writable objects.
 template <typename T>
 auto operator<<(raw_ostream &OS, const T &Object)
     -> decltype(Object.Write(OS), OS) {
   Object.Write(OS);
   return OS;
 }
+
+// Tool for writing ad hoc tests.
+struct UnitTest {
+  UnitTest(function_ref<void()> F) { F(); }
+};
 
 // Utilities for building parsers.
 inline namespace simple_parser_combinators {
@@ -65,18 +70,12 @@ constexpr auto operator|(ParserX PX, ParserY PY) {
 // Run some code during parsing.
 template <typename Par, requires_signature<Par, void(const char *)> = 1> //
 constexpr auto Act(Par P) {
-  return [=](const char *Text) {
-    P(Text);
-    return Text;
-  };
+  return [=](const char *Text) { return P(Text), Text; };
 }
 
 template <typename Par, requires_signature<Par, void()> = 1> //
 constexpr auto Act(Par P) {
-  return [=](const char *Text) {
-    P();
-    return Text;
-  };
+  return [=](const char *Text) { return P(), Text; };
 }
 
 // Check if the current character matches with the desired one.
@@ -96,10 +95,8 @@ constexpr auto Many(Par P) {
   return [=](const char *Text) {
     const char *Latest = Text;
 
-    do {
+    while ((Latest = P(Text)))
       Text = Latest;
-      Latest = P(Text);
-    } while (Latest);
 
     return Text;
   };
@@ -121,6 +118,31 @@ constexpr auto ReadDigit(Func F) {
     return isdigit(*Text) ? (F(*Text - '0'), ++Text) : nullptr;
   };
 }
+
+constexpr auto WriteChar(raw_ostream &OS) {
+  return [&](const char *Text) { //
+    return *Text ? (OS << *Text, ++Text) : nullptr;
+  };
+}
+
+raw_ostream &WriteSeq(raw_ostream &OS) { return OS; }
+
+template <typename T, typename... Ts>
+raw_ostream &WriteSeq(raw_ostream &OS, T M, Ts... Ms) {
+  return OS << M, WriteSeq(OS, Ms...);
+}
+
+template <typename... Ts> //
+constexpr auto EofOrFail(Ts... Messages) {
+  return [=](const char *Text) {
+    if (!Text || *Text) {
+      WriteSeq(errs(), Messages..., "\n");
+      llvm_unreachable("Failed to run the parser");
+    }
+    return nullptr;
+  };
+}
+
 } // namespace simple_parser_combinators
 
 const char *LicenseDeclaration = R"(
@@ -154,25 +176,33 @@ struct BaseType {
 
   int ID;
 
-  void Write(raw_ostream &OS) const {
-    switch (ID) {
-    case INTEGER:
-      OS << "int";
-      break;
-    case UNSIGNED_INTEGER:
-      OS << "uint";
-      break;
-    case FLOATING_POINT:
-      OS << "float";
-      break;
-    default:
-      llvm_unreachable("Unhandled BaseTy!");
-    }
+  auto Abbr() const {
+    struct {
+      const BaseType &BT;
+
+      void Write(raw_ostream &OS) const {
+        switch (BT.ID) {
+        case INTEGER:
+          OS << "int";
+          break;
+        case UNSIGNED_INTEGER:
+          OS << "uint";
+          break;
+        case FLOATING_POINT:
+          OS << "float";
+          break;
+        default:
+          llvm_unreachable("Unhandled BaseTy!");
+        }
+      }
+    } Wrapper{*this};
+
+    return Wrapper;
   }
 
-  auto ToCType() const {
+  auto CType() const {
     struct {
-      BaseType BT;
+      const BaseType &BT;
 
       void Write(raw_ostream &OS) const {
         switch (BT.ID) {
@@ -194,9 +224,9 @@ struct BaseType {
     return Wrapper;
   }
 
-  auto ToSuffix() const {
+  auto SingleLetter() const {
     struct {
-      BaseType BT;
+      const BaseType &BT;
 
       void Write(raw_ostream &OS) const {
         switch (BT.ID) {
@@ -256,11 +286,21 @@ struct LengthMultiplier {
 
   unsigned Encoding() const { return (unsigned(IsFract) << 5) | Log2_64(Mul); }
 
-  void Write(raw_ostream &OS) const { OS << (IsFract ? "f" : "") << Mul; }
-
-  auto ToUpper() const {
+  auto LowerCase() const {
     struct {
-      LengthMultiplier LMUL;
+      const LengthMultiplier &LMUL;
+
+      void Write(raw_ostream &OS) const {
+        OS << (LMUL.IsFract ? "f" : "") << LMUL.Mul;
+      }
+    } Wrapper{*this};
+
+    return Wrapper;
+  }
+
+  auto UpperCase() const {
+    struct {
+      const LengthMultiplier &LMUL;
 
       void Write(raw_ostream &OS) const {
         OS << (LMUL.IsFract ? "F" : "") << LMUL.Mul;
@@ -300,7 +340,7 @@ struct VectorType {
   LengthMultiplier LMUL;
 
   void Write(raw_ostream &OS) const {
-    OS << "v" << BT << SEW << "m" << LMUL << "_t";
+    OS << "v" << BT.Abbr() << SEW << "m" << LMUL.LowerCase() << "_t";
   }
 
   static void Enum(function_ref<void(VectorType VT)> F) {
@@ -321,7 +361,7 @@ struct VectorTypeDef {
     OS << "typedef __attribute__((riscv_vector_type(" << VT.SEW;
     OS << ", " << VT.LMUL.Mul;
     OS << ", " << (VT.LMUL.IsFract ? "1" : "0") << ")))";
-    OS << " " << VT.BT.ToCType() << " " << VT << ";";
+    OS << " " << VT.BT.CType() << " " << VT << ";";
   }
 };
 
@@ -357,7 +397,7 @@ struct VectorTupleDef {
       OS << "  " << VT << " v" << I << ";\n";
     }
 
-    OS << "} v" << VT.BT << VT.SEW << "m" << VT.LMUL;
+    OS << "} v" << VT.BT.Abbr() << VT.SEW << "m" << VT.LMUL.LowerCase();
     OS << "x" << N << "_t;";
   }
 
@@ -380,7 +420,7 @@ struct ConstantMDef {
   LengthMultiplier LMUL;
 
   void Write(raw_ostream &OS) const {
-    OS << "#define _M" << LMUL.ToUpper() << " " << LMUL.Encoding();
+    OS << "#define _M" << LMUL.UpperCase() << " " << LMUL.Encoding();
   }
 };
 
@@ -393,23 +433,25 @@ struct GeneratorParams {
   auto Format(StringRef Str) const {
     struct {
       StringRef Str;
-      GeneratorParams GP;
+      const GeneratorParams &GP;
 
       void Write(raw_ostream &OS) const {
-        Many((MatchNot('%', [&](auto Text) { return OS << *Text, ++Text; })) //
-             | (Match('%'),                                                  //
-                ((Match('b'), Act([&] { OS << GP.Base->ToSuffix(); }))       //
-                 | (Match('s'), Act([&] { OS << *GP.SEW; }))                 //
-                 | (Match('l'), Act([&] { OS << *GP.LMUL; }))                //
-                 | (Match('L'), Act([&] { OS << GP.LMUL->ToUpper(); })))))   //
-            (Str.data());
+        (Many((MatchNot('%', WriteChar(OS))) //
+              |
+              (Match('%'),                                                   //
+               ((Match('b'), Act([&] { OS << GP.Base->SingleLetter(); }))    //
+                | (Match('s'), Act([&] { OS << *GP.SEW; }))                  //
+                | (Match('l'), Act([&] { OS << GP.LMUL->LowerCase(); }))     //
+                | (Match('L'), Act([&] { OS << GP.LMUL->UpperCase(); }))))), //
+         EofOrFail("Failed to format `", Str, "'"))(Str.data());
       }
 
     } Wrapper{Str, *this};
+
     return Wrapper;
   }
 
-  auto ToVector() const { return VectorType{*Base, *SEW, *LMUL}; }
+  auto Vector() const { return VectorType{*Base, *SEW, *LMUL}; }
 
   unsigned MaskLength() const {
     return LMUL->IsFract ? (SEW->Width / LMUL->Mul) : (SEW->Width * LMUL->Mul);
@@ -471,26 +513,24 @@ public:
   TypeSpecifier(StringRef Text) : TypeSpecifier(Text.data()) {}
 
   TypeSpecifier(const char *Text) : SC(ATOM) {
-    auto Parser = (Many((Match('U'), InsertPrefix("unsigned"))),
-                   ((Match('v'), SetBase("void"))                //
-                    | (Match('b'), SetBase("bool"))              //
-                    | (Match('c'), SetBase("int8_t"))            //
-                    | (Match('s'), SetBase("int16_t"))           //
-                    | (Match('i'), SetBase("int32_t"))           //
-                    | (Match('l'), SetBase("int64_t"))           //
-                    | (Match('h'), SetBase("float16_t"))         //
-                    | (Match('f'), SetBase("float32_t"))         //
-                    | (Match('d'), SetBase("float64_t"))         //
-                    | (Match('z'), SetBase("size_t"))            //
-                    | (Match('e'), Act([&] { SC = DEPENDENT; })) //
-                    | (Match('q'), Act([&] { SC = VECTOR; }))),  //
-                   Many((Match('*'), InsertPostfix("*"))         //
-                        | (Match('&'), InsertPostfix("&"))       //
-                        | (Match('C'), InsertPostfix("const"))   //
-                        | (Match('D'), InsertPostfix("volatile"))));
-
-    const char *Rest = Parser(Text);
-    assert(Rest && !*Rest && "Failed to parse the type");
+    (Many((Match('U'), InsertPrefix("unsigned"))),
+     ((Match('v'), SetBase("void"))                   //
+      | (Match('b'), SetBase("bool"))                 //
+      | (Match('c'), SetBase("int8_t"))               //
+      | (Match('s'), SetBase("int16_t"))              //
+      | (Match('i'), SetBase("int32_t"))              //
+      | (Match('l'), SetBase("int64_t"))              //
+      | (Match('h'), SetBase("float16_t"))            //
+      | (Match('f'), SetBase("float32_t"))            //
+      | (Match('d'), SetBase("float64_t"))            //
+      | (Match('z'), SetBase("size_t"))               //
+      | (Match('e'), Act([&] { SC = DEPENDENT; }))    //
+      | (Match('q'), Act([&] { SC = VECTOR; }))),     //
+     Many((Match('*'), InsertPostfix("*"))            //
+          | (Match('&'), InsertPostfix("&"))          //
+          | (Match('C'), InsertPostfix("const"))      //
+          | (Match('D'), InsertPostfix("volatile"))), //
+     EofOrFail("Failed to parse the type specification `", Text, "'"))(Text);
   }
 
   auto ToWritable(GeneratorParams GP) const {
@@ -518,7 +558,8 @@ public:
             OS << " volatile";
         } break;
         case VECTOR: {
-          OS << "v" << *GP.Base << *GP.SEW << "m" << *GP.LMUL;
+          OS << "v" << GP.Base->Abbr() << *GP.SEW;
+          OS << "m" << GP.LMUL->LowerCase();
 
           if (GP.TupleN.hasValue())
             OS << "v" << *GP.TupleN;
@@ -529,7 +570,7 @@ public:
           if (Spec.Postfixes.count("const"))
             OS << "const ";
 
-          OS << *GP.Base << *GP.SEW << "_t";
+          OS << GP.Base->Abbr() << *GP.SEW << "_t";
 
           if (Spec.Postfixes.count("*"))
             OS << "*";
@@ -549,11 +590,7 @@ public:
   }
 };
 
-// Adhoc tests for type specification parsing.
-struct UnitTest {
-  UnitTest(function_ref<void()> F) { F(); }
-};
-
+// Ad hoc tests for parsing type specification.
 struct ParserUnitTest : UnitTest {
   ParserUnitTest(const char *Input, DenseSet<StringRef> Prefixes,
                  const char *Base, DenseSet<StringRef> Postfixes)
@@ -588,36 +625,59 @@ ParserUnitTest TestPostfix[]{
 };
 
 struct RISCVBuiltin {
-  StringRef Instruction;
+  StringRef Name;
   std::vector<TypeSpecifier> Prototype;
-  StringRef TypeRange;
+  std::vector<StringRef> Attributes;
   bool MayMask;
   bool MaskedOff;
   bool HasVL;
+  std::string Body;
   bool HasSideEffects;
-  StringRef IntrinsicName;
   bool BasePolymorphic;
   bool SEWPolymorphic;
   bool LMULPolymorphic;
   bool TuplePolymorphic;
-  std::string Body;
 
   RISCVBuiltin(const Record *Rec)
-      : Instruction(Rec->getValueAsString("Instruction")),
-        TypeRange(Rec->getValueAsString("TypeRange")),
+      : Name(Rec->getValueAsString("Name")),
         MayMask(Rec->getValueAsBit("MayMask")),
         MaskedOff(Rec->getValueAsBit("MaskedOff")),
         HasVL(Rec->getValueAsBit("HasVL")),
-        HasSideEffects(Rec->getValueAsBit("HasSideEffects")),
-        IntrinsicName(Rec->getValueAsString("IntrinsicName")),
-        BasePolymorphic(Rec->getValueAsBit("BasePolymorphic")),
-        SEWPolymorphic(Rec->getValueAsBit("SEWPolymorphic")),
-        LMULPolymorphic(Rec->getValueAsBit("LMULPolymorphic")),
-        TuplePolymorphic(Rec->getValueAsBit("TuplePolymorphic")),
-        Body(Rec->getValue("Body")->getValue()->getAsUnquotedString()) {
+        Body(Rec->getValue("Body")->getValue()->getAsUnquotedString()),
+        HasSideEffects(false), BasePolymorphic(false), SEWPolymorphic(false),
+        LMULPolymorphic(false), TuplePolymorphic(false) {
+
     for (StringRef Type : Rec->getValueAsListOfStrings("Prototype")) {
       Prototype.emplace_back(Type);
     }
+
+    auto InsertAttr = [&](const char *Attr) {
+      return Act([&, Attr] { Attributes.push_back(Attr); });
+    };
+
+    Attributes.push_back("always_inline");
+
+    StringRef AttrStr = Rec->getValueAsString("Attributes");
+    (Many((Match('n'), InsertAttr("nothrow"))                         //
+          | (Match('r'), InsertAttr("noreturn"))                      //
+          | (Match('U'), InsertAttr("pure"))                          //
+          | (Match('c'), InsertAttr("const"))),                       //
+     EofOrFail("Failed to parse the attribute list `", AttrStr, "'")) //
+        (AttrStr.data());
+
+    CheckPolymorphism(Name);
+    CheckPolymorphism(Body);
+  }
+
+  void CheckPolymorphism(StringRef Str) {
+    (Many((MatchNot('%', [&](auto Text) { return ++Text; }))            //
+          | (Match('%'),                                                //
+             ((Match('b'), Act([&] { BasePolymorphic = true; }))        //
+              | (Match('s'), Act([&] { SEWPolymorphic = true; }))       //
+              | (Match('l'), Act([&] { LMULPolymorphic = true; }))      //
+              | (Match('L'), Act([&] { LMULPolymorphic = true; }))      //
+              | (Match('L'), Act([&] { TuplePolymorphic = true; }))))), //
+     EofOrFail("Failed to check polymorphism in `", Str, "'"))(Str.data());
   }
 
   void Yield(Generator G) const {
@@ -659,7 +719,7 @@ struct RISCVBuiltin {
   }
 
   void Write(raw_ostream &OS) const {
-    OS << "// Intrinsics for " << Instruction << "\n\n";
+    OS << "// Intrinsics for " << Name << "\n\n";
 
     Yield([&](GeneratorParams GP) {
       Write(OS, GP, false, false, false);
@@ -685,17 +745,25 @@ struct RISCVBuiltin {
   void Write(raw_ostream &OS, GeneratorParams GP, bool HasMask, bool MaskedOff,
              bool HasVL) const {
 
-    OS << "static __attribute__((always_inline, nothrow))\n";
+    if (Attributes.size()) {
+      // OS << "static __attribute__((always_inline, nothrow))\n";
+      OS << "static __attribute__((";
+
+      for (unsigned I = 0, E = Attributes.size(); I != E; ++I) {
+        if (I != 0)
+          OS << ", ";
+
+        OS << Attributes[I];
+      }
+
+      OS << "))\n";
+    }
 
     assert(Prototype.size());
     const TypeSpecifier &RetTy = Prototype[0];
 
     OS << RetTy.ToWritable(GP) << " ";
-
-    if (IntrinsicName.empty()) {
-      OS << GP.Format(Instruction);
-    } else
-      OS << IntrinsicName;
+    OS << GP.Format(Name);
 
     if (HasMask)
       OS << "_m";
@@ -709,7 +777,7 @@ struct RISCVBuiltin {
       OS << "vbool" << GP.MaskLength() << "_t mask, ";
 
       if (MaskedOff) {
-        OS << GP.ToVector() << " maskedoff, ";
+        OS << GP.Vector() << " maskedoff, ";
       }
     }
 
@@ -737,10 +805,7 @@ struct RISCVBuiltin {
 
       OS << "__builtin_riscv_";
 
-      if (IntrinsicName.empty()) {
-        OS << GP.Format(Instruction);
-      } else
-        OS << IntrinsicName;
+      OS << GP.Format(Name);
 
       OS << "(";
 

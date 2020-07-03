@@ -7,32 +7,82 @@
 //
 //===----------------------------------------------------------------------===//
 
-class RISCVBuiltin<string inst, list<string> prototype, string type_range,
-                   string name = ""> {
-  string Instruction = inst;
+class RISCVBuiltin<string name, list<string> prototype, string attrs> {
+  // Intrinsic's name, which may contain one or more of the following
+  // format specifiers:
+  //   %b -> Type of vector's elements , represented by a single character.
+  //     i.e. i, u and f.
+  // 
+  //   %s -> SEW, e.g. 8, 16 and 32.
+  // 
+  //   %l -> LMUL, represented by characters in lower case.
+  //      e.g. 1, 2, f2 and f4.
+  //
+  //   %L -> LMUL, represented by characters in upper case.
+  //      e.g. 1, 2, F2 and F4.
+  //
+  //   %t -> Size of Tuple.
+  //      e.g. 1, 2, 3, and 4.
+  // 
+  // The emitter will enumerate all possible values for those specifiers,
+  // if occurred.
+  string Name = name;
+
+  // Types of returned value and parameters.
+  //
+  // Grammar for type specification:
+  //
+  // type_spec
+  //   : prefix* base_type postfix*
+  //   ;
+  // prefix
+  //   : 'U' # unsigned
+  //   ;
+  // base_type
+  //   : 'v' # void
+  //   | 'b' # bool
+  //   | 'c' # char
+  //   | 's' # int16_t
+  //   | 'i' # int32_t
+  //   | 'l' # int64_t
+  //   | 'h' # float16_t
+  //   | 'f' # float32_t
+  //   | 'd' # float64_t
+  //   | 'z' # size_t
+  //   | 'e' # type that depends on the context
+  //   | 'q' # vector
+  //   ;
+  // postfix
+  //   : '*' # pointer
+  //   | '&' # reference
+  //   | 'C' # const
+  //   | 'D' # volatile
+  //   ;
   list<string> Prototype = prototype;
-  string TypeRange = type_range;
+
+  // Possible specifiers for attributes:
+  //   n -> nothrow
+  //   r -> noreturn
+  //   U -> pure
+  //   c -> const
+  string Attributes = attrs;
+
+  // If true, emit both masked and unmasked functions.
   bit MayMask = 0;
+
+  // If true, add 'maskedoff' to the function's parameters.
   bit MaskedOff = 0;
+
+  // If true, emit functions with and without 'vl'.
   bit HasVL = 0;
-  bit HasSideEffects = 0;
-  list<int> LMUL = [1, 2, 4, 8];
-  string IntrinsicName = name;
-  bit BasePolymorphic = 0;
-  bit SEWPolymorphic = 0;
-  bit LMULPolymorphic = 0;
-  bit TuplePolymorphic = 0;
+
+  // if not empty, use it as the function's body.
   code Body = [{}];
 }
 
-let SEWPolymorphic = 1, LMULPolymorphic = 1 in {
-  def : RISCVBuiltin<"vsetvl_e%s%l", ["z", "z","z", "z"], "n"> {
-      let Body = [{ return __builtin_riscv_vsetvl(arg1, (_E%s | _M%L)); }];
-  }
+def : RISCVBuiltin<"vsetvl_e%sm%l", ["z", "z","z", "z"], "n"> {
+  let Body = [{ return __builtin_riscv_vsetvl(arg1, (_E%s | _M%L)); }];
 }
 
-let BasePolymorphic = 1,
-    SEWPolymorphic = 1, LMULPolymorphic = 1 in {
-  def : RISCVBuiltin<"vle%s_v_%b%sm%l", ["q", "eC*"], "n">;
-  def : RISCVBuiltin<"vse%s_v_%b%sm%l", ["v", "eC*", "q"], "n">;
-}
+def : RISCVBuiltin<"vle%s_v_%b%sm%l", ["q", "eC*"], "n">;
+def : RISCVBuiltin<"vse%s_v_%b%sm%l", ["v", "eC*", "q"], "n">;
