@@ -146,6 +146,7 @@ const char *EndIf = R"(
 const char *Dependencies = R"(
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 )";
 
 struct BaseType {
@@ -255,14 +256,14 @@ struct LengthMultiplier {
 
   unsigned Encoding() const { return (unsigned(IsFract) << 5) | Log2_64(Mul); }
 
-  void Write(raw_ostream &OS) const { OS << (IsFract ? "mf" : "m") << Mul; }
+  void Write(raw_ostream &OS) const { OS << (IsFract ? "f" : "") << Mul; }
 
   auto ToUpper() const {
     struct {
       LengthMultiplier LMUL;
 
       void Write(raw_ostream &OS) const {
-        OS << (LMUL.IsFract ? "MF" : "M") << LMUL.Mul;
+        OS << (LMUL.IsFract ? "F" : "") << LMUL.Mul;
       }
     } Wrapper{*this};
 
@@ -298,7 +299,9 @@ struct VectorType {
   StdElemWidth SEW;
   LengthMultiplier LMUL;
 
-  void Write(raw_ostream &OS) const { OS << "v" << BT << SEW << LMUL << "_t"; }
+  void Write(raw_ostream &OS) const {
+    OS << "v" << BT << SEW << "m" << LMUL << "_t";
+  }
 
   static void Enum(function_ref<void(VectorType VT)> F) {
     BaseType::Enum([&](BaseType BT) {
@@ -354,7 +357,7 @@ struct VectorTupleDef {
       OS << "  " << VT << " v" << I << ";\n";
     }
 
-    OS << "} v" << VT.BT << VT.SEW << VT.LMUL;
+    OS << "} v" << VT.BT << VT.SEW << "m" << VT.LMUL;
     OS << "x" << N << "_t;";
   }
 
@@ -377,23 +380,7 @@ struct ConstantMDef {
   LengthMultiplier LMUL;
 
   void Write(raw_ostream &OS) const {
-    OS << "#define _M" << (LMUL.IsFract ? "F" : "");
-    OS << LMUL.Mul << " " << LMUL.Encoding();
-  }
-};
-
-struct VSetVLDef {
-  StdElemWidth SEW;
-  LengthMultiplier LMUL;
-
-  void Write(raw_ostream &OS) const {
-    OS << "static __attribute__((always_inline, nothrow))\n";
-    OS << "size_t vsetvl_e" << SEW << "" << LMUL << "(";
-    OS << "size_t avl) {\n";
-    OS << "  return __builtin_riscv_vsetvl(avl, ";
-    OS << "_E" << SEW << " | "
-       << "_" << LMUL.ToUpper() << ");\n";
-    OS << "}";
+    OS << "#define _M" << LMUL.ToUpper() << " " << LMUL.Encoding();
   }
 };
 
@@ -531,7 +518,7 @@ public:
             OS << " volatile";
         } break;
         case VECTOR: {
-          OS << "v" << *GP.Base << *GP.SEW << *GP.LMUL;
+          OS << "v" << *GP.Base << *GP.SEW << "m" << *GP.LMUL;
 
           if (GP.TupleN.hasValue())
             OS << "v" << *GP.TupleN;
@@ -806,13 +793,6 @@ void EmitRISCVVectorHeader(RecordKeeper &Keeper, raw_ostream &OS) {
   // Emit definitions of all _Mxxx constant.
   LengthMultiplier::Enum(
       [&](LengthMultiplier LMUL) { OS << ConstantMDef{LMUL} << "\n\n"; });
-
-  // // Emit definitions of all vsetvl_xxx.
-  // StdElemWidth::Enum([&](StdElemWidth SEW) {
-  //   LengthMultiplier::Enum(SEW, [&](LengthMultiplier LMUL) {
-  //     OS << VSetVLDef{SEW, LMUL} << "\n\n";
-  //   });
-  // });
 
   // Emit definitions of all intrinsics.
   for (const Record *Rec : Keeper.getAllDerivedDefinitions("RISCVBuiltin")) {
