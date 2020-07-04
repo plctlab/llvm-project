@@ -222,6 +222,30 @@ struct BaseType {
     return Wrapper;
   }
 
+  auto LLVMSingleLetter() const {
+    struct {
+      const BaseType &BT;
+
+      void Write(raw_ostream &OS) const {
+        switch (BT.ID) {
+        case INTEGER:
+          OS << "i";
+          break;
+        case UNSIGNED_INTEGER:
+          OS << "i";
+          break;
+        case FLOATING_POINT:
+          OS << "f";
+          break;
+        default:
+          llvm_unreachable("Unhandled BaseTy!");
+        }
+      }
+    } Wrapper{*this};
+
+    return Wrapper;
+  }
+
   static void Enum(function_ref<void(BaseType BT)> F) {
     for (int I : {INTEGER, UNSIGNED_INTEGER, FLOATING_POINT}) {
       F(BaseType{I});
@@ -312,6 +336,41 @@ struct ElementType {
   BaseType BT;
   StdElemWidth SEW;
 
+  void Write(raw_ostream &OS) const {
+    if (BT.ID == BaseType::FLOATING_POINT) {
+      switch (SEW.Width) {
+      case 16:
+        OS << "float16_t";
+        break;
+      case 32:
+        OS << "float";
+        break;
+      case 64:
+        OS << "double";
+        break;
+      default:
+        llvm_unreachable("Unhandled SEW");
+      }
+    } else {
+      switch (SEW.Width) {
+      case 8:
+        OS << "char";
+        break;
+      case 16:
+        OS << "short";
+        break;
+      case 32:
+        OS << "int";
+        break;
+      case 64:
+        OS << "long int";
+        break;
+      default:
+        llvm_unreachable("Unhandled SEW");
+      }
+    }
+  }
+
   auto Abbr() const {
     struct {
       const ElementType &AT;
@@ -353,6 +412,33 @@ struct ElementType {
     } Wrapper{*this};
     return Wrapper;
   }
+
+  auto LLVMType() const {
+    struct {
+      const ElementType &ET;
+
+      void Write(raw_ostream &OS) const {
+        if (ET.BT.ID == BaseType::FLOATING_POINT) {
+          switch (ET.SEW.Width) {
+          case 16:
+            OS << "llvm_half_ty";
+            break;
+          case 32:
+            OS << "llvm_float_ty";
+            break;
+          case 64:
+            OS << "llvm_double_ty";
+            break;
+          default:
+            llvm_unreachable("Unhandled SEW");
+          }
+        } else {
+          OS << "llvm_i" << ET.SEW << "_ty";
+        }
+      }
+    } Wrapper{*this};
+    return Wrapper;
+  }
 };
 
 struct VectorType {
@@ -362,6 +448,23 @@ struct VectorType {
 
   void Write(raw_ostream &OS) const {
     OS << "v" << BT.Abbr() << SEW << "m" << LMUL.LowerCase() << "_t";
+  }
+
+  auto LLVMType() const {
+    struct {
+      const VectorType &VT;
+
+      void Write(raw_ostream &OS) const {
+        if (VT.LMUL.IsFract)
+          llvm_unreachable("Fractional LMUL not supported at the moment");
+
+        OS << "llvm_nxv" << VT.LMUL.LowerCase();
+
+        OS << VT.BT.LLVMSingleLetter() << VT.SEW << "_ty";
+      }
+    } Wrapper{*this};
+
+    return Wrapper;
   }
 
   static void Enum(function_ref<void(VectorType VT)> F) {
@@ -479,6 +582,8 @@ struct GeneratorParams {
     return VectorType{*Base, *SEW, *LMUL};
   }
 
+  auto Element() const { return ElementType{*Base, *SEW}; }
+
   unsigned MaskLength() const {
     assert(LMUL.hasValue());
     assert(SEW.hasValue());
@@ -580,6 +685,48 @@ public:
               }))             //
              | WriteChar(OS)) //
             (Spec.RawSpec.data());
+      }
+    } Wrapper{GP, *this};
+
+    return Wrapper;
+  }
+
+  auto LLVMType(const GeneratorParams &GP) const {
+    struct {
+      const GeneratorParams &GP;
+      const TypeSpecifier &Spec;
+
+      void Write(raw_ostream &OS) const {
+        ((Match('q'), Act([&] { OS << GP.Vector().LLVMType(); }))    //
+         | (Match('e'), Act([&] { OS << GP.Element().LLVMType(); })) //
+         | [&](const char *Text) {
+             if (Spec.Postfixes.count("*")) {
+               OS << "llvm_ptr_ty";
+               return nullptr;
+             }
+
+             auto WriteStr = [&](const char *Str) {
+               return Act([&, Str] { OS << Str; });
+             };
+
+             return (Maybe(Match('U')),                          //
+                     ((Match('v'), WriteStr("llvm_void_ty"))     //
+                      | (Match('b'), WriteStr("llvm_i1_ty"))     //
+                      | (Match('c'), WriteStr("llvm_i8_ty"))     //
+                      | (Match('s'), WriteStr("llvm_i16_ty"))    //
+                      | (Match('i'), WriteStr("llvm_i32_ty"))    //
+                      | (Match('l'), WriteStr("llvm_i64_ty"))    //
+                      | (Match('h'), WriteStr("llvm_half_ty"))   //
+                      | (Match('f'), WriteStr("llvm_float_ty"))  //
+                      | (Match('d'), WriteStr("llvm_double_ty")) //
+                      | (Match('z'), WriteStr("llvm_anyint_ty"))),
+                     (Many(Match('*')   //
+                           | Match('&') //
+                           | Match('C') //
+                           | (Match('D')))),
+                     EofOrFail("Failed parse the prototype")) //
+                 (Text);
+           })(Spec.RawSpec.data());
       }
     } Wrapper{GP, *this};
 
@@ -707,6 +854,17 @@ public:
      EofOrFail("Failed to parse the attribute list `", AttrStr, "'")) //
         (AttrStr.data());
 
+    auto InsertProp = [&](const char *Prop) {
+      return Act([&, Prop] { Properties.push_back(Prop); });
+    };
+
+    (Many((Match('n'), InsertProp("IntrNoMem"))              //
+          | (Match('r'), InsertProp("IntrReadMem"))          //
+          | (Match('w'), InsertProp("IntrWriteMem"))         //
+          | (Match('s'), InsertProp("IntrHasSideEffects"))), //
+     EofOrFail("Failed to parse the property list"))         //
+        (Rec->getValueAsString("Properties").data());
+
     CheckPolymorphism(Name);
     CheckPolymorphism(Body);
   }
@@ -769,7 +927,7 @@ public:
 
       void Write(raw_ostream &OS, GeneratorParams GP, bool HasMask,
                  bool MaskedOff, bool HasVL) const {
-        OS << "BUILTIN(__builtin_riscv_";
+        OS << "RISCVBuiltin(";
 
         OS << GP.Format(RB.Name) << ", \"";
 
@@ -781,6 +939,67 @@ public:
         OS << "\", \"" << RB.AttrStr << "\")";
       }
 
+    } Wrapper{*this};
+
+    return Wrapper;
+  }
+
+  auto Intrinsic() const {
+    struct {
+      const RISCVBuiltin &RB;
+
+      void Write(raw_ostream &OS) const {
+        if (RB.GenBuiltin) {
+          OS << "// Intrinsics for " << RB.Name << "\n\n";
+
+          RB.Yield([&](GeneratorParams GP) {
+            Write(OS, GP, false, false, false);
+            OS << "\n\n";
+
+            if (RB.HasVL) {
+              Write(OS, GP, false, false, true);
+              OS << "\n\n";
+            }
+
+            if (RB.MayMask) {
+              Write(OS, GP, true, RB.MaskedOff, false);
+              OS << "\n\n";
+
+              if (RB.HasVL) {
+                Write(OS, GP, false, RB.MaskedOff, true);
+                OS << "\n\n";
+              }
+            }
+          });
+        }
+      }
+
+      void Write(raw_ostream &OS, GeneratorParams GP, bool HasMask,
+                 bool MaskedOff, bool HasVL) const {
+
+        OS << "def int_riscv_" << GP.Format(RB.Name) << "\n";
+        OS << "    : Intrinsic<[" << RB.Prototype[0].LLVMType(GP) << "],\n";
+        OS << "                [";
+
+        for (unsigned I = 1, E = RB.Prototype.size(); I < E; ++I) {
+          if (I != 1)
+            OS << ", ";
+
+          OS << RB.Prototype[I].LLVMType(GP);
+        }
+
+        OS << "],\n";
+        OS << "                [";
+
+        for (unsigned I = 0, E = RB.Properties.size(); I < E; ++I) {
+          if (I != 0)
+            OS << ", ";
+
+          OS << RB.Properties[I];
+        }
+
+        OS << "]>;";
+      }
     } Wrapper{*this};
 
     return Wrapper;
@@ -933,6 +1152,7 @@ private:
   bool MaskedOff;
   bool HasVL;
   std::string Body;
+  std::vector<StringRef> Properties;
   bool GenIntrinsic;
   bool GenBuiltin;
   bool BasePolymorphic;
@@ -995,24 +1215,19 @@ void EmitRISCVVectorHeader(RecordKeeper &Keeper, raw_ostream &OS) {
 }
 
 void EmitRISCVBuiltins(RecordKeeper &Keeper, raw_ostream &OS) {
-  SkipWhiteSpace{OS} << R"(
-//===-- BuiltinsRISCV.def - RISC-V Vector Builtin function database --*- C++ -*-==//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===----------------------------------------------------------------------===//
-
-)";
-
   for (const Record *Rec : Keeper.getAllDerivedDefinitions("RISCVBuiltin")) {
     OS << RISCVBuiltin(Rec).Builtin() << "\n\n";
   }
 
   SkipWhiteSpace{OS} << R"(
-#undef BUILTIN
+#undef RISCVBuiltin
 )";
+}
+
+void EmitRISCVIntrinsics(RecordKeeper &Keeper, raw_ostream &OS) {
+  for (const Record *Rec : Keeper.getAllDerivedDefinitions("RISCVBuiltin")) {
+    OS << RISCVBuiltin(Rec).Intrinsic() << "\n\n";
+  }
 }
 
 } // namespace clang

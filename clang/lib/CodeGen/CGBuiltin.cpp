@@ -14498,41 +14498,34 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
 
 Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
                                              const CallExpr *E) {
-  static DenseMap<unsigned, unsigned> Table{
-#define ENTRY(name) {RISCV::BI__builtin_riscv_##name, Intrinsic::riscv_##name}
-      ENTRY(vsetvl),
-      ENTRY(vle32_v_f32m1),
-      ENTRY(vle32_v_f32m8),
-      ENTRY(vse32_v_f32m1),
-      ENTRY(vse32_v_f32m8),
-      ENTRY(vfmacc_vf_f32m1),
-      ENTRY(vfmacc_vf_f32m8),
-      ENTRY(vfmv_f_s_f32m1_f32)
-#undef ENTRY
-  };
+  unsigned IntrinsicID = 0;
 
-  auto Iter = Table.find(BuiltinID);
-  if (Iter == Table.end())
+  switch (BuiltinID) {
+#define RISCVBuiltin(Name, ...)                                                \
+  case RISCV::BI__builtin_riscv_##Name:                                        \
+    IntrinsicID = Intrinsic::riscv_##Name;                                     \
+    break;
+#include "clang/Basic/riscv_vector.inc"
+  default:
     return nullptr;
+  }
 
   SmallVector<Value *, 4> Args(map_range(
       E->arguments(), [&](const Expr *arg) { return EmitScalarExpr(arg); }));
 
-  SmallVector<llvm::Type *, 4> Tys(
-      map_range(Args, [](const Value *V) { return V->getType(); }));
+  Function *F = nullptr;
+  switch (IntrinsicID) {
+  case Intrinsic::riscv_vsetvl: {
+    SmallVector<llvm::Type *, 4> Tys(
+        map_range(Args, [](const Value *V) { return V->getType(); }));
 
-  Tys.push_back(ConvertType(E->getCallReturnType(getContext())));
+    Tys.push_back(ConvertType(E->getCallReturnType(getContext())));
 
-  Function* F = nullptr;
-  switch (Iter->second) {
-  case Intrinsic::riscv_vsetvl:
-    F = CGM.getIntrinsic(Iter->second, Tys);
-    break;
+    F = CGM.getIntrinsic(IntrinsicID, Tys);
+  } break;
   default:
-    F = CGM.getIntrinsic(Iter->second);
+    F = CGM.getIntrinsic(IntrinsicID);
   }
-
-  // Function* F = CGM.getIntrinsic(Iter->second, Tys);
 
   return Builder.CreateCall(F, Args);
 }
