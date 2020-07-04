@@ -14496,17 +14496,38 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
   }
 }
 
-Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID, const CallExpr *E) {
+Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
+                                             const CallExpr *E) {
+  unsigned IntrinsicID = 0;
+
   switch (BuiltinID) {
-  case RISCV::BI__builtin_riscv_vsetvl: {
-    Value * avl = EmitScalarExpr(E->getArg(0));
-    Value * vtypei = EmitScalarExpr(E->getArg(1));
-    Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl);
-    return Builder.CreateCall(F, {avl, vtypei});
-  }
+#define RISCVBuiltin(Name, ...)                                                \
+  case RISCV::BI__builtin_riscv_##Name:                                        \
+    IntrinsicID = Intrinsic::riscv_##Name;                                     \
+    break;
+#include "clang/Basic/riscv_vector.inc"
   default:
     return nullptr;
   }
+
+  SmallVector<Value *, 4> Args(map_range(
+      E->arguments(), [&](const Expr *arg) { return EmitScalarExpr(arg); }));
+
+  Function *F = nullptr;
+  switch (IntrinsicID) {
+  case Intrinsic::riscv_vsetvl: {
+    SmallVector<llvm::Type *, 4> Tys(
+        map_range(Args, [](const Value *V) { return V->getType(); }));
+
+    Tys.push_back(ConvertType(E->getCallReturnType(getContext())));
+
+    F = CGM.getIntrinsic(IntrinsicID, Tys);
+  } break;
+  default:
+    F = CGM.getIntrinsic(IntrinsicID);
+  }
+
+  return Builder.CreateCall(F, Args);
 }
 
 
