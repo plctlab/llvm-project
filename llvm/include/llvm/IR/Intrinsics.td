@@ -291,6 +291,55 @@ def llvm_v4f64_ty      : LLVMType<v4f64>;    //  4 x double
 def llvm_v8f64_ty      : LLVMType<v8f64>;    //  8 x double
 def llvm_v16f64_ty     : LLVMType<v16f64>;   // 16 x double
 
+def llvm_nxv1i1_ty : LLVMType<nxv1i1>;  
+def llvm_nxv2i1_ty : LLVMType<nxv2i1>;  
+def llvm_nxv4i1_ty : LLVMType<nxv4i1>;  
+def llvm_nxv8i1_ty : LLVMType<nxv8i1>;  
+def llvm_nxv16i1_ty : LLVMType<nxv16i1>; 
+def llvm_nxv32i1_ty : LLVMType<nxv32i1>; 
+
+def llvm_nxv1i8_ty : LLVMType<nxv1i8>;  
+def llvm_nxv2i8_ty : LLVMType<nxv2i8>;  
+def llvm_nxv4i8_ty : LLVMType<nxv4i8>;  
+def llvm_nxv8i8_ty : LLVMType<nxv8i8>;  
+def llvm_nxv16i8_ty : LLVMType<nxv16i8>; 
+def llvm_nxv32i8_ty : LLVMType<nxv32i8>; 
+
+def llvm_nxv1i16_ty : LLVMType<nxv1i16>; 
+def llvm_nxv2i16_ty : LLVMType<nxv2i16>; 
+def llvm_nxv4i16_ty : LLVMType<nxv4i16>; 
+def llvm_nxv8i16_ty : LLVMType<nxv8i16>; 
+def llvm_nxv16i16_ty : LLVMType<nxv16i16>;
+def llvm_nxv32i16_ty : LLVMType<nxv32i16>;
+
+def llvm_nxv1i32_ty : LLVMType<nxv1i32>; 
+def llvm_nxv2i32_ty : LLVMType<nxv2i32>; 
+def llvm_nxv4i32_ty : LLVMType<nxv4i32>; 
+def llvm_nxv8i32_ty : LLVMType<nxv8i32>; 
+def llvm_nxv16i32_ty : LLVMType<nxv16i32>;
+def llvm_nxv32i32_ty : LLVMType<nxv32i32>;
+
+def llvm_nxv1i64_ty : LLVMType<nxv1i64>; 
+def llvm_nxv2i64_ty : LLVMType<nxv2i64>; 
+def llvm_nxv4i64_ty : LLVMType<nxv4i64>; 
+def llvm_nxv8i64_ty : LLVMType<nxv8i64>; 
+def llvm_nxv16i64_ty : LLVMType<nxv16i64>;
+def llvm_nxv32i64_ty : LLVMType<nxv32i64>;
+
+def llvm_nxv2f16_ty : LLVMType<nxv2f16>; 
+def llvm_nxv4f16_ty : LLVMType<nxv4f16>; 
+def llvm_nxv8f16_ty : LLVMType<nxv8f16>; 
+def llvm_nxv1f32_ty : LLVMType<nxv1f32>; 
+def llvm_nxv2f32_ty : LLVMType<nxv2f32>; 
+def llvm_nxv4f32_ty : LLVMType<nxv4f32>; 
+def llvm_nxv8f32_ty : LLVMType<nxv8f32>; 
+def llvm_nxv16f32_ty : LLVMType<nxv16f32>;
+def llvm_nxv1f64_ty : LLVMType<nxv1f64>; 
+def llvm_nxv2f64_ty : LLVMType<nxv2f64>; 
+def llvm_nxv4f64_ty : LLVMType<nxv4f64>; 
+def llvm_nxv8f64_ty : LLVMType<nxv8f64>; 
+
+
 def llvm_vararg_ty     : LLVMType<isVoid>;   // this means vararg here
 
 //===----------------------------------------------------------------------===//

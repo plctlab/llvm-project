@@ -14498,36 +14498,35 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
 
 Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
                                              const CallExpr *E) {
+  SmallVector<llvm::Value*, 4> ArgVs;
+  SmallVector<llvm::Type *, 4> ArgTys;
+
+  ArgTys.push_back(ConvertType(E->getCallReturnType(getContext())));
+
+  for (const Expr* Arg : E->arguments()) {
+    llvm::Value* V = EmitScalarExpr(Arg);
+    ArgVs.push_back(V);
+    ArgTys.push_back(V->getType());
+  }
+
   unsigned IntrinsicID = 0;
+  SmallVector<llvm::Type*, 4> OverloadedArgTys;
 
   switch (BuiltinID) {
-#define RISCVBuiltin(Name, ...)                                                \
+#define RISCVBuiltin(Name, Foo, Bar, ...)                                      \
   case RISCV::BI__builtin_riscv_##Name:                                        \
     IntrinsicID = Intrinsic::riscv_##Name;                                     \
+    for (unsigned I : {__VA_ARGS__})                                           \
+      OverloadedArgTys.push_back(ArgTys[I]);                                   \
     break;
 #include "clang/Basic/riscv_vector.inc"
   default:
     return nullptr;
   }
 
-  SmallVector<Value *, 4> Args(map_range(
-      E->arguments(), [&](const Expr *arg) { return EmitScalarExpr(arg); }));
+  Function* F = CGM.getIntrinsic(IntrinsicID, OverloadedArgTys);
 
-  Function *F = nullptr;
-  switch (IntrinsicID) {
-  case Intrinsic::riscv_vsetvl: {
-    SmallVector<llvm::Type *, 4> Tys(
-        map_range(Args, [](const Value *V) { return V->getType(); }));
-
-    Tys.push_back(ConvertType(E->getCallReturnType(getContext())));
-
-    F = CGM.getIntrinsic(IntrinsicID, Tys);
-  } break;
-  default:
-    F = CGM.getIntrinsic(IntrinsicID);
-  }
-
-  return Builder.CreateCall(F, Args);
+  return Builder.CreateCall(F, ArgVs);
 }
 
 /// Handle a SystemZ function in which the final argument is a pointer

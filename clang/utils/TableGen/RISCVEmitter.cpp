@@ -268,7 +268,8 @@ struct StdElemWidth {
 
   static void Enum(BaseType BT, function_ref<void(StdElemWidth SEW)> F) {
     Enum([&](StdElemWidth SEW) {
-      if (SEW.Width == 8 && BT.ID == BaseType::FLOATING_POINT)
+      if ((SEW.Width == 8 || SEW.Width == 16) &&
+          BT.ID == BaseType::FLOATING_POINT)
         return;
       F(SEW);
     });
@@ -339,9 +340,9 @@ struct ElementType {
   void Write(raw_ostream &OS) const {
     if (BT.ID == BaseType::FLOATING_POINT) {
       switch (SEW.Width) {
-      case 16:
-        OS << "float16_t";
-        break;
+      // case 16:
+      //   OS << "float16_t";
+      //   break;
       case 32:
         OS << "float";
         break;
@@ -360,10 +361,10 @@ struct ElementType {
         OS << "short";
         break;
       case 32:
-        OS << "int";
+        OS << "int32_t";
         break;
       case 64:
-        OS << "long int";
+        OS << "int64_t";
         break;
       default:
         llvm_unreachable("Unhandled SEW");
@@ -391,6 +392,9 @@ struct ElementType {
             llvm_unreachable("Unhandled SEW");
           }
         } else {
+          if (AT.BT.ID == BaseType::UNSIGNED_INTEGER)
+            OS << "U";
+
           switch (AT.SEW.Width) {
           case 8:
             OS << "c";
@@ -399,10 +403,10 @@ struct ElementType {
             OS << "s";
             break;
           case 32:
-            OS << "i";
+            OS << "Zi";
             break;
           case 64:
-            OS << "i";
+            OS << "Wi";
             break;
           default:
             llvm_unreachable("Unhandled SEW");
@@ -609,8 +613,8 @@ using Generator = function_ref<void(GeneratorParams)>;
 //   | 'i' # int32_t
 //   | 'l' # int64_t
 //   | 'h' # float16_t
-//   | 'f' # float32_t
-//   | 'd' # float64_t
+//   | 'f' # float
+//   | 'd' # double
 //   | 'z' # size_t
 //   | 'e' # type that depends on the context
 //   | 'q' # vector
@@ -653,8 +657,8 @@ public:
       | (Match('i'), SetBase("int32_t"))                               //
       | (Match('l'), SetBase("int64_t"))                               //
       | (Match('h'), SetBase("float16_t"))                             //
-      | (Match('f'), SetBase("float32_t"))                             //
-      | (Match('d'), SetBase("float64_t"))                             //
+      | (Match('f'), SetBase("float"))                                 //
+      | (Match('d'), SetBase("double"))                                //
       | (Match('z'), SetBase("size_t"))                                //
       | (Match('e'), Act([&] { SC = DEPENDENT; }))                     //
       | (Match('q'), Act([&] { SC = VECTOR; }))),                      //
@@ -664,6 +668,16 @@ public:
           | (Match('D'), InsertPostfix("volatile"))),                  //
      EofOrFail("Failed to parse the type specification `", Text, "'")) //
         (Text.data());
+  }
+
+  bool IsOverloaded() const {
+    if (Postfixes.count("*"))
+      return true;
+
+    if (SC == ATOM && Base == "size_t")
+      return true;
+
+    return false;
   }
 
   auto Abbr(const GeneratorParams &GP) const {
@@ -697,11 +711,17 @@ public:
       const TypeSpecifier &Spec;
 
       void Write(raw_ostream &OS) const {
-        ((Match('q'), Act([&] { OS << GP.Vector().LLVMType(); }))    //
-         | (Match('e'), Act([&] { OS << GP.Element().LLVMType(); })) //
+        ((Match('q'), Act([&] { OS << GP.Vector().LLVMType(); })) //
+         | (Match('e'), Act([&] {
+              if (Spec.Postfixes.count("*")) {
+                OS << "llvm_anyptr_ty";
+                return;
+              }
+              OS << GP.Element().LLVMType();
+            })) //
          | [&](const char *Text) {
              if (Spec.Postfixes.count("*")) {
-               OS << "llvm_ptr_ty";
+               OS << "llvm_anyptr_ty";
                return nullptr;
              }
 
@@ -770,7 +790,8 @@ public:
           if (Spec.Postfixes.count("const"))
             OS << "const ";
 
-          OS << GP.Base->Abbr() << *GP.SEW << "_t";
+          // OS << GP.Base->Abbr() << *GP.SEW << "_t";
+          OS << GP.Element();
 
           if (Spec.Postfixes.count("*"))
             OS << "*";
@@ -788,40 +809,6 @@ public:
 
     return Wrapper;
   }
-};
-
-// Ad hoc tests for parsing type specification.
-struct ParserUnitTest : UnitTest {
-  ParserUnitTest(const char *Input, DenseSet<StringRef> Prefixes,
-                 const char *Base, DenseSet<StringRef> Postfixes)
-      : UnitTest([=] {
-          TypeSpecifier Spec(Input);
-          assert(Spec.Prefixes == Prefixes);
-          assert(Spec.Base == Base);
-          assert(Spec.Postfixes == Postfixes);
-        }) {}
-};
-
-ParserUnitTest TestPrefix[]{
-    {"Uv", {"unsigned"}, "void", {}} //
-};
-
-ParserUnitTest TestBaseType[]{
-    {"v", {}, "void", {}},      //
-    {"b", {}, "bool", {}},      //
-    {"c", {}, "int8_t", {}},    //
-    {"s", {}, "int16_t", {}},   //
-    {"i", {}, "int32_t", {}},   //
-    {"h", {}, "float16_t", {}}, //
-    {"f", {}, "float32_t", {}}, //
-    {"d", {}, "float64_t", {}}, //
-    {"z", {}, "size_t", {}}     //
-};
-
-ParserUnitTest TestPostfix[]{
-    {"v*", {}, "void", {"*"}},       //
-    {"v&", {}, "void", {"&"}},       //
-    {"vD", {}, "void", {"volatile"}} //
 };
 
 class RISCVBuiltin {
@@ -933,10 +920,16 @@ public:
 
         for (const TypeSpecifier &Spec : RB.Prototype) {
           OS << Spec.Abbr(GP);
-          // OS << Spec.ConcreteType(GP);
         }
 
-        OS << "\", \"" << RB.AttrStr << "\")";
+        OS << "\", \"" << RB.AttrStr << "\"";
+
+        for (unsigned I = 0, E = RB.Prototype.size(); I < E; ++I) {
+          if (RB.Prototype[I].IsOverloaded())
+            OS << ", " << I;
+        }
+
+        OS << ")";
       }
 
     } Wrapper{*this};
@@ -978,7 +971,13 @@ public:
                  bool MaskedOff, bool HasVL) const {
 
         OS << "def int_riscv_" << GP.Format(RB.Name) << "\n";
-        OS << "    : Intrinsic<[" << RB.Prototype[0].LLVMType(GP) << "],\n";
+        OS << "    : Intrinsic<[";
+
+        const TypeSpecifier &RetSpec = RB.Prototype[0];
+        if (RetSpec.Base != "void")
+          OS << RetSpec.LLVMType(GP);
+
+        OS << "],\n";
         OS << "                [";
 
         for (unsigned I = 1, E = RB.Prototype.size(); I < E; ++I) {

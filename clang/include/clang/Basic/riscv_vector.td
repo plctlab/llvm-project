@@ -47,8 +47,8 @@ class RISCVBuiltin<string name, list<string> prototype,
   //   | 'i' # int32_t
   //   | 'l' # int64_t
   //   | 'h' # float16_t
-  //   | 'f' # float32_t
-  //   | 'd' # float64_t
+  //   | 'f' # float
+  //   | 'd' # double
   //   | 'z' # size_t
   //   | 'e' # type that depends on the context
   //   | 'q' # vector
@@ -96,5 +96,5 @@ let GenIntrinsic = 0 in {
   def : RISCVBuiltin<"vsetvl", ["z", "z", "z"], "n", "ns">;
 }
 
-// def : RISCVBuiltin<"vle%s_v_%b%sm%l", ["q", "eC*"], "n", "r">;
-// def : RISCVBuiltin<"vse%s_v_%b%sm%l", ["v", "eC*", "q"], "n", "w">;
+def : RISCVBuiltin<"vle%s_v_%b%sm%l", ["q", "eC*"], "n", "r">;
+def : RISCVBuiltin<"vse%s_v_%b%sm%l", ["v", "e*", "q"], "n", "w">;
