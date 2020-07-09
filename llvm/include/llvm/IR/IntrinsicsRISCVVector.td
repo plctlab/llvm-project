@@ -74,28 +74,8 @@ class RISCVIntrinsic<string name, list<string> proto, string props> {
   string Properties = props;
 }
 
-class UnsupportedVector<int base, int sew, int lmul, bit fract> {
-  // 0 for integer
-  // 1 for unsigned integer
-  // 2 for floating point
-  int Base = base;
-  int SEW = sew;
-  int LMUL = lmul;
-  bit Fract = fract;
-}
-
-foreach B = [0, 1, 2] in {
-  foreach S = [8, 16, 32, 64] in {
-    foreach L = [2, 4, 8] in {
-      def : UnsupportedVector<B, S, L, 1>;
-    }
-  }
-}
-
 def : RISCVIntrinsic<"vsetvl", ["ia", "ia", "ia"], "ns">;
 
 def : RISCVIntrinsic<"vle%s_v_%b%sm%l", ["q", "*"], "r">;
 
 def : RISCVIntrinsic<"vse%s_v_%b%sm%l", ["v", "*", "q"], "w">;
-
-def : RISCVIntrinsic<"vfmacc_vf_%b%sm%l", ["q", "q", "e", "q"], "n">;

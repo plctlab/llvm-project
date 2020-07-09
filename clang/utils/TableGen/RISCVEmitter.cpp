@@ -520,9 +520,11 @@ struct MaskType {
   // Mapped to characters defined in Builtins.def
   auto Abbr() const {
     struct {
-      const MaskType &MT;
+      const MaskType& MT;
 
-      void Write(raw_ostream &OS) const { OS << "q" << MT.N << "i1"; }
+      void Write(raw_ostream &OS) const {
+        OS << "q" << MT.N << "i1";
+      }
 
     } Wrapper{*this};
 
@@ -905,12 +907,11 @@ public:
             for (unsigned I = 1, E = RB.Prototype.size(); I < E; ++I)
               OS << RB.Prototype[I].Abbr(GP);
 
-            OS << "\", \"" << RB.AttrStr << "\", ";
+            OS << "\", \"" << RB.AttrStr << "\"";
 
-            SeparatedBy SOS{OS, ", "};
             for (unsigned I = 0, E = RB.Prototype.size(); I < E; ++I) {
               if (RB.Prototype[I].IsOverloaded())
-                SOS << I;
+                OS << ", " << I;
             }
 
             OS << ")";
@@ -926,14 +927,14 @@ public:
 
 private:
   void CheckPolymorphism(StringRef Str) {
-    (Many((MatchNot('%', [&](auto Text) { return ++Text; }))          //
-          | (Match('%'),                                              //
-             ((Match('b'), Act([&] { BasePolymorphic = true; }))      //
-              | (Match('s'), Act([&] { SEWPolymorphic = true; }))     //
-              | (Match('l'), Act([&] { LMULPolymorphic = true; }))    //
-              | (Match('L'), Act([&] { LMULPolymorphic = true; }))))) //
-     && EofOrFail("Failed to check polymorphism in `", Str, "'"))     //
-        (Str.data());
+    (Many((MatchNot('%', [&](auto Text) { return ++Text; }))           //
+          | (Match('%'),                                               //
+             ((Match('b'), Act([&] { BasePolymorphic = true; }))       //
+              | (Match('s'), Act([&] { SEWPolymorphic = true; }))      //
+              | (Match('l'), Act([&] { LMULPolymorphic = true; }))     //
+              | (Match('L'), Act([&] { LMULPolymorphic = true; }))     //
+              | (Match('L'), Act([&] { TuplePolymorphic = true; }))))) //
+     && EofOrFail("Failed to check polymorphism in `", Str, "'"))(Str.data());
   }
 
   void WriteAll(function_ref<void(const GeneratorParams &)> G) const {

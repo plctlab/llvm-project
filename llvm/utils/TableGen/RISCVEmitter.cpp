@@ -1,7 +1,9 @@
 #include "llvm/Support/MathExtras.h"
 #include "llvm/TableGen/Record.h"
 #include <cctype>
-#include <set>
+
+// Fractional LMUL is not supported at the moment.
+// #define SUPPORT_FRACTIONAL_LMUL
 
 namespace {
 
@@ -199,6 +201,48 @@ public:
 
   bool IsFloatingPoint() const { return ID == FLOATING_POINT; }
 
+  // Used in various typedefs.
+  void Write(raw_ostream &OS) const {
+    switch (ID) {
+    case INTEGER:
+      OS << "int";
+      break;
+    case UNSIGNED_INTEGER:
+      OS << "unsigned";
+      break;
+    case FLOATING_POINT:
+      OS << "float";
+      break;
+    default:
+      llvm_unreachable("Unhandled BaseTy!");
+    }
+  }
+
+  // Used in names like vint32m1_t, vuint32m1_t and vfloat32m1_t.
+  auto Abbr() const {
+    struct {
+      const BaseType &BT;
+
+      void Write(raw_ostream &OS) const {
+        switch (BT.ID) {
+        case INTEGER:
+          OS << "int";
+          break;
+        case UNSIGNED_INTEGER:
+          OS << "uint";
+          break;
+        case FLOATING_POINT:
+          OS << "float";
+          break;
+        default:
+          llvm_unreachable("Unhandled BaseTy!");
+        }
+      }
+    } Wrapper{*this};
+
+    return Wrapper;
+  }
+
   // Used in suffixes of intrinsics' names, e.g. vle32_v_i32m1.
   auto SingleLetter() const {
     struct {
@@ -224,30 +268,6 @@ public:
     return Wrapper;
   }
 
-  auto GeneralSingleLetter() const {
-    struct {
-      const BaseType &BT;
-
-      void Write(raw_ostream &OS) const {
-        switch (BT.ID) {
-        case INTEGER:
-        case UNSIGNED_INTEGER:
-          OS << "i";
-          break;
-        case FLOATING_POINT:
-          OS << "f";
-          break;
-        default:
-          llvm_unreachable("Unhandled BaseTy!");
-        }
-      }
-    } Wrapper{*this};
-
-    return Wrapper;
-  }
-
-  bool operator<(const BaseType &Other) const { return ID < Other.ID; }
-
   static void Enum(function_ref<void(BaseType BT)> F) {
     for (int I : {INTEGER, UNSIGNED_INTEGER, FLOATING_POINT}) {
       F(BaseType(I));
@@ -263,18 +283,17 @@ private:
   int ID;
 };
 
-struct StdElemWidth {
-  const unsigned Width;
+class StdElemWidth {
+public:
+  unsigned GetWidth() const { return Width; }
+
+  unsigned GetEncoding() const { return (Log2_64(Width) - 3) << 2; }
 
   void Write(raw_ostream &OS) const { OS << Width; }
 
-  bool operator<(const StdElemWidth &Other) const {
-    return Width < Other.Width;
-  }
-
   static void Enum(function_ref<void(StdElemWidth SEW)> F) {
     for (unsigned W : {8, 16, 32, 64})
-      F({W});
+      F(StdElemWidth{W});
   }
 
   static void Enum(BaseType BT, function_ref<void(StdElemWidth SEW)> F) {
@@ -284,27 +303,59 @@ struct StdElemWidth {
       F(SEW);
     });
   }
+
+private:
+  StdElemWidth(unsigned Width) : Width(Width) {}
+
+private:
+  unsigned Width;
 };
 
 // FIXME: Is ELEN a compile-time constant?
 constexpr unsigned ELEN = 64;
 
-struct LengthMultiplier {
-  const unsigned Mul;
-  const bool Fract;
+class LengthMultiplier {
+public:
+  unsigned GetMul() const { return Mul; }
 
-  void Write(raw_ostream &OS) const { OS << (Fract ? "f" : "") << Mul; }
+  bool IsFract() const { return Fract; }
 
-  bool operator<(const LengthMultiplier &Other) const {
-    return std::tie(Mul, Fract) < std::tie(Other.Mul, Other.Fract);
+  unsigned GetEncoding() const { return (unsigned(Fract) << 5) | Log2_64(Mul); }
+
+  // Used in suffixes of intrinsics' names, e.g. vle32_v_i32mf2.
+  auto LowerCase() const {
+    struct {
+      const LengthMultiplier &LMUL;
+
+      void Write(raw_ostream &OS) const {
+        OS << (LMUL.Fract ? "f" : "") << LMUL.Mul;
+      }
+    } Wrapper{*this};
+
+    return Wrapper;
+  }
+
+  // Used in constants' definitions, e.g. _MF2
+  auto UpperCase() const {
+    struct {
+      const LengthMultiplier &LMUL;
+
+      void Write(raw_ostream &OS) const {
+        OS << (LMUL.Fract ? "F" : "") << LMUL.Mul;
+      }
+    } Wrapper{*this};
+
+    return Wrapper;
   }
 
   static void Enum(function_ref<void(LengthMultiplier LMUL)> F) {
     for (unsigned Mul : {1, 2, 4, 8}) {
-      F({Mul, false});
+      F(LengthMultiplier(Mul, false));
 
+#ifdef SUPPORT_FRACTIONAL_LMUL
       for (unsigned Mul : {2, 4, 8})
-        F({Mul, true});
+        F(LengthMultiplier(Mul, true));
+#endif
     }
   }
 
@@ -315,11 +366,18 @@ struct LengthMultiplier {
       // LMUL >= SEW / ELEN
       // <=> 1/Mul >= SEW / ELEN
       // <=> ELEN >= SEW * Mul
-      if (LMUL.Fract && ELEN < SEW.Width * LMUL.Mul)
+      if (LMUL.Fract && ELEN < SEW.GetWidth() * LMUL.Mul)
         return;
       F(LMUL);
     });
   }
+
+private:
+  LengthMultiplier(unsigned Mul, bool Fract) : Mul(Mul), Fract(Fract) {}
+
+private:
+  unsigned Mul;
+  bool Fract;
 };
 
 struct ElementType {
@@ -328,7 +386,7 @@ struct ElementType {
 
   void Write(raw_ostream &OS) const {
     if (BT.IsFloatingPoint()) {
-      switch (SEW.Width) {
+      switch (SEW.GetWidth()) {
       case 16:
         OS << "llvm_half_ty";
         break;
@@ -345,48 +403,105 @@ struct ElementType {
       OS << "llvm_i" << SEW << "_ty";
     }
   }
+};
 
-  bool operator<(const ElementType &Other) const {
-    return std::tie(BT, SEW) < std::tie(Other.BT, Other.SEW);
+struct VectorType {
+  const BaseType BT;
+  const StdElemWidth SEW;
+  const LengthMultiplier LMUL;
+
+  void Write(raw_ostream &OS) const {
+    OS << "llvm_nxv" << LMUL.LowerCase() << BT.SingleLetter() << SEW << "_t";
   }
 
-  static void Enum(function_ref<void(ElementType ET)> F) {
+  static void Enum(function_ref<void(VectorType VT)> F) {
     BaseType::Enum([&](BaseType BT) {
-      StdElemWidth::Enum(BT, [&](StdElemWidth SEW) { F({BT, SEW}); });
+      StdElemWidth::Enum(BT, [&](StdElemWidth SEW) {
+        LengthMultiplier::Enum(SEW, [&](LengthMultiplier LMUL) {
+          F({BT, SEW, LMUL});
+        });
+      });
     });
   }
 };
 
-struct VectorType {
-  const ElementType ET;
-  const LengthMultiplier LMUL;
+struct VectorTypeDef {
+  const VectorType VT;
 
   void Write(raw_ostream &OS) const {
-    OS << "llvm_nxv" << LMUL << ET.BT.GeneralSingleLetter() << ET.SEW << "_ty";
-  }
-
-  bool operator<(const VectorType &Other) const {
-    return std::tie(ET, LMUL) < std::tie(Other.ET, Other.LMUL);
-  }
-
-  static void Enum(function_ref<void(VectorType VT)> F) {
-    ElementType::Enum([&](ElementType ET) {
-      LengthMultiplier::Enum(ET.SEW, [&](LengthMultiplier LMUL) {
-        F({ET, LMUL});
-      });
-    });
+    OS << "typedef __attribute__((riscv_vector_type(" << VT.SEW;
+    OS << ", " << VT.LMUL.GetMul();
+    OS << ", " << (VT.LMUL.IsFract() ? "1" : "0") << ")))";
+    OS << " " << VT.BT << " " << VT << ";";
   }
 };
 
 struct MaskType {
   const unsigned N;
 
-  void Write(raw_ostream &OS) const { OS << "llvm_v" << N << "i1_ty"; }
+  void Write(raw_ostream &OS) const { OS << "vbool" << N << "_t"; }
+
+  auto LLVMType() const {
+    struct {
+      const MaskType &MT;
+
+      void Write(raw_ostream &OS) const { OS << "llvm_v" << MT.N << "i1"; }
+    } Wrapper{*this};
+
+    return Wrapper;
+  }
 
   static void Enum(function_ref<void(MaskType MT)> F) {
     for (unsigned N : {1, 2, 4, 8, 16, 32, 64}) {
       F(MaskType{N});
     }
+  }
+};
+
+struct MaskTypeDef {
+  const MaskType MT;
+
+  void Write(raw_ostream &OS) const {
+    OS << "typedef __attribute__((riscv_mask_type(" << MT.N;
+    OS << "))) bool " << MT << ";";
+  }
+};
+
+struct VectorTupleDef {
+  const VectorType VT;
+  const unsigned N;
+
+  void Write(raw_ostream &OS) const {
+    OS << "typedef struct {\n";
+
+    for (unsigned I = 0; I < N; ++I) {
+      OS << "  " << VT << " v" << I << ";\n";
+    }
+
+    OS << "} v" << VT.BT.Abbr() << VT.SEW << "m" << VT.LMUL.LowerCase();
+    OS << "x" << N << "_t;";
+  }
+
+  static void Enum(VectorType VT, function_ref<void(VectorTupleDef Def)> F) {
+    for (unsigned N : {2, 3, 4, 5, 6, 7, 8}) {
+      F({VT, N});
+    }
+  }
+};
+
+struct ConstantEDef {
+  const StdElemWidth SEW;
+
+  void Write(raw_ostream &OS) const {
+    OS << "#define _E" << SEW << " " << SEW.GetEncoding();
+  }
+};
+
+struct ConstantMDef {
+  const LengthMultiplier LMUL;
+
+  void Write(raw_ostream &OS) const {
+    OS << "#define _M" << LMUL.UpperCase() << " " << LMUL.GetEncoding();
   }
 };
 
@@ -405,11 +520,12 @@ struct GeneratorParams {
       const GeneratorParams &GP;
 
       void Write(raw_ostream &OS) const {
-        (Many(MatchNot('%', WriteChar(OS))                                  //
-              | (Match('%'),                                                //
-                 ((Match('b'), Act([&] { OS << GP.Base->SingleLetter(); })) //
-                  | (Match('s'), Act([&] { OS << *GP.SEW; }))               //
-                  | (Match('l'), Act([&] { OS << *GP.LMUL; })))))           //
+        (Many(MatchNot('%', WriteChar(OS))                                    //
+              | (Match('%'),                                                  //
+                 ((Match('b'), Act([&] { OS << GP.Base->SingleLetter(); }))   //
+                  | (Match('s'), Act([&] { OS << *GP.SEW; }))                 //
+                  | (Match('l'), Act([&] { OS << GP.LMUL->LowerCase(); }))    //
+                  | (Match('L'), Act([&] { OS << GP.LMUL->UpperCase(); }))))) //
          && EofOrFail("Failed to format `", Str, "'"))(Str.data());
       }
     } Wrapper{Str, *this};
@@ -433,22 +549,22 @@ struct GeneratorParams {
   auto Mask() const {
     assert(LMUL.hasValue());
     assert(SEW.hasValue());
-    unsigned Length =
-        LMUL->Fract ? (SEW->Width / LMUL->Mul) : (SEW->Width * LMUL->Mul);
+    unsigned Length = LMUL->IsFract() ? (SEW->GetWidth() / LMUL->GetMul())
+                                      : (SEW->GetWidth() * LMUL->GetMul());
     return MaskType{Length};
   }
 };
 
 class TypeSpecifier {
 public:
-  enum TypeClass { INDEPENDENT, VECTOR, DEPENDENT };
+  enum SpecClass { ATOM, VECTOR, DEPENDENT };
   StringRef Base;
-  TypeClass TC;
+  SpecClass SC;
 
-  TypeSpecifier(StringRef Text) : TC(INDEPENDENT) {
+  TypeSpecifier(StringRef Text) : SC(ATOM) {
     (((Match('v'), BindValue(Base, "llvm_void_ty"))               //
-      | (Match('q'), BindValue(TC, VECTOR))                       //
-      | (Match('e'), BindValue(TC, DEPENDENT))                    //
+      | (Match('q'), BindValue(SC, VECTOR))                       //
+      | (Match('e'), BindValue(SC, DEPENDENT))                    //
       | (Match('*'), BindValue(Base, "llvm_anyptr_ty"))           //
       | (Match('i'),                                              //
          (Match('a'), BindValue(Base, "llvm_anyint_ty"))          //
@@ -473,18 +589,12 @@ public:
       const TypeSpecifier &Spec;
 
       void Write(raw_ostream &OS) const {
-        switch(Spec.TC) {
-        case VECTOR:
+        if (Spec.SC == VECTOR) {
           OS << GP.Vector();
-          break;
-        case DEPENDENT:
+        } else if (Spec.SC == DEPENDENT) {
           OS << GP.Element();
-          break;
-        case INDEPENDENT:
+        } else {
           OS << Spec.Base;
-          break;
-        default:
-          llvm_unreachable("Unhandled type class");
         }
       }
     } Wrapper{GP, *this};
@@ -500,14 +610,12 @@ private:
   };
 
 public:
-  RISCVIntrinsic(const Record *Rec,
-                 const std::set<VectorType> &UnsupportedVectors)
+  RISCVIntrinsic(const Record *Rec)
       : Name(Rec->getValueAsString("Name")),
         MayMask(Rec->getValueAsBit("MayMask")),
         MaskedOff(Rec->getValueAsBit("MaskedOff")),
         HasVL(Rec->getValueAsBit("HasVL")), BasePolymorphic(false),
-        SEWPolymorphic(false), LMULPolymorphic(false), TuplePolymorphic(false),
-        UnsupportedVectors(UnsupportedVectors) {
+        SEWPolymorphic(false), LMULPolymorphic(false), TuplePolymorphic(false) {
 
     for (StringRef Type : Rec->getValueAsListOfStrings("Prototype"))
       Prototype.emplace_back(Type);
@@ -548,7 +656,7 @@ public:
         SeparatedBy SOS{OS, ", "};
 
         if (GP.HasMask) {
-          SOS << GP.Mask();
+          SOS << GP.Mask().LLVMType();
 
           if (GP.MaskedOff)
             SOS << GP.Vector();
@@ -612,14 +720,7 @@ private:
     };
 
     auto YieldLMUL = [=](Optional<BaseType> BT, Optional<StdElemWidth> SEW) {
-      auto YT = [=](Optional<LengthMultiplier> LMUL) {
-        if (BT.hasValue() && SEW.hasValue() && LMUL.hasValue())
-          if (UnsupportedVectors.find({*BT, *SEW, *LMUL}) !=
-              UnsupportedVectors.end())
-            return;
-
-        YieldTuple(BT, SEW, LMUL);
-      };
+      auto YT = std::bind(YieldTuple, BT, SEW, _1);
 
       if (LMULPolymorphic) {
         if (SEW.hasValue())
@@ -659,32 +760,7 @@ private:
   bool SEWPolymorphic;
   bool LMULPolymorphic;
   bool TuplePolymorphic;
-  const std::set<VectorType> &UnsupportedVectors;
 };
-
-BaseType GetBaseType(int ID) {
-  switch (ID) {
-  case 0:
-    return BaseType::Integer();
-  case 1:
-    return BaseType::UnsignedInteger();
-  case 2:
-    return BaseType::FloatingPoint();
-  default:
-    llvm_unreachable("Unhandled BaseType ID");
-  }
-}
-
-VectorType ReadUnsupportedVector(const Record *Rec) {
-  BaseType BT = GetBaseType(Rec->getValueAsInt("Base"));
-
-  StdElemWidth SEW{static_cast<unsigned>(Rec->getValueAsInt("SEW"))};
-
-  LengthMultiplier LMUL{static_cast<unsigned>(Rec->getValueAsInt("LMUL")),
-                        Rec->getValueAsBit("Fract")};
-
-  return {BT, SEW, LMUL};
-}
 
 } // namespace
 
@@ -692,15 +768,8 @@ namespace llvm {
 
 // Emit content needed by BuiltinsRISCV.td and CGBuiltin.cpp
 void EmitRISCVIntrinsics(RecordKeeper &Keeper, raw_ostream &OS) {
-  std::set<VectorType> UnsupportedVectors;
-
-  for (const Record *Rec :
-       Keeper.getAllDerivedDefinitions("UnsupportedVector")) {
-    UnsupportedVectors.insert(ReadUnsupportedVector(Rec));
-  }
-
   for (const Record *Rec : Keeper.getAllDerivedDefinitions("RISCVIntrinsic"))
-    OS << RISCVIntrinsic(Rec, UnsupportedVectors);
+    OS << RISCVIntrinsic(Rec);
 }
 
 } // namespace llvm
