@@ -29,24 +29,6 @@ struct SkipWhiteSpace {
   }
 };
 
-struct SeparatedBy {
-  raw_ostream &OS;
-  StringRef Delimiter;
-  bool NeedDelimiter = false;
-
-  template <typename T>
-  constexpr auto operator<<(const T &Value) -> decltype(OS << Value, *this) {
-    if (NeedDelimiter)
-      OS << Delimiter;
-
-    OS << Value;
-
-    NeedDelimiter = true;
-
-    return *this;
-  }
-};
-
 // Utilities for building parsers.
 inline namespace simple_parser_combinators {
 
@@ -81,13 +63,6 @@ constexpr auto operator|(ParserX PX, ParserY PY) {
     const char *Rest = PX(Text);
     return Rest ? Rest : PY(Text);
   };
-}
-
-template <typename ParserX, typename ParserY, //
-          requires_parser<ParserX> = 1,       //
-          requires_parser<ParserY> = 1>
-constexpr auto operator&&(ParserX PX, ParserY PY) {
-  return [=](const char *Text) { return PY(PX(Text)); };
 }
 
 // Run some code during parsing.
@@ -398,7 +373,7 @@ struct ElementType {
       default:
         llvm_unreachable("Unhandled SEW");
       }
-    } else {
+    }else {
       switch (SEW.GetWidth()) {
       case 8:
         OS << "char";
@@ -470,24 +445,8 @@ struct VectorType {
   const StdElemWidth SEW;
   const LengthMultiplier LMUL;
 
-  ElementType Element() const { return {BT, SEW}; }
-
   void Write(raw_ostream &OS) const {
     OS << "v" << BT.Abbr() << SEW << "m" << LMUL.LowerCase() << "_t";
-  }
-
-  // Mapped to characters defined in Builtins.def
-  auto Abbr() const {
-    struct {
-      const VectorType &VT;
-
-      void Write(raw_ostream &OS) const {
-        OS << "q" << VT.LMUL.LowerCase() << VT.Element().Abbr();
-      }
-
-    } Wrapper{*this};
-
-    return Wrapper;
   }
 
   static void Enum(function_ref<void(VectorType VT)> F) {
@@ -516,20 +475,6 @@ struct MaskType {
   const unsigned N;
 
   void Write(raw_ostream &OS) const { OS << "vbool" << N << "_t"; }
-
-  // Mapped to characters defined in Builtins.def
-  auto Abbr() const {
-    struct {
-      const MaskType& MT;
-
-      void Write(raw_ostream &OS) const {
-        OS << "q" << MT.N << "i1";
-      }
-
-    } Wrapper{*this};
-
-    return Wrapper;
-  }
 
   static void Enum(function_ref<void(MaskType MT)> F) {
     for (unsigned N : {1, 2, 4, 8, 16, 32, 64}) {
@@ -586,10 +531,10 @@ struct ConstantMDef {
 };
 
 struct GeneratorParams {
-  const Optional<BaseType> &Base;
-  const Optional<StdElemWidth> &SEW;
-  const Optional<LengthMultiplier> &LMUL;
-  const Optional<unsigned> &TupleN;
+  const Optional<BaseType>& Base;
+  const Optional<StdElemWidth>& SEW;
+  const Optional<LengthMultiplier>& LMUL;
+  const Optional<unsigned>& TupleN;
   const bool HasMask;
   const bool MaskedOff;
   const bool HasVL;
@@ -600,13 +545,14 @@ struct GeneratorParams {
       const GeneratorParams &GP;
 
       void Write(raw_ostream &OS) const {
-        (Many(MatchNot('%', WriteChar(OS))                                    //
-              | (Match('%'),                                                  //
-                 ((Match('b'), Act([&] { OS << GP.Base->SingleLetter(); }))   //
-                  | (Match('s'), Act([&] { OS << *GP.SEW; }))                 //
-                  | (Match('l'), Act([&] { OS << GP.LMUL->LowerCase(); }))    //
-                  | (Match('L'), Act([&] { OS << GP.LMUL->UpperCase(); }))))) //
-         && EofOrFail("Failed to format `", Str, "'"))(Str.data());
+        (Many(MatchNot('%', WriteChar(OS)) //
+              |
+              (Match('%'),                                                   //
+               ((Match('b'), Act([&] { OS << GP.Base->SingleLetter(); }))    //
+                | (Match('s'), Act([&] { OS << *GP.SEW; }))                  //
+                | (Match('l'), Act([&] { OS << GP.LMUL->LowerCase(); }))     //
+                | (Match('L'), Act([&] { OS << GP.LMUL->UpperCase(); }))))), //
+         EofOrFail("Failed to format `", Str, "'"))(Str.data());
       }
     } Wrapper{Str, *this};
 
@@ -626,15 +572,42 @@ struct GeneratorParams {
     return ElementType{*Base, *SEW};
   }
 
-  auto Mask() const {
+  unsigned MaskLength() const {
     assert(LMUL.hasValue());
     assert(SEW.hasValue());
-    unsigned Length = LMUL->IsFract() ? (SEW->GetWidth() / LMUL->GetMul())
-                                      : (SEW->GetWidth() * LMUL->GetMul());
-    return MaskType{Length};
+    return LMUL->IsFract() ? (SEW->GetWidth() / LMUL->GetMul())
+                           : (SEW->GetWidth() * LMUL->GetMul());
   }
 };
 
+// grammar for type specification
+//
+// type_spec
+//   : prefix* base_type postfix*
+//   ;
+// prefix
+//   : 'U' # unsigned
+//   ;
+// base_type
+//   : 'v' # void
+//   | 'b' # bool
+//   | 'c' # char
+//   | 's' # int16_t
+//   | 'i' # int32_t
+//   | 'l' # int64_t
+//   | 'h' # float16_t
+//   | 'f' # float
+//   | 'd' # double
+//   | 'z' # size_t
+//   | 'e' # type that depends on the context
+//   | 'q' # vector
+//   ;
+// postfix
+//   : '*' # pointer
+//   | '&' # reference
+//   | 'C' # const
+//   | 'D' # volatile
+//   ;
 struct TypeSpecifier {
 private:
   auto InsertPrefix(const char *P) {
@@ -660,23 +633,23 @@ public:
 
   TypeSpecifier(StringRef Text) : RawSpec(Text), SC(ATOM) {
     (Many((Match('U'), InsertPrefix("unsigned"))),
-     ((Match('v'), SetBase("void"))                                           //
-      | (Match('b'), SetBase("bool"))                                         //
-      | (Match('c'), SetBase("int8_t"))                                       //
-      | (Match('s'), SetBase("int16_t"))                                      //
-      | (Match('i'), SetBase("int32_t"))                                      //
-      | (Match('l'), SetBase("int64_t"))                                      //
-      | (Match('h'), SetBase("float16_t"))                                    //
-      | (Match('f'), SetBase("float"))                                        //
-      | (Match('d'), SetBase("double"))                                       //
-      | (Match('z'), SetBase("size_t"))                                       //
-      | (Match('e'), Act([&] { SC = DEPENDENT; }))                            //
-      | (Match('q'), Act([&] { SC = VECTOR; }))),                             //
-     Many((Match('*'), InsertPostfix("*"))                                    //
-          | (Match('&'), InsertPostfix("&"))                                  //
-          | (Match('C'), InsertPostfix("const"))                              //
-          | (Match('D'), InsertPostfix("volatile")))                          //
-         && EofOrFail("Failed to parse the type specification `", Text, "'")) //
+     ((Match('v'), SetBase("void"))                                    //
+      | (Match('b'), SetBase("bool"))                                  //
+      | (Match('c'), SetBase("int8_t"))                                //
+      | (Match('s'), SetBase("int16_t"))                               //
+      | (Match('i'), SetBase("int32_t"))                               //
+      | (Match('l'), SetBase("int64_t"))                               //
+      | (Match('h'), SetBase("float16_t"))                             //
+      | (Match('f'), SetBase("float"))                                 //
+      | (Match('d'), SetBase("double"))                                //
+      | (Match('z'), SetBase("size_t"))                                //
+      | (Match('e'), Act([&] { SC = DEPENDENT; }))                     //
+      | (Match('q'), Act([&] { SC = VECTOR; }))),                      //
+     Many((Match('*'), InsertPostfix("*"))                             //
+          | (Match('&'), InsertPostfix("&"))                           //
+          | (Match('C'), InsertPostfix("const"))                       //
+          | (Match('D'), InsertPostfix("volatile"))),                  //
+     EofOrFail("Failed to parse the type specification `", Text, "'")) //
         (Text.data());
   }
 
@@ -696,7 +669,9 @@ public:
       const TypeSpecifier &Spec;
 
       void Write(raw_ostream &OS) const {
-        Many((Match('q'), Act([&] { OS << GP.Vector().Abbr(); }))    //
+        Many((Match('q'), Act([&] {
+                OS << "q" << GP.LMUL->GetMul() << GP.Element().Abbr();
+              }))                                                    //
              | (Match('e'), Act([&] { OS << GP.Element().Abbr(); })) //
              | WriteChar(OS))                                        //
             (Spec.RawSpec.data());
@@ -771,11 +746,11 @@ public:
 
     Attributes.push_back("always_inline");
 
-    (Many((Match('n'), InsertAttr("nothrow"))                            //
-          | (Match('r'), InsertAttr("noreturn"))                         //
-          | (Match('U'), InsertAttr("pure"))                             //
-          | (Match('c'), InsertAttr("const")))                           //
-     && EofOrFail("Failed to parse the attribute list `", AttrStr, "'")) //
+    (Many((Match('n'), InsertAttr("nothrow"))                         //
+          | (Match('r'), InsertAttr("noreturn"))                      //
+          | (Match('U'), InsertAttr("pure"))                          //
+          | (Match('c'), InsertAttr("const"))),                       //
+     EofOrFail("Failed to parse the attribute list `", AttrStr, "'")) //
         (AttrStr.data());
 
     CheckPolymorphism(Name);
@@ -785,7 +760,7 @@ public:
   void Write(raw_ostream &OS) const {
     if (GenIntrinsic) {
       OS << "// Intrinsics for " << Name << "\n\n";
-      WriteAll([&](const GeneratorParams &GP) {
+      WriteAll([&](const GeneratorParams& GP) {
         if (Attributes.size()) {
           OS << "static __attribute__((";
 
@@ -814,7 +789,7 @@ public:
         OS << "(";
 
         if (GP.HasMask) {
-          OS << GP.Mask() << " mask";
+          OS << "vbool" << GP.MaskLength() << "_t mask, ";
 
           if (GP.MaskedOff) {
             OS << GP.Vector() << " maskedoff, ";
@@ -882,30 +857,14 @@ public:
         if (RB.GenBuiltin) {
           OS << "// Builtins for " << RB.Name << "\n\n";
 
-          RB.WriteAll([&](const GeneratorParams &GP) {
+          RB.WriteAll([&](const GeneratorParams& GP) {
             OS << "RISCVBuiltin(";
 
-            OS << GP.Format(RB.Name);
+            OS << GP.Format(RB.Name) << ", \"";
 
-            if (GP.HasMask)
-              OS << "_m";
-
-            if (GP.HasVL)
-              OS << "_vl";
-
-            OS << ", \"";
-
-            OS << RB.Prototype[0].Abbr(GP);
-
-            if (GP.HasMask) {
-              OS << GP.Mask().Abbr();
-
-              if (GP.MaskedOff)
-                OS << GP.Vector().Abbr();
+            for (const TypeSpecifier &Spec : RB.Prototype) {
+              OS << Spec.Abbr(GP);
             }
-
-            for (unsigned I = 1, E = RB.Prototype.size(); I < E; ++I)
-              OS << RB.Prototype[I].Abbr(GP);
 
             OS << "\", \"" << RB.AttrStr << "\"";
 
@@ -927,17 +886,17 @@ public:
 
 private:
   void CheckPolymorphism(StringRef Str) {
-    (Many((MatchNot('%', [&](auto Text) { return ++Text; }))           //
-          | (Match('%'),                                               //
-             ((Match('b'), Act([&] { BasePolymorphic = true; }))       //
-              | (Match('s'), Act([&] { SEWPolymorphic = true; }))      //
-              | (Match('l'), Act([&] { LMULPolymorphic = true; }))     //
-              | (Match('L'), Act([&] { LMULPolymorphic = true; }))     //
-              | (Match('L'), Act([&] { TuplePolymorphic = true; }))))) //
-     && EofOrFail("Failed to check polymorphism in `", Str, "'"))(Str.data());
+    (Many((MatchNot('%', [&](auto Text) { return ++Text; }))            //
+          | (Match('%'),                                                //
+             ((Match('b'), Act([&] { BasePolymorphic = true; }))        //
+              | (Match('s'), Act([&] { SEWPolymorphic = true; }))       //
+              | (Match('l'), Act([&] { LMULPolymorphic = true; }))      //
+              | (Match('L'), Act([&] { LMULPolymorphic = true; }))      //
+              | (Match('L'), Act([&] { TuplePolymorphic = true; }))))), //
+     EofOrFail("Failed to check polymorphism in `", Str, "'"))(Str.data());
   }
 
-  void WriteAll(function_ref<void(const GeneratorParams &)> G) const {
+  void WriteAll(function_ref<void(const GeneratorParams&)> G) const {
     using namespace std::placeholders;
 
     auto Yield = [=](auto... Args) {

@@ -96,6 +96,5 @@ let GenIntrinsic = 0 in {
   def : RISCVBuiltin<"vsetvl", ["z", "z", "z"], "n">;
 }
 
-let MayMask = 1 in
 def : RISCVBuiltin<"vle%s_v_%b%sm%l", ["q", "eC*"], "n">;
 def : RISCVBuiltin<"vse%s_v_%b%sm%l", ["v", "e*", "q"], "n">;
