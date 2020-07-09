@@ -18,9 +18,6 @@ class RISCVBuiltin<string name, list<string> prototype, string attrs> {
   //   %l -> LMUL, represented by characters in lower case.
   //      e.g. 1, 2, f2 and f4.
   //
-  //   %L -> LMUL, represented by characters in upper case.
-  //      e.g. 1, 2, F2 and F4.
-  //
   //   %t -> Size of Tuple.
   //      e.g. 1, 2, 3, and 4.
   // 
@@ -96,6 +93,8 @@ let GenIntrinsic = 0 in {
   def : RISCVBuiltin<"vsetvl", ["z", "z", "z"], "n">;
 }
 
-let MayMask = 1 in
 def : RISCVBuiltin<"vle%s_v_%b%sm%l", ["q", "eC*"], "n">;
+
 def : RISCVBuiltin<"vse%s_v_%b%sm%l", ["v", "e*", "q"], "n">;
+
+def : RISCVBuiltin<"vfmacc_vf_%b%sm%l", ["q", "q", "e", "q"], "n">;
