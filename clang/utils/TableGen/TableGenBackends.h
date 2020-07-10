@@ -126,6 +126,9 @@ void EmitRISCVVectorHeader(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 
 void EmitRISCVBuiltins(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 
+void EmitRISCVIntrinsics(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+
+
 } // end namespace clang
 
 #endif
