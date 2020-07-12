@@ -213,10 +213,20 @@ TargetRegisterInfo::getMinimalPhysRegClass(MCRegister reg, MVT VT) const {
 
   // Pick the most sub register class of the right type that contains
   // this physreg.
-  const TargetRegisterClass* BestRC = nullptr;
-  for (const TargetRegisterClass* RC : regclasses()) {
-    if ((VT == MVT::Other || isTypeLegalForClass(*RC, VT)) &&
-        RC->contains(reg) && (!BestRC || BestRC->hasSubClass(RC)))
+  const TargetRegisterClass *BestRC = nullptr;
+  for (const TargetRegisterClass *RC : regclasses()) {
+    if (VT != MVT::Other && !isTypeLegalForClass(*RC, VT))
+      continue;
+
+    if (!RC->contains(reg))
+      continue;
+
+    if (BestRC && !BestRC->hasSubClass(RC))
+      continue;
+
+    // if ((VT == MVT::Other || isTypeLegalForClass(*RC, VT)) &&
+    //     RC->contains(reg) && (!BestRC || BestRC->hasSubClass(RC)))
+    //   BestRC = RC;
       BestRC = RC;
   }
 

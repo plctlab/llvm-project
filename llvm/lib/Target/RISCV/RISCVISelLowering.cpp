@@ -85,8 +85,11 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
     addRegisterClass(MVT::f32, &RISCV::FPR32RegClass);
   if (Subtarget.hasStdExtD())
     addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
-  if (STI.hasStdExtV())
+  if (STI.hasStdExtV()) {
     addRegisterClass(MVT::nxv1i32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1f32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv8f32, &RISCV::VRRegClass);
+  }
 
   // Compute derived properties from the register classes.
   computeRegisterProperties(STI.getRegisterInfo());
@@ -1459,6 +1462,14 @@ static const MCPhysReg ArgGPRs[] = {
   RISCV::X10, RISCV::X11, RISCV::X12, RISCV::X13,
   RISCV::X14, RISCV::X15, RISCV::X16, RISCV::X17
 };
+static const MCPhysReg ArgVRs[] = {
+  RISCV::V0,  RISCV::V1,  RISCV::V2,  RISCV::V3,  RISCV::V4,  RISCV::V5,
+  RISCV::V6,  RISCV::V7,  RISCV::V8,  RISCV::V9,  RISCV::V10, RISCV::V11,
+  RISCV::V12, RISCV::V13, RISCV::V14, RISCV::V15, RISCV::V16, RISCV::V17,
+  RISCV::V18, RISCV::V19, RISCV::V20, RISCV::V21, RISCV::V22, RISCV::V23,
+  RISCV::V24, RISCV::V25, RISCV::V26, RISCV::V27, RISCV::V28, RISCV::V29,
+  RISCV::V30, RISCV::V31
+};
 static const MCPhysReg ArgFPR32s[] = {
   RISCV::F10_F, RISCV::F11_F, RISCV::F12_F, RISCV::F13_F,
   RISCV::F14_F, RISCV::F15_F, RISCV::F16_F, RISCV::F17_F
@@ -1639,6 +1650,9 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
     Reg = State.AllocateReg(ArgFPR32s, ArgFPR64s);
   else if (ValVT == MVT::f64 && !UseGPRForF64)
     Reg = State.AllocateReg(ArgFPR64s, ArgFPR32s);
+  // TODO: handle all scalable vectors
+  else if (ValVT == MVT::nxv1i32 || ValVT == MVT::nxv8f32 || ValVT == MVT::nxv1f32)
+    Reg = State.AllocateReg(ArgVRs);
   else
     Reg = State.AllocateReg(ArgGPRs);
   unsigned StackOffset = Reg ? 0 : State.AllocateStack(XLen / 8, XLen / 8);
@@ -1767,6 +1781,12 @@ static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
     break;
   case MVT::f64:
     RC = &RISCV::FPR64RegClass;
+    break;
+  case MVT::nxv1i32:
+  case MVT::nxv1f32:
+  case MVT::nxv8f32:
+    // TODO: handle all scalable vectors
+    RC = &RISCV::VRRegClass;
     break;
   }
 

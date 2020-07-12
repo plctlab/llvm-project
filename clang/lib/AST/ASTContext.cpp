@@ -3642,7 +3642,8 @@ QualType ASTContext::getScalableVectorType(QualType EltTy,
     return SingletonId;
 #include "clang/Basic/AArch64SVEACLETypes.def"
   }
-  return QualType();
+  // TODO: Check if the target support RISC-V Vector
+  return getVectorType(EltTy, NumElts, VectorType::RISCVVector);
 }
 
 /// getVectorType - Return the unique reference to a vector type of

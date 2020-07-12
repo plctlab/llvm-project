@@ -115,7 +115,7 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
   // VR -> VR copies
   if (RISCV::VRRegClass.contains(SrcReg) &&
       RISCV::VRRegClass.contains(DstReg)) {
-    
+
     auto Scavenger = RegScavenger();
     Scavenger.enterBasicBlockEnd(MBB);
     unsigned SavedVL = Scavenger.scavengeRegisterBackwards(
