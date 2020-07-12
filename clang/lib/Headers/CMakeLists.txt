@@ -125,6 +125,7 @@ set(files
   xsaveoptintrin.h
   xsavesintrin.h
   xtestintrin.h
+  riscv_vector.h
   )
 
 set(cuda_wrapper_files
@@ -193,8 +194,6 @@ clang_generate_header(-gen-arm-sve-header arm_sve.td arm_sve.h)
 clang_generate_header(-gen-arm-mve-header arm_mve.td arm_mve.h)
 # Generate arm_cde.h
 clang_generate_header(-gen-arm-cde-header arm_cde.td arm_cde.h)
-# Generate riscv_vector.h
-clang_generate_header(-gen-riscv-vector-header riscv_vector.td riscv_vector.h)
 
 add_custom_target(clang-resource-headers ALL DEPENDS ${out_files})
 set_target_properties(clang-resource-headers PROPERTIES

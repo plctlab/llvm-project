@@ -84,8 +84,3 @@ clang_tablegen(arm_cde_builtin_sema.inc -gen-arm-cde-builtin-sema
 clang_tablegen(arm_cde_builtin_aliases.inc -gen-arm-cde-builtin-aliases
   SOURCE arm_cde.td
   TARGET ClangARMCdeBuiltinAliases)
-
-clang_tablegen(riscv_vector.inc -gen-riscv-builtins
-  SOURCE riscv_vector.td
-  TARGET ClangRISCVVectorBuiltins
-  )

@@ -135,6 +135,6 @@ def int_riscv_vmfirst : Intrinsic<[llvm_i32_ty],
                                [llvm_nxv1i32_ty],
                                [IntrNoMem]>;
 
-include "llvm/IR/IntrinsicsRISCV.inc"
+include "llvm/IR/IntrinsicsRISCVVector.td"
 
 } // TargetPrefix = "riscv"
