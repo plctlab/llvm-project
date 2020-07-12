@@ -437,7 +437,10 @@ bool ClangTableGenMain(raw_ostream &OS, RecordKeeper &Records) {
   case GenRISCVIntrinsics:
     EmitRISCVIntrinsics(Records, OS);
     break;
+<<<<<<< HEAD
 >>>>>>> parent of 60775e8e5700... This reverts commit fbae7e34c7bd8bc38b53ef17b112c724a5b4332d.
+=======
+>>>>>>> parent of 2116e8856477... Revert "Revert "Remove code for generating IntrinsicsRISCV.inc from clang-tablegen""
   }
 
   return false;
