@@ -2,6 +2,9 @@
 #include "llvm/TableGen/Record.h"
 #include <cctype>
 
+// Fractional LMUL is not supported at the moment.
+// #define SUPPORT_FRACTIONAL_LMUL
+
 namespace {
 
 using namespace llvm;
@@ -14,9 +17,16 @@ auto operator<<(raw_ostream &OS, const T &Object)
   return OS;
 }
 
-// Tool for writing ad hoc tests.
-struct UnitTest {
-  UnitTest(function_ref<void()> F) { F(); }
+// Simple decorator for raw_ostream, which skips
+// leading spaces in outputed strings.
+struct SkipWhiteSpace {
+  raw_ostream &OS;
+
+  raw_ostream &operator<<(const char *Str) {
+    while (isspace(*Str))
+      Str++;
+    return OS << Str;
+  }
 };
 
 // Utilities for building parsers.
@@ -133,23 +143,38 @@ constexpr auto EofOrFail(Ts... Messages) {
 
 } // namespace simple_parser_combinators
 
-// Simple decorator for raw_ostream, which skips
-// leading spaces in outputed strings.
-struct SkipWhiteSpace {
-  raw_ostream &OS;
+class BaseType {
+public:
+  static BaseType Integer() { return BaseType(INTEGER); }
 
-  raw_ostream &operator<<(const char *Str) {
-    while (isspace(*Str))
-      Str++;
-    return OS << Str;
+  static BaseType UnsignedInteger() { return BaseType(UNSIGNED_INTEGER); }
+
+  static BaseType FloatingPoint() { return BaseType(FLOATING_POINT); }
+
+  bool IsInteger() const { return ID == INTEGER; }
+
+  bool IsUnsignedInteger() const { return ID == UNSIGNED_INTEGER; }
+
+  bool IsFloatingPoint() const { return ID == FLOATING_POINT; }
+
+  // Used in various typedefs.
+  void Write(raw_ostream &OS) const {
+    switch (ID) {
+    case INTEGER:
+      OS << "int";
+      break;
+    case UNSIGNED_INTEGER:
+      OS << "unsigned";
+      break;
+    case FLOATING_POINT:
+      OS << "float";
+      break;
+    default:
+      llvm_unreachable("Unhandled BaseTy!");
+    }
   }
-};
 
-struct BaseType {
-  enum { INTEGER, UNSIGNED_INTEGER, FLOATING_POINT };
-
-  int ID;
-
+  // Used in names like vint32m1_t, vuint32m1_t and vfloat32m1_t.
   auto Abbr() const {
     struct {
       const BaseType &BT;
@@ -174,30 +199,7 @@ struct BaseType {
     return Wrapper;
   }
 
-  auto CType() const {
-    struct {
-      const BaseType &BT;
-
-      void Write(raw_ostream &OS) const {
-        switch (BT.ID) {
-        case INTEGER:
-          OS << "int";
-          break;
-        case UNSIGNED_INTEGER:
-          OS << "unsigned";
-          break;
-        case FLOATING_POINT:
-          OS << "float";
-          break;
-        default:
-          llvm_unreachable("Unhandled BaseTy!");
-        }
-      }
-    } Wrapper{*this};
-
-    return Wrapper;
-  }
-
+  // Used in suffixes of intrinsics' names, e.g. vle32_v_i32m1.
   auto SingleLetter() const {
     struct {
       const BaseType &BT;
@@ -222,87 +224,80 @@ struct BaseType {
     return Wrapper;
   }
 
-  auto LLVMSingleLetter() const {
-    struct {
-      const BaseType &BT;
-
-      void Write(raw_ostream &OS) const {
-        switch (BT.ID) {
-        case INTEGER:
-          OS << "i";
-          break;
-        case UNSIGNED_INTEGER:
-          OS << "i";
-          break;
-        case FLOATING_POINT:
-          OS << "f";
-          break;
-        default:
-          llvm_unreachable("Unhandled BaseTy!");
-        }
-      }
-    } Wrapper{*this};
-
-    return Wrapper;
-  }
-
   static void Enum(function_ref<void(BaseType BT)> F) {
     for (int I : {INTEGER, UNSIGNED_INTEGER, FLOATING_POINT}) {
-      F(BaseType{I});
+      F(BaseType(I));
     }
   }
+
+private:
+  BaseType(int ID) : ID(ID) {}
+
+private:
+  enum { INTEGER, UNSIGNED_INTEGER, FLOATING_POINT };
+
+  int ID;
 };
 
-struct StdElemWidth {
-  unsigned Width;
+class StdElemWidth {
+public:
+  unsigned GetWidth() const { return Width; }
 
-  unsigned Encoding() const { return (Log2_64(Width) - 3) << 2; }
+  unsigned GetEncoding() const { return (Log2_64(Width) - 3) << 2; }
 
   void Write(raw_ostream &OS) const { OS << Width; }
 
   static void Enum(function_ref<void(StdElemWidth SEW)> F) {
-    for (unsigned W : {8, 16, 32, 64}) {
+    for (unsigned W : {8, 16, 32, 64})
       F(StdElemWidth{W});
-    }
   }
 
   static void Enum(BaseType BT, function_ref<void(StdElemWidth SEW)> F) {
     Enum([&](StdElemWidth SEW) {
-      if ((SEW.Width == 8 || SEW.Width == 16) &&
-          BT.ID == BaseType::FLOATING_POINT)
+      if ((SEW.Width == 8 || SEW.Width == 16) && BT.IsFloatingPoint())
         return;
       F(SEW);
     });
   }
+
+private:
+  StdElemWidth(unsigned Width) : Width(Width) {}
+
+private:
+  unsigned Width;
 };
 
 // FIXME: Is ELEN a compile-time constant?
 constexpr unsigned ELEN = 64;
 
-struct LengthMultiplier {
-  unsigned Mul;
-  bool IsFract;
+class LengthMultiplier {
+public:
+  unsigned GetMul() const { return Mul; }
 
-  unsigned Encoding() const { return (unsigned(IsFract) << 5) | Log2_64(Mul); }
+  bool IsFract() const { return Fract; }
 
+  unsigned GetEncoding() const { return (unsigned(Fract) << 5) | Log2_64(Mul); }
+
+  // Used in suffixes of intrinsics' names, e.g. vle32_v_i32mf2.
   auto LowerCase() const {
     struct {
       const LengthMultiplier &LMUL;
 
       void Write(raw_ostream &OS) const {
-        OS << (LMUL.IsFract ? "f" : "") << LMUL.Mul;
+        OS << (LMUL.Fract ? "f" : "") << LMUL.Mul;
       }
     } Wrapper{*this};
 
     return Wrapper;
   }
 
+  // Used in constants' definitions, e.g. _MF2
   auto UpperCase() const {
     struct {
       const LengthMultiplier &LMUL;
 
       void Write(raw_ostream &OS) const {
-        OS << (LMUL.IsFract ? "F" : "") << LMUL.Mul;
+        OS << (LMUL.Fract ? "F" : "") << LMUL.Mul;
       }
     } Wrapper{*this};
 
@@ -311,11 +306,12 @@ struct LengthMultiplier {
 
   static void Enum(function_ref<void(LengthMultiplier LMUL)> F) {
     for (unsigned Mul : {1, 2, 4, 8}) {
-      F({Mul, false});
+      F(LengthMultiplier(Mul, false));
 
-      // for (unsigned Mul : {2, 4, 8}) {
-      //   F({Mul, true});
-      // }
+#ifdef SUPPORT_FRACTIONAL_LMUL
+      for (unsigned Mul : {2, 4, 8})
+        F(LengthMultiplier(Mul, true));
+#endif
     }
   }
 
@@ -326,23 +322,31 @@ struct LengthMultiplier {
       // LMUL >= SEW / ELEN
       // <=> 1/Mul >= SEW / ELEN
       // <=> ELEN >= SEW * Mul
-      if (LMUL.IsFract && ELEN < SEW.Width * LMUL.Mul)
+      if (LMUL.Fract && ELEN < SEW.GetWidth() * LMUL.Mul)
         return;
       F(LMUL);
     });
   }
+
+private:
+  LengthMultiplier(unsigned Mul, bool Fract) : Mul(Mul), Fract(Fract) {}
+
+private:
+  unsigned Mul;
+  bool Fract;
 };
 
 struct ElementType {
-  BaseType BT;
-  StdElemWidth SEW;
+  const BaseType BT;
+  const StdElemWidth SEW;
 
+  // Used in dependent parameters' types in intrinsics' signatures.
   void Write(raw_ostream &OS) const {
-    if (BT.ID == BaseType::FLOATING_POINT) {
-      switch (SEW.Width) {
-      // case 16:
-      //   OS << "float16_t";
-      //   break;
+    if (BT.IsFloatingPoint()) {
+      switch (SEW.GetWidth()) {
+      case 16:
+        OS << "_Float16";
+        break;
       case 32:
         OS << "float";
         break;
@@ -352,8 +356,25 @@ struct ElementType {
       default:
         llvm_unreachable("Unhandled SEW");
       }
-    } else {
-      switch (SEW.Width) {
+    } else if (BT.IsUnsignedInteger()) {
+      switch (SEW.GetWidth()) {
+      case 8:
+        OS << "unsigned char";
+        break;
+      case 16:
+        OS << "unsigned short";
+        break;
+      case 32:
+        OS << "uint32_t";
+        break;
+      case 64:
+        OS << "uint64_t";
+        break;
+      default:
+        llvm_unreachable("Unhandled SEW");
+      }
+    }else {
+      switch (SEW.GetWidth()) {
       case 8:
         OS << "char";
         break;
@@ -372,13 +393,14 @@ struct ElementType {
     }
   }
 
+  // Mapped to characters defined in Builtins.def
   auto Abbr() const {
     struct {
-      const ElementType &AT;
+      const ElementType &ET;
 
       void Write(raw_ostream &OS) const {
-        if (AT.BT.ID == BaseType::FLOATING_POINT) {
-          switch (AT.SEW.Width) {
+        if (ET.BT.IsFloatingPoint()) {
+          switch (ET.SEW.GetWidth()) {
           case 16:
             OS << "h";
             break;
@@ -392,10 +414,10 @@ struct ElementType {
             llvm_unreachable("Unhandled SEW");
           }
         } else {
-          if (AT.BT.ID == BaseType::UNSIGNED_INTEGER)
+          if (ET.BT.IsUnsignedInteger())
             OS << "U";
 
-          switch (AT.SEW.Width) {
+          switch (ET.SEW.GetWidth()) {
           case 8:
             OS << "c";
             break;
@@ -416,59 +438,15 @@ struct ElementType {
     } Wrapper{*this};
     return Wrapper;
   }
-
-  auto LLVMType() const {
-    struct {
-      const ElementType &ET;
-
-      void Write(raw_ostream &OS) const {
-        if (ET.BT.ID == BaseType::FLOATING_POINT) {
-          switch (ET.SEW.Width) {
-          case 16:
-            OS << "llvm_half_ty";
-            break;
-          case 32:
-            OS << "llvm_float_ty";
-            break;
-          case 64:
-            OS << "llvm_double_ty";
-            break;
-          default:
-            llvm_unreachable("Unhandled SEW");
-          }
-        } else {
-          OS << "llvm_i" << ET.SEW << "_ty";
-        }
-      }
-    } Wrapper{*this};
-    return Wrapper;
-  }
 };
 
 struct VectorType {
-  BaseType BT;
-  StdElemWidth SEW;
-  LengthMultiplier LMUL;
+  const BaseType BT;
+  const StdElemWidth SEW;
+  const LengthMultiplier LMUL;
 
   void Write(raw_ostream &OS) const {
     OS << "v" << BT.Abbr() << SEW << "m" << LMUL.LowerCase() << "_t";
-  }
-
-  auto LLVMType() const {
-    struct {
-      const VectorType &VT;
-
-      void Write(raw_ostream &OS) const {
-        if (VT.LMUL.IsFract)
-          llvm_unreachable("Fractional LMUL not supported at the moment");
-
-        OS << "llvm_nxv" << VT.LMUL.LowerCase();
-
-        OS << VT.BT.LLVMSingleLetter() << VT.SEW << "_ty";
-      }
-    } Wrapper{*this};
-
-    return Wrapper;
   }
 
   static void Enum(function_ref<void(VectorType VT)> F) {
@@ -483,18 +461,18 @@ struct VectorType {
 };
 
 struct VectorTypeDef {
-  VectorType VT;
+  const VectorType VT;
 
   void Write(raw_ostream &OS) const {
     OS << "typedef __attribute__((riscv_vector_type(" << VT.SEW;
-    OS << ", " << VT.LMUL.Mul;
-    OS << ", " << (VT.LMUL.IsFract ? "1" : "0") << ")))";
-    OS << " " << VT.BT.CType() << " " << VT << ";";
+    OS << ", " << VT.LMUL.GetMul();
+    OS << ", " << (VT.LMUL.IsFract() ? "1" : "0") << ")))";
+    OS << " " << VT.BT << " " << VT << ";";
   }
 };
 
 struct MaskType {
-  unsigned N;
+  const unsigned N;
 
   void Write(raw_ostream &OS) const { OS << "vbool" << N << "_t"; }
 
@@ -506,7 +484,7 @@ struct MaskType {
 };
 
 struct MaskTypeDef {
-  MaskType MT;
+  const MaskType MT;
 
   void Write(raw_ostream &OS) const {
     OS << "typedef __attribute__((riscv_mask_type(" << MT.N;
@@ -515,8 +493,8 @@ struct MaskTypeDef {
 };
 
 struct VectorTupleDef {
-  VectorType VT;
-  unsigned N;
+  const VectorType VT;
+  const unsigned N;
 
   void Write(raw_ostream &OS) const {
     OS << "typedef struct {\n";
@@ -537,26 +515,29 @@ struct VectorTupleDef {
 };
 
 struct ConstantEDef {
-  StdElemWidth SEW;
+  const StdElemWidth SEW;
 
   void Write(raw_ostream &OS) const {
-    OS << "#define _E" << SEW << " " << SEW.Encoding();
+    OS << "#define _E" << SEW << " " << SEW.GetEncoding();
   }
 };
 
 struct ConstantMDef {
-  LengthMultiplier LMUL;
+  const LengthMultiplier LMUL;
 
   void Write(raw_ostream &OS) const {
-    OS << "#define _M" << LMUL.UpperCase() << " " << LMUL.Encoding();
+    OS << "#define _M" << LMUL.UpperCase() << " " << LMUL.GetEncoding();
   }
 };
 
 struct GeneratorParams {
-  Optional<BaseType> Base;
-  Optional<StdElemWidth> SEW;
-  Optional<LengthMultiplier> LMUL;
-  Optional<unsigned> TupleN;
+  const Optional<BaseType>& Base;
+  const Optional<StdElemWidth>& SEW;
+  const Optional<LengthMultiplier>& LMUL;
+  const Optional<unsigned>& TupleN;
+  const bool HasMask;
+  const bool MaskedOff;
+  const bool HasVL;
 
   auto Format(StringRef Str) const {
     struct {
@@ -564,7 +545,7 @@ struct GeneratorParams {
       const GeneratorParams &GP;
 
       void Write(raw_ostream &OS) const {
-        (Many((MatchNot('%', WriteChar(OS))) //
+        (Many(MatchNot('%', WriteChar(OS)) //
               |
               (Match('%'),                                                   //
                ((Match('b'), Act([&] { OS << GP.Base->SingleLetter(); }))    //
@@ -573,7 +554,6 @@ struct GeneratorParams {
                 | (Match('L'), Act([&] { OS << GP.LMUL->UpperCase(); }))))), //
          EofOrFail("Failed to format `", Str, "'"))(Str.data());
       }
-
     } Wrapper{Str, *this};
 
     return Wrapper;
@@ -586,16 +566,19 @@ struct GeneratorParams {
     return VectorType{*Base, *SEW, *LMUL};
   }
 
-  auto Element() const { return ElementType{*Base, *SEW}; }
+  auto Element() const {
+    assert(Base.hasValue());
+    assert(SEW.hasValue());
+    return ElementType{*Base, *SEW};
+  }
 
   unsigned MaskLength() const {
     assert(LMUL.hasValue());
     assert(SEW.hasValue());
-    return LMUL->IsFract ? (SEW->Width / LMUL->Mul) : (SEW->Width * LMUL->Mul);
+    return LMUL->IsFract() ? (SEW->GetWidth() / LMUL->GetMul())
+                           : (SEW->GetWidth() * LMUL->GetMul());
   }
 };
-
-using Generator = function_ref<void(GeneratorParams)>;
 
 // grammar for type specification
 //
@@ -687,17 +670,10 @@ public:
 
       void Write(raw_ostream &OS) const {
         Many((Match('q'), Act([&] {
-                OS << "q";
-                if (GP.LMUL->IsFract)
-                  llvm_unreachable(
-                      "Fractional LMUL not supported at the moment");
-                OS << GP.LMUL->Mul;
-                OS << ElementType{*GP.Base, *GP.SEW}.Abbr();
-              })) |
-             (Match('e'), Act([&] {
-                OS << ElementType{*GP.Base, *GP.SEW}.Abbr();
-              }))             //
-             | WriteChar(OS)) //
+                OS << "q" << GP.LMUL->GetMul() << GP.Element().Abbr();
+              }))                                                    //
+             | (Match('e'), Act([&] { OS << GP.Element().Abbr(); })) //
+             | WriteChar(OS))                                        //
             (Spec.RawSpec.data());
       }
     } Wrapper{GP, *this};
@@ -705,79 +681,14 @@ public:
     return Wrapper;
   }
 
-  auto LLVMType(const GeneratorParams &GP) const {
-    struct {
-      const GeneratorParams &GP;
-      const TypeSpecifier &Spec;
-
-      void Write(raw_ostream &OS) const {
-        ((Match('q'), Act([&] { OS << GP.Vector().LLVMType(); })) //
-         | (Match('e'), Act([&] {
-              if (Spec.Postfixes.count("*")) {
-                OS << "llvm_anyptr_ty";
-                return;
-              }
-              OS << GP.Element().LLVMType();
-            })) //
-         | [&](const char *Text) {
-             if (Spec.Postfixes.count("*")) {
-               OS << "llvm_anyptr_ty";
-               return nullptr;
-             }
-
-             auto WriteStr = [&](const char *Str) {
-               return Act([&, Str] { OS << Str; });
-             };
-
-             return (Maybe(Match('U')),                          //
-                     ((Match('v'), WriteStr("llvm_void_ty"))     //
-                      | (Match('b'), WriteStr("llvm_i1_ty"))     //
-                      | (Match('c'), WriteStr("llvm_i8_ty"))     //
-                      | (Match('s'), WriteStr("llvm_i16_ty"))    //
-                      | (Match('i'), WriteStr("llvm_i32_ty"))    //
-                      | (Match('l'), WriteStr("llvm_i64_ty"))    //
-                      | (Match('h'), WriteStr("llvm_half_ty"))   //
-                      | (Match('f'), WriteStr("llvm_float_ty"))  //
-                      | (Match('d'), WriteStr("llvm_double_ty")) //
-                      | (Match('z'), WriteStr("llvm_anyint_ty"))),
-                     (Many(Match('*')   //
-                           | Match('&') //
-                           | Match('C') //
-                           | (Match('D')))),
-                     EofOrFail("Failed parse the prototype")) //
-                 (Text);
-           })(Spec.RawSpec.data());
-      }
-    } Wrapper{GP, *this};
-
-    return Wrapper;
-  }
-
+  // Used in parameters' types in intrinsics' signatures.
   auto ConcreteType(const GeneratorParams &GP) const {
     struct {
       const GeneratorParams &GP;
       const TypeSpecifier &Spec;
 
       void Write(raw_ostream &OS) const {
-        switch (Spec.SC) {
-        case ATOM: {
-          if (Spec.Postfixes.count("const"))
-            OS << "const ";
-
-          if (Spec.Prefixes.count("unsigned"))
-            OS << "unsigned ";
-
-          OS << Spec.Base;
-
-          if (Spec.Postfixes.count("*"))
-            OS << "*";
-          else if (Spec.Postfixes.count("&"))
-            OS << "&";
-
-          if (Spec.Postfixes.count("volatile"))
-            OS << " volatile";
-        } break;
-        case VECTOR: {
+        if (Spec.SC == VECTOR) {
           OS << "v" << GP.Base->Abbr() << *GP.SEW;
           OS << "m" << GP.LMUL->LowerCase();
 
@@ -785,13 +696,17 @@ public:
             OS << "v" << *GP.TupleN;
 
           OS << "_t";
-        } break;
-        case DEPENDENT: {
+        } else {
           if (Spec.Postfixes.count("const"))
             OS << "const ";
 
-          // OS << GP.Base->Abbr() << *GP.SEW << "_t";
-          OS << GP.Element();
+          if (Spec.Prefixes.count("unsigned"))
+            OS << "unsigned ";
+
+          if (Spec.SC == ATOM)
+            OS << Spec.Base;
+          else
+            OS << GP.Element();
 
           if (Spec.Postfixes.count("*"))
             OS << "*";
@@ -800,9 +715,6 @@ public:
 
           if (Spec.Postfixes.count("volatile"))
             OS << " volatile";
-        } break;
-        default:
-          llvm_unreachable("Unhandled type class");
         }
       }
     } Wrapper{GP, *this};
@@ -812,6 +724,11 @@ public:
 };
 
 class RISCVBuiltin {
+private:
+  auto InsertAttr(const char *Attr) {
+    return Act([&, Attr] { Attributes.push_back(Attr); });
+  };
+
 public:
   RISCVBuiltin(const Record *Rec)
       : Name(Rec->getValueAsString("Name")),
@@ -824,13 +741,8 @@ public:
         GenBuiltin(Rec->getValueAsBit("GenBuiltin")), BasePolymorphic(false),
         SEWPolymorphic(false), LMULPolymorphic(false), TuplePolymorphic(false) {
 
-    for (StringRef Type : Rec->getValueAsListOfStrings("Prototype")) {
+    for (StringRef Type : Rec->getValueAsListOfStrings("Prototype"))
       Prototype.emplace_back(Type);
-    }
-
-    auto InsertAttr = [&](const char *Attr) {
-      return Act([&, Attr] { Attributes.push_back(Attr); });
-    };
 
     Attributes.push_back("always_inline");
 
@@ -841,17 +753,6 @@ public:
      EofOrFail("Failed to parse the attribute list `", AttrStr, "'")) //
         (AttrStr.data());
 
-    auto InsertProp = [&](const char *Prop) {
-      return Act([&, Prop] { Properties.push_back(Prop); });
-    };
-
-    (Many((Match('n'), InsertProp("IntrNoMem"))              //
-          | (Match('r'), InsertProp("IntrReadMem"))          //
-          | (Match('w'), InsertProp("IntrWriteMem"))         //
-          | (Match('s'), InsertProp("IntrHasSideEffects"))), //
-     EofOrFail("Failed to parse the property list"))         //
-        (Rec->getValueAsString("Properties").data());
-
     CheckPolymorphism(Name);
     CheckPolymorphism(Body);
   }
@@ -859,25 +760,91 @@ public:
   void Write(raw_ostream &OS) const {
     if (GenIntrinsic) {
       OS << "// Intrinsics for " << Name << "\n\n";
+      WriteAll([&](const GeneratorParams& GP) {
+        if (Attributes.size()) {
+          OS << "static __attribute__((";
 
-      Yield([&](GeneratorParams GP) {
-        Write(OS, GP, false, false, false);
-        OS << "\n\n";
+          for (unsigned I = 0, E = Attributes.size(); I != E; ++I) {
+            if (I != 0)
+              OS << ", ";
 
-        if (HasVL) {
-          Write(OS, GP, false, false, true);
-          OS << "\n\n";
+            OS << Attributes[I];
+          }
+
+          OS << "))\n";
         }
 
-        if (MayMask) {
-          Write(OS, GP, true, MaskedOff, false);
-          OS << "\n\n";
+        assert(Prototype.size());
+        const TypeSpecifier &RetTy = Prototype[0];
 
-          if (HasVL) {
-            Write(OS, GP, false, MaskedOff, true);
-            OS << "\n\n";
+        OS << RetTy.ConcreteType(GP) << " ";
+        OS << GP.Format(Name);
+
+        if (GP.HasMask)
+          OS << "_m";
+
+        if (GP.HasVL)
+          OS << "_vl";
+
+        OS << "(";
+
+        if (GP.HasMask) {
+          OS << "vbool" << GP.MaskLength() << "_t mask, ";
+
+          if (GP.MaskedOff) {
+            OS << GP.Vector() << " maskedoff, ";
           }
         }
+
+        for (unsigned I = 1, E = Prototype.size(); I != E; ++I) {
+          const TypeSpecifier &Spec = Prototype[I];
+          OS << Spec.ConcreteType(GP);
+
+          OS << " arg" << I;
+
+          if (I + 1 != E)
+            OS << ", ";
+        }
+
+        if (GP.HasVL)
+          OS << ", size_t vl";
+
+        OS << ") {\n  ";
+
+        if (Body.empty()) {
+          if (HasVL)
+            OS << GP.Format("vsetvl_e%s%l") << "(vl);\n  ";
+
+          if (RetTy.Base != "void")
+            OS << "return ";
+
+          OS << "__builtin_riscv_";
+
+          OS << GP.Format(Name);
+
+          OS << "(";
+
+          if (GP.HasMask) {
+            OS << "mask, ";
+
+            if (GP.MaskedOff)
+              OS << "maskedoff ";
+          }
+
+          for (unsigned I = 1, E = Prototype.size(); I != E; ++I) {
+            OS << "arg" << I;
+            if (I + 1 != E)
+              OS << ", ";
+          }
+
+          OS << ");";
+        } else {
+          OS << GP.Format(Body);
+        }
+
+        OS << "\n}";
+
+        OS << "\n\n";
       });
     }
   }
@@ -890,114 +857,27 @@ public:
         if (RB.GenBuiltin) {
           OS << "// Builtins for " << RB.Name << "\n\n";
 
-          RB.Yield([&](GeneratorParams GP) {
-            Write(OS, GP, false, false, false);
+          RB.WriteAll([&](const GeneratorParams& GP) {
+            OS << "RISCVBuiltin(";
+
+            OS << GP.Format(RB.Name) << ", \"";
+
+            for (const TypeSpecifier &Spec : RB.Prototype) {
+              OS << Spec.Abbr(GP);
+            }
+
+            OS << "\", \"" << RB.AttrStr << "\"";
+
+            for (unsigned I = 0, E = RB.Prototype.size(); I < E; ++I) {
+              if (RB.Prototype[I].IsOverloaded())
+                OS << ", " << I;
+            }
+
+            OS << ")";
+
             OS << "\n\n";
-
-            if (RB.HasVL) {
-              Write(OS, GP, false, false, true);
-              OS << "\n\n";
-            }
-
-            if (RB.MayMask) {
-              Write(OS, GP, true, RB.MaskedOff, false);
-              OS << "\n\n";
-
-              if (RB.HasVL) {
-                Write(OS, GP, false, RB.MaskedOff, true);
-                OS << "\n\n";
-              }
-            }
           });
         }
-      }
-
-      void Write(raw_ostream &OS, GeneratorParams GP, bool HasMask,
-                 bool MaskedOff, bool HasVL) const {
-        OS << "RISCVBuiltin(";
-
-        OS << GP.Format(RB.Name) << ", \"";
-
-        for (const TypeSpecifier &Spec : RB.Prototype) {
-          OS << Spec.Abbr(GP);
-        }
-
-        OS << "\", \"" << RB.AttrStr << "\"";
-
-        for (unsigned I = 0, E = RB.Prototype.size(); I < E; ++I) {
-          if (RB.Prototype[I].IsOverloaded())
-            OS << ", " << I;
-        }
-
-        OS << ")";
-      }
-
-    } Wrapper{*this};
-
-    return Wrapper;
-  }
-
-  auto Intrinsic() const {
-    struct {
-      const RISCVBuiltin &RB;
-
-      void Write(raw_ostream &OS) const {
-        if (RB.GenBuiltin) {
-          OS << "// Intrinsics for " << RB.Name << "\n\n";
-
-          RB.Yield([&](GeneratorParams GP) {
-            Write(OS, GP, false, false, false);
-            OS << "\n\n";
-
-            if (RB.HasVL) {
-              Write(OS, GP, false, false, true);
-              OS << "\n\n";
-            }
-
-            if (RB.MayMask) {
-              Write(OS, GP, true, RB.MaskedOff, false);
-              OS << "\n\n";
-
-              if (RB.HasVL) {
-                Write(OS, GP, false, RB.MaskedOff, true);
-                OS << "\n\n";
-              }
-            }
-          });
-        }
-      }
-
-      void Write(raw_ostream &OS, GeneratorParams GP, bool HasMask,
-                 bool MaskedOff, bool HasVL) const {
-
-        OS << "def int_riscv_" << GP.Format(RB.Name) << "\n";
-        OS << "    : Intrinsic<[";
-
-        const TypeSpecifier &RetSpec = RB.Prototype[0];
-        if (RetSpec.Base != "void")
-          OS << RetSpec.LLVMType(GP);
-
-        OS << "],\n";
-        OS << "                [";
-
-        for (unsigned I = 1, E = RB.Prototype.size(); I < E; ++I) {
-          if (I != 1)
-            OS << ", ";
-
-          OS << RB.Prototype[I].LLVMType(GP);
-        }
-
-        OS << "],\n";
-        OS << "                [";
-
-        for (unsigned I = 0, E = RB.Properties.size(); I < E; ++I) {
-          if (I != 0)
-            OS << ", ";
-
-          OS << RB.Properties[I];
-        }
-
-        OS << "]>;";
       }
     } Wrapper{*this};
 
@@ -1016,130 +896,59 @@ private:
      EofOrFail("Failed to check polymorphism in `", Str, "'"))(Str.data());
   }
 
-  void Yield(Generator G) const {
-    auto YieldTuple = [=](auto... args) {
+  void WriteAll(function_ref<void(const GeneratorParams&)> G) const {
+    using namespace std::placeholders;
+
+    auto Yield = [=](auto... Args) {
+      G({Args..., false, false, false});
+
+      if (HasVL)
+        G({Args..., false, false, true});
+
+      if (MayMask) {
+        G({Args..., true, MaskedOff, false});
+
+        if (HasVL)
+          G({Args..., false, MaskedOff, true});
+      }
+    };
+
+    auto YieldTuple = [=](auto... Args) {
       if (TuplePolymorphic) {
         for (unsigned N : {2, 3, 4, 5, 6, 7, 8})
-          G({args..., N});
+          Yield(Args..., N);
       } else
-        G({args..., None});
+        Yield(Args..., None);
     };
 
     auto YieldLMUL = [=](Optional<BaseType> BT, Optional<StdElemWidth> SEW) {
+      auto YT = std::bind(YieldTuple, BT, SEW, _1);
+
       if (LMULPolymorphic) {
         if (SEW.hasValue())
-          LengthMultiplier::Enum(
-              *SEW, [=](LengthMultiplier LMUL) { YieldTuple(BT, SEW, LMUL); });
+          LengthMultiplier::Enum(*SEW, YT);
         else
-          LengthMultiplier::Enum(
-              [=](LengthMultiplier LMUL) { YieldTuple(BT, SEW, LMUL); });
+          LengthMultiplier::Enum(YT);
       } else
-        YieldTuple(BT, SEW, None);
+        YT(None);
     };
 
     auto YieldSEW = [=](Optional<BaseType> BT) {
+      auto YL = std::bind(YieldLMUL, BT, _1);
+
       if (SEWPolymorphic) {
         if (BT.hasValue())
-          StdElemWidth::Enum(*BT,
-                             [=](StdElemWidth SEW) { YieldLMUL(BT, SEW); });
+          StdElemWidth::Enum(*BT, YL);
         else
-          StdElemWidth::Enum([=](StdElemWidth SEW) { YieldLMUL(BT, SEW); });
+          StdElemWidth::Enum(YL);
       } else
-        YieldLMUL(BT, None);
+        YL(None);
     };
 
     if (BasePolymorphic)
-      BaseType::Enum([=](BaseType BT) { YieldSEW(BT); });
+      BaseType::Enum(YieldSEW);
     else
       YieldSEW(None);
-  }
-
-  void Write(raw_ostream &OS, GeneratorParams GP, bool HasMask, bool MaskedOff,
-             bool HasVL) const {
-
-    if (Attributes.size()) {
-      // OS << "static __attribute__((always_inline, nothrow))\n";
-      OS << "static __attribute__((";
-
-      for (unsigned I = 0, E = Attributes.size(); I != E; ++I) {
-        if (I != 0)
-          OS << ", ";
-
-        OS << Attributes[I];
-      }
-
-      OS << "))\n";
-    }
-
-    assert(Prototype.size());
-    const TypeSpecifier &RetTy = Prototype[0];
-
-    OS << RetTy.ConcreteType(GP) << " ";
-    OS << GP.Format(Name);
-
-    if (HasMask)
-      OS << "_m";
-
-    if (HasVL)
-      OS << "_vl";
-
-    OS << "(";
-
-    if (HasMask) {
-      OS << "vbool" << GP.MaskLength() << "_t mask, ";
-
-      if (MaskedOff) {
-        OS << GP.Vector() << " maskedoff, ";
-      }
-    }
-
-    for (unsigned I = 1, E = Prototype.size(); I != E; ++I) {
-      const TypeSpecifier &Spec = Prototype[I];
-      OS << Spec.ConcreteType(GP);
-
-      OS << " arg" << I;
-
-      if (I + 1 != E)
-        OS << ", ";
-    }
-
-    if (HasVL)
-      OS << ", size_t vl";
-
-    OS << ") {\n  ";
-
-    if (Body.empty()) {
-      if (HasVL)
-        OS << GP.Format("vsetvl_e%s%l") << "(vl);\n  ";
-
-      if (RetTy.Base != "void")
-        OS << "return ";
-
-      OS << "__builtin_riscv_";
-
-      OS << GP.Format(Name);
-
-      OS << "(";
-
-      if (HasMask) {
-        OS << "mask, ";
-
-        if (MaskedOff)
-          OS << "maskedoff ";
-      }
-
-      for (unsigned I = 1, E = Prototype.size(); I != E; ++I) {
-        OS << "arg" << I;
-        if (I + 1 != E)
-          OS << ", ";
-      }
-
-      OS << ");";
-    } else {
-      OS << GP.Format(Body);
-    }
-
-    OS << "\n}";
   }
 
 private:
@@ -1151,7 +960,6 @@ private:
   bool MaskedOff;
   bool HasVL;
   std::string Body;
-  std::vector<StringRef> Properties;
   bool GenIntrinsic;
   bool GenBuiltin;
   bool BasePolymorphic;
@@ -1204,29 +1012,18 @@ void EmitRISCVVectorHeader(RecordKeeper &Keeper, raw_ostream &OS) {
       [&](LengthMultiplier LMUL) { OS << ConstantMDef{LMUL} << "\n\n"; });
 
   // Emit definitions of all intrinsics.
-  for (const Record *Rec : Keeper.getAllDerivedDefinitions("RISCVBuiltin")) {
-    OS << RISCVBuiltin(Rec) << "\n\n";
-  }
+  for (const Record *Rec : Keeper.getAllDerivedDefinitions("RISCVBuiltin"))
+    OS << RISCVBuiltin(Rec);
 
-  SkipWhiteSpace{OS} << R"(
-#endif
-)";
+  OS << "#endif\n";
 }
 
+// Emit content needed by BuiltinsRISCV.td and CGBuiltin.cpp
 void EmitRISCVBuiltins(RecordKeeper &Keeper, raw_ostream &OS) {
-  for (const Record *Rec : Keeper.getAllDerivedDefinitions("RISCVBuiltin")) {
-    OS << RISCVBuiltin(Rec).Builtin() << "\n\n";
-  }
+  for (const Record *Rec : Keeper.getAllDerivedDefinitions("RISCVBuiltin"))
+    OS << RISCVBuiltin(Rec).Builtin();
 
-  SkipWhiteSpace{OS} << R"(
-#undef RISCVBuiltin
-)";
-}
-
-void EmitRISCVIntrinsics(RecordKeeper &Keeper, raw_ostream &OS) {
-  for (const Record *Rec : Keeper.getAllDerivedDefinitions("RISCVBuiltin")) {
-    OS << RISCVBuiltin(Rec).Intrinsic() << "\n\n";
-  }
+  OS << "#undef RISCVBuiltin\n";
 }
 
 } // namespace clang
