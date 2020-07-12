@@ -426,6 +426,18 @@ bool ClangTableGenMain(raw_ostream &OS, RecordKeeper &Records) {
   case GenTestPragmaAttributeSupportedAttributes:
     EmitTestPragmaAttributeSupportedAttributes(Records, OS);
     break;
+<<<<<<< HEAD
+=======
+  case GenRISCVVectorHeader:
+    EmitRISCVVectorHeader(Records, OS);
+    break;
+  case GenRISCVBuiltins:
+    EmitRISCVBuiltins(Records, OS);
+    break;
+  case GenRISCVIntrinsics:
+    EmitRISCVIntrinsics(Records, OS);
+    break;
+>>>>>>> parent of 60775e8e5700... This reverts commit fbae7e34c7bd8bc38b53ef17b112c724a5b4332d.
   }
 
   return false;
