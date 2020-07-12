@@ -2652,6 +2652,8 @@ let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
     isCodeGenOnly = 1, isAsmParserOnly = 0 in {
   def PseudoCSRR_VL : Pseudo<(outs GPR:$rd), (ins VLR:$vl), []>,
                       PseudoInstExpansion<(CSRRS GPR:$rd, 0xCC0, X0)>;
+  def PseudoCSRR_VLENB : Pseudo<(outs GPR:$rd), (ins VLR:$vlenb), []>,
+                      PseudoInstExpansion<(CSRRS GPR:$rd, 0xC22, X0)>;
 }
 
 
