@@ -96,5 +96,11 @@ let GenIntrinsic = 0 in {
   def : RISCVBuiltin<"vsetvl", ["z", "z", "z"], "n", "ns">;
 }
 
+<<<<<<< HEAD
 def : RISCVBuiltin<"vle%s_v_%b%sm%l", ["q", "eC*"], "n", "r">;
 def : RISCVBuiltin<"vse%s_v_%b%sm%l", ["v", "e*", "q"], "n", "w">;
+=======
+let MayMask = 1 in
+def : RISCVBuiltin<"vle%s_v_%b%sm%l", ["q", "eC*"], "n">;
+def : RISCVBuiltin<"vse%s_v_%b%sm%l", ["v", "e*", "q"], "n">;
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"

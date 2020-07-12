@@ -19,6 +19,24 @@ struct UnitTest {
   UnitTest(function_ref<void()> F) { F(); }
 };
 
+struct SeparatedBy {
+  raw_ostream &OS;
+  StringRef Delimiter;
+  bool NeedDelimiter = false;
+
+  template <typename T>
+  constexpr auto operator<<(const T &Value) -> decltype(OS << Value, *this) {
+    if (NeedDelimiter)
+      OS << Delimiter;
+
+    OS << Value;
+
+    NeedDelimiter = true;
+
+    return *this;
+  }
+};
+
 // Utilities for building parsers.
 inline namespace simple_parser_combinators {
 
@@ -53,6 +71,13 @@ constexpr auto operator|(ParserX PX, ParserY PY) {
     const char *Rest = PX(Text);
     return Rest ? Rest : PY(Text);
   };
+}
+
+template <typename ParserX, typename ParserY, //
+          requires_parser<ParserX> = 1,       //
+          requires_parser<ParserY> = 1>
+constexpr auto operator&&(ParserX PX, ParserY PY) {
+  return [=](const char *Text) { return PY(PX(Text)); };
 }
 
 // Run some code during parsing.
@@ -352,8 +377,30 @@ struct ElementType {
       default:
         llvm_unreachable("Unhandled SEW");
       }
+<<<<<<< HEAD
     } else {
       switch (SEW.Width) {
+=======
+    } else if (BT.IsUnsignedInteger()) {
+      switch (SEW.GetWidth()) {
+      case 8:
+        OS << "unsigned char";
+        break;
+      case 16:
+        OS << "unsigned short";
+        break;
+      case 32:
+        OS << "uint32_t";
+        break;
+      case 64:
+        OS << "uint64_t";
+        break;
+      default:
+        llvm_unreachable("Unhandled SEW");
+      }
+    } else {
+      switch (SEW.GetWidth()) {
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
       case 8:
         OS << "char";
         break;
@@ -450,15 +497,23 @@ struct VectorType {
   StdElemWidth SEW;
   LengthMultiplier LMUL;
 
+  ElementType Element() const { return {BT, SEW}; }
+
   void Write(raw_ostream &OS) const {
     OS << "v" << BT.Abbr() << SEW << "m" << LMUL.LowerCase() << "_t";
   }
 
+<<<<<<< HEAD
   auto LLVMType() const {
+=======
+  // Mapped to characters defined in Builtins.def
+  auto Abbr() const {
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
     struct {
       const VectorType &VT;
 
       void Write(raw_ostream &OS) const {
+<<<<<<< HEAD
         if (VT.LMUL.IsFract)
           llvm_unreachable("Fractional LMUL not supported at the moment");
 
@@ -466,6 +521,11 @@ struct VectorType {
 
         OS << VT.BT.LLVMSingleLetter() << VT.SEW << "_ty";
       }
+=======
+        OS << "q" << VT.LMUL.LowerCase() << VT.Element().Abbr();
+      }
+
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
     } Wrapper{*this};
 
     return Wrapper;
@@ -497,6 +557,20 @@ struct MaskType {
   unsigned N;
 
   void Write(raw_ostream &OS) const { OS << "vbool" << N << "_t"; }
+
+  // Mapped to characters defined in Builtins.def
+  auto Abbr() const {
+    struct {
+      const MaskType& MT;
+
+      void Write(raw_ostream &OS) const {
+        OS << "q" << MT.N << "i1";
+      }
+
+    } Wrapper{*this};
+
+    return Wrapper;
+  }
 
   static void Enum(function_ref<void(MaskType MT)> F) {
     for (unsigned N : {1, 2, 4, 8, 16, 32, 64}) {
@@ -553,10 +627,20 @@ struct ConstantMDef {
 };
 
 struct GeneratorParams {
+<<<<<<< HEAD
   Optional<BaseType> Base;
   Optional<StdElemWidth> SEW;
   Optional<LengthMultiplier> LMUL;
   Optional<unsigned> TupleN;
+=======
+  const Optional<BaseType> &Base;
+  const Optional<StdElemWidth> &SEW;
+  const Optional<LengthMultiplier> &LMUL;
+  const Optional<unsigned> &TupleN;
+  const bool HasMask;
+  const bool MaskedOff;
+  const bool HasVL;
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
 
   auto Format(StringRef Str) const {
     struct {
@@ -564,6 +648,7 @@ struct GeneratorParams {
       const GeneratorParams &GP;
 
       void Write(raw_ostream &OS) const {
+<<<<<<< HEAD
         (Many((MatchNot('%', WriteChar(OS))) //
               |
               (Match('%'),                                                   //
@@ -572,6 +657,15 @@ struct GeneratorParams {
                 | (Match('l'), Act([&] { OS << GP.LMUL->LowerCase(); }))     //
                 | (Match('L'), Act([&] { OS << GP.LMUL->UpperCase(); }))))), //
          EofOrFail("Failed to format `", Str, "'"))(Str.data());
+=======
+        (Many(MatchNot('%', WriteChar(OS))                                    //
+              | (Match('%'),                                                  //
+                 ((Match('b'), Act([&] { OS << GP.Base->SingleLetter(); }))   //
+                  | (Match('s'), Act([&] { OS << *GP.SEW; }))                 //
+                  | (Match('l'), Act([&] { OS << GP.LMUL->LowerCase(); }))    //
+                  | (Match('L'), Act([&] { OS << GP.LMUL->UpperCase(); }))))) //
+         && EofOrFail("Failed to format `", Str, "'"))(Str.data());
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
       }
 
     } Wrapper{Str, *this};
@@ -588,9 +682,10 @@ struct GeneratorParams {
 
   auto Element() const { return ElementType{*Base, *SEW}; }
 
-  unsigned MaskLength() const {
+  auto Mask() const {
     assert(LMUL.hasValue());
     assert(SEW.hasValue());
+<<<<<<< HEAD
     return LMUL->IsFract ? (SEW->Width / LMUL->Mul) : (SEW->Width * LMUL->Mul);
   }
 };
@@ -625,6 +720,14 @@ using Generator = function_ref<void(GeneratorParams)>;
 //   | 'C' # const
 //   | 'D' # volatile
 //   ;
+=======
+    unsigned Length = LMUL->IsFract() ? (SEW->GetWidth() / LMUL->GetMul())
+                                      : (SEW->GetWidth() * LMUL->GetMul());
+    return MaskType{Length};
+  }
+};
+
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
 struct TypeSpecifier {
 private:
   auto InsertPrefix(const char *P) {
@@ -650,23 +753,23 @@ public:
 
   TypeSpecifier(StringRef Text) : RawSpec(Text), SC(ATOM) {
     (Many((Match('U'), InsertPrefix("unsigned"))),
-     ((Match('v'), SetBase("void"))                                    //
-      | (Match('b'), SetBase("bool"))                                  //
-      | (Match('c'), SetBase("int8_t"))                                //
-      | (Match('s'), SetBase("int16_t"))                               //
-      | (Match('i'), SetBase("int32_t"))                               //
-      | (Match('l'), SetBase("int64_t"))                               //
-      | (Match('h'), SetBase("float16_t"))                             //
-      | (Match('f'), SetBase("float"))                                 //
-      | (Match('d'), SetBase("double"))                                //
-      | (Match('z'), SetBase("size_t"))                                //
-      | (Match('e'), Act([&] { SC = DEPENDENT; }))                     //
-      | (Match('q'), Act([&] { SC = VECTOR; }))),                      //
-     Many((Match('*'), InsertPostfix("*"))                             //
-          | (Match('&'), InsertPostfix("&"))                           //
-          | (Match('C'), InsertPostfix("const"))                       //
-          | (Match('D'), InsertPostfix("volatile"))),                  //
-     EofOrFail("Failed to parse the type specification `", Text, "'")) //
+     ((Match('v'), SetBase("void"))                                           //
+      | (Match('b'), SetBase("bool"))                                         //
+      | (Match('c'), SetBase("int8_t"))                                       //
+      | (Match('s'), SetBase("int16_t"))                                      //
+      | (Match('i'), SetBase("int32_t"))                                      //
+      | (Match('l'), SetBase("int64_t"))                                      //
+      | (Match('h'), SetBase("float16_t"))                                    //
+      | (Match('f'), SetBase("float"))                                        //
+      | (Match('d'), SetBase("double"))                                       //
+      | (Match('z'), SetBase("size_t"))                                       //
+      | (Match('e'), Act([&] { SC = DEPENDENT; }))                            //
+      | (Match('q'), Act([&] { SC = VECTOR; }))),                             //
+     Many((Match('*'), InsertPostfix("*"))                                    //
+          | (Match('&'), InsertPostfix("&"))                                  //
+          | (Match('C'), InsertPostfix("const"))                              //
+          | (Match('D'), InsertPostfix("volatile")))                          //
+         && EofOrFail("Failed to parse the type specification `", Text, "'")) //
         (Text.data());
   }
 
@@ -686,6 +789,7 @@ public:
       const TypeSpecifier &Spec;
 
       void Write(raw_ostream &OS) const {
+<<<<<<< HEAD
         Many((Match('q'), Act([&] {
                 OS << "q";
                 if (GP.LMUL->IsFract)
@@ -698,6 +802,11 @@ public:
                 OS << ElementType{*GP.Base, *GP.SEW}.Abbr();
               }))             //
              | WriteChar(OS)) //
+=======
+        Many((Match('q'), Act([&] { OS << GP.Vector().Abbr(); }))    //
+             | (Match('e'), Act([&] { OS << GP.Element().Abbr(); })) //
+             | WriteChar(OS))                                        //
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
             (Spec.RawSpec.data());
       }
     } Wrapper{GP, *this};
@@ -834,11 +943,11 @@ public:
 
     Attributes.push_back("always_inline");
 
-    (Many((Match('n'), InsertAttr("nothrow"))                         //
-          | (Match('r'), InsertAttr("noreturn"))                      //
-          | (Match('U'), InsertAttr("pure"))                          //
-          | (Match('c'), InsertAttr("const"))),                       //
-     EofOrFail("Failed to parse the attribute list `", AttrStr, "'")) //
+    (Many((Match('n'), InsertAttr("nothrow"))                            //
+          | (Match('r'), InsertAttr("noreturn"))                         //
+          | (Match('U'), InsertAttr("pure"))                             //
+          | (Match('c'), InsertAttr("const")))                           //
+     && EofOrFail("Failed to parse the attribute list `", AttrStr, "'")) //
         (AttrStr.data());
 
     auto InsertProp = [&](const char *Prop) {
@@ -859,6 +968,16 @@ public:
   void Write(raw_ostream &OS) const {
     if (GenIntrinsic) {
       OS << "// Intrinsics for " << Name << "\n\n";
+<<<<<<< HEAD
+=======
+      WriteAll([&](const GeneratorParams &GP) {
+        if (Attributes.size()) {
+          OS << "static __attribute__((";
+
+          for (unsigned I = 0, E = Attributes.size(); I != E; ++I) {
+            if (I != 0)
+              OS << ", ";
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
 
       Yield([&](GeneratorParams GP) {
         Write(OS, GP, false, false, false);
@@ -873,9 +992,22 @@ public:
           Write(OS, GP, true, MaskedOff, false);
           OS << "\n\n";
 
+<<<<<<< HEAD
           if (HasVL) {
             Write(OS, GP, false, MaskedOff, true);
             OS << "\n\n";
+=======
+        if (GP.HasVL)
+          OS << "_vl";
+
+        OS << "(";
+
+        if (GP.HasMask) {
+          OS << GP.Mask() << " mask";
+
+          if (GP.MaskedOff) {
+            OS << GP.Vector() << " maskedoff, ";
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
           }
         }
       });
@@ -945,6 +1077,7 @@ public:
         if (RB.GenBuiltin) {
           OS << "// Intrinsics for " << RB.Name << "\n\n";
 
+<<<<<<< HEAD
           RB.Yield([&](GeneratorParams GP) {
             Write(OS, GP, false, false, false);
             OS << "\n\n";
@@ -957,6 +1090,34 @@ public:
             if (RB.MayMask) {
               Write(OS, GP, true, RB.MaskedOff, false);
               OS << "\n\n";
+=======
+          RB.WriteAll([&](const GeneratorParams &GP) {
+            OS << "RISCVBuiltin(";
+
+            OS << GP.Format(RB.Name);
+
+            if (GP.HasMask)
+              OS << "_m";
+
+            if (GP.HasVL)
+              OS << "_vl";
+
+            OS << ", \"";
+
+            OS << RB.Prototype[0].Abbr(GP);
+
+            if (GP.HasMask) {
+              OS << GP.Mask().Abbr();
+
+              if (GP.MaskedOff)
+                OS << GP.Vector().Abbr();
+            }
+
+            for (unsigned I = 1, E = RB.Prototype.size(); I < E; ++I)
+              OS << RB.Prototype[I].Abbr(GP);
+
+            OS << "\", \"" << RB.AttrStr << "\"";
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
 
               if (RB.HasVL) {
                 Write(OS, GP, false, RB.MaskedOff, true);
@@ -1006,18 +1167,39 @@ public:
 
 private:
   void CheckPolymorphism(StringRef Str) {
-    (Many((MatchNot('%', [&](auto Text) { return ++Text; }))            //
-          | (Match('%'),                                                //
-             ((Match('b'), Act([&] { BasePolymorphic = true; }))        //
-              | (Match('s'), Act([&] { SEWPolymorphic = true; }))       //
-              | (Match('l'), Act([&] { LMULPolymorphic = true; }))      //
-              | (Match('L'), Act([&] { LMULPolymorphic = true; }))      //
-              | (Match('L'), Act([&] { TuplePolymorphic = true; }))))), //
-     EofOrFail("Failed to check polymorphism in `", Str, "'"))(Str.data());
+    (Many((MatchNot('%', [&](auto Text) { return ++Text; }))           //
+          | (Match('%'),                                               //
+             ((Match('b'), Act([&] { BasePolymorphic = true; }))       //
+              | (Match('s'), Act([&] { SEWPolymorphic = true; }))      //
+              | (Match('l'), Act([&] { LMULPolymorphic = true; }))     //
+              | (Match('L'), Act([&] { LMULPolymorphic = true; }))     //
+              | (Match('L'), Act([&] { TuplePolymorphic = true; }))))) //
+     && EofOrFail("Failed to check polymorphism in `", Str, "'"))(Str.data());
   }
 
+<<<<<<< HEAD
   void Yield(Generator G) const {
     auto YieldTuple = [=](auto... args) {
+=======
+  void WriteAll(function_ref<void(const GeneratorParams &)> G) const {
+    using namespace std::placeholders;
+
+    auto Yield = [=](auto... Args) {
+      G({Args..., false, false, false});
+
+      if (HasVL)
+        G({Args..., false, false, true});
+
+      if (MayMask) {
+        G({Args..., true, MaskedOff, false});
+
+        if (HasVL)
+          G({Args..., false, MaskedOff, true});
+      }
+    };
+
+    auto YieldTuple = [=](auto... Args) {
+>>>>>>> parent of e1deb6cad7d5... Revert "llvm-tablegen unfinished"
       if (TuplePolymorphic) {
         for (unsigned N : {2, 3, 4, 5, 6, 7, 8})
           G({args..., N});
