@@ -23,14 +23,6 @@
 // suffixed with the pointer type they are specialised for (denoted `<p>` in the
 // names below), in order to avoid type conflicts.
 
-
-def llvm_nxv1i32_ty    : LLVMType<nxv1i32>;  // scalable 1 x i32
-def llvm_nxv1f32_ty    : LLVMType<nxv1f32>;
-def llvm_nxv8f32_ty    : LLVMType<nxv8f32>;
-
-
-def llvm_fptr32_ty : LLVMPointerType<llvm_float_ty>;
-
 let TargetPrefix = "riscv" in {
 
   // T @llvm.<name>.T.<p>(any*, T, T, T imm);
