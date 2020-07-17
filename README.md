@@ -35,7 +35,32 @@ You can also use **FileCheck** to run each test seperately:
 
 You can use **llvm-mc** to assemble RVV assembly file and generate an object file:
 
-	$ llvm-mc test.s -triple=riscv32 --mattr=+v -riscv-no-aliases -show-encoding --filetype=obj -o=test.o
+	$ llvm-mc test.s -triple=riscv32 --mattr=+v -riscv-no-aliases -show-encoding --filetype=obj -o=test.o  
+	
+Note: "test.s" here means an assembly file containing riscv vector extension instructions, you can use inline assembly in c++ code to add a riscv vector instruction and then use clang to compile and generate test.s assembly file. 
+
+    $ clang --target=riscv64-unknown-elf -S  test.c -march=rv64gcv -mabi=lp64 --sysroot=/home/u/tools/riscv64/install/riscv64-unknown-elf  --gcc-toolchain=/home/u/tools/riscv64/install  -o test.s `
+
+```  
+#include<stdio.h> 
+
+int main(){
+    
+  size_t a,b,c;
+  a = 1;
+  b = 2;
+  asm volatile
+  (
+    "vsetvl  %[z], %[x], %[y]\n\t"
+    : [z] "=r" (c)
+    : [x] "r" (a), [y] "r" (b)
+  );
+  if ( c == 0 ){
+     return -1;
+  }
+  return 0;
+}  
+```  
 
 ## How to Disassemble RVV Object code
 
