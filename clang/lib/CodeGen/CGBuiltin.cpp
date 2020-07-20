@@ -14519,7 +14519,7 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
     for (unsigned I : std::initializer_list<int>{__VA_ARGS__})                 \
       OverloadedArgTys.push_back(ArgTys[I]);                                   \
     break;
-#include "clang/Basic/riscv_builtin.h"
+#include "riscv_builtin.h"
 #undef RISCVBuiltin
   default:
     return nullptr;

@@ -19,6 +19,6 @@
 #define RISCVBuiltin(Name, Prototype, Attrs, ...)                              \
   BUILTIN(__builtin_riscv_##Name, Prototype, Attrs)
 
-#include "clang/Basic/riscv_vector.inc"
+#include "riscv_builtin.h"
 
 #undef BUILTIN
