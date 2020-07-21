@@ -230,4 +230,8 @@ static __DEFAULT_FN_ATTRS float32_t vfmv_f_s_f32m1_f32 (vfloat32m1_t src) {
   return __builtin_riscv_vfmv_f_s_f32m1_f32(src);
 }
 
+static __DEFAULT_FN_ATTRS vfloat32m1_t vfadd_vv_f32m1 (vfloat32m1_t op1, vfloat32m1_t op2) {
+  return __builtin_riscv_vfadd_vv_f32m1(op1, op2);
+}
+
 #endif

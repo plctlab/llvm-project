@@ -135,4 +135,8 @@ def int_riscv_vmfirst : Intrinsic<[llvm_i32_ty],
                                [llvm_nxv1i32_ty],
                                [IntrNoMem]>;
 
+def int_riscv_vfadd_vv_f32m1 : Intrinsic<[llvm_nxv1f32_ty],
+                        [llvm_nxv1f32_ty, llvm_nxv1f32_ty],
+                        [IntrNoMem]>;
+
 } // TargetPrefix = "riscv"

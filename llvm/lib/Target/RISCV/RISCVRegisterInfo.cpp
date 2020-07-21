@@ -144,6 +144,7 @@ void RISCVRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   MachineInstr &MI = *II;
   MachineFunction &MF = *MI.getParent()->getParent();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
   MachineRegisterInfo &MRI = MF.getRegInfo();
   const RISCVInstrInfo *TII = MF.getSubtarget<RISCVSubtarget>().getInstrInfo();
   DebugLoc DL = MI.getDebugLoc();
@@ -160,6 +161,28 @@ void RISCVRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   }
 
   MachineBasicBlock &MBB = *MI.getParent();
+  if (MFI.getStackID(FrameIndex) == TargetStackID::RISCVVector) {
+    switch (MI.getOpcode()) {
+    case RISCV::VL1R_V:
+    case RISCV::VS1R_V: {
+      MachineOperand StackSlot = MI.getOperand(FIOperandNum);
+      unsigned Opcode = getRegSizeInBits(RISCV::GPRRegClass) == 32 ? RISCV::LW :
+                                                                   RISCV::LD;
+      Register addr = MF.getRegInfo().createVirtualRegister(&RISCV::GPRRegClass);
+      MachineInstr *StoreAddr = BuildMI(MBB, II, DL, TII->get(Opcode), addr)
+                                    .add(StackSlot)
+                                    .addImm(0);
+
+      MI.getOperand(FIOperandNum).ChangeToRegister(addr, false, false,
+                                                   false);
+      return eliminateFrameIndex(StoreAddr, 0, 1, RS);
+    }
+    default:
+      break;
+    }
+  }
+
+
   bool FrameRegIsKill = false;
 
   if (!isInt<12>(Offset)) {

@@ -14507,7 +14507,8 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       ENTRY(vse32_v_f32m8),
       ENTRY(vfmacc_vf_f32m1),
       ENTRY(vfmacc_vf_f32m8),
-      ENTRY(vfmv_f_s_f32m1_f32)
+      ENTRY(vfmv_f_s_f32m1_f32),
+      ENTRY(vfadd_vv_f32m1)
 #undef ENTRY
   };
 

@@ -119,11 +119,12 @@ getRestoreLibCallName(const MachineFunction &MF,
 
 bool RISCVFrameLowering::hasFP(const MachineFunction &MF) const {
   const TargetRegisterInfo *RegInfo = MF.getSubtarget().getRegisterInfo();
+  auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
 
   const MachineFrameInfo &MFI = MF.getFrameInfo();
   return MF.getTarget().Options.DisableFramePointerElim(MF) ||
          RegInfo->needsStackRealignment(MF) || MFI.hasVarSizedObjects() ||
-         MFI.isFrameAddressTaken();
+         MFI.isFrameAddressTaken() || RVFI->hasSpillVRs();
 }
 
 bool RISCVFrameLowering::hasBP(const MachineFunction &MF) const {
@@ -137,9 +138,20 @@ bool RISCVFrameLowering::hasBP(const MachineFunction &MF) const {
 void RISCVFrameLowering::determineFrameLayout(MachineFunction &MF) const {
   MachineFrameInfo &MFI = MF.getFrameInfo();
   const RISCVRegisterInfo *RI = STI.getRegisterInfo();
+  const TargetRegisterInfo *TRI = MF.getSubtarget().getRegisterInfo();
 
   // Get the number of bytes to allocate from the FrameInfo.
   uint64_t FrameSize = MFI.getStackSize();
+
+  for (int ID = MFI.getObjectIndexBegin(), EID = MFI.getObjectIndexEnd();
+       ID < EID; ID++) {
+    if (MFI.getStackID(ID) == TargetStackID::RISCVVector) {
+      FrameSize =
+          alignTo(FrameSize, TRI->getSpillAlignment(RISCV::GPRRegClass));
+      FrameSize += TRI->getSpillSize(RISCV::GPRRegClass);
+      MFI.setObjectOffset(ID, -FrameSize);
+    }
+  }
 
   // Get the alignment.
   Align StackAlign = getStackAlign();
@@ -174,7 +186,7 @@ void RISCVFrameLowering::adjustReg(MachineBasicBlock &MBB,
                                    MachineInstr::MIFlag Flag) const {
   MachineRegisterInfo &MRI = MBB.getParent()->getRegInfo();
   const RISCVInstrInfo *TII = STI.getInstrInfo();
-
+ 
   if (DestReg == SrcReg && Val == 0)
     return;
 
@@ -220,6 +232,7 @@ getNonLibcallCSI(const std::vector<CalleeSavedInfo> &CSI) {
 void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
                                       MachineBasicBlock &MBB) const {
   MachineFrameInfo &MFI = MF.getFrameInfo();
+  const TargetRegisterInfo *TRI = MF.getSubtarget().getRegisterInfo();
   auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
   const RISCVRegisterInfo *RI = STI.getRegisterInfo();
   const RISCVInstrInfo *TII = STI.getInstrInfo();
@@ -338,6 +351,7 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
 
   // Generate new FP.
   if (hasFP(MF)) {
+    // spillVector process need the framepointer
     if (STI.isRegisterReservedByUser(FPReg))
       MF.getFunction().getContext().diagnose(DiagnosticInfoUnsupported{
           MF.getFunction(), "Frame pointer required, but has been reserved."});
@@ -405,6 +419,30 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
       }
     }
   }
+
+  if (RVFI->hasSpillVRs()) {
+    Register SizeOfVector = MF.getRegInfo().createVirtualRegister(&RISCV::GPRRegClass);
+    BuildMI(MBB, MBBI, DL, TII->get(RISCV::CSRRS), SizeOfVector)
+      .addImm(3106)
+      .addReg(RISCV::X0);
+    
+    for (int ID = MFI.getObjectIndexBegin(), EID = MFI.getObjectIndexEnd();
+          ID < EID; ID++) {
+      if (MFI.getStackID(ID) == TargetStackID::RISCVVector) {
+        unsigned Opcode = TRI->getRegSizeInBits(RISCV::GPRRegClass) == 32 ?
+             RISCV::SW : RISCV::SD;
+
+        BuildMI(MBB, MBBI, DL, TII->get(RISCV::SUB), SPReg)
+            .addReg(SPReg)
+            .addReg(SizeOfVector);
+
+        BuildMI(MBB, MBBI, DL, TII->get(Opcode))
+            .addReg(SPReg)
+            .addFrameIndex(ID)
+            .addImm(0);
+      }
+    }
+  }
 }
 
 void RISCVFrameLowering::emitEpilogue(MachineFunction &MF,
@@ -453,7 +491,8 @@ void RISCVFrameLowering::emitEpilogue(MachineFunction &MF,
   // Restore the stack pointer using the value of the frame pointer. Only
   // necessary if the stack pointer was modified, meaning the stack size is
   // unknown.
-  if (RI->needsStackRealignment(MF) || MFI.hasVarSizedObjects()) {
+  if (RI->needsStackRealignment(MF) || MFI.hasVarSizedObjects()
+      || RVFI->hasSpillVRs()) {
     assert(hasFP(MF) && "frame pointer should not have been eliminated");
     adjustReg(MBB, LastFrameDestroy, DL, SPReg, FPReg, -FPOffset,
               MachineInstr::FrameDestroy);

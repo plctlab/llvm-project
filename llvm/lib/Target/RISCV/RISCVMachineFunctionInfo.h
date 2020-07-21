@@ -34,6 +34,9 @@ private:
   int MoveF64FrameIndex = -1;
   /// Size of any opaque stack adjustment due to save/restore libcalls.
   unsigned LibCallStackSize = 0;
+  /// If has spilled vector register.
+  bool HasSpillVRs = 0;
+
 
 public:
   RISCVMachineFunctionInfo() = delete;
@@ -59,6 +62,14 @@ public:
     // function uses a varargs save area.
     return MF.getSubtarget<RISCVSubtarget>().enableSaveRestore() &&
            VarArgsSaveSize == 0 && !MF.getFrameInfo().hasTailCall();
+  }
+
+  void setHasSpillVRs() {
+    HasSpillVRs = true;
+  }
+
+  bool hasSpillVRs() const {
+    return HasSpillVRs;
   }
 };
 

@@ -1675,7 +1675,7 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
     return false;
   }
 
-  assert((!UseGPRForF32 || !UseGPRForF64 || LocVT == XLenVT) &&
+  assert((!UseGPRForF32 || !UseGPRForF64 || LocVT == XLenVT || ValVT.isScalableVector()) &&
          "Expected an XLenVT at this stage");
 
   if (Reg) {
