@@ -200,7 +200,7 @@ multiclass VStore_Indexed<bits<3> nf, bits<1> mew, bits<2> mop,
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 class VLoad_WholeReg<bits<3> nf, string opcodestr>
-    : RVInstVLoadNoMew<nf, 0b000, 0b111, RVV_Unmasked, OPC_LOAD_FP,
+    : RVInstVLoadNoMew<nf, 0b000, 0b000, RVV_Unmasked, OPC_LOAD_FP,
                   (outs VR:$vd), (ins GPR:$rs1, Zero:$zero),
                   opcodestr, "$vd, ${zero}(${rs1})"> {
   let Inst{24-20} = 0b01000;
@@ -208,7 +208,7 @@ class VLoad_WholeReg<bits<3> nf, string opcodestr>
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 class VStore_WholeReg<bits<3> nf, string opcodestr>
-    : RVInstVStoreNoMew<nf, 0b000, 0b111, RVV_Unmasked, OPC_STORE_FP,
+    : RVInstVStoreNoMew<nf, 0b000, 0b000, RVV_Unmasked, OPC_STORE_FP,
                    (outs), (ins VR:$vs3, GPR:$rs1, Zero:$zero),
                    opcodestr, "$vs3, ${zero}(${rs1})"> {
   let Inst{24-20} = 0b01000;
