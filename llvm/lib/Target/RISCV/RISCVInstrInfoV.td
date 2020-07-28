@@ -1660,8 +1660,8 @@ def : InstAlias<"vle1024.v $vd, (${rs1})",
 def : InstAlias<"vle1024.v $vd, (${rs1}), $vm",
                 (VLE1024_V_m  VR:$vd, GPR:$rs1, 0, VMR:$vm)>;
 
-// def : InstAlias<"vfmacc.vf $vd, $rs1, $vs2",
-//                 (VFMACC_VF_um VR:$vd, FPR32:$rs1, VR:$vs2)>;
+def : InstAlias<"vfmacc.vf $vd, $rs1, $vs2",
+                (VFMACC_VF_um VR:$vd, FPR32:$rs1, VR:$vs2)>;
 
 def : InstAlias<"vse8.v $vs3, (${rs1})",
                 (VSE8_V_um  VR:$vs3, GPR:$rs1, 0)>;
@@ -2728,33 +2728,33 @@ def : PatSE32<int_riscv_vse32_v_f32m8>;
 //           (VSE32_V_um $src, $dst, 0)>;
  
 
-def : Pat<(int_riscv_vfmacc_vf_f32m1 VR:$acc, FPR32:$op1, VR:$op2),
-          (VFMACC_VF_um $acc, $op1, $op2)>;
+//def : Pat<(int_riscv_vfmacc_vf_f32m1 VR:$acc, FPR32:$op1, VR:$op2),
+//          (VFMACC_VF_um $acc, $op1, $op2)>;
 
-def : Pat<(int_riscv_vfmacc_vf_f32m8 VR:$acc, FPR32:$op1, VR:$op2),
-          (VFMACC_VF_um $acc, $op1, $op2)>;
-
-
-def : Pat<(int_riscv_vfmv_f_s_f32m1_f32 VR:$src), (VFMV_F_S $src)>;
-
-def : Pat<(nxv1f32 (int_riscv_vfadd_vv_f32m1 VR:$vs2, VR:$vs1)), (VFADD_VV_um VR:$vs2, VR:$vs1)>;
+//def : Pat<(int_riscv_vfmacc_vf_f32m8 VR:$acc, FPR32:$op1, VR:$op2),
+//          (VFMACC_VF_um $acc, $op1, $op2)>;
 
 
+//def : Pat<(int_riscv_vfmv_f_s_f32m1_f32 VR:$src), (VFMV_F_S $src)>;
 
-def : Pat<(nxv1f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;
-
-def : Pat<(nxv8f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;
+//def : Pat<(nxv1f32 (int_riscv_vfadd_vv_f32m1 VR:$vs2, VR:$vs1)), (VFADD_VV_um VR:$vs2, VR:$vs1)>;
 
 
-def : Pat<(store nxv8f32:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
 
-def : Pat<(store nxv1f32:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
+//def : Pat<(nxv1f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;
+
+//def : Pat<(nxv8f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;
+
+
+//def : Pat<(store nxv8f32:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
+
+//def : Pat<(store nxv1f32:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
 
 
 def : Pat<(vscale GPR:$mul), (MUL VLENB, $mul)>;
 
 // def : Pat<(store VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
 
-def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL $rs1, $rs2)>;
+//def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL $rs1, $rs2)>;
 
 } // Predicates = [HasStdExtV]

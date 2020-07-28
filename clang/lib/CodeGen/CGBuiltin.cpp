@@ -14498,44 +14498,36 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
 
 Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
                                              const CallExpr *E) {
-  static DenseMap<unsigned, unsigned> Table{
-#define ENTRY(name) {RISCV::BI__builtin_riscv_##name, Intrinsic::riscv_##name}
-      ENTRY(vsetvl),
-      ENTRY(vle32_v_f32m1),
-      ENTRY(vle32_v_f32m8),
-      ENTRY(vse32_v_f32m1),
-      ENTRY(vse32_v_f32m8),
-      ENTRY(vfmacc_vf_f32m1),
-      ENTRY(vfmacc_vf_f32m8),
-      ENTRY(vfmv_f_s_f32m1_f32),
-      ENTRY(vfadd_vv_f32m1)
-#undef ENTRY
-  };
+SmallVector<llvm::Value*, 4> ArgVs;
+   SmallVector<llvm::Type *, 4> ArgTys;
 
-  auto Iter = Table.find(BuiltinID);
-  if (Iter == Table.end())
-    return nullptr;
+ArgTys.push_back(ConvertType(E->getCallReturnType(getContext())));
+ 
+for (const Expr* Arg : E->arguments()) {
+    llvm::Value* V = EmitScalarExpr(Arg);
+    ArgVs.push_back(V);
+    ArgTys.push_back(V->getType());
+  }
 
-  SmallVector<Value *, 4> Args(map_range(
-      E->arguments(), [&](const Expr *arg) { return EmitScalarExpr(arg); }));
+  unsigned IntrinsicID = 0;
+  SmallVector<llvm::Type*, 4> OverloadedArgTys;
 
-  SmallVector<llvm::Type *, 4> Tys(
-      map_range(Args, [](const Value *V) { return V->getType(); }));
-
-  Tys.push_back(ConvertType(E->getCallReturnType(getContext())));
-
-  Function* F = nullptr;
-  switch (Iter->second) {
-  case Intrinsic::riscv_vsetvl:
-    F = CGM.getIntrinsic(Iter->second, Tys);
+  switch (BuiltinID) {
+#define RISCVBuiltin(Name, Foo, Bar, ...)                                      \
+  case RISCV::BI__builtin_riscv_##Name:                                        \
+    IntrinsicID = Intrinsic::riscv_##Name;                                     \
+    for (unsigned I : std::initializer_list<int>{__VA_ARGS__})                 \
+      OverloadedArgTys.push_back(ArgTys[I]);                                   \
     break;
+  #include "riscv_builtin.h"
+  #undef RISCVBuiltin
   default:
-    F = CGM.getIntrinsic(Iter->second);
+  return nullptr;
   }
 
   // Function* F = CGM.getIntrinsic(Iter->second, Tys);
-
-  return Builder.CreateCall(F, Args);
+  Function* F = CGM.getIntrinsic(IntrinsicID, OverloadedArgTys);
+  return Builder.CreateCall(F, ArgVs);
 }
 
 /// Handle a SystemZ function in which the final argument is a pointer

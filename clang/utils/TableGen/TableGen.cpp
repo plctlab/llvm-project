@@ -84,7 +84,7 @@ enum ActionType {
   GenDiagDocs,
   GenOptDocs,
   GenDataCollectors,
-  GenTestPragmaAttributeSupportedAttributes
+  GenTestPragmaAttributeSupportedAttributes,
 };
 
 namespace {
