@@ -2655,76 +2655,95 @@ let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
 }
 
 
-class PatVrVr<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode VR:$rs1, VR:$rs2), (Inst VR:$rs1, VR:$rs2)>;
-
-class PatVrIm<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode VR:$rs1, (RISCVBROADCAST simm5:$imm)), (Inst VR:$rs1, simm5:$imm)>; 
-
-def : PatVrVr<int_riscv_vadd, VADD_VV_um>;
-def : PatVrVr<int_riscv_vsub, VSUB_VV_um>;
-def : PatVrIm<int_riscv_vadd, VADD_VI_um>;
-/*
-def : PatVrVr<int_riscv_vmul, VMUL_VV_um>;
-def : PatVrVr<int_riscv_vand, VAND_VV_um>;
-def : PatVrVr<int_riscv_vor, VOR_VV_um>;
-def : PatVrVr<int_riscv_vxor, VXOR_VV_um>;
-*/
-
-// // TODO exploit immediate offset
-// def : Pat<(int_riscv_vlw GPR:$rs1),
-//           (VLE32_V_um GPR:$rs1, 0)>;
-
-// def : Pat<(int_riscv_vsw VR:$vs3, GPR:$rs1),
-//           (VSE32_V_um VR:$vs3, GPR:$rs1, 0)>;
-
-// class PatLE32<SDPatternOperator OpNode>
-//     : Pat<(OpNode GPR:$src), (VLE32_V_um $src, 0)>;
-
-// def : PatLE32<int_riscv_vle32_v_f32m1>;
-
-// def : PatLE32<int_riscv_vle32_v_f32m8>;
-
-
-// class PatSE32<SDPatternOperator OpNode>
-//     : Pat<(OpNode VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
-
-// def : PatSE32<int_riscv_vse32_v_f32m1>;
-
-// def : PatSE32<int_riscv_vse32_v_f32m8>;
-
-// def : Pat<(int_riscv_vse32_v_f32m8 VR:$src, GPR:$dst),
-//           (VSE32_V_um $src, $dst, 0)>;
-
-// def : Pat<(int_riscv_vse32_v_f32m1 VR:$src, GPR:$dst),
-//           (VSE32_V_um $src, $dst, 0)>;
- 
-
-// def : Pat<(int_riscv_vfmacc_vf_f32m1 VR:$acc, FPR32:$op1, VR:$op2),
-//           (VFMACC_VF_um $acc, $op1, $op2)>;
-
-// def : Pat<(int_riscv_vfmacc_vf_f32m8 VR:$acc, FPR32:$op1, VR:$op2),
-//           (VFMACC_VF_um $acc, $op1, $op2)>;
-
-
-// def : Pat<(int_riscv_vfmv_f_s_f32m1_f32 VR:$src), (VFMV_F_S $src)>;
-
-
-
-def : Pat<(nxv1f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;
-
-def : Pat<(nxv8f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;
-
-
-def : Pat<(store nxv8f32:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
-
-def : Pat<(store nxv1f32:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
-
-
 def : Pat<(vscale GPR:$mul), (MUL VLENB, $mul)>;
 
-// def : Pat<(store VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
-
 def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL $rs1, $rs2)>;
+
+
+//===----------------------------------------------------------------------===//
+// patterns for OpenCV test
+//===----------------------------------------------------------------------===//
+
+class PatLE8<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VLE8_V_um $src, 0)>;
+def : PatLE8<int_riscv_vle8_v_u8m1>;
+def : PatLE8<int_riscv_vle8_v_i8m1>;
+
+class PatLE16<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VLE16_V_um $src, 0)>;
+def : PatLE16<int_riscv_vle16_v_u16m1>;
+def : PatLE16<int_riscv_vle16_v_i16m1>;
+
+class PatLE32<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VLE32_V_um $src, 0)>;
+def : PatLE32<int_riscv_vle32_v_u32m1>;
+def : PatLE32<int_riscv_vle32_v_i32m1>;
+def : PatLE32<int_riscv_vle32_v_f32m1>;
+
+class PatLE64<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VLE64_V_um $src, 0)>;
+def : PatLE64<int_riscv_vle64_v_u64m1>;
+def : PatLE64<int_riscv_vle64_v_i64m1>;
+//def : PatLE64<int_riscv_vle64_v_f64m1>;
+
+class PatSE8<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src, GPR:$dst), (VSE8_V_um $src, $dst, 0)>;
+def : PatSE8<int_riscv_vse8_v_u8m1>;
+def : PatSE8<int_riscv_vse8_v_i8m1>;
+
+class PatSE16<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src, GPR:$dst), (VSE16_V_um $src, $dst, 0)>;
+def : PatSE16<int_riscv_vse16_v_u16m1>;
+def : PatSE16<int_riscv_vse16_v_i16m1>;
+
+class PatSE32<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
+def : PatSE32<int_riscv_vse32_v_u32m1>;
+def : PatSE32<int_riscv_vse32_v_i32m1>;
+def : PatSE32<int_riscv_vse32_v_f32m1>;
+
+class PatSE64<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src, GPR:$dst), (VSE64_V_um $src, $dst, 0)>;
+def : PatSE64<int_riscv_vse64_v_u64m1>;
+def : PatSE64<int_riscv_vse64_v_i64m1>;
+//def : PatSE64<int_riscv_vse64_v_f64m1>;
+
+class PatVMV_X_S<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src), (VMV_X_S $src)>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_u8m1_u8>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_i8m1_i8>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_u16m1_u16>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_i16m1_i16>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_u32m1_u32>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_i32m1_i32>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_u64m1_u64>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_i64m1_i64>;
+
+class PatVFMV_F_S<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src), (VFMV_F_S $src)>;
+def : PatVFMV_F_S<int_riscv_vfmv_f_s_f32m1_f32>;
+//def : PatVFMV_F_S<int_riscv_vfmv_f_s_f64m1_f64>;
+
+class PatVMV_V_X<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VMV_V_X $src)>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_u8m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_i8m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_u16m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_i16m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_u32m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_i32m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_u64m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_i64m1>;
+
+class PatZERO<SDPatternOperator OpNode>
+    : Pat<(OpNode), (VMV_V_I 0)>;
+def : PatZERO<int_riscv_vzero_u8m1>;
+def : PatZERO<int_riscv_vzero_i8m1>;
+def : PatZERO<int_riscv_vzero_u16m1>;
+def : PatZERO<int_riscv_vzero_i16m1>;
+def : PatZERO<int_riscv_vzero_u32m1>;
+def : PatZERO<int_riscv_vzero_i32m1>;
+def : PatZERO<int_riscv_vzero_u64m1>;
+def : PatZERO<int_riscv_vzero_i64m1>;
 
 } // Predicates = [HasStdExtV]
