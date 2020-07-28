@@ -67,3 +67,16 @@ int main(){
 You can use **llvm-objdump** to disassemble RVV object code file and generate assembly file:
 
 	$ llvm-objdump test.o --mattr=+v 
+
+## How to compile rvv instrinsic functions
+
+To use the rvv instrinsic function, you need include the header file for rvv intrinsic:
+
+	$ #include <riscv_vector.h>
+
+then use the clang to compile the code and link to a executable file
+
+	$ ./clang --target=riscv64-unknown-elf -march=rv64gv hello.c --sysroot=/opt/riscv64/riscv64-unknown-elf  --gcc-toolchain=/opt/riscv64 -o hello
+
+Note that the --sysroot and --gcc-toolchain path are depend on how you install the
+gcc toolchain
