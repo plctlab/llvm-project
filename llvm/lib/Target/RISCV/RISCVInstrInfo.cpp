@@ -90,6 +90,9 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                  MachineBasicBlock::iterator MBBI,
                                  const DebugLoc &DL, MCRegister DstReg,
                                  MCRegister SrcReg, bool KillSrc) const {
+  MachineFunction *MF = MBB.getParent();
+  MachineFrameInfo &MFI = MF->getFrameInfo();
+  const TargetRegisterInfo *TRI = MF->getSubtarget().getRegisterInfo();
   if (RISCV::GPRRegClass.contains(DstReg, SrcReg)) {
     BuildMI(MBB, MBBI, DL, get(RISCV::ADDI), DstReg)
         .addReg(SrcReg, getKillRegState(KillSrc))
@@ -115,46 +118,8 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
 
   // VR -> VR copies
   if (RISCV::VRRegClass.contains(SrcReg, DstReg)) {
-    
-    // TODO: for different lmul value, select different 
-    // target specific vector move instructions
-
-    auto Scavenger = RegScavenger();
-    Scavenger.enterBasicBlockEnd(MBB);
-    unsigned SavedVL = Scavenger.scavengeRegisterBackwards(
-      RISCV::GPRRegClass, MBBI, false, 0);
-
-    //Save current VL
-    MachineInstr &MI = *BuildMI(MBB, MBBI, DL, get(RISCV::CSRRS), SavedVL)
-        .addImm(0xCC0)
-        .addReg(RISCV::X0);
-
-    Scavenger.setRegUsed(SavedVL);
-
-    //Save MAXVL in GPR
-    unsigned MaxVL = Scavenger.scavengeRegisterBackwards(
-      RISCV::GPRRegClass, MachineBasicBlock::iterator(MI), false, 0);
-
-
-    BuildMI(MBB, MBBI, DL, get(RISCV::CSRRS), MaxVL)
-        .addImm(0xCC1) //Couldn't find the actual CSR number - placeholder
-        .addReg(RISCV::X0);
-
-    //Set VL to MAXVL
-    BuildMI(MBB, MBBI, DL, get(RISCV::VSETVL), RISCV::VL)
-        .addDef(RISCV::X0)
-        .addReg(MaxVL, getKillRegState(true));
-
-    //Copy Vector
-    BuildMI(MBB, MBBI, DL, get(RISCV::VADD_VI_um), DstReg)
-        .addReg(SrcReg, getKillRegState(KillSrc))
-        .addImm(0)
-        .addReg(RISCV::VL);
-
-    BuildMI(MBB, MBBI, DL, get(RISCV::VSETVL), RISCV::VL)
-        .addDef(RISCV::X0)
-        .addReg(SavedVL, getKillRegState(true));
-
+    BuildMI(MBB, MBBI, DL, get(RISCV::VMV_V_V), DstReg)
+        .addReg(SrcReg, getKillRegState(KillSrc));
     return;
   }
 

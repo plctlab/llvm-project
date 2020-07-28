@@ -1443,67 +1443,67 @@
 
 	vl1r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vl1r.v	v3, 0(a1)               
-# CHECK-ASM: [0x87,0xf1,0x85,0x02]
+# CHECK-ASM: [0x87,0x81,0x85,0x02]
 
 	vs1r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vs1r.v	v3, 0(a1)               
-# CHECK-ASM: [0xa7,0xf1,0x85,0x02]
+# CHECK-ASM: [0xa7,0x81,0x85,0x02]
 
 	vl2r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vl2r.v	v3, 0(a1)               
-# CHECK-ASM: [0x87,0xf1,0x85,0x22]
+# CHECK-ASM: [0x87,0x81,0x85,0x22]
 
 	vs2r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vs2r.v	v3, 0(a1)               
-# CHECK-ASM: [0xa7,0xf1,0x85,0x22]
+# CHECK-ASM: [0xa7,0x81,0x85,0x22]
 
 	vl3r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vl3r.v	v3, 0(a1)               
-# CHECK-ASM: [0x87,0xf1,0x85,0x42]
+# CHECK-ASM: [0x87,0x81,0x85,0x42]
 
 	vs3r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vs3r.v	v3, 0(a1)               
-# CHECK-ASM: [0xa7,0xf1,0x85,0x42]
+# CHECK-ASM: [0xa7,0x81,0x85,0x42]
 
 	vl4r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vl4r.v	v3, 0(a1)               
-# CHECK-ASM: [0x87,0xf1,0x85,0x62]
+# CHECK-ASM: [0x87,0x81,0x85,0x62]
 
 	vs4r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vs4r.v	v3, 0(a1)               
-# CHECK-ASM: [0xa7,0xf1,0x85,0x62]
+# CHECK-ASM: [0xa7,0x81,0x85,0x62]
 
 	vl5r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vl5r.v	v3, 0(a1)               
-# CHECK-ASM: [0x87,0xf1,0x85,0x82]
+# CHECK-ASM: [0x87,0x81,0x85,0x82]
 
 	vs5r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vs5r.v	v3, 0(a1)               
-# CHECK-ASM: [0xa7,0xf1,0x85,0x82]
+# CHECK-ASM: [0xa7,0x81,0x85,0x82]
 
 	vl6r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vl6r.v	v3, 0(a1)               
-# CHECK-ASM: [0x87,0xf1,0x85,0xa2]
+# CHECK-ASM: [0x87,0x81,0x85,0xa2]
 
 	vs6r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vs6r.v	v3, 0(a1)               
-# CHECK-ASM: [0xa7,0xf1,0x85,0xa2]
+# CHECK-ASM: [0xa7,0x81,0x85,0xa2]
 
 	vl7r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vl7r.v	v3, 0(a1)               
-# CHECK-ASM: [0x87,0xf1,0x85,0xc2]
+# CHECK-ASM: [0x87,0x81,0x85,0xc2]
 
 	vs7r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vs7r.v	v3, 0(a1)               
-# CHECK-ASM: [0xa7,0xf1,0x85,0xc2]
+# CHECK-ASM: [0xa7,0x81,0x85,0xc2]
 
 	vl8r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vl8r.v	v3, 0(a1)               
-# CHECK-ASM: [0x87,0xf1,0x85,0xe2]
+# CHECK-ASM: [0x87,0x81,0x85,0xe2]
 
 	vs8r.v	v3, 0(a1)               
 # CHECK-ASM-AND-OBJ: 	vs8r.v	v3, 0(a1)               
-# CHECK-ASM: [0xa7,0xf1,0x85,0xe2]
+# CHECK-ASM: [0xa7,0x81,0x85,0xe2]
 
   vamoswapei8.v v0, 0(a1), v2, v0
 # CHECK-ASM: [0x2f,0x80,0x25,0x0e]
