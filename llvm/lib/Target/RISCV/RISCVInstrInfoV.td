@@ -2735,6 +2735,11 @@ def : PatVMV_V_X<int_riscv_vmv_v_x_i32m1>;
 def : PatVMV_V_X<int_riscv_vmv_v_x_u64m1>;
 def : PatVMV_V_X<int_riscv_vmv_v_x_i64m1>;
 
+class PatVFMV_V_F<SDPatternOperator OpNode>
+    : Pat<(OpNode FPR32:$src), (VFMV_V_F $src)>;
+def : PatVFMV_V_F<int_riscv_vfmv_v_f_f32m1>;
+//def : PatVFMV_V_F<int_riscv_vfmv_v_f_f64m1>;
+
 class PatZERO<SDPatternOperator OpNode>
     : Pat<(OpNode), (VMV_V_I 0)>;
 def : PatZERO<int_riscv_vzero_u8m1>;
