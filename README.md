@@ -39,10 +39,10 @@ You can use **llvm-mc** to assemble RVV assembly file and generate an object fil
 	
 Note: "test.s" here means an assembly file containing riscv vector extension instructions, you can use inline assembly in c++ code to add a riscv vector instruction and then use clang to compile and generate test.s assembly file. 
 
-    $ clang --target=riscv64-unknown-elf -S  test.c -march=rv64gcv -mabi=lp64 --sysroot=/home/u/tools/riscv64/install/riscv64-unknown-elf  --gcc-toolchain=/home/u/tools/riscv64/install  -o test.s `
+    $ clang --target=riscv64-unknown-elf -S  test.c -march=rv64gcv -mabi=lp64 --sysroot=/opt/riscv64/riscv64-unknown-elf  --gcc-toolchain=/opt/riscv64  -o test.s `
 
 ```  
-#include<stdio.h> 
+#include <stdio.h> 
 
 int main(){
     
@@ -68,11 +68,27 @@ You can use **llvm-objdump** to disassemble RVV object code file and generate as
 
 	$ llvm-objdump test.o --mattr=+v 
 
-## How to compile rvv instrinsic functions
+## How to compile C files with RVV intrinsics
 
-To use the rvv instrinsic function, you need include the header file for rvv intrinsic:
+To use the rvv intrinsic function, you need include the header file for rvv intrinsic:
 
 	$ #include <riscv_vector.h>
+
+for example:
+```
+#include <riscv_vector.h>
+#include <stdio.h>
+
+int main() {
+  vfloat32m1_t result;
+  float input[1] = {0.0001f};
+  result = vle32_v_f32m1(input);
+  result = vfadd_vv_f32m1(result, result);
+  vse32_v_f32m1(input, result);
+  printf("%f\n", input[0]);
+  return 1;
+}
+```
 
 then use the clang to compile the code and link to a executable file
 
