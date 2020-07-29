@@ -1804,8 +1804,8 @@ vfloat32m1_t vmv_v_v_f32m1(vfloat32m1_t src) {
 }
 
 static __attribute__((always_inline))
-vfloat32m1_t vmv_v_x_f32m1(float src) {
-  return __builtin_riscv_vmv_v_x_f32m1(src);
+vfloat32m1_t vfmv_v_f_f32m1(float src) {
+  return __builtin_riscv_vfmv_v_f_f32m1(src);
 }
 
 static __attribute__((always_inline))
@@ -1814,8 +1814,8 @@ vfloat32m2_t vmv_v_v_f32m2(vfloat32m2_t src) {
 }
 
 static __attribute__((always_inline))
-vfloat32m2_t vmv_v_x_f32m2(float src) {
-  return __builtin_riscv_vmv_v_x_f32m2(src);
+vfloat32m2_t vfmv_v_f_f32m2(float src) {
+  return __builtin_riscv_vfmv_v_f_f32m2(src);
 }
 
 static __attribute__((always_inline))
@@ -1824,8 +1824,8 @@ vfloat32m4_t vmv_v_v_f32m4(vfloat32m4_t src) {
 }
 
 static __attribute__((always_inline))
-vfloat32m4_t vmv_v_x_f32m4(float src) {
-  return __builtin_riscv_vmv_v_x_f32m4(src);
+vfloat32m4_t vfmv_v_f_f32m4(float src) {
+  return __builtin_riscv_vfmv_v_f_f32m4(src);
 }
 
 static __attribute__((always_inline))
@@ -1834,8 +1834,8 @@ vfloat32m8_t vmv_v_v_f32m8(vfloat32m8_t src) {
 }
 
 static __attribute__((always_inline))
-vfloat32m8_t vmv_v_x_f32m8(float src) {
-  return __builtin_riscv_vmv_v_x_f32m8(src);
+vfloat32m8_t vfmv_v_f_f32m8(float src) {
+  return __builtin_riscv_vfmv_v_f_f32m8(src);
 }
 
 static __attribute__((always_inline))
@@ -1844,8 +1844,8 @@ vfloat64m1_t vmv_v_v_f64m1(vfloat64m1_t src) {
 }
 
 static __attribute__((always_inline))
-vfloat64m1_t vmv_v_x_f64m1(double src) {
-  return __builtin_riscv_vmv_v_x_f64m1(src);
+vfloat64m1_t vfmv_v_f_f64m1(double src) {
+  return __builtin_riscv_vfmv_v_f_f64m1(src);
 }
 
 static __attribute__((always_inline))
@@ -1854,8 +1854,8 @@ vfloat64m2_t vmv_v_v_f64m2(vfloat64m2_t src) {
 }
 
 static __attribute__((always_inline))
-vfloat64m2_t vmv_v_x_f64m2(double src) {
-  return __builtin_riscv_vmv_v_x_f64m2(src);
+vfloat64m2_t vfmv_v_f_f64m2(double src) {
+  return __builtin_riscv_vfmv_v_f_f64m2(src);
 }
 
 static __attribute__((always_inline))
@@ -1864,8 +1864,8 @@ vfloat64m4_t vmv_v_v_f64m4(vfloat64m4_t src) {
 }
 
 static __attribute__((always_inline))
-vfloat64m4_t vmv_v_x_f64m4(double src) {
-  return __builtin_riscv_vmv_v_x_f64m4(src);
+vfloat64m4_t vfmv_v_f_f64m4(double src) {
+  return __builtin_riscv_vfmv_v_f_f64m4(src);
 }
 
 static __attribute__((always_inline))
@@ -1874,8 +1874,8 @@ vfloat64m8_t vmv_v_v_f64m8(vfloat64m8_t src) {
 }
 
 static __attribute__((always_inline))
-vfloat64m8_t vmv_v_x_f64m8(double src) {
-  return __builtin_riscv_vmv_v_x_f64m8(src);
+vfloat64m8_t vfmv_v_f_f64m8(double src) {
+  return __builtin_riscv_vfmv_v_f_f64m8(src);
 }
 
 static __attribute__((always_inline))

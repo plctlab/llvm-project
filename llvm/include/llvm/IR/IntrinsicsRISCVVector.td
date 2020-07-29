@@ -1533,7 +1533,7 @@ def int_riscv_vmv_v_v_f32m1
               [llvm_nxv1f32_ty],
               [IntrNoMem]>;
 
-def int_riscv_vmv_v_x_f32m1
+def int_riscv_vfmv_v_f_f32m1
   : Intrinsic<[llvm_nxv1f32_ty],
               [llvm_float_ty],
               [IntrNoMem]>;
@@ -1543,7 +1543,7 @@ def int_riscv_vmv_v_v_f32m2
               [llvm_nxv2f32_ty],
               [IntrNoMem]>;
 
-def int_riscv_vmv_v_x_f32m2
+def int_riscv_vfmv_v_f_f32m2
   : Intrinsic<[llvm_nxv2f32_ty],
               [llvm_float_ty],
               [IntrNoMem]>;
@@ -1553,7 +1553,7 @@ def int_riscv_vmv_v_v_f32m4
               [llvm_nxv4f32_ty],
               [IntrNoMem]>;
 
-def int_riscv_vmv_v_x_f32m4
+def int_riscv_vfmv_v_f_f32m4
   : Intrinsic<[llvm_nxv4f32_ty],
               [llvm_float_ty],
               [IntrNoMem]>;
@@ -1563,7 +1563,7 @@ def int_riscv_vmv_v_v_f32m8
               [llvm_nxv8f32_ty],
               [IntrNoMem]>;
 
-def int_riscv_vmv_v_x_f32m8
+def int_riscv_vfmv_v_f_f32m8
   : Intrinsic<[llvm_nxv8f32_ty],
               [llvm_float_ty],
               [IntrNoMem]>;
@@ -1573,7 +1573,7 @@ def int_riscv_vmv_v_v_f64m1
               [llvm_nxv1f64_ty],
               [IntrNoMem]>;
 
-def int_riscv_vmv_v_x_f64m1
+def int_riscv_vfmv_v_f_f64m1
   : Intrinsic<[llvm_nxv1f64_ty],
               [llvm_double_ty],
               [IntrNoMem]>;
@@ -1583,7 +1583,7 @@ def int_riscv_vmv_v_v_f64m2
               [llvm_nxv2f64_ty],
               [IntrNoMem]>;
 
-def int_riscv_vmv_v_x_f64m2
+def int_riscv_vfmv_v_f_f64m2
   : Intrinsic<[llvm_nxv2f64_ty],
               [llvm_double_ty],
               [IntrNoMem]>;
@@ -1593,7 +1593,7 @@ def int_riscv_vmv_v_v_f64m4
               [llvm_nxv4f64_ty],
               [IntrNoMem]>;
 
-def int_riscv_vmv_v_x_f64m4
+def int_riscv_vfmv_v_f_f64m4
   : Intrinsic<[llvm_nxv4f64_ty],
               [llvm_double_ty],
               [IntrNoMem]>;
@@ -1603,7 +1603,7 @@ def int_riscv_vmv_v_v_f64m8
               [llvm_nxv8f64_ty],
               [IntrNoMem]>;
 
-def int_riscv_vmv_v_x_f64m8
+def int_riscv_vfmv_v_f_f64m8
   : Intrinsic<[llvm_nxv8f64_ty],
               [llvm_double_ty],
               [IntrNoMem]>;
