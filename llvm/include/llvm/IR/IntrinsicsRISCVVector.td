@@ -409,7 +409,7 @@ def int_riscv_vse64_v_f64m8
               [IntrWriteMem]>;
 
 def int_riscv_vmv_x_s_i8m1_i8
-  : Intrinsic<[llvm_i8_ty],
+  : Intrinsic<[llvm_anyint_ty],
               [llvm_nxv1i8_ty],
               [IntrNoMem]>;
 
@@ -449,7 +449,7 @@ def int_riscv_vmv_s_x_i8m8
               [IntrNoMem]>;
 
 def int_riscv_vmv_x_s_i16m1_i16
-  : Intrinsic<[llvm_i16_ty],
+  : Intrinsic<[llvm_anyint_ty],
               [llvm_nxv1i16_ty],
               [IntrNoMem]>;
 
@@ -569,7 +569,7 @@ def int_riscv_vmv_s_x_i64m8
               [IntrNoMem]>;
 
 def int_riscv_vmv_x_s_u8m1_u8
-  : Intrinsic<[llvm_i8_ty],
+  : Intrinsic<[llvm_anyint_ty],
               [llvm_nxv1i8_ty],
               [IntrNoMem]>;
 
@@ -609,7 +609,7 @@ def int_riscv_vmv_s_x_u8m8
               [IntrNoMem]>;
 
 def int_riscv_vmv_x_s_u16m1_u16
-  : Intrinsic<[llvm_i16_ty],
+  : Intrinsic<[llvm_anyint_ty],
               [llvm_nxv1i16_ty],
               [IntrNoMem]>;
 
@@ -1215,7 +1215,7 @@ def int_riscv_vmv_v_v_i8m1
 
 def int_riscv_vmv_v_x_i8m1
   : Intrinsic<[llvm_nxv1i8_ty],
-              [llvm_i8_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i8m2
@@ -1225,7 +1225,7 @@ def int_riscv_vmv_v_v_i8m2
 
 def int_riscv_vmv_v_x_i8m2
   : Intrinsic<[llvm_nxv2i8_ty],
-              [llvm_i8_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i8m4
@@ -1235,7 +1235,7 @@ def int_riscv_vmv_v_v_i8m4
 
 def int_riscv_vmv_v_x_i8m4
   : Intrinsic<[llvm_nxv4i8_ty],
-              [llvm_i8_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i8m8
@@ -1245,7 +1245,7 @@ def int_riscv_vmv_v_v_i8m8
 
 def int_riscv_vmv_v_x_i8m8
   : Intrinsic<[llvm_nxv8i8_ty],
-              [llvm_i8_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i16m1
@@ -1255,7 +1255,7 @@ def int_riscv_vmv_v_v_i16m1
 
 def int_riscv_vmv_v_x_i16m1
   : Intrinsic<[llvm_nxv1i16_ty],
-              [llvm_i16_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i16m2
@@ -1265,7 +1265,7 @@ def int_riscv_vmv_v_v_i16m2
 
 def int_riscv_vmv_v_x_i16m2
   : Intrinsic<[llvm_nxv2i16_ty],
-              [llvm_i16_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i16m4
@@ -1275,7 +1275,7 @@ def int_riscv_vmv_v_v_i16m4
 
 def int_riscv_vmv_v_x_i16m4
   : Intrinsic<[llvm_nxv4i16_ty],
-              [llvm_i16_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i16m8
@@ -1285,7 +1285,7 @@ def int_riscv_vmv_v_v_i16m8
 
 def int_riscv_vmv_v_x_i16m8
   : Intrinsic<[llvm_nxv8i16_ty],
-              [llvm_i16_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i32m1
@@ -1295,7 +1295,7 @@ def int_riscv_vmv_v_v_i32m1
 
 def int_riscv_vmv_v_x_i32m1
   : Intrinsic<[llvm_nxv1i32_ty],
-              [llvm_i32_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i32m2
@@ -1305,7 +1305,7 @@ def int_riscv_vmv_v_v_i32m2
 
 def int_riscv_vmv_v_x_i32m2
   : Intrinsic<[llvm_nxv2i32_ty],
-              [llvm_i32_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i32m4
@@ -1315,7 +1315,7 @@ def int_riscv_vmv_v_v_i32m4
 
 def int_riscv_vmv_v_x_i32m4
   : Intrinsic<[llvm_nxv4i32_ty],
-              [llvm_i32_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i32m8
@@ -1325,7 +1325,7 @@ def int_riscv_vmv_v_v_i32m8
 
 def int_riscv_vmv_v_x_i32m8
   : Intrinsic<[llvm_nxv8i32_ty],
-              [llvm_i32_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i64m1
@@ -1335,7 +1335,7 @@ def int_riscv_vmv_v_v_i64m1
 
 def int_riscv_vmv_v_x_i64m1
   : Intrinsic<[llvm_nxv1i64_ty],
-              [llvm_i64_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i64m2
@@ -1345,7 +1345,7 @@ def int_riscv_vmv_v_v_i64m2
 
 def int_riscv_vmv_v_x_i64m2
   : Intrinsic<[llvm_nxv2i64_ty],
-              [llvm_i64_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i64m4
@@ -1355,7 +1355,7 @@ def int_riscv_vmv_v_v_i64m4
 
 def int_riscv_vmv_v_x_i64m4
   : Intrinsic<[llvm_nxv4i64_ty],
-              [llvm_i64_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_i64m8
@@ -1365,7 +1365,7 @@ def int_riscv_vmv_v_v_i64m8
 
 def int_riscv_vmv_v_x_i64m8
   : Intrinsic<[llvm_nxv8i64_ty],
-              [llvm_i64_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u8m1
@@ -1375,7 +1375,7 @@ def int_riscv_vmv_v_v_u8m1
 
 def int_riscv_vmv_v_x_u8m1
   : Intrinsic<[llvm_nxv1i8_ty],
-              [llvm_i8_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u8m2
@@ -1385,7 +1385,7 @@ def int_riscv_vmv_v_v_u8m2
 
 def int_riscv_vmv_v_x_u8m2
   : Intrinsic<[llvm_nxv2i8_ty],
-              [llvm_i8_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u8m4
@@ -1395,7 +1395,7 @@ def int_riscv_vmv_v_v_u8m4
 
 def int_riscv_vmv_v_x_u8m4
   : Intrinsic<[llvm_nxv4i8_ty],
-              [llvm_i8_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u8m8
@@ -1405,7 +1405,7 @@ def int_riscv_vmv_v_v_u8m8
 
 def int_riscv_vmv_v_x_u8m8
   : Intrinsic<[llvm_nxv8i8_ty],
-              [llvm_i8_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u16m1
@@ -1415,7 +1415,7 @@ def int_riscv_vmv_v_v_u16m1
 
 def int_riscv_vmv_v_x_u16m1
   : Intrinsic<[llvm_nxv1i16_ty],
-              [llvm_i16_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u16m2
@@ -1425,7 +1425,7 @@ def int_riscv_vmv_v_v_u16m2
 
 def int_riscv_vmv_v_x_u16m2
   : Intrinsic<[llvm_nxv2i16_ty],
-              [llvm_i16_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u16m4
@@ -1435,7 +1435,7 @@ def int_riscv_vmv_v_v_u16m4
 
 def int_riscv_vmv_v_x_u16m4
   : Intrinsic<[llvm_nxv4i16_ty],
-              [llvm_i16_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u16m8
@@ -1445,7 +1445,7 @@ def int_riscv_vmv_v_v_u16m8
 
 def int_riscv_vmv_v_x_u16m8
   : Intrinsic<[llvm_nxv8i16_ty],
-              [llvm_i16_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u32m1
@@ -1455,7 +1455,7 @@ def int_riscv_vmv_v_v_u32m1
 
 def int_riscv_vmv_v_x_u32m1
   : Intrinsic<[llvm_nxv1i32_ty],
-              [llvm_i32_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u32m2
@@ -1465,7 +1465,7 @@ def int_riscv_vmv_v_v_u32m2
 
 def int_riscv_vmv_v_x_u32m2
   : Intrinsic<[llvm_nxv2i32_ty],
-              [llvm_i32_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u32m4
@@ -1475,7 +1475,7 @@ def int_riscv_vmv_v_v_u32m4
 
 def int_riscv_vmv_v_x_u32m4
   : Intrinsic<[llvm_nxv4i32_ty],
-              [llvm_i32_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u32m8
@@ -1485,7 +1485,7 @@ def int_riscv_vmv_v_v_u32m8
 
 def int_riscv_vmv_v_x_u32m8
   : Intrinsic<[llvm_nxv8i32_ty],
-              [llvm_i32_ty],
+              [llvm_anyint_ty],
               [IntrNoMem]>;
 
 def int_riscv_vmv_v_v_u64m1

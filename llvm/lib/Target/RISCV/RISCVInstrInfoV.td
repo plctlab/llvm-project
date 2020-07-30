@@ -2659,6 +2659,12 @@ def : Pat<(vscale GPR:$mul), (MUL VLENB, $mul)>;
 
 def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL $rs1, $rs2)>;
 
+//===----------------------------------------------------------------------===//
+// Custom SDNode for riscv vector
+//===----------------------------------------------------------------------===//
+// def riscv_vmv_v_x : SDNode<"RISCVISD::VMV_V_X",
+//                            SDTypeProfile<1, 1, [SDTCisVec<0>, SDTCisInt<0>,
+//                                                 SDTCisInt<1>]>>;
 
 //===----------------------------------------------------------------------===//
 // patterns for OpenCV test

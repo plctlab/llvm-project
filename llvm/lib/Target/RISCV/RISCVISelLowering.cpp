@@ -216,6 +216,9 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
   setOperationAction(ISD::DEBUGTRAP, MVT::Other, Legal);
   setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::Other, Custom);
 
+  for (auto VT : {MVT::i8, MVT::i16, MVT::i32})
+    setOperationAction(ISD::INTRINSIC_WO_CHAIN, VT, Custom);
+
   if (Subtarget.hasStdExtA()) {
     setMaxAtomicSizeInBitsSupported(Subtarget.getXLen());
     setMinCmpXchgSizeInBits(32);
@@ -849,6 +852,22 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
   case Intrinsic::thread_pointer: {
     EVT PtrVT = getPointerTy(DAG.getDataLayout());
     return DAG.getRegister(RISCV::X4, PtrVT);
+  }
+
+  case Intrinsic::riscv_vmv_v_x_i8m1:
+  case Intrinsic::riscv_vmv_v_x_i16m1:
+  case Intrinsic::riscv_vmv_v_x_i32m1: {
+    std::vector<SDValue> operands = {Op->op_begin(), Op->op_end()};
+    operands[1] = DAG.getNode(ISD::SIGN_EXTEND, DL, MVT::i64, operands[1]);
+    return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), operands);
+  }
+
+  case Intrinsic::riscv_vmv_v_x_u8m1:
+  case Intrinsic::riscv_vmv_v_x_u16m1:
+  case Intrinsic::riscv_vmv_v_x_u32m1: {
+    std::vector<SDValue> operands = {Op->op_begin(), Op->op_end()};
+    operands[1] = DAG.getNode(ISD::ZERO_EXTEND, DL, MVT::i64, operands[1]);
+    return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), operands);
   }
   }
 }
