@@ -2755,6 +2755,6 @@ let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
 
 // def : Pat<(store VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
 
-//def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL $rs1, $rs2)>;
+def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL $rs1, $rs2)>;
 
 } // Predicates = [HasStdExtV]
