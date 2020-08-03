@@ -2643,3 +2643,38 @@ def int_riscv_vmset_m_b64
               [],
               [IntrNoMem]>;
 
+def int_riscv_vmclr_m_b1
+  : Intrinsic<[llvm_nxv1i1_ty],
+              [],
+              [IntrNoMem]>;
+
+def int_riscv_vmclr_m_b2
+  : Intrinsic<[llvm_nxv1i1_ty],
+              [],
+              [IntrNoMem]>;
+
+def int_riscv_vmclr_m_b4
+  : Intrinsic<[llvm_nxv1i1_ty],
+              [],
+              [IntrNoMem]>;
+
+def int_riscv_vmclr_m_b8
+  : Intrinsic<[llvm_nxv1i1_ty],
+              [],
+              [IntrNoMem]>;
+
+def int_riscv_vmclr_m_b16
+  : Intrinsic<[llvm_nxv1i1_ty],
+              [],
+              [IntrNoMem]>;
+
+def int_riscv_vmclr_m_b32
+  : Intrinsic<[llvm_nxv1i1_ty],
+              [],
+              [IntrNoMem]>;
+
+def int_riscv_vmclr_m_b64
+  : Intrinsic<[llvm_nxv1i1_ty],
+              [],
+              [IntrNoMem]>;
+

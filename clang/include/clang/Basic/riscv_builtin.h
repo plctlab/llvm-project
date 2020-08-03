@@ -1056,5 +1056,18 @@ RISCVBuiltin(vmset_m_b32, "q32b", "", )
 
 RISCVBuiltin(vmset_m_b64, "q64b", "", )
 
+RISCVBuiltin(vmclr_m_b1, "q1b", "", )
+
+RISCVBuiltin(vmclr_m_b2, "q2b", "", )
+
+RISCVBuiltin(vmclr_m_b4, "q4b", "", )
+
+RISCVBuiltin(vmclr_m_b8, "q8b", "", )
+
+RISCVBuiltin(vmclr_m_b16, "q16b", "", )
+
+RISCVBuiltin(vmclr_m_b32, "q32b", "", )
+
+RISCVBuiltin(vmclr_m_b64, "q64b", "", )
 
 #undef RISCVBuiltin

@@ -2993,4 +2993,39 @@ vbool64_t vmset_m_b64() {
   return __builtin_riscv_vmset_m_b64();
 }
 
+static __attribute__((always_inline))
+vbool1_t vmclr_m_b1() {
+  return __builtin_riscv_vmclr_m_b1();
+}
+
+static __attribute__((always_inline))
+vbool2_t vmclr_m_b2() {
+  return __builtin_riscv_vmclr_m_b2();
+}
+
+static __attribute__((always_inline))
+vbool4_t vmclr_m_b4() {
+  return __builtin_riscv_vmclr_m_b4();
+}
+
+static __attribute__((always_inline))
+vbool8_t vmclr_m_b8() {
+  return __builtin_riscv_vmclr_m_b8();
+}
+
+static __attribute__((always_inline))
+vbool16_t vmclr_m_b16() {
+  return __builtin_riscv_vmclr_m_b16();
+}
+
+static __attribute__((always_inline))
+vbool32_t vmclr_m_b32() {
+  return __builtin_riscv_vmclr_m_b32();
+}
+
+static __attribute__((always_inline))
+vbool64_t vmclr_m_b64() {
+  return __builtin_riscv_vmclr_m_b64();
+}
+
 #endif
