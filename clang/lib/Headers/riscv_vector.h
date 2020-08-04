@@ -3028,4 +3028,9 @@ vbool64_t vmclr_m_b64() {
   return __builtin_riscv_vmclr_m_b64();
 }
 
+static __attribute__((always_inline))
+vfloat32m1_t vfadd_vv_f32m1(vfloat32m1_t value1, vfloat32m1_t value2) {
+  return __builtin_riscv_vfadd_vv_f32m1(value1, value2);
+}
+
 #endif

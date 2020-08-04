@@ -2706,20 +2706,20 @@ let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
 // def : Pat<(int_riscv_vsw VR:$vs3, GPR:$rs1),
 //           (VSE32_V_um VR:$vs3, GPR:$rs1, 0)>;
 
-//class PatLE32<SDPatternOperator OpNode>
-//    : Pat<(OpNode GPR:$src), (VLE32_V_um $src, 0)>;
+class PatLE32<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VLE32_V_um $src, 0)>;
 
-//def : PatLE32<int_riscv_vle32_v_f32m1>;
+def : PatLE32<int_riscv_vle32_v_f32m1>;
 
-//def : PatLE32<int_riscv_vle32_v_f32m8>;
+def : PatLE32<int_riscv_vle32_v_f32m8>;
 
 
-//class PatSE32<SDPatternOperator OpNode>
-//    : Pat<(OpNode VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
+class PatSE32<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
 
-//def : PatSE32<int_riscv_vse32_v_f32m1>;
+def : PatSE32<int_riscv_vse32_v_f32m1>;
 
-//def : PatSE32<int_riscv_vse32_v_f32m8>;
+def : PatSE32<int_riscv_vse32_v_f32m8>;
 
 // def : Pat<(int_riscv_vse32_v_f32m8 VR:$src, GPR:$dst),
 //           (VSE32_V_um $src, $dst, 0)>;
@@ -2737,7 +2737,7 @@ let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
 
 //def : Pat<(int_riscv_vfmv_f_s_f32m1_f32 VR:$src), (VFMV_F_S $src)>;
 
-//def : Pat<(nxv1f32 (int_riscv_vfadd_vv_f32m1 VR:$vs2, VR:$vs1)), (VFADD_VV_um VR:$vs2, VR:$vs1)>;
+def : Pat<(nxv1f32 (int_riscv_vfadd_vv_f32m1 VR:$vs2, VR:$vs1)), (VFADD_VV_um VR:$vs2, VR:$vs1)>;
 
 
 

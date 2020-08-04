@@ -18,7 +18,7 @@
 
 //BUILTIN(__builtin_riscv_vsetvl, "zzz", "n")
 
-BUILTIN(__builtin_riscv_vfadd_vv_f32m1, "q1fq1fq1f", "n")
+//BUILTIN(__builtin_riscv_vfadd_vv_f32m1, "q1fq1fq1f", "n")
 
 #define RISCVBuiltin(Name, Prototype, Attrs, ...)                              \
    BUILTIN(__builtin_riscv_##Name, Prototype, Attrs)

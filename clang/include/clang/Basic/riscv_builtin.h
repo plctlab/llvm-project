@@ -1070,4 +1070,6 @@ RISCVBuiltin(vmclr_m_b32, "q32b", "", )
 
 RISCVBuiltin(vmclr_m_b64, "q64b", "", )
 
+RISCVBuiltin(vfadd_vv_f32m1, "q1iq1iq1i", "", )
+
 #undef RISCVBuiltin
