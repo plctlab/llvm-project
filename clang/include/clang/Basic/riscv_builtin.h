@@ -1072,4 +1072,325 @@ RISCVBuiltin(vmclr_m_b64, "q64b", "", )
 
 RISCVBuiltin(vfadd_vv_f32m1, "q1iq1iq1i", "", )
 
+
+RISCVBuiltin(vadd_vv_i8m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vadd_vv_i16m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vadd_vv_i32m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vadd_vv_i64m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vadd_vv_u8m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vadd_vv_u16m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vadd_vv_u32m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vadd_vv_u64m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vadd_vv_f32m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vadd_vv_f64m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vadd_vv_i8m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vadd_vv_i16m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vadd_vv_i32m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vadd_vv_i64m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vadd_vv_u8m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vadd_vv_u16m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vadd_vv_u32m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vadd_vv_u64m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vadd_vv_f32m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vadd_vv_f64m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vadd_vv_i8m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vadd_vv_i16m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vadd_vv_i32m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vadd_vv_i64m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vadd_vv_u8m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vadd_vv_u16m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vadd_vv_u32m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vadd_vv_u64m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vadd_vv_f32m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vadd_vv_f64m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vadd_vv_i8m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vadd_vv_i16m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vadd_vv_i32m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vadd_vv_i64m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vadd_vv_u8m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vadd_vv_u16m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vadd_vv_u32m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vadd_vv_u64m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vadd_vv_f32m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vadd_vv_f64m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vsub_vv_i8m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vsub_vv_i16m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vsub_vv_i32m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vsub_vv_i64m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vsub_vv_u8m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vsub_vv_u16m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vsub_vv_u32m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vsub_vv_u64m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vsub_vv_f32m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vsub_vv_f64m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vsub_vv_i8m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vsub_vv_i16m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vsub_vv_i32m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vsub_vv_i64m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vsub_vv_u8m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vsub_vv_u16m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vsub_vv_u32m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vsub_vv_u64m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vsub_vv_f32m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vsub_vv_f64m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vsub_vv_i8m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vsub_vv_i16m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vsub_vv_i32m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vsub_vv_i64m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vsub_vv_u8m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vsub_vv_u16m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vsub_vv_u32m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vsub_vv_u64m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vsub_vv_f32m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vsub_vv_f64m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vsub_vv_i8m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vsub_vv_i16m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vsub_vv_i32m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vsub_vv_i64m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vsub_vv_u8m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vsub_vv_u16m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vsub_vv_u32m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vsub_vv_u64m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vsub_vv_f32m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vsub_vv_f64m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vmul_vv_i8m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vmul_vv_i16m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vmul_vv_i32m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vmul_vv_i64m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vmul_vv_u8m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vmul_vv_u16m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vmul_vv_u32m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vmul_vv_u64m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vmul_vv_f32m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vmul_vv_f64m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vmul_vv_i8m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vmul_vv_i16m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vmul_vv_i32m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vmul_vv_i64m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vmul_vv_u8m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vmul_vv_u16m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vmul_vv_u32m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vmul_vv_u64m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vmul_vv_f32m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vmul_vv_f64m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vmul_vv_i8m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vmul_vv_i16m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vmul_vv_i32m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vmul_vv_i64m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vmul_vv_u8m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vmul_vv_u16m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vmul_vv_u32m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vmul_vv_u64m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vmul_vv_f32m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vmul_vv_f64m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vmul_vv_i8m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vmul_vv_i16m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vmul_vv_i32m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vmul_vv_i64m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vmul_vv_u8m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vmul_vv_u16m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vmul_vv_u32m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vmul_vv_u64m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vmul_vv_f32m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vmul_vv_f64m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vdiv_vv_i8m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vdiv_vv_i16m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vdiv_vv_i32m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vdiv_vv_i64m1, "q1iq1iq1i", "", )
+
+RISCVBuiltin(vdiv_vv_u8m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u16m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u32m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u64m1, "q1Uiq1Uiq1Ui", "", )
+
+RISCVBuiltin(vdiv_vv_f32m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vdiv_vv_f64m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vdiv_vv_i8m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vdiv_vv_i16m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vdiv_vv_i32m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vdiv_vv_i64m2, "q2iq2iq2i", "", )
+
+RISCVBuiltin(vdiv_vv_u8m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u16m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u32m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u64m2, "q2Uiq2Uiq2Ui", "", )
+
+RISCVBuiltin(vdiv_vv_f32m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vdiv_vv_f64m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vdiv_vv_i8m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vdiv_vv_i16m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vdiv_vv_i32m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vdiv_vv_i64m4, "q4iq4iq4i", "", )
+
+RISCVBuiltin(vdiv_vv_u8m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u16m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u32m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u64m4, "q4Uiq4Uiq4Ui", "", )
+
+RISCVBuiltin(vdiv_vv_f32m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vdiv_vv_f64m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vdiv_vv_i8m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vdiv_vv_i16m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vdiv_vv_i32m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vdiv_vv_i64m8, "q8iq8iq8i", "", )
+
+RISCVBuiltin(vdiv_vv_u8m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u16m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u32m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vdiv_vv_u64m8, "q8Uiq8Uiq8Ui", "", )
+
+RISCVBuiltin(vdiv_vv_f32m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vdiv_vv_f64m8, "q8fq8fq8f", "", )
+
 #undef RISCVBuiltin
