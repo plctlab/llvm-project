@@ -1070,8 +1070,7 @@ RISCVBuiltin(vmclr_m_b32, "q32b", "", )
 
 RISCVBuiltin(vmclr_m_b64, "q64b", "", )
 
-RISCVBuiltin(vfadd_vv_f32m1, "q1iq1iq1i", "", )
-
+//RISCVBuiltin(vfadd_vv_f32m1, "q1iq1iq1i", "", )
 
 RISCVBuiltin(vadd_vv_i8m1, "q1iq1iq1i", "", )
 
@@ -1392,5 +1391,69 @@ RISCVBuiltin(vdiv_vv_u64m8, "q8Uiq8Uiq8Ui", "", )
 RISCVBuiltin(vdiv_vv_f32m8, "q8fq8fq8f", "", )
 
 RISCVBuiltin(vdiv_vv_f64m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vfadd_vv_f32m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vfadd_vv_f64m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vfadd_vv_f32m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vfadd_vv_f64m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vfadd_vv_f32m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vfadd_vv_f64m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vfadd_vv_f32m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vfadd_vv_f64m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vfsub_vv_f32m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vfsub_vv_f64m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vfsub_vv_f32m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vfsub_vv_f64m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vfsub_vv_f32m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vfsub_vv_f64m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vfsub_vv_f32m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vfsub_vv_f64m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vfmul_vv_f32m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vfmul_vv_f64m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vfmul_vv_f32m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vfmul_vv_f64m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vfmul_vv_f32m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vfmul_vv_f64m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vfmul_vv_f32m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vfmul_vv_f64m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vfdiv_vv_f32m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vfdiv_vv_f64m1, "q1fq1fq1f", "", )
+
+RISCVBuiltin(vfdiv_vv_f32m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vfdiv_vv_f64m2, "q2fq2fq2f", "", )
+
+RISCVBuiltin(vfdiv_vv_f32m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vfdiv_vv_f64m4, "q4fq4fq4f", "", )
+
+RISCVBuiltin(vfdiv_vv_f32m8, "q8fq8fq8f", "", )
+
+RISCVBuiltin(vfdiv_vv_f64m8, "q8fq8fq8f", "", )
 
 #undef RISCVBuiltin
