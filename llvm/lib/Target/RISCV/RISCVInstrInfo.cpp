@@ -90,51 +90,9 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                  MachineBasicBlock::iterator MBBI,
                                  const DebugLoc &DL, MCRegister DstReg,
                                  MCRegister SrcReg, bool KillSrc) const {
-  MachineFunction *MF = MBB.getParent();
-  MachineFrameInfo &MFI = MF->getFrameInfo();
-  const TargetRegisterInfo *TRI = MF->getSubtarget().getRegisterInfo();
-  if (RISCV::GPRRegClass.contains(DstReg, SrcReg)) {
-    BuildMI(MBB, MBBI, DL, get(RISCV::ADDI), DstReg)
-        .addReg(SrcReg, getKillRegState(KillSrc))
-        .addImm(0);
-    return;
-  }
-
-  // GPR -> VL via VSETVL
-  if (RISCV::GPRRegClass.contains(SrcReg) &&
-      RISCV::VLRRegClass.contains(DstReg)) {
-    BuildMI(MBB, MBBI, DL, get(RISCV::VSETVL), DstReg)
-        .addDef(RISCV::X0)
+  BuildMI(MBB, MBBI, DL, get(RISCV::VMV_V_V), DstReg)
         .addReg(SrcReg, getKillRegState(KillSrc));
-    return;
-  }
-  // VL -> GPR via CSR read
-  if (RISCV::VLRRegClass.contains(SrcReg) &&
-      RISCV::GPRRegClass.contains(DstReg)) {
-    BuildMI(MBB, MBBI, DL, get(RISCV::PseudoCSRR_VL), DstReg)
-        .addReg(SrcReg, getKillRegState(KillSrc));
-    return;
-  }
-
-  // VR -> VR copies
-  if (RISCV::VRRegClass.contains(SrcReg, DstReg)) {
-    BuildMI(MBB, MBBI, DL, get(RISCV::VMV_V_V), DstReg)
-        .addReg(SrcReg, getKillRegState(KillSrc));
-    return;
-  }
-
-  // FPR->FPR copies
-  unsigned Opc;
-  if (RISCV::FPR32RegClass.contains(DstReg, SrcReg))
-    Opc = RISCV::FSGNJ_S;
-  else if (RISCV::FPR64RegClass.contains(DstReg, SrcReg))
-    Opc = RISCV::FSGNJ_D;
-  else
-    llvm_unreachable("Impossible reg-to-reg copy");
-
-  BuildMI(MBB, MBBI, DL, get(Opc), DstReg)
-      .addReg(SrcReg, getKillRegState(KillSrc))
-      .addReg(SrcReg, getKillRegState(KillSrc));
+  return;
 }
 
 void RISCVInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,

@@ -89,6 +89,7 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
     addRegisterClass(MVT::nxv1i32, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv1f32, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv8f32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv8i8, &RISCV::VRRegClass);
   }
 
   // Compute derived properties from the register classes.
@@ -1651,7 +1652,7 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
   else if (ValVT == MVT::f64 && !UseGPRForF64)
     Reg = State.AllocateReg(ArgFPR64s, ArgFPR32s);
   // TODO: handle all scalable vectors
-  else if (ValVT == MVT::nxv1i32 || ValVT == MVT::nxv8f32 || ValVT == MVT::nxv1f32)
+  else if (ValVT == MVT::nxv1i32 || ValVT == MVT::nxv8f32 || ValVT == MVT::nxv1f32 || ValVT == MVT::nxv8i8)
     Reg = State.AllocateReg(ArgVRs);
   else
     Reg = State.AllocateReg(ArgGPRs);

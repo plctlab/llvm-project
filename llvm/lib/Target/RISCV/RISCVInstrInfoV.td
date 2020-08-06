@@ -2713,6 +2713,8 @@ def : PatLE32<int_riscv_vle32_v_f32m1>;
 
 def : PatLE32<int_riscv_vle32_v_f32m8>;
 
+def : Pat<(nxv8i8 (int_riscv_vle8_v_i8m8 i64:$rs1)), (VLE8_V_um GPR:$rs1, 0)>;
+
 
 class PatSE32<SDPatternOperator OpNode>
     : Pat<(OpNode VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
