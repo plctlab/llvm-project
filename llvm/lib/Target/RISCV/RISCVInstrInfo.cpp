@@ -90,9 +90,29 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                  MachineBasicBlock::iterator MBBI,
                                  const DebugLoc &DL, MCRegister DstReg,
                                  MCRegister SrcReg, bool KillSrc) const {
-  BuildMI(MBB, MBBI, DL, get(RISCV::VMV_V_V), DstReg)
+  if (RISCV::GPRRegClass.contains(DstReg, SrcReg)) {
+    BuildMI(MBB, MBBI, DL, get(RISCV::ADDI), DstReg)
+        .addReg(SrcReg, getKillRegState(KillSrc))
+        .addImm(0);
+    return;
+  }
+
+  // FPR->FPR copies
+  unsigned Opc;
+  if (RISCV::FPR32RegClass.contains(DstReg, SrcReg))
+    Opc = RISCV::FSGNJ_S;
+  else if (RISCV::FPR64RegClass.contains(DstReg, SrcReg))
+    Opc = RISCV::FSGNJ_D;
+  else if (RISCV::VRRegClass.contains(DstReg, SrcReg)) {
+    BuildMI(MBB, MBBI, DL, get(RISCV::VMV_V_V), DstReg)
         .addReg(SrcReg, getKillRegState(KillSrc));
-  return;
+    return;
+  } else {
+    llvm_unreachable("Impossible reg-to-reg copy");
+  }
+  BuildMI(MBB, MBBI, DL, get(Opc), DstReg)
+      .addReg(SrcReg, getKillRegState(KillSrc))
+      .addReg(SrcReg, getKillRegState(KillSrc));
 }
 
 void RISCVInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
