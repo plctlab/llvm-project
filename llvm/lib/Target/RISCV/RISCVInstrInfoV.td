@@ -913,3 +913,35 @@ foreach nf = [1, 2, 4, 8] in {
 }
 } // hasSideEffects = 0, mayLoad = 0, mayStore = 0
 } // Predicates = [HasStdExtV]
+
+multiclass pat_binary<string intrinsic, string instruction> {
+  foreach vector = [nxv8i8, nxv4i16, nxv2i32, nxv1i64] in {
+  def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vv") vector:$vs1, vector:$vs2)), 
+  (!cast<Instruction>(instruction # "_VV") VRegOp:$vs1, VRegOp:$vs2, (nxv1i1 zero_reg))>;
+
+  // def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vx") vector:$vs1, i64:$rs1)),
+  // (!cast<Instruction>(instruction # "_VX") VRegOp:$vs1, GPR:$rs1, (nxv1i1 zero_reg))>;
+  }
+}
+
+defm "" : pat_binary<"vadd", "VADD">;
+defm "" : pat_binary<"vsub", "VSUB">;
+defm "" : pat_binary<"vmul", "VMUL">;
+defm "" : pat_binary<"vdiv", "VDIV">;
+defm "" : pat_binary<"vand", "VAND">;
+defm "" : pat_binary<"vor", "VOR">;
+defm "" : pat_binary<"vxor", "VXOR">;
+defm "" : pat_binary<"vmseq", "VMSEQ">;
+defm "" : pat_binary<"vmsgt", "VMSLT">; // not coherense
+defm "" : pat_binary<"vmsle", "VMSLE">; 
+defm "" : pat_binary<"vmsge", "VMSLE">; // not coherense
+defm "" : pat_binary<"vmin", "VMIN">;
+defm "" : pat_binary<"vmax", "VMAX">;
+// defm "" : pat_binary<"vmfeq", "VMF">;
+// defm "" : pat_binary<"vmfne", "VMSQT">;
+// defm "" : pat_binary<"vmfgt", "VMSLE">;
+// defm "" : pat_binary<"vmfle", "VMSGE">;
+// defm "" : pat_binary<"vmfge", "VMSEQ">;
+// defm "" : pat_binary<"vmfne", "VMSQT">;
+// defm "" : pat_binary<"vmfgt", "VMSLE">;
+// defm "" : pat_binary<"vmfle", "VMSGE">;

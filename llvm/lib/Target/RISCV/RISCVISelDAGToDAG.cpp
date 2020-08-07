@@ -16,6 +16,7 @@
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/Support/Alignment.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/IR/IntrinsicsRISCV.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/raw_ostream.h"
 

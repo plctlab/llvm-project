@@ -86,6 +86,20 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
     addRegisterClass(MVT::f32, &RISCV::FPR32RegClass);
   if (Subtarget.hasStdExtD())
     addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
+  if (Subtarget.hasStdExtV()) {
+    // addRegisterClass(MVT::nxv1i1, &RISCV::VRRegClass);
+    // addRegisterClass(MVT::nxv2i1, &RISCV::VRRegClass);
+    // addRegisterClass(MVT::nxv4i1, &RISCV::VRRegClass);
+    // addRegisterClass(MVT::nxv8i1, &RISCV::VRRegClass);
+    // addRegisterClass(MVT::nxv16i1, &RISCV::VRRegClass);
+    // addRegisterClass(MVT::nxv32i1, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1i64, &RISCV::VRRegClass);
+
+    addRegisterClass(MVT::nxv2i32, &RISCV::VRRegClass);
+
+    addRegisterClass(MVT::nxv4i16, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv8i8, &RISCV::VRRegClass);
+  }
 
   // Compute derived properties from the register classes.
   computeRegisterProperties(STI.getRegisterInfo());
@@ -1538,6 +1552,10 @@ static bool CC_RISCVAssign2XLen(unsigned XLen, CCState &State, CCValAssign VA1,
   return false;
 }
 
+static const MCPhysReg ArgVRs[] = {RISCV::V16, RISCV::V17, RISCV::V18,
+                                    RISCV::V19, RISCV::V20, RISCV::V21,
+                                    RISCV::V22, RISCV::V23};
+
 // Implements the RISC-V calling convention. Returns true upon failure.
 static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
                      MVT ValVT, MVT LocVT, CCValAssign::LocInfo LocInfo,
@@ -1671,6 +1689,9 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
     Reg = State.AllocateReg(ArgFPR32s, ArgFPR64s);
   else if (ValVT == MVT::f64 && !UseGPRForF64)
     Reg = State.AllocateReg(ArgFPR64s, ArgFPR32s);
+  else if (ValVT.isScalableVector()) {
+    Reg = State.AllocateReg(ArgVRs);
+  }
   else
     Reg = State.AllocateReg(ArgGPRs);
   unsigned StackOffset =
@@ -1694,7 +1715,7 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
     return false;
   }
 
-  assert((!UseGPRForF32 || !UseGPRForF64 || LocVT == XLenVT) &&
+  assert((!UseGPRForF32 || !UseGPRForF64 || LocVT == XLenVT || LocVT.isScalableVector()) && 
          "Expected an XLenVT at this stage");
 
   if (Reg) {
@@ -1781,26 +1802,31 @@ static SDValue convertLocVTToValVT(SelectionDAG &DAG, SDValue Val,
 // The caller is responsible for loading the full value if the argument is
 // passed with CCValAssign::Indirect.
 static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
-                                const CCValAssign &VA, const SDLoc &DL) {
+                                const CCValAssign &VA, const SDLoc &DL
+                                ) {
   MachineFunction &MF = DAG.getMachineFunction();
   MachineRegisterInfo &RegInfo = MF.getRegInfo();
   EVT LocVT = VA.getLocVT();
   SDValue Val;
   const TargetRegisterClass *RC;
-
-  switch (LocVT.getSimpleVT().SimpleTy) {
-  default:
-    llvm_unreachable("Unexpected register type");
-  case MVT::i32:
-  case MVT::i64:
-    RC = &RISCV::GPRRegClass;
-    break;
-  case MVT::f32:
-    RC = &RISCV::FPR32RegClass;
-    break;
-  case MVT::f64:
-    RC = &RISCV::FPR64RegClass;
-    break;
+    switch (LocVT.getSimpleVT().SimpleTy) {
+    default:
+      llvm_unreachable("Unexpected register type");
+    case MVT::i32:
+    case MVT::i64:
+      RC = &RISCV::GPRRegClass;
+      break;
+    case MVT::f32:
+      RC = &RISCV::FPR32RegClass;
+      break;
+    case MVT::f64:
+      RC = &RISCV::FPR64RegClass;
+      break;
+    case MVT::nxv8i8:
+    case MVT::nxv4i16:
+    case MVT::nxv2i32:
+    case MVT::nxv1i64:
+      RC = &RISCV::VRRegClass;
   }
 
   Register VReg = RegInfo.createVirtualRegister(RC);
