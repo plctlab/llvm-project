@@ -962,6 +962,8 @@ multiclass pat_load_store {
   def : Pat<(int_riscv_vstore i64:$rs1, nxv4f16:$vd), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
   def : Pat<(int_riscv_vstore i64:$rs1, nxv2f32:$vd), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
   def : Pat<(int_riscv_vstore i64:$rs1, nxv1f64:$vd), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(nxv2f32 (load GPR:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(store nxv2f32:$vd, GPR:$rs1), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
 }
 
 defm "" : pat_load_store;

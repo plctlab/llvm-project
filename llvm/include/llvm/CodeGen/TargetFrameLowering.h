@@ -27,6 +27,7 @@ namespace TargetStackID {
     Default = 0,
     SGPRSpill = 1,
     SVEVector = 2,
+    RISCVVector = 3,
     NoAlloc = 255
   };
 }
