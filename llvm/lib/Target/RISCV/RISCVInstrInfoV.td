@@ -966,3 +966,7 @@ multiclass pat_load_store {
 
 defm "" : pat_load_store;
 
+// pat vsetvl
+
+def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
+

@@ -157,5 +157,10 @@ def int_riscv_vmv_x_s : Intrinsic< [ llvm_anyint_ty ],
 def int_riscv_vfmv_f_s : Intrinsic< [ llvm_anyfloat_ty ],
                                   [ llvm_anyvector_ty ],
                                   [ IntrNoMem ]>;
+
+def int_riscv_vsetvl  : Intrinsic<[llvm_i64_ty], [
+    /* requested vector length */  llvm_i64_ty,
+    /* vtype */                    llvm_i64_ty], [ IntrNoMem ]>;
+
 } // TargetPrefix = "riscv"
 
