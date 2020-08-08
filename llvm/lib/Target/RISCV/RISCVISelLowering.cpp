@@ -99,6 +99,9 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
 
     addRegisterClass(MVT::nxv4i16, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv8i8, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv4f16, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv2f32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1f64, &RISCV::VRRegClass);
   }
 
   // Compute derived properties from the register classes.
@@ -1826,6 +1829,9 @@ static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
     case MVT::nxv4i16:
     case MVT::nxv2i32:
     case MVT::nxv1i64:
+    case MVT::nxv1f64:
+    case MVT::nxv2f32:
+    case MVT::nxv4f16:
       RC = &RISCV::VRRegClass;
   }
 

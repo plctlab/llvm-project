@@ -915,7 +915,7 @@ foreach nf = [1, 2, 4, 8] in {
 } // Predicates = [HasStdExtV]
 
 multiclass pat_binary<string intrinsic, string instruction> {
-  foreach vector = [nxv8i8, nxv4i16, nxv2i32, nxv1i64] in {
+  foreach vector = [nxv8i8, nxv4i16, nxv2i32, nxv1i64, nxv4f16, nxv2f32, nxv1f64] in {
   def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vv") vector:$vs1, vector:$vs2)), 
   (!cast<Instruction>(instruction # "_VV") VRegOp:$vs1, VRegOp:$vs2, (nxv1i1 zero_reg))>;
 
@@ -945,3 +945,24 @@ defm "" : pat_binary<"vmax", "VMAX">;
 // defm "" : pat_binary<"vmfne", "VMSQT">;
 // defm "" : pat_binary<"vmfgt", "VMSLE">;
 // defm "" : pat_binary<"vmfle", "VMSGE">;
+
+// pat load
+multiclass pat_load_store {
+  def : Pat<(nxv8i8 (int_riscv_vload i64:$rs1)), (VLE8_V GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(nxv4i16 (int_riscv_vload i64:$rs1)), (VLE16_V GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(nxv2i32 (int_riscv_vload i64:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(nxv1i64 (int_riscv_vload i64:$rs1)), (VLE64_V GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(nxv4f16 (int_riscv_vload i64:$rs1)), (VLE16_V GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(nxv2f32 (int_riscv_vload i64:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(nxv1f64 (int_riscv_vload i64:$rs1)), (VLE64_V GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(int_riscv_vstore i64:$rs1, nxv8i8:$vd), (VSE8_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(int_riscv_vstore i64:$rs1, nxv4i16:$vd), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(int_riscv_vstore i64:$rs1, nxv2i32:$vd), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(int_riscv_vstore i64:$rs1, nxv1i64:$vd), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(int_riscv_vstore i64:$rs1, nxv4f16:$vd), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(int_riscv_vstore i64:$rs1, nxv2f32:$vd), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+  def : Pat<(int_riscv_vstore i64:$rs1, nxv1f64:$vd), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+}
+
+defm "" : pat_load_store;
+

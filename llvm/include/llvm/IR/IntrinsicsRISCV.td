@@ -133,7 +133,7 @@ defm vmseq : Binary_vx;
 
 multiclass Vload {
   def ""  : Intrinsic<[ llvm_anyvector_ty ],
-                      [ LLVMPointerType<LLVMMatchType<0>> ],
+                      [ LLVMPointerType<llvm_any_ty> ],
                       [ IntrReadMem ]>;
     // TODO stride, indexed 
 }
@@ -142,7 +142,7 @@ defm int_riscv_vload : Vload;
 
 multiclass Vstore {
   def "" : Intrinsic<[],
-                    [ LLVMPointerType<llvm_anyvector_ty>,
+                    [ LLVMPointerType<llvm_any_ty>,
                       llvm_anyvector_ty ],
                       [ IntrWriteMem ]>;
   // TODO stride, indexed
