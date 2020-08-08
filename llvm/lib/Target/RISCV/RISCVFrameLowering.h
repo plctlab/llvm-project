@@ -64,6 +64,10 @@ public:
   bool canUseAsPrologue(const MachineBasicBlock &MBB) const override;
   bool canUseAsEpilogue(const MachineBasicBlock &MBB) const override;
 
+  TargetStackID::Value getStackIDForScalableVectors() const override {
+    return TargetStackID::RISCVVector;
+  }
+
 protected:
   const RISCVSubtarget &STI;
 

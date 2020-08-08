@@ -15,6 +15,7 @@
 #include "RISCVSubtarget.h"
 #include "RISCVTargetMachine.h"
 #include "Utils/RISCVMatInt.h"
+#include "RISCVMachineFunctionInfo.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
@@ -174,6 +175,10 @@ void RISCVInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
                                          Register SrcReg, bool IsKill, int FI,
                                          const TargetRegisterClass *RC,
                                          const TargetRegisterInfo *TRI) const {
+  MachineFunction *MF = MBB.getParent();
+  MachineFrameInfo &MFI = MF->getFrameInfo();
+  RISCVMachineFunctionInfo *RVFI = MF->getInfo<RISCVMachineFunctionInfo>();
+
   DebugLoc DL;
   if (I != MBB.end())
     DL = I->getDebugLoc();
@@ -187,6 +192,11 @@ void RISCVInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
     Opcode = RISCV::FSW;
   else if (RISCV::FPR64RegClass.hasSubClassEq(RC))
     Opcode = RISCV::FSD;
+  else if (RISCV::VRRegClass.hasSubClassEq(RC)) {
+    RVFI->setHasSpillVRs();
+    MFI.setStackID(FI, TargetStackID::RISCVVector);
+    Opcode = RISCV::VS1R_V;
+  }
   else
     llvm_unreachable("Can't store this register to stack slot");
 
@@ -201,6 +211,10 @@ void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
                                           Register DstReg, int FI,
                                           const TargetRegisterClass *RC,
                                           const TargetRegisterInfo *TRI) const {
+  MachineFunction *MF = MBB.getParent();
+  MachineFrameInfo &MFI = MF->getFrameInfo();
+  RISCVMachineFunctionInfo *RVFI = MF->getInfo<RISCVMachineFunctionInfo>();
+
   DebugLoc DL;
   if (I != MBB.end())
     DL = I->getDebugLoc();
@@ -214,6 +228,11 @@ void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
     Opcode = RISCV::FLW;
   else if (RISCV::FPR64RegClass.hasSubClassEq(RC))
     Opcode = RISCV::FLD;
+  else if (RISCV::VRRegClass.hasSubClassEq(RC)) {
+    RVFI->setHasSpillVRs();
+    MFI.setStackID(FI, TargetStackID::RISCVVector);
+    Opcode = RISCV::VL1R_V;
+  }
   else
     llvm_unreachable("Can't load this register from stack slot");
 
