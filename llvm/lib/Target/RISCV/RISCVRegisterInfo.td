@@ -310,7 +310,7 @@ def VR32 : VRClass<[nxv1i32, nxv2i32, nxv4i32, nxv8i32,
 
 // }
 
-def VR : RegisterClass<"RISCV", [nxv1i32, nxv1f32, nxv8f32, nxv8i8], 32, (sequence "V%u", 0, 31)>;
+def VR : RegisterClass<"RISCV", [nxv1i32, nxv1f32, nxv8f32, nxv8i8, nxv4i16], 32, (sequence "V%u", 0, 31)>;
 
 def VRV0 : RegisterClass<"RISCV", [nxv1i32], 32, (add V0)>;
 

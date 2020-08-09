@@ -3037,12 +3037,12 @@ vfloat32m1_t vfadd_vv_f32m1(vfloat32m1_t value1, vfloat32m1_t value2) {
 
 static __attribute__((always_inline))
 vint8m1_t vadd_vv_i8m1(vint8m1_t value1, vint8m1_t value2) {
- return  __builtin_riscv_vadd_vv_i8m1(value1, value2);
+  return  __builtin_riscv_vadd_vv_i8m1(value1, value2);
 }
 
 static __attribute__((always_inline))
 vint16m1_t vadd_vv_i16m1(vint16m1_t value1, vint16m1_t value2) {
- return  __builtin_riscv_vadd_vv_i16m1(value1, value2);
+  return  __builtin_riscv_vadd_vv_i16m1(value1, value2);
 }
 
 static __attribute__((always_inline))

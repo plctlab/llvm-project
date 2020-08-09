@@ -1,4 +1,4 @@
-RISCVBuiltin(vsetvl, "zzz", "", 0, 1, 2, )
+//RISCVBuiltin(vsetvl, "zzz", "", 0, 1, 2, )
 
 RISCVBuiltin(vsetvlmax, "zz", "", 0, 1, )
 
@@ -1070,11 +1070,9 @@ RISCVBuiltin(vmclr_m_b32, "q32b", "", )
 
 RISCVBuiltin(vmclr_m_b64, "q64b", "", )
 
-//RISCVBuiltin(vfadd_vv_f32m1, "q1iq1iq1i", "", )
+// RISCVBuiltin(vadd_vv_i8m1, "q8Scq8ScqSc", "", )
 
-RISCVBuiltin(vadd_vv_i8m1, "q1iq1iq1i", "", )
-
-RISCVBuiltin(vadd_vv_i16m1, "q1iq1iq1i", "", )
+// RISCVBuiltin(vadd_vv_i16m1, "q1iq1iq1i", "", )
 
 RISCVBuiltin(vadd_vv_i32m1, "q1iq1iq1i", "", )
 

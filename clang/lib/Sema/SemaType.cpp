@@ -7769,13 +7769,13 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
   Expr *LMULExpr = static_cast<Expr *>(Attr.getArgAsExpr(1));
   llvm::APSInt LMULInt(32);
 
-if (!LMULExpr->isIntegerConstantExpr(LMULInt, S.Context)) {  
+  if (!LMULExpr->isIntegerConstantExpr(LMULInt, S.Context)) {
     S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
-          << Attr << AANT_ArgumentIntegerConstant << LMULExpr->getSourceRange();
+           << Attr << AANT_ArgumentIntegerConstant << LMULExpr->getSourceRange();
     Attr.setInvalid();
     return;
   }
-unsigned LMUL = static_cast<unsigned>(LMULInt.getZExtValue());
+  unsigned LMUL = static_cast<unsigned>(LMULInt.getZExtValue());
 
   Expr* FractExpr = static_cast<Expr*>(Attr.getArgAsExpr(2));
   llvm::APSInt FractInt(32);
@@ -7859,7 +7859,8 @@ unsigned LMUL = static_cast<unsigned>(LMULInt.getZExtValue());
     return;
   }
 
-  CurType = S.Context.getVectorType(CurType, LMUL, VectorType::RISCVVector);
+
+  CurType = S.Context.getVectorType(CurType, (LMUL << 6) / ELEN, VectorType::RISCVVector);
 }
 
 static void HandleRISCVMaskTypeAttr(QualType &CurType, const ParsedAttr &Attr,

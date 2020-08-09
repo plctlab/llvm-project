@@ -2741,6 +2741,8 @@ def : PatSE32<int_riscv_vse32_v_f32m8>;
 
 def : Pat<(nxv1f32 (int_riscv_vfadd_vv_f32m1 VR:$vs2, VR:$vs1)), (VFADD_VV_um VR:$vs2, VR:$vs1)>;
 
+def : Pat<(nxv8i8 (int_riscv_vadd_vv nxv8i8:$vs2, nxv8i8:$vs1)), (VADD_VV_um VR:$vs2, VR:$vs1)>;
+def : Pat<(nxv4i16 (int_riscv_vadd_vv nxv4i16:$vs2, nxv4i16:$vs1)), (VADD_VV_um VR:$vs2, VR:$vs1)>;
 
 
 //def : Pat<(nxv1f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;

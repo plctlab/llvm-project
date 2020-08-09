@@ -1,3 +1,20 @@
+multiclass Binary_vv {
+  def "int_riscv_" # NAME : Intrinsic<[llvm_anyvector_ty],
+                                      [LLVMMatchType<0>, LLVMMatchType<0>],
+                                      [IntrNoMem]>;
+  // TODO: mask type
+}
+
+multiclass Binary_vx {
+  def "int_riscv_" # NAME : Intrinsic<[llvm_anyvector_ty],
+                                      [LLVMMatchType<0>, llvm_anyint_ty],
+                                      [IntrNoMem]>;
+  // TODO: mask type
+}
+
+defm vadd_vv : Binary_vv;
+defm vadd_vx : Binary_vx;
+
 def int_riscv_vsetvl
   : Intrinsic<[llvm_anyint_ty],
               [llvm_anyint_ty, llvm_anyint_ty],
@@ -2678,17 +2695,17 @@ def int_riscv_vmclr_m_b64
               [],
               [IntrNoMem]>;
 
-def int_riscv_vadd_vv_i8m1 : Intrinsic<[llvm_nxv1i8_ty],
-                               [llvm_nxv1i8_ty, llvm_nxv1i8_ty],
-                               [IntrNoMem]>;
+//def int_riscv_vadd_vv_i8m1 : Intrinsic<[llvm_nxv1i8_ty],
+//                               [llvm_nxv1i8_ty, llvm_nxv1i8_ty],
+//                               [IntrNoMem]>;
 
 def int_riscv_vadd_vv_u8m1 : Intrinsic<[llvm_nxv1i8_ty],
                                [llvm_nxv1i8_ty, llvm_nxv1i8_ty],
                                [IntrNoMem]>;
 
-def int_riscv_vadd_vv_i16m1 : Intrinsic<[llvm_nxv1i16_ty],
-                               [llvm_nxv1i16_ty, llvm_nxv1i16_ty],
-                               [IntrNoMem]>;
+//def int_riscv_vadd_vv_i16m1 : Intrinsic<[llvm_nxv1i16_ty],
+//                               [llvm_nxv1i16_ty, llvm_nxv1i16_ty],
+//                               [IntrNoMem]>;
 
 def int_riscv_vadd_vv_u16m1 : Intrinsic<[llvm_nxv1i16_ty],
                                [llvm_nxv1i16_ty, llvm_nxv1i16_ty],

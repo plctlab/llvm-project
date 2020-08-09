@@ -14498,14 +14498,14 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
 
 Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
                                              const CallExpr *E) {
-SmallVector<llvm::Value*, 4> ArgVs;
-   SmallVector<llvm::Type *, 4> ArgTys;
-
-ArgTys.push_back(ConvertType(E->getCallReturnType(getContext())));
+  SmallVector<Value*, 4> Args;
+  SmallVector<llvm::Type *, 4> ArgTys;
+  llvm::Type* ResultType = ConvertType(E->getType());
+  ArgTys.push_back(ResultType);
  
-for (const Expr* Arg : E->arguments()) {
+  for (const Expr* Arg : E->arguments()) {
     llvm::Value* V = EmitScalarExpr(Arg);
-    ArgVs.push_back(V);
+    Args.push_back(V);
     ArgTys.push_back(V->getType());
   }
 
@@ -14513,21 +14513,26 @@ for (const Expr* Arg : E->arguments()) {
   SmallVector<llvm::Type*, 4> OverloadedArgTys;
 
   switch (BuiltinID) {
-#define RISCVBuiltin(Name, Foo, Bar, ...)                                      \
-  case RISCV::BI__builtin_riscv_##Name:                                        \
-    IntrinsicID = Intrinsic::riscv_##Name;                                     \
-    for (unsigned I : std::initializer_list<int>{__VA_ARGS__})                 \
-      OverloadedArgTys.push_back(ArgTys[I]);                                   \
-    break;
+    case RISCV::BI__builtin_riscv_vadd_vv_i8m1:
+    case RISCV::BI__builtin_riscv_vadd_vv_i16m1: {
+      Value *Return = EmitScalarExpr(E->getArg(0));
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vadd_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    }
+  #define RISCVBuiltin(Name, Foo, Bar, ...)                                    \
+    case RISCV::BI__builtin_riscv_##Name:                                      \
+      IntrinsicID = Intrinsic::riscv_##Name;                                   \
+      for (unsigned I : std::initializer_list<int>{__VA_ARGS__})               \
+        OverloadedArgTys.push_back(ArgTys[I]);                                 \
+      break;
   #include "clang/Basic/riscv_builtin.h"
   #undef RISCVBuiltin
-  default:
-  return nullptr;
+    default:
+    return nullptr;
   }
 
-  // Function* F = CGM.getIntrinsic(Iter->second, Tys);
   Function* F = CGM.getIntrinsic(IntrinsicID, OverloadedArgTys);
-  return Builder.CreateCall(F, ArgVs);
+  return Builder.CreateCall(F, Args);
 }
 
 /// Handle a SystemZ function in which the final argument is a pointer
