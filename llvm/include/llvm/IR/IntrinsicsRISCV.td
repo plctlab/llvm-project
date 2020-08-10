@@ -113,22 +113,26 @@ defm vmfgt_vv : Binary_vv;
 defm vmfle_vv : Binary_vv;
 defm vmfge_vv : Binary_vv;
 defm vmin_vv : Binary_vv;
+defm vfmin_vv : Binary_vv;
 defm vminu_vv : Binary_vv;
 defm vmax_vv : Binary_vv;
+defm vfmax_vv : Binary_vv;
 defm vmaxu_vv : Binary_vv;
 
 defm vadd_vx : Binary_vx;
-defm vfadd_vx : Binary_vf;
+defm vfadd_vf : Binary_vf;
 defm vsub_vx : Binary_vx;
-defm vfsub_vx : Binary_vf;
+defm vfsub_vf : Binary_vf;
 defm vmul_vx : Binary_vx;
-defm vfmul_vx : Binary_vf;
+defm vfmul_vf : Binary_vf;
 defm vdiv_vx :Binary_vx;
-defm vfdiv_vx : Binary_vf;
+defm vfdiv_vf : Binary_vf;
 defm vsll_vx : Binary_vx;
 defm vsrl_vx : Binary_vx;
 defm vsra_vx : Binary_vx;
 defm vmseq : Binary_vx;
+defm vmin : Binary_vx;
+defm vmax : Binary_vx;
 
 
 multiclass Vload {
