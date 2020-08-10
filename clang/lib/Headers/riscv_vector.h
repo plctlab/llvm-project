@@ -143,4 +143,31 @@ typedef __attribute__((riscv_mask_type(32))) bool vbool32_t;
 
 typedef __attribute__((riscv_mask_type(64))) bool vbool64_t;
 
+
+static __attribute__((always_inline))
+size_t vsetvl_e8m1(size_t avl) {
+  return __builtin_riscv_vsetvl(avl, _E8 | _M1);
+}
+
+/*static __attribute__((always_inline))
+vint8m1_t vadd_vv_i8m1(vint8m1_t value1, vint8m1_t value2) {
+  return  __builtin_riscv_vadd_vv_i8m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vint16m1_t vadd_vv_i16m1(vint16m1_t value1, vint16m1_t value2) {
+  return  __builtin_riscv_vadd_vv_i16m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vadd_vv_i32m1(vint32m1_t value1, vint32m1_t value2) {
+  return  __builtin_riscv_vadd_vv_i32m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vadd_vv_i64m1(vint64m1_t value1, vint64m1_t value2) {
+  return  __builtin_riscv_vadd_vv_i64m1(value1, value2);
+}
+*/
+
 #endif 

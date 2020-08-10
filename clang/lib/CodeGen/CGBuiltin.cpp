@@ -40,6 +40,7 @@
 #include "llvm/IR/IntrinsicsNVPTX.h"
 #include "llvm/IR/IntrinsicsPowerPC.h"
 #include "llvm/IR/IntrinsicsR600.h"
+#include "llvm/IR/IntrinsicsRISCV.h"
 #include "llvm/IR/IntrinsicsS390.h"
 #include "llvm/IR/IntrinsicsWebAssembly.h"
 #include "llvm/IR/IntrinsicsX86.h"
@@ -4529,6 +4530,9 @@ static Value *EmitTargetArchBuiltinExpr(CodeGenFunction *CGF,
   case llvm::Triple::ppc64:
   case llvm::Triple::ppc64le:
     return CGF->EmitPPCBuiltinExpr(BuiltinID, E);
+  case llvm::Triple::riscv32:
+  case llvm::Triple::riscv64:
+    return CGF->EmitRISCVBuiltinExpr(BuiltinID, E);
   case llvm::Triple::r600:
   case llvm::Triple::amdgcn:
     return CGF->EmitAMDGPUBuiltinExpr(BuiltinID, E);
@@ -14881,6 +14885,46 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
     return nullptr;
   }
 }
+
+Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
+                                             const CallExpr *E) {
+  SmallVector<llvm::Value*, 4> ArgVs;
+  SmallVector<llvm::Type *, 4> ArgTys;
+
+  SmallVector<Value*, 4> Args;
+  llvm::Type* ResultType = ConvertType(E->getType());
+  SmallVector<llvm::Type*, 4> OverloadedArgTys;
+
+  for (const Expr* Arg : E->arguments()) {
+    llvm::Value* V = EmitScalarExpr(Arg);
+    ArgVs.push_back(V);
+    ArgTys.push_back(V->getType());
+    Args.push_back(V);
+  }
+ 
+  switch (BuiltinID) {
+   /* case RISCV::BI__builtin_riscv_vadd_vv_i8m1: 
+    case RISCV::BI__builtin_riscv_vadd_vv_i16m1: 
+    case RISCV::BI__builtin_riscv_vadd_vv_i32m1: 
+    case RISCV::BI__builtin_riscv_vadd_vv_i64m1: {
+        Function *F = CGM.getIntrinsic(Intrinsic::riscv_vadd_vv, ResultType);
+        F->dump();
+        return Builder.CreateCall(F, Args);
+    }
+*/
+    case RISCV::BI__builtin_riscv_vsetvl: {
+      Value *Return = EmitScalarExpr(E->getArg(0));
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl, ResultType);
+      //Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl, ArgTys);
+      return Builder.CreateCall(F, Args);
+    }
+    default:
+      return nullptr;
+
+  }
+
+}
+
 
 /// Handle a SystemZ function in which the final argument is a pointer
 /// to an int that receives the post-instruction CC value.  At the LLVM level

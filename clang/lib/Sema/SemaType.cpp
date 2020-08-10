@@ -7949,7 +7949,7 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
     return;
   }
 
-  CurType = S.Context.getVectorType(CurType, LMUL, VectorType::RISCVVector);
+  CurType = S.Context.getVectorType(CurType, (LMUL << 6)/ELEN, VectorType::RISCVVector);
 }
 
 static void HandleRISCVMaskTypeAttr(QualType &CurType, const ParsedAttr &Attr,

@@ -105,6 +105,16 @@ namespace clang {
   };
   }
 
+  /// RISCV builtins
+  namespace RISCV {
+  enum {
+    LastTIBuiltin = clang::Builtin::FirstTSBuiltin - 1,
+  #define BUILTIN(ID, TYPE, ATTRS) BI##ID,
+  #include "clang/Basic/BuiltinsRISCV.def"
+    LastTSBuiltin
+  };
+  }
+
   /// X86 builtins
   namespace X86 {
   enum {
