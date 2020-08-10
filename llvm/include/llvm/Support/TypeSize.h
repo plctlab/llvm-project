@@ -184,10 +184,11 @@ public:
 #ifdef STRICT_FIXED_SIZE_VECTORS
     return getFixedSize();
 #else
-    if (isScalable())
-      WithColor::warning() << "Compiler has made implicit assumption that "
-                              "TypeSize is not scalable. This may or may not "
-                              "lead to broken code.\n";
+    /* temporary change */
+    // if (isScalable())
+    //   WithColor::warning() << "Compiler has made implicit assumption that "
+    //                           "TypeSize is not scalable. This may or may not "
+    //                           "lead to broken code.\n";
     return getKnownMinSize();
 #endif
   }
