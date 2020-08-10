@@ -1,4 +1,4 @@
-; RUN: llc -mtriple=riscv64 -mattr=+experimental-v < %s \
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-v -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=CHECK %s
 
 declare i64 @llvm.riscv.vsetvl(i64, i64);
