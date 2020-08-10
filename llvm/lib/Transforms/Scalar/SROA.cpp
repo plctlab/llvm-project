@@ -4644,6 +4644,7 @@ public:
   }
 
   bool runOnFunction(Function &F) override {
+    return false;
     if (skipFunction(F))
       return false;
 
