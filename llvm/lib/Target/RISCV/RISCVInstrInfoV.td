@@ -968,6 +968,14 @@ multiclass pat_load_store {
 
 defm "" : pat_load_store;
 
+multiclass pat_vmv_v_x {
+  foreach vector=[nxv8i8, nxv2i32, nxv4i16, nxv1i64] in {
+    def : Pat<(vector (int_riscv_vmv_v_x GPR:$rs1)), (VMV_V_X GPR:$rs1)>;
+  }
+}
+
+defm "" : pat_vmv_v_x;
+
 // pat vsetvl
 
 def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;

@@ -152,7 +152,11 @@ defm int_riscv_vstore : Vstore;
 
 def int_riscv_vmv_x_s : Intrinsic< [ llvm_anyint_ty ],
                                  [ llvm_anyvector_ty ],
-                                 [ IntrNoMem ] >;
+                                 [ IntrNoMem ]>;
+
+def int_riscv_vmv_v_x : Intrinsic< [ llvm_anyvector_ty ],
+                                  [ llvm_anyint_ty ],
+                                  [ IntrNoMem ]>;
 
 def int_riscv_vfmv_f_s : Intrinsic< [ llvm_anyfloat_ty ],
                                   [ llvm_anyvector_ty ],
