@@ -430,11 +430,12 @@ public:
            "Request for fixed number of elements from scalable vector");
     return EC.Min;
 #else
-    if (EC.Scalable)
-      WithColor::warning()
-          << "The code that requested the fixed number of elements has made "
-             "the assumption that this vector is not scalable. This assumption "
-             "was not correct, and this may lead to broken code\n";
+    // FIXME: the warning is temporarily disabled for now, fix it later.
+    //if (EC.Scalable)
+    //  WithColor::warning()
+    //      << "The code that requested the fixed number of elements has made "
+    //         "the assumption that this vector is not scalable. This assumption "
+    //         "was not correct, and this may lead to broken code\n";
     return EC.Min;
 #endif
   }
