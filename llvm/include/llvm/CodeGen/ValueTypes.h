@@ -272,11 +272,12 @@ namespace llvm {
       assert(isFixedLengthVector() && "Invalid vector type!");
 #else
       assert(isVector() && "Invalid vector type!");
-      if (isScalableVector())
-        WithColor::warning()
-            << "Possible incorrect use of EVT::getVectorNumElements() for "
-               "scalable vector. Scalable flag may be dropped, use"
-               "EVT::getVectorElementCount() instead\n";
+      // FIXME: the warning is temporarily disabled for now, fix it later.
+      //if (isScalableVector())
+      //  WithColor::warning()
+      //      << "Possible incorrect use of EVT::getVectorNumElements() for "
+      //         "scalable vector. Scalable flag may be dropped, use"
+      //         "EVT::getVectorElementCount() instead\n";
 #endif
       if (isSimple())
         return V.getVectorNumElements();
