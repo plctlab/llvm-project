@@ -14888,34 +14888,25 @@ Value *CodeGenFunction::EmitAMDGPUBuiltinExpr(unsigned BuiltinID,
 
 Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
                                              const CallExpr *E) {
-  SmallVector<llvm::Value*, 4> ArgVs;
-  SmallVector<llvm::Type *, 4> ArgTys;
 
   SmallVector<Value*, 4> Args;
   llvm::Type* ResultType = ConvertType(E->getType());
-  SmallVector<llvm::Type*, 4> OverloadedArgTys;
 
   for (const Expr* Arg : E->arguments()) {
     llvm::Value* V = EmitScalarExpr(Arg);
-    ArgVs.push_back(V);
-    ArgTys.push_back(V->getType());
     Args.push_back(V);
   }
  
   switch (BuiltinID) {
-   /* case RISCV::BI__builtin_riscv_vadd_vv_i8m1: 
+   case RISCV::BI__builtin_riscv_vadd_vv_i8m1: 
     case RISCV::BI__builtin_riscv_vadd_vv_i16m1: 
     case RISCV::BI__builtin_riscv_vadd_vv_i32m1: 
     case RISCV::BI__builtin_riscv_vadd_vv_i64m1: {
-        Function *F = CGM.getIntrinsic(Intrinsic::riscv_vadd_vv, ResultType);
-        F->dump();
-        return Builder.CreateCall(F, Args);
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vadd_vv, ResultType);
+      return Builder.CreateCall(F, Args);
     }
-*/
     case RISCV::BI__builtin_riscv_vsetvl: {
-      Value *Return = EmitScalarExpr(E->getArg(0));
       Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl, ResultType);
-      //Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl, ArgTys);
       return Builder.CreateCall(F, Args);
     }
     default:

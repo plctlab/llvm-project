@@ -24,10 +24,10 @@
 
 BUILTIN(__builtin_riscv_vsetvl, "zzz", "")
 
-//BUILTIN(__builtin_riscv_vadd_vv_i8m1, "q8cq8cq8c", "")
-//BUILTIN(__builtin_riscv_vadd_vv_i16m1, "q4sq4sq4s", "")
-//BUILTIN(__builtin_riscv_vadd_vv_i32m1, "q2iq2iq2i", "")
-//BUILTIN(__builtin_riscv_vadd_vv_i64m1, "q1Wq1Wq1W", "")
+BUILTIN(__builtin_riscv_vadd_vv_i8m1, "q8cq8cq8c", "")
+BUILTIN(__builtin_riscv_vadd_vv_i16m1, "q4sq4sq4s", "")
+BUILTIN(__builtin_riscv_vadd_vv_i32m1, "q2iq2iq2i", "")
+BUILTIN(__builtin_riscv_vadd_vv_i64m1, "q1Wiq1Wiq1Wi", "")
 
 //#define RISCVBuiltin(Name, Prototype, Attrs, ...)                              \
 //   BUILTIN(__builtin_riscv_##Name, Prototype, Attrs)
