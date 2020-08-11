@@ -15,7 +15,6 @@
 #include "RISCVSubtarget.h"
 #include "RISCVTargetMachine.h"
 #include "Utils/RISCVMatInt.h"
-#include "RISCVMachineFunctionInfo.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
@@ -32,6 +31,7 @@ using namespace llvm;
 
 #define GET_INSTRINFO_CTOR_DTOR
 #include "RISCVGenInstrInfo.inc"
+#include "RISCVMachineFunctionInfo.h"
 
 RISCVInstrInfo::RISCVInstrInfo(RISCVSubtarget &STI)
     : RISCVGenInstrInfo(RISCV::ADJCALLSTACKDOWN, RISCV::ADJCALLSTACKUP),
@@ -97,74 +97,19 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
     return;
   }
 
-  // GPR -> VL via VSETVL
-  if (RISCV::GPRRegClass.contains(SrcReg) &&
-      RISCV::VLRRegClass.contains(DstReg)) {
-    BuildMI(MBB, MBBI, DL, get(RISCV::VSETVL), DstReg)
-        .addDef(RISCV::X0)
-        .addReg(SrcReg, getKillRegState(KillSrc));
-    return;
-  }
-  // VL -> GPR via CSR read
-  if (RISCV::VLRRegClass.contains(SrcReg) &&
-      RISCV::GPRRegClass.contains(DstReg)) {
-    BuildMI(MBB, MBBI, DL, get(RISCV::PseudoCSRR_VL), DstReg)
-        .addReg(SrcReg, getKillRegState(KillSrc));
-    return;
-  }
-
-  // VR -> VR copies
-  if (RISCV::VRRegClass.contains(SrcReg) &&
-      RISCV::VRRegClass.contains(DstReg)) {
-
-    auto Scavenger = RegScavenger();
-    Scavenger.enterBasicBlockEnd(MBB);
-    unsigned SavedVL = Scavenger.scavengeRegisterBackwards(
-      RISCV::GPRRegClass, MBBI, false, 0);
-
-    //Save current VL
-    MachineInstr &MI = *BuildMI(MBB, MBBI, DL, get(RISCV::CSRRS), SavedVL)
-        .addImm(0xCC0)
-        .addReg(RISCV::X0);
-
-    Scavenger.setRegUsed(SavedVL);
-
-    //Save MAXVL in GPR
-    unsigned MaxVL = Scavenger.scavengeRegisterBackwards(
-      RISCV::GPRRegClass, MachineBasicBlock::iterator(MI), false, 0);
-
-
-    BuildMI(MBB, MBBI, DL, get(RISCV::CSRRS), MaxVL)
-        .addImm(0xCC1) //Couldn't find the actual CSR number - placeholder
-        .addReg(RISCV::X0);
-
-    //Set VL to MAXVL
-    BuildMI(MBB, MBBI, DL, get(RISCV::VSETVL), RISCV::VL)
-        .addDef(RISCV::X0)
-        .addReg(MaxVL, getKillRegState(true));
-
-    //Copy Vector
-    BuildMI(MBB, MBBI, DL, get(RISCV::VADD_VI_um), DstReg)
-        .addReg(SrcReg, getKillRegState(KillSrc))
-        .addImm(0)
-        .addReg(RISCV::VL);
-
-    BuildMI(MBB, MBBI, DL, get(RISCV::VSETVL), RISCV::VL)
-        .addDef(RISCV::X0)
-        .addReg(SavedVL, getKillRegState(true));
-
-    return;
-  }
-
   // FPR->FPR copies
   unsigned Opc;
   if (RISCV::FPR32RegClass.contains(DstReg, SrcReg))
     Opc = RISCV::FSGNJ_S;
   else if (RISCV::FPR64RegClass.contains(DstReg, SrcReg))
     Opc = RISCV::FSGNJ_D;
-  else
+  else if (RISCV::VRRegClass.contains(DstReg, SrcReg)) {
+    BuildMI(MBB, MBBI, DL, get(RISCV::VMV_V_V), DstReg)
+        .addReg(SrcReg, getKillRegState(KillSrc));
+    return;
+  } else {
     llvm_unreachable("Impossible reg-to-reg copy");
-
+  }
   BuildMI(MBB, MBBI, DL, get(Opc), DstReg)
       .addReg(SrcReg, getKillRegState(KillSrc))
       .addReg(SrcReg, getKillRegState(KillSrc));
@@ -213,7 +158,6 @@ void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
                                           const TargetRegisterInfo *TRI) const {
   MachineFunction *MF = MBB.getParent();
   MachineFrameInfo &MFI = MF->getFrameInfo();
-  RISCVMachineFunctionInfo *RVFI = MF->getInfo<RISCVMachineFunctionInfo>();
 
   DebugLoc DL;
   if (I != MBB.end())
@@ -229,7 +173,6 @@ void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
   else if (RISCV::FPR64RegClass.hasSubClassEq(RC))
     Opcode = RISCV::FLD;
   else if (RISCV::VRRegClass.hasSubClassEq(RC)) {
-    RVFI->setHasSpillVRs();
     MFI.setStackID(FI, TargetStackID::RISCVVector);
     Opcode = RISCV::VL1R_V;
   }
