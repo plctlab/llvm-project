@@ -7884,7 +7884,6 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
   }
 
   const BuiltinType *BTy = CurType->getAs<BuiltinType>();
-
   if (BTy->isFloatingType()) {
     switch (ELEN) {
     case 64:

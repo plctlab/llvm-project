@@ -14891,18 +14891,103 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
 
   SmallVector<Value*, 4> Args;
   llvm::Type* ResultType = ConvertType(E->getType());
-
   for (const Expr* Arg : E->arguments()) {
     llvm::Value* V = EmitScalarExpr(Arg);
     Args.push_back(V);
   }
  
   switch (BuiltinID) {
-   case RISCV::BI__builtin_riscv_vadd_vv_i8m1: 
+    case RISCV::BI__builtin_riscv_vand_vv_i8m1: 
+    case RISCV::BI__builtin_riscv_vand_vv_i16m1:
+    case RISCV::BI__builtin_riscv_vand_vv_i32m1:
+    case RISCV::BI__builtin_riscv_vand_vv_i64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vand_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    } //sub
+    case RISCV::BI__builtin_riscv_vsub_vv_i8m1:
+    case RISCV::BI__builtin_riscv_vsub_vv_i16m1:
+    case RISCV::BI__builtin_riscv_vsub_vv_i32m1:
+    case RISCV::BI__builtin_riscv_vsub_vv_i64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsub_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    }
+    case RISCV::BI__builtin_riscv_vfsub_vv_f16m1:
+    case RISCV::BI__builtin_riscv_vfsub_vv_f32m1:
+    case RISCV::BI__builtin_riscv_vfsub_vv_f64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vfsub_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    } //xor
+    case RISCV::BI__builtin_riscv_vxor_vv_i8m1:
+    case RISCV::BI__builtin_riscv_vxor_vv_i16m1:
+    case RISCV::BI__builtin_riscv_vxor_vv_i32m1:
+    case RISCV::BI__builtin_riscv_vxor_vv_i64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vxor_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    } //or
+    case RISCV::BI__builtin_riscv_vor_vv_i8m1:
+    case RISCV::BI__builtin_riscv_vor_vv_i16m1:
+    case RISCV::BI__builtin_riscv_vor_vv_i32m1:
+    case RISCV::BI__builtin_riscv_vor_vv_i64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vor_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    } //not 
+    //case RISCV::BI__builtin_riscv_vnot_vv_i8m1:
+    //case RISCV::BI__builtin_riscv_vnot_vv_i16m1:
+    //case RISCV::BI__builtin_riscv_vnot_vv_i32m1:
+    //case RISCV::BI__builtin_riscv_vnot_vv_i64m1: {
+    //  Function *F = CGM.getIntrinsic(Intrinsic::riscv_vnot_vv, ResultType);
+    //  return Builder.CreateCall(F, Args);
+    //}//min 
+    case RISCV::BI__builtin_riscv_vmin_vv_i8m1:
+    case RISCV::BI__builtin_riscv_vmin_vv_i16m1:
+    case RISCV::BI__builtin_riscv_vmin_vv_i32m1:
+    case RISCV::BI__builtin_riscv_vmin_vv_i64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vmin_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    }
+    case RISCV::BI__builtin_riscv_vfmin_vv_f16m1:
+    case RISCV::BI__builtin_riscv_vfmin_vv_f32m1:
+    case RISCV::BI__builtin_riscv_vfmin_vv_f64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vfmin_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    } //add
+    case RISCV::BI__builtin_riscv_vadd_vv_i8m1: 
     case RISCV::BI__builtin_riscv_vadd_vv_i16m1: 
     case RISCV::BI__builtin_riscv_vadd_vv_i32m1: 
     case RISCV::BI__builtin_riscv_vadd_vv_i64m1: {
       Function *F = CGM.getIntrinsic(Intrinsic::riscv_vadd_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    }
+    case RISCV::BI__builtin_riscv_vfadd_vv_f16m1:
+    case RISCV::BI__builtin_riscv_vfadd_vv_f32m1:
+    case RISCV::BI__builtin_riscv_vfadd_vv_f64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vfadd_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    } //mul
+    case RISCV::BI__builtin_riscv_vmul_vv_i8m1:
+    case RISCV::BI__builtin_riscv_vmul_vv_i16m1:
+    case RISCV::BI__builtin_riscv_vmul_vv_i32m1: 
+    case RISCV::BI__builtin_riscv_vmul_vv_i64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vmul_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    }
+    case RISCV::BI__builtin_riscv_vfmul_vv_f16m1:
+    case RISCV::BI__builtin_riscv_vfmul_vv_f32m1: 
+    case RISCV::BI__builtin_riscv_vfmul_vv_f64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vfmul_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    } //div
+    case RISCV::BI__builtin_riscv_vdiv_vv_i8m1:
+    case RISCV::BI__builtin_riscv_vdiv_vv_i16m1:
+    case RISCV::BI__builtin_riscv_vdiv_vv_i32m1: 
+    case RISCV::BI__builtin_riscv_vdiv_vv_i64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vdiv_vv, ResultType);
+      return Builder.CreateCall(F, Args);
+    }
+    case RISCV::BI__builtin_riscv_vfdiv_vv_f16m1:
+    case RISCV::BI__builtin_riscv_vfdiv_vv_f32m1: 
+    case RISCV::BI__builtin_riscv_vfdiv_vv_f64m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vfdiv_vv, ResultType);
       return Builder.CreateCall(F, Args);
     }
     case RISCV::BI__builtin_riscv_vsetvl: {

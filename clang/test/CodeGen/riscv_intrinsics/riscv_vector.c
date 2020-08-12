@@ -1,6 +1,6 @@
 // RUN: %clang --target=riscv64-unknown-linux-elf -S -emit-llvm -O0 %s -o - | FileCheck %s
 
-#include "/home/liaochunyu/rvv-llvm/clang/lib/Headers/riscv_vector.h"
+#include "riscv_vector.h"
 
 // vint64m1_t
 vint64m1_t generate_vint64m1_t();

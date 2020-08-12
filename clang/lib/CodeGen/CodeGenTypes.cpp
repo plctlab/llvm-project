@@ -487,7 +487,6 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
       ResultType = llvm::IntegerType::get(getLLVMContext(),
                                  static_cast<unsigned>(Context.getTypeSize(T)));
       break;
-
     case BuiltinType::Float16:
       ResultType =
           getTypeForFormat(getLLVMContext(), Context.getFloatTypeSemantics(T),
@@ -495,11 +494,15 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
       break;
 
     case BuiltinType::Half:
+      // TODO: Modified for vfloat16m1, need to check that it's correct.
+      ResultType =
+          getTypeForFormat(getLLVMContext(), Context.getFloatTypeSemantics(T),
+                           /* UseNativeHalf = */ true);
       // Half FP can either be storage-only (lowered to i16) or native.
-      ResultType = getTypeForFormat(
-          getLLVMContext(), Context.getFloatTypeSemantics(T),
-          Context.getLangOpts().NativeHalfType ||
-              !Context.getTargetInfo().useFP16ConversionIntrinsics());
+      //ResultType = getTypeForFormat(
+       //   getLLVMContext(), Context.getFloatTypeSemantics(T),
+       //   Context.getLangOpts().NativeHalfType ||
+       //       !Context.getTargetInfo().useFP16ConversionIntrinsics());
       break;
     case BuiltinType::BFloat16:
     case BuiltinType::Float:
