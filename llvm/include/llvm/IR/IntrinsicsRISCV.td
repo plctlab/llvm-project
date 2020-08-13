@@ -575,7 +575,7 @@ defm vmfge : Binary_float_vm;
 multiclass Vload {
 
   def ""              : Intrinsic<[ llvm_anyvector_ty ],
-                                  [ LLVMPointerType<llvm_any_ty>],
+                                  [ llvm_anyptr_ty ],
                                   [ IntrReadMem ]>;
   // def "_strided"      : Intrinsic<[ llvm_anyvector_ty ],
   //                                 [ LLVMPointerType<LLVMMatchType<0>>,
