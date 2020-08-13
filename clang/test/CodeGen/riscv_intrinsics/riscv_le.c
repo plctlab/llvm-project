@@ -10,8 +10,9 @@ vint32m1_t  __attribute__((noinline)) testle32(const int32_t* src) {
   return vle32_v_i32m1(src);
 }
 
+vfloat32m1_t  __attribute__((noinline)) testle32_f(const float* src) {
+  return vle32_v_f32m1(src);
+}
 
-
-//vfloat32m1_t  __attribute__((noinline)) testle32_f(const float* src) {
-//  return vle32_v_f32m1(src);
-//}
+//CHECK:   %3 = call <vscale x 2 x i32> @llvm.riscv.vload.nxv2i32.p0i32(i32* %1) #2
+//CHECK:    %3 = call <vscale x 2 x float> @llvm.riscv.vload.nxv2f32.p0f32(float* %1) #2

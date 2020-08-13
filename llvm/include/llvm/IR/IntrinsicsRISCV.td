@@ -165,7 +165,7 @@ class V_VVX_mask : Intrinsic<[ llvm_anyvector_ty ],
                              [ IntrNoMem ]>;
 
 class V_VVF : Intrinsic<[ llvm_anyvector_ty ],
-                        [ LLVMMatchType<0>, llvm_anyfloat_ty, LLVMMatchType<0> ],
+                        [ llvm_anyvector_ty, llvm_anyfloat_ty, llvm_anyvector_ty ],
                         [ IntrNoMem ]>;
 
 class V_VVF_mask : Intrinsic<[ llvm_anyvector_ty ],
@@ -609,7 +609,7 @@ defm int_riscv_vload : Vload;
 // Stores
 multiclass Vstore {
   def ""              : Intrinsic<[],
-                                  [ LLVMPointerType<llvm_any_ty>,
+                                  [ llvm_anyptr_ty,
                                     llvm_anyvector_ty],
                                   [ IntrWriteMem ]>;
   // def "_strided"      : Intrinsic<[],

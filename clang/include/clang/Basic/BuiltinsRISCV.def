@@ -39,10 +39,10 @@ BUILTIN(__builtin_riscv_vor_vv_i16m1, "q4sq4sq4s", "")
 BUILTIN(__builtin_riscv_vor_vv_i32m1, "q2iq2iq2i", "")
 BUILTIN(__builtin_riscv_vor_vv_i64m1, "q1Wiq1Wiq1Wi", "")
 //vnot
-BUILTIN(__builtin_riscv_vnot_vv_i8m1, "q8cq8cq8c", "")
-BUILTIN(__builtin_riscv_vnot_vv_i16m1, "q4sq4sq4s", "")
-BUILTIN(__builtin_riscv_vnot_vv_i32m1, "q2iq2iq2i", "")
-BUILTIN(__builtin_riscv_vnot_vv_i64m1, "q1Wiq1Wiq1Wi", "")
+BUILTIN(__builtin_riscv_vnot_v_i8m1, "q8cq8c", "")
+BUILTIN(__builtin_riscv_vnot_v_i16m1, "q4sq4s", "")
+BUILTIN(__builtin_riscv_vnot_v_i32m1, "q2iq2i", "")
+BUILTIN(__builtin_riscv_vnot_v_i64m1, "q1Wiq1Wi", "")
 
 //vsub_vv
 BUILTIN(__builtin_riscv_vsub_vv_i8m1, "q8cq8cq8c", "")
@@ -98,4 +98,13 @@ BUILTIN(__builtin_riscv_vfdiv_vv_f64m1, "q1dq1dq1d", "")
 //vle32
 BUILTIN(__builtin_riscv_vle32_v_f32m1, "q2ffC*", "")
 BUILTIN(__builtin_riscv_vle32_v_i32m1, "q2ZiZiC*", "")
+
+//vse32
+BUILTIN(__builtin_riscv_vse32_v_f32m1, "vf*q2f", "")
+BUILTIN(__builtin_riscv_vse32_v_i32m1, "vZi*q2Zi", "")
+
+//vfmacc
+//BUILTIN(__builtin_riscv_vfmacc_vf_f16m1, "q4hq4hhq4h", "")
+BUILTIN(__builtin_riscv_vfmacc_vf_f32m1, "q2fq2ffq2f", "")
+BUILTIN(__builtin_riscv_vfmacc_vf_f64m1, "q1dq1ddq1d", "")
 #undef BUILTIN
