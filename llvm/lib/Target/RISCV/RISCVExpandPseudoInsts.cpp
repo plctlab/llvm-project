@@ -59,6 +59,9 @@ private:
   bool expandLoadTLSGDAddress(MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator MBBI,
                               MachineBasicBlock::iterator &NextMBBI);
+  bool expandRISCVVector(MachineBasicBlock &MBB, 
+                         MachineBasicBlock::iterator MBBI,
+                         MachineBasicBlock::iterator &NextMBBI);
 };
 
 char RISCVExpandPseudo::ID = 0;
@@ -70,6 +73,8 @@ bool RISCVExpandPseudo::runOnMachineFunction(MachineFunction &MF) {
     Modified |= expandMBB(MBB);
   return Modified;
 }
+
+
 
 bool RISCVExpandPseudo::expandMBB(MachineBasicBlock &MBB) {
   bool Modified = false;
@@ -91,6 +96,8 @@ bool RISCVExpandPseudo::expandMI(MachineBasicBlock &MBB,
   // instructions for each pseudo, and must be updated when adding new pseudos
   // or changing existing ones.
   switch (MBBI->getOpcode()) {
+  case RISCV::PseudoVFMACC_VF:
+    return expandRISCVVector(MBB, MBBI, NextMBBI);
   case RISCV::PseudoLLA:
     return expandLoadLocalAddress(MBB, MBBI, NextMBBI);
   case RISCV::PseudoLA:
@@ -102,6 +109,24 @@ bool RISCVExpandPseudo::expandMI(MachineBasicBlock &MBB,
   }
 
   return false;
+}
+
+bool RISCVExpandPseudo::expandRISCVVector(MachineBasicBlock &MBB, 
+                      MachineBasicBlock::iterator MBBI,
+                      MachineBasicBlock::iterator &NextMBBI) {
+  MachineFunction *MF = MBB.getParent();
+  MachineInstr &MI = *MBBI;
+  DebugLoc DL = MI.getDebugLoc();
+
+  Register DestReg = MI.getOperand(0).getReg();
+
+  BuildMI(MBB, MI, DL, TII->get(RISCV::VFMACC_VF), DestReg)
+      .add(MI.getOperand(2))
+      .add(MI.getOperand(3))
+      .add(MI.getOperand(4));
+
+  MI.eraseFromParent(); // The pseudo instruction is gone now.
+  return true;
 }
 
 bool RISCVExpandPseudo::expandAuipcInstPair(

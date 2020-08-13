@@ -1019,9 +1019,30 @@ multiclass pat_vmv_v_x {
   }
 }
 
+// def : Pat<(nxv2f32 (int_riscv_vfmacc_vf nxv2f32:$vs1, f32:$rs2, nxv2f32:$vs2)),
+//  (VFMACC_VF nxv2f32:$vs1, FPR32:$rs2, VR:$vs2, (nxv1i1 zero_reg))>;
+
 defm "" : pat_vmv_v_x;
 
 // pat vsetvl
 
 def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
+
+def PseudoVFMACC_VF : Pseudo<(outs VRegOp:$rd),
+                                (ins VRegOp:$rs3, FPR32:$rs1,
+                                    VRegOp:$rs2, VMaskOp:$vm),
+                                []> {
+let Constraints = "$rd = $rs3";
+let Uses = [VL, VTYPE];
+}
+
+def : Pat<(nxv2f32 (int_riscv_vfmacc_vf
+                          (nxv2f32 VRegOp:$rs3),
+                          (f32 FPR32:$rs1),
+                          (nxv2f32 VRegOp:$rs2))),
+            (!cast<Instruction>("PseudoVFMACC_VF")
+             VRegOp:$rs3,
+             FPR32:$rs1,
+             VRegOp:$rs2,
+             (nxv1i1 zero_reg))>;
 
