@@ -94,4 +94,8 @@ BUILTIN(__builtin_riscv_vfdiv_vv_f16m1, "q4hq4hq4h", "n")
 BUILTIN(__builtin_riscv_vfdiv_vv_f32m1, "q2fq2fq2f", "")
 BUILTIN(__builtin_riscv_vfdiv_vv_f64m1, "q1dq1dq1d", "")
 
+
+//vle32
+BUILTIN(__builtin_riscv_vle32_v_f32m1, "q2ffC*", "")
+BUILTIN(__builtin_riscv_vle32_v_i32m1, "q2ZiZiC*", "")
 #undef BUILTIN

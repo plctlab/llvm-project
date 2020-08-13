@@ -14994,6 +14994,13 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       Function *F = CGM.getIntrinsic(Intrinsic::riscv_vsetvl, ResultType);
       return Builder.CreateCall(F, Args);
     }
+    //case RISCV::BI__builtin_riscv_vle32_v_f32m1: 
+    case RISCV::BI__builtin_riscv_vle32_v_i32m1: {
+      ResultType->dump();
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vload, ResultType);
+      F->dump();
+      return Builder.CreateCall(F, Args);
+    }
     default:
       return nullptr;
 

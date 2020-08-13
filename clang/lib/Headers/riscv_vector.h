@@ -406,4 +406,16 @@ vfloat64m1_t vfdiv_vv_f64m1(vfloat64m1_t value1, vfloat64m1_t value2) {
     return __builtin_riscv_vfdiv_vv_f64m1(value1, value2);
 }
 
+//vle32
+static __attribute__((always_inline))
+vint32m1_t vle32_v_i32m1(const int32_t* src) {
+  return __builtin_riscv_vle32_v_i32m1(src);
+}
+
+static __attribute__((always_inline))
+vfloat32m1_t vle32_v_f32m1 (const float *src) {
+  return __builtin_riscv_vle32_v_f32m1(src);
+}
+
+
 #endif 
