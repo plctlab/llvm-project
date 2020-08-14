@@ -111,7 +111,7 @@ class W_WV_mask : Intrinsic<[ llvm_anyvector_ty ],
                          [ IntrNoMem ]>;
 
 class V_VX : Intrinsic<[ llvm_anyvector_ty ],
-                     [ LLVMMatchType<0>, llvm_anyint_ty ],
+                     [ llvm_anyvector_ty, llvm_anyint_ty ],
                      [ IntrNoMem ]>;
 
 class W_VX : Intrinsic<[ llvm_anyvector_ty ],

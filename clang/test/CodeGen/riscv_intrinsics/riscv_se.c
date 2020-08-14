@@ -37,6 +37,14 @@ void  __attribute__((noinline)) testle64_u(uint64_t *base, vuint64m1_t value) {
   return vse64_v_u64m1(base, value);
 }
 
+void  __attribute__((noinline)) testle16(int16_t *base, vint16m1_t value) {
+  return vse16_v_i16m1(base, value);
+}
+
+void  __attribute__((noinline)) testle16_u(uint16_t *base, vuint16m1_t value) {
+  return vse16_v_u16m1(base, value);
+}
+
 
 //CHECK:  call void @llvm.riscv.vstore.p0i32.nxv2i32(i32* %2, <vscale x 2 x i32> %3) #2
 //CHECK:  call void @llvm.riscv.vstore.p0f32.nxv2f32(float* %2, <vscale x 2 x float> %3) #2
@@ -46,3 +54,5 @@ void  __attribute__((noinline)) testle64_u(uint64_t *base, vuint64m1_t value) {
 //CHECK:   call void @llvm.riscv.vstore.p0i64.nxv1i64(i64* %2, <vscale x 1 x i64> %3) #2
 //CHECK:   call void @llvm.riscv.vstore.p0f64.nxv1f64(double* %3, <vscale x 1 x double> %4) #2
 //CHECK:   call void @llvm.riscv.vstore.p0i64.nxv1i64(i64* %2, <vscale x 1 x i64> %3) #2
+//CHECK:  call void @llvm.riscv.vstore.p0i16.nxv4i16(i16* %2, <vscale x 4 x i16> %3) #2
+//CHECK:  call void @llvm.riscv.vstore.p0i16.nxv4i16(i16* %2, <vscale x 4 x i16> %3) #2

@@ -39,6 +39,14 @@ vuint64m1_t  __attribute__((noinline)) testle64_u(const uint64_t* src) {
 }
 
 
+vint16m1_t  __attribute__((noinline)) testle16(const int16_t* src) {
+  return vle16_v_i16m1(src);
+}
+
+vuint16m1_t  __attribute__((noinline)) testle16_u(const uint16_t* src) {
+  return vle16_v_u16m1(src);
+}
+
 //CHECK:   %3 = call <vscale x 2 x i32> @llvm.riscv.vload.nxv2i32.p0i32(i32* %1) #2
 //CHECK:    %3 = call <vscale x 2 x float> @llvm.riscv.vload.nxv2f32.p0f32(float* %1) #2
 //CHECK: %3 = call <vscale x 2 x i32> @llvm.riscv.vload.nxv2i32.p0i32(i32* %1) #2
@@ -47,3 +55,5 @@ vuint64m1_t  __attribute__((noinline)) testle64_u(const uint64_t* src) {
 //CHECK:   %3 = call <vscale x 1 x i64> @llvm.riscv.vload.nxv1i64.p0i64(i64* %1) #2
 //CHECK:   %5 = call <vscale x 1 x double> @llvm.riscv.vload.nxv1f64.p0f64(double* %2) #2
 //CHECK:   %3 = call <vscale x 1 x i64> @llvm.riscv.vload.nxv1i64.p0i64(i64* %1) #2
+//CHECK:  %3 = call <vscale x 4 x i16> @llvm.riscv.vload.nxv4i16.p0i16(i16* %1) #2
+//CHECK:  %3 = call <vscale x 4 x i16> @llvm.riscv.vload.nxv4i16.p0i16(i16* %1) #2
