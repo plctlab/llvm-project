@@ -177,6 +177,63 @@ BUILTIN(__builtin_riscv_vsll_vx_u16m1, "q4sq4sUc", "")
 BUILTIN(__builtin_riscv_vsll_vx_u32m1, "q2iq2iUc", "")
 BUILTIN(__builtin_riscv_vsll_vx_u64m1, "q1Wiq1WiUc", "")
 
+//vmseq_vv
+BUILTIN(__builtin_riscv_vmseq_vv_i8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmseq_vv_i16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmseq_vv_i32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmseq_vv_i64m1_b64, "q64bq1Wiq1Wi", "")
+BUILTIN(__builtin_riscv_vmseq_vv_u8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmseq_vv_u16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmseq_vv_u32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmseq_vv_u64m1_b64, "q64bq1Wiq1Wi", "")
 
+//vmsne_vv
+BUILTIN(__builtin_riscv_vmsne_vv_i8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmsne_vv_i16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmsne_vv_i32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmsne_vv_i64m1_b64, "q64bq1Wiq1Wi", "")
+BUILTIN(__builtin_riscv_vmsne_vv_u8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmsne_vv_u16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmsne_vv_u32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmsne_vv_u64m1_b64, "q64bq1Wiq1Wi", "")
 
+//vmslt
+BUILTIN(__builtin_riscv_vmslt_vv_i8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmslt_vv_i16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmslt_vv_i32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmslt_vv_i64m1_b64, "q64bq1Wiq1Wi", "")
+BUILTIN(__builtin_riscv_vmsltu_vv_u8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmsltu_vv_u16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmsltu_vv_u32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmsltu_vv_u64m1_b64, "q64bq1Wiq1Wi", "")
+
+//sgt
+BUILTIN(__builtin_riscv_vmsgt_vv_i8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmsgt_vv_i16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmsgt_vv_i32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmsgt_vv_i64m1_b64, "q64bq1Wiq1Wi", "")
+BUILTIN(__builtin_riscv_vmsgtu_vv_u8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmsgtu_vv_u16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmsgtu_vv_u32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmsgtu_vv_u64m1_b64, "q64bq1Wiq1Wi", "")
+
+//vmsle
+BUILTIN(__builtin_riscv_vmsle_vv_i8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmsle_vv_i16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmsle_vv_i32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmsle_vv_i64m1_b64, "q64bq1Wiq1Wi", "")
+BUILTIN(__builtin_riscv_vmsleu_vv_u8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmsleu_vv_u16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmsleu_vv_u32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmsleu_vv_u64m1_b64, "q64bq1Wiq1Wi", "")
+
+//vmsge
+BUILTIN(__builtin_riscv_vmsge_vv_i8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmsge_vv_i16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmsge_vv_i32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmsge_vv_i64m1_b64, "q64bq1Wiq1Wi", "")
+BUILTIN(__builtin_riscv_vmsgeu_vv_u8m1_b8, "q8bq8cq8c", "")
+BUILTIN(__builtin_riscv_vmsgeu_vv_u16m1_b16, "q16bq4sq4s", "")
+BUILTIN(__builtin_riscv_vmsgeu_vv_u32m1_b32, "q32bq2iq2i", "")
+BUILTIN(__builtin_riscv_vmsgeu_vv_u64m1_b64, "q64bq1Wiq1Wi", "")
 #undef BUILTIN
