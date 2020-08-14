@@ -422,6 +422,11 @@ vfloat32m1_t vle32_v_f32m1 (const float *src) {
   return __builtin_riscv_vle32_v_f32m1(src);
 }
 
+static __attribute__((always_inline))
+vuint32m1_t vle32_v_u32m1(const uint32_t* src) {
+  return __builtin_riscv_vle32_v_u32m1(src);
+}
+
 //vse32
 static __attribute__((always_inline))
 void vse32_v_i32m1(int32_t *base, vint32m1_t value) {
@@ -433,6 +438,64 @@ void vse32_v_f32m1 (float *base, vfloat32m1_t value) {
  __builtin_riscv_vse32_v_f32m1(base, value);
 }
 
+static __attribute__((always_inline))
+void vse32_v_u32m1(uint32_t *base, vuint32m1_t value) {
+  __builtin_riscv_vse32_v_u32m1(base, value);
+}
+
+//vle8
+static __attribute__((always_inline))
+vint8m1_t vle8_v_i8m1(const int8_t* src) {
+  return __builtin_riscv_vle8_v_i8m1(src);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vle8_v_u8m1(const uint8_t* src) {
+  return __builtin_riscv_vle8_v_u8m1(src);
+}
+
+//vse8
+static __attribute__((always_inline))
+void vse8_v_i8m1(int8_t *base, vint8m1_t value) {
+  __builtin_riscv_vse8_v_i8m1(base, value);
+}
+
+static __attribute__((always_inline))
+void vse8_v_u8m1(uint8_t *base, vuint8m1_t value) {
+  __builtin_riscv_vse8_v_u8m1(base, value);
+}
+
+//vle64
+static __attribute__((always_inline))
+vint64m1_t vle64_v_i64m1(const int64_t* src) {
+  return __builtin_riscv_vle64_v_i64m1(src);
+}
+
+static __attribute__((always_inline))
+vfloat64m1_t vle64_v_f64m1 (const float *src) {
+  return __builtin_riscv_vle64_v_f64m1(src);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vle64_v_u64m1(const uint64_t* src) {
+  return __builtin_riscv_vle64_v_u64m1(src);
+}
+
+//vse64
+static __attribute__((always_inline))
+void vse64_v_i64m1(int64_t *base, vint64m1_t value) {
+  __builtin_riscv_vse64_v_i64m1(base, value);
+}
+
+static __attribute__((always_inline))
+void vse64_v_f64m1 (float *base, vfloat64m1_t value) {
+ __builtin_riscv_vse64_v_f64m1(base, value);
+}
+
+static __attribute__((always_inline))
+void vse64_v_u64m1(uint64_t *base, vuint64m1_t value) {
+  __builtin_riscv_vse64_v_u64m1(base, value);
+}
 //vfmac
 //static __attribute__((always_inline))
 //vfloat16m1_t vfmacc_vf_f16m1(vfloat16m1_t value1, float16_t op1, vfloat16m1_t value2) {

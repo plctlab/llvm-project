@@ -7969,8 +7969,7 @@ static void HandleRISCVMaskTypeAttr(QualType &CurType, const ParsedAttr &Attr,
     Attr.setInvalid();
     return;
   }
-
-  unsigned MLEN = static_cast<unsigned>(MLENInt.getZExtValue());
+  unsigned MLEN = cast<IntegerLiteral>(MLENExpr)->getValue().getZExtValue();
   CurType = S.Context.getVectorType(S.Context.BoolTy, MLEN, VectorType::RISCVVector);
 }
 

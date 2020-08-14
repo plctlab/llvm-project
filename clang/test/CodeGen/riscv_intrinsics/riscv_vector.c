@@ -183,3 +183,43 @@ vfloat16m1_t test_vfloat16m1_t() {
 // CHECK: declare dso_local <vscale x 4 x half> @generate_vfloat16m1_t(...) #1
 // CHECK: declare dso_local void @consume_vfloat16m1_t(<vscale x 4 x half>) #1
 
+
+
+vbool8_t generate_vbool8_t();
+void consume_vbool8_t(vbool8_t x);
+vbool8_t test_vbool8_t() {
+  vbool8_t x = generate_vbool8_t();
+  consume_vbool8_t(x);
+  return x;
+}
+
+vbool16_t generate_vbool16_t();
+void consume_vbool16_t(vbool16_t x);
+vbool16_t test_vbool16_t() {
+  vbool16_t x = generate_vbool16_t();
+  consume_vbool16_t(x);
+  return x;
+}
+
+
+vbool32_t generate_vbool32_t();
+void consume_vbool32_t(vbool32_t x);
+vbool32_t test_vbool32_t() {
+  vbool32_t x = generate_vbool32_t();
+  consume_vbool32_t(x);
+  return x;
+}
+
+
+vbool64_t generate_vbool64_t();
+void consume_vbool64_t(vbool64_t x);
+vbool64_t test_vbool64_t() {
+  vbool64_t x = generate_vbool64_t();
+  consume_vbool64_t(x);
+  return x;
+}
+//CHECK: %call = call <vscale x 8 x i1> bitcast (<vscale x 8 x i1> (...)* @generate_vbool8_t to <vscale x 8 x i1> ()*)()
+//CHECK: %call = call <vscale x 16 x i1> bitcast (<vscale x 16 x i1> (...)* @generate_vbool16_t to <vscale x 16 x i1> ()*)()
+//CHECK: %call = call <vscale x 32 x i1> bitcast (<vscale x 32 x i1> (...)* @generate_vbool32_t to <vscale x 32 x i1> ()*)()
+//CHECK: %call = call <vscale x 64 x i1> bitcast (<vscale x 64 x i1> (...)* @generate_vbool64_t to <vscale x 64 x i1> ()*)()
+
