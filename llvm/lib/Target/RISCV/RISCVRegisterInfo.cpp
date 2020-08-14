@@ -164,9 +164,11 @@ void RISCVRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   MachineBasicBlock &MBB = *MI.getParent();
 
-  // transform vector object index to address
   if (MFI.getStackID(FrameIndex) == TargetStackID::RISCVVector) {
     switch (MI.getOpcode()) {
+    case RISCV::ADDI:
+    case RISCV::VLE32_V:
+    case RISCV::VSE32_V:
     case RISCV::VL1R_V:
     case RISCV::VS1R_V: {
       MachineOperand StackSlot = MI.getOperand(FIOperandNum);

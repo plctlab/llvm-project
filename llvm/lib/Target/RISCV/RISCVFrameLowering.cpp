@@ -367,30 +367,6 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
       BuildMI(MBB, MBBI, DL, TII->get(TargetOpcode::CFI_INSTRUCTION))
           .addCFIIndex(CFIIndex);
     }
-
-    if (RVFI->hasSpillVRs()) {
-      Register SizeOfVector = MF.getRegInfo().createVirtualRegister(&RISCV::GPRRegClass);
-      BuildMI(MBB, MBBI, DL, TII->get(RISCV::CSRRS), SizeOfVector)
-        .addImm(3106)
-        .addReg(RISCV::X0);
-      
-      for (int ID = MFI.getObjectIndexBegin(), EID = MFI.getObjectIndexEnd();
-            ID < EID; ID++) {
-        if (MFI.getStackID(ID) == TargetStackID::RISCVVector) {
-          unsigned Opcode = TRI->getRegSizeInBits(RISCV::GPRRegClass) == 32 ?
-              RISCV::SW : RISCV::SD;
-
-          BuildMI(MBB, MBBI, DL, TII->get(RISCV::SUB), SPReg)
-              .addReg(SPReg)
-              .addReg(SizeOfVector);
-
-          BuildMI(MBB, MBBI, DL, TII->get(Opcode))
-              .addReg(SPReg)
-              .addFrameIndex(ID)
-              .addImm(0);
-        }
-      }
-  }
   }
 
   if (hasFP(MF)) {
