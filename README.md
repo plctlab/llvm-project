@@ -4,6 +4,8 @@ This is the RISC-V Vector Extension in LLVM implemented by PLCT Group, ISRC, Ins
 
 The assembly instructions of RVV current stable release, v0.9, are now supported.
 
+The intrinsic functions are based on [rvv-intrinsic-doc](https://github.com/riscv/rvv-intrinsic-doc) [commit af369ccd3feed670a8bd27710b68d5db6f31f493](https://github.com/riscv/rvv-intrinsic-doc/commit/af369ccd3feed670a8bd27710b68d5db6f31f493).
+
 ## How to Build LLVM for RISC-V Target
 
 	$ git clone https://github.com/isrc-cas/rvv-llvm.git
