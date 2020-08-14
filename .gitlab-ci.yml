@@ -1,0 +1,16 @@
+image: ubuntu:16.04
+
+before_script:
+
+build:
+  stage: build
+  tags:
+    - rvv-llvm
+
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DLLVM_TARGETS_TO_BUILD="X86;RISCV" -DLLVM_ENABLE_PROJECTS="clang" -G Ninja ../llvm
+    - ninja
+    - ninja check
+
