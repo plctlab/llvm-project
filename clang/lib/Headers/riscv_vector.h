@@ -1881,14 +1881,14 @@ vfloat64m8_t vfmv_v_f_f64m8(double src) {
 }
 
 static __attribute__((always_inline))
-vint8m1_t vreinterpret_i8_u8_i8m1(vuint8m1_t src) {
+vint8m1_t vreinterpret_v_u8m1_i8m1(vuint8m1_t src) {
   uint8_t* base;
   vse8_v_u8m1(base, src);
   return vle8_v_i8m1((int8_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint8m1_t vreinterpret_u8_i8_u8m1(vint8m1_t src) {
+vuint8m1_t vreinterpret_v_i8m1_u8m1(vint8m1_t src) {
   int8_t* base;
   vse8_v_i8m1(base, src);
   return vle8_v_u8m1((uint8_t*)base);
@@ -1925,21 +1925,21 @@ vuint8m8_t vreinterpret_u8_i8_u8m8(vint8m8_t src) {
 }
 
 static __attribute__((always_inline))
-vint16m1_t vreinterpret_i16_u16_i16m1(vuint16m1_t src) {
+vint16m1_t vreinterpret_v_u16m1_i16m1(vuint16m1_t src) {
   uint16_t* base;
   vse16_v_u16m1(base, src);
   return vle16_v_i16m1((int16_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint16m1_t vreinterpret_u16_i16_u16m1(vint16m1_t src) {
+vuint16m1_t vreinterpret_v_i16m1_u16m1(vint16m1_t src) {
   int16_t* base;
   vse16_v_i16m1(base, src);
   return vle16_v_u16m1((uint16_t*)base);
 }
 
 static __attribute__((always_inline))
-vint16m2_t vreinterpret_i16_u16_i16m2(vuint16m2_t src) {
+vint16m2_t vreinterpret_v_u16m1_i16m1(vuint16m2_t src) {
   return __builtin_riscv_vreinterpret_i16_u16_i16m2(src);
 }
 
@@ -1969,42 +1969,42 @@ vuint16m8_t vreinterpret_u16_i16_u16m8(vint16m8_t src) {
 }
 
 static __attribute__((always_inline))
-vuint32m1_t vreinterpret_u32_f32_u32m1(vfloat32m1_t src) {
+vuint32m1_t vreinterpret_v_f32m1_u32m1(vfloat32m1_t src) {
   float* base;
   vse32_v_f32m1(base, src);
   return vle32_v_u32m1((uint32_t*)base);
 }
 
 static __attribute__((always_inline))
-vfloat32m1_t vreinterpret_f32_u32_f32m1(vuint32m1_t src) {
+vfloat32m1_t vreinterpret_v_u32m1_f32m1(vuint32m1_t src) {
   uint32_t* base;
   vse32_v_u32m1(base, src);
   return vle32_v_f32m1((float*)base);
 }
 
 static __attribute__((always_inline))
-vint32m1_t vreinterpret_i32_f32_i32m1(vfloat32m1_t src) {
+vint32m1_t vreinterpret_v_f32m1_i32m1(vfloat32m1_t src) {
   float* base;
   vse32_v_f32m1(base, src);
   return vle32_v_i32m1((int32_t*)base);
 }
 
 static __attribute__((always_inline))
-vfloat32m1_t vreinterpret_f32_i32_f32m1(vint32m1_t src) {
+vfloat32m1_t vreinterpret_v_i32m1_f32m1(vint32m1_t src) {
   int32_t* base;
   vse32_v_i32m1(base, src);
   return vle32_v_f32m1((float*)base);
 }
 
 static __attribute__((always_inline))
-vint32m1_t vreinterpret_i32_u32_i32m1(vuint32m1_t src) {
+vint32m1_t vreinterpret_v_u32m1_i32m1(vuint32m1_t src) {
   uint32_t* base;
   vse32_v_u32m1(base, src);
   return vle32_v_i32m1((int32_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint32m1_t vreinterpret_u32_i32_u32m1(vint32m1_t src) {
+vuint32m1_t vreinterpret_v_i32m1_u32m1(vint32m1_t src) {
   int32_t* base;
   vse32_v_i32m1(base, src);
   return vle32_v_u32m1((uint32_t*)base);
@@ -2129,14 +2129,14 @@ vfloat64m1_t vreinterpret_f64_i64_f64m1(vint64m1_t src) {
 }
 
 static __attribute__((always_inline))
-vint64m1_t vreinterpret_i64_u64_i64m1(vuint64m1_t src) {
+vint64m1_t vreinterpret_v_u64m1_i64m1(vuint64m1_t src) {
   uint64_t* base;
   vse64_v_u64m1(base, src);
   return vle64_v_i64m1((int64_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint64m1_t vreinterpret_u64_i64_u64m1(vint64m1_t src) {
+vuint64m1_t vreinterpret_v_i64m1_u64m1(vint64m1_t src) {
   int64_t* base;
   vse64_v_i64m1(base, src);
   return vle64_v_u64m1((uint64_t*)base);
@@ -2233,84 +2233,84 @@ vuint64m8_t vreinterpret_u64_i64_u64m8(vint64m8_t src) {
 }
 
 static __attribute__((always_inline))
-vint32m1_t vreinterpret_i32_i64_i32m1(vint64m1_t src) {
+vint32m1_t vreinterpret_v_i64m1_i32m1(vint64m1_t src) {
   int64_t* base;
   vse64_v_i64m1(base, src);
   return vle32_v_i32m1((int32_t*)base);
 }
 
 static __attribute__((always_inline))
-vint64m1_t vreinterpret_i64_i32_i64m1(vint32m1_t src) {
+vint64m1_t vreinterpret_v_i32m1_i64m1(vint32m1_t src) {
   int32_t* base;
   vse32_v_i32m1(base, src);
   return vle64_v_i64m1((int64_t*)base);
 }
 
 static __attribute__((always_inline))
-vint16m1_t vreinterpret_i16_i64_i16m1(vint64m1_t src) {
+vint16m1_t vreinterpret_v_i64m1_i16m1(vint64m1_t src) {
   int64_t* base;
   vse64_v_i64m1(base, src);
   return vle16_v_i16m1((int16_t*)base);
 }
 
 static __attribute__((always_inline))
-vint64m1_t vreinterpret_i64_i16_i64m1(vint16m1_t src) {
+vint64m1_t vreinterpret_v_i16m1_i64m1(vint16m1_t src) {
   int16_t* base;
   vse16_v_i16m1(base, src);
   return vle64_v_i64m1((int64_t*)base);
 }
 
 static __attribute__((always_inline))
-vint8m1_t vreinterpret_i8_i64_i8m1(vint64m1_t src) {
+vint8m1_t vreinterpret_v_i64m1_i8m1(vint64m1_t src) {
   int64_t* base;
   vse64_v_i64m1(base, src);
   return vle8_v_i8m1((int8_t*)base);
 }
 
 static __attribute__((always_inline))
-vint64m1_t vreinterpret_i64_i8_i64m1(vint8m1_t src) {
+vint64m1_t vreinterpret_v_i8m1_i64m1(vint8m1_t src) {
   int8_t* base;
   vse8_v_i8m1(base, src);
   return vle64_v_i64m1((int64_t*)base);
 }
 
 static __attribute__((always_inline))
-vint16m1_t vreinterpret_i16_i32_i16m1(vint32m1_t src) {
+vint16m1_t vreinterpret_v_i32m1_i16m1(vint32m1_t src) {
   int32_t* base;
   vse32_v_i32m1(base, src);
   return vle16_v_i16m1((int16_t*)base);
 }
 
 static __attribute__((always_inline))
-vint32m1_t vreinterpret_i32_i16_i32m1(vint16m1_t src) {
+vint32m1_t vreinterpret_v_i16m1_i32m1(vint16m1_t src) {
   int16_t* base;
   vse16_v_i16m1(base, src);
   return vle32_v_i32m1((int32_t*)base);
 }
 
 static __attribute__((always_inline))
-vint8m1_t vreinterpret_i8_i32_i8m1(vint32m1_t src) {
+vint8m1_t vreinterpret_v_i32m1_i8m1(vint32m1_t src) {
   int32_t* base;
   vse32_v_i32m1(base, src);
   return vle8_v_i8m1((int8_t*)base);
 }
 
 static __attribute__((always_inline))
-vint32m1_t vreinterpret_i32_i8_i32m1(vint8m1_t src) {
+vint32m1_t vreinterpret_v_i8m1_i32m1(vint8m1_t src) {
   int8_t* base;
   vse8_v_i8m1(base, src);
   return vle32_v_i32m1((int32_t*)base);
 }
 
 static __attribute__((always_inline))
-vint8m1_t vreinterpret_i8_i16_i8m1(vint16m1_t src) {
+vint8m1_t vreinterpret_v_i16m1_i8m1(vint16m1_t src) {
   int16_t* base;
   vse16_v_i16m1(base, src);
   return vle8_v_i8m1((int8_t*)base);
 }
 
 static __attribute__((always_inline))
-vint16m1_t vreinterpret_i16_i8_i16m1(vint8m1_t src) {
+vint16m1_t vreinterpret_v_i8m1_i16m1(vint8m1_t src) {
   int8_t* base;
   vse8_v_i8m1(base, src);
   return vle16_v_i16m1((int16_t*)base);
@@ -2497,84 +2497,84 @@ vint16m8_t vreinterpret_i16_i8_i16m8(vint8m8_t src) {
 }
 
 static __attribute__((always_inline))
-vuint32m1_t vreinterpret_u32_u64_u32m1(vuint64m1_t src) {
+vuint32m1_t vreinterpret_v_u64m1_u32m1(vuint64m1_t src) {
   uint64_t* base;
   vse64_v_u64m1(base, src);
   return vle32_v_u32m1((uint32_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint64m1_t vreinterpret_u64_u32_u64m1(vuint32m1_t src) {
+vuint64m1_t vreinterpret_v_u32m1_u64m1(vuint32m1_t src) {
   uint32_t* base;
   vse32_v_u32m1(base, src);
   return vle64_v_u64m1((uint64_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint16m1_t vreinterpret_u16_u64_u16m1(vuint64m1_t src) {
+vuint16m1_t vreinterpret_v_u64m1_u16m1(vuint64m1_t src) {
   uint64_t* base;
   vse64_v_u64m1(base, src);
   return vle16_v_u16m1((uint16_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint64m1_t vreinterpret_u64_u16_u64m1(vuint16m1_t src) {
+vuint64m1_t vreinterpret_v_u16m1_u64m1(vuint16m1_t src) {
   uint16_t* base;
   vse16_v_u16m1(base, src);
   return vle64_v_u64m1((uint64_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint8m1_t vreinterpret_u8_u64_u8m1(vuint64m1_t src) {
+vuint8m1_t vreinterpret_v_u64m1_u8m1(vuint64m1_t src) {
   uint64_t* base;
   vse64_v_u64m1(base, src);
   return vle8_v_u8m1((uint8_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint64m1_t vreinterpret_u64_u8_u64m1(vuint8m1_t src) {
+vuint64m1_t vreinterpret_v_u8m1_u64m1(vuint8m1_t src) {
   uint8_t* base;
   vse8_v_u8m1(base, src);
   return vle64_v_u64m1((uint64_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint16m1_t vreinterpret_u16_u32_u16m1(vuint32m1_t src) {
+vuint16m1_t vreinterpret_v_u32m1_u16m1(vuint32m1_t src) {
   uint32_t* base;
   vse32_v_u32m1(base, src);
   return vle16_v_u16m1((uint16_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint32m1_t vreinterpret_u32_u16_u32m1(vuint16m1_t src) {
+vuint32m1_t vreinterpret_v_u16m1_u32m1(vuint16m1_t src) {
   uint16_t* base;
   vse16_v_u16m1(base, src);
   return vle32_v_u32m1((uint32_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint8m1_t vreinterpret_u8_u32_u8m1(vuint32m1_t src) {
+vuint8m1_t vreinterpret_v_u32m1_u8m1(vuint32m1_t src) {
   uint32_t* base;
   vse32_v_u32m1(base, src);
   return vle8_v_u8m1((uint8_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint32m1_t vreinterpret_u32_u8_u32m1(vuint8m1_t src) {
+vuint32m1_t vreinterpret_v_u8m1_u32m1(vuint8m1_t src) {
   uint8_t* base;
   vse8_v_u8m1(base, src);
   return vle32_v_u32m1((uint32_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint8m1_t vreinterpret_u8_u16_u8m1(vuint16m1_t src) {
+vuint8m1_t vreinterpret_v_u16m1_u8m1(vuint16m1_t src) {
   uint16_t* base;
   vse16_v_u16m1(base, src);
   return vle8_v_u8m1((uint8_t*)base);
 }
 
 static __attribute__((always_inline))
-vuint16m1_t vreinterpret_u16_u8_u16m1(vuint8m1_t src) {
+vuint16m1_t vreinterpret_v_u8m1_u16m1(vuint8m1_t src) {
   uint8_t* base;
   vse8_v_u8m1(base, src);
   return vle16_v_u16m1((uint16_t*)base);
