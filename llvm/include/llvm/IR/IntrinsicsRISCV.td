@@ -107,15 +107,15 @@ def int_riscv_vxor : Intrinsic<[llvm_nxv1i32_ty],
 //def int_riscv_vse32_v_f32m8
 //    : Intrinsic<[], [llvm_nxv8f32_ty, llvm_fptr32_ty], [IntrWriteMem]>;
 
-//def int_riscv_vfmacc_vf_f32m1
-//    : Intrinsic<[llvm_nxv1f32_ty],
-//                [llvm_nxv1f32_ty, llvm_float_ty, llvm_nxv1f32_ty],
-//                [IntrNoMem]>;
+def int_riscv_vfmacc_vf_f32m1
+    : Intrinsic<[llvm_nxv2f32_ty],
+                [llvm_nxv2f32_ty, llvm_float_ty, llvm_nxv2f32_ty],
+                [IntrNoMem]>;
 
-//def int_riscv_vfmacc_vf_f32m8
-//    : Intrinsic<[llvm_nxv8f32_ty],
-//                [llvm_nxv8f32_ty, llvm_float_ty, llvm_nxv8f32_ty],
-//                [IntrNoMem]>;
+def int_riscv_vfmacc_vf_f32m8
+    : Intrinsic<[llvm_nxv16f32_ty],
+                [llvm_nxv16f32_ty, llvm_float_ty, llvm_nxv16f32_ty],
+                [IntrNoMem]>;
 
 //def int_riscv_vfmv_f_s_f32m1_f32
 //    : Intrinsic<[llvm_float_ty],

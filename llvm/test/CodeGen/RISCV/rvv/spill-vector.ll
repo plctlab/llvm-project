@@ -99,73 +99,73 @@ define dso_local void @test(float* %input) local_unnamed_addr #0 {
 ;RV64I: ret
 entry:
   %0 = tail call i64 @llvm.riscv.vsetvl.i64.i64.i64(i64 1, i64 8) #3
-  %1 = tail call <vscale x 1 x float> @llvm.riscv.vle32.v.f32m1(float* %input) #3
-  %2 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %1, <vscale x 1 x float> %1) #3
-  %3 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %2, <vscale x 1 x float> %2) #3
-  %4 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %3, <vscale x 1 x float> %3) #3
-  %5 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %4, <vscale x 1 x float> %4) #3
-  %6 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %5, <vscale x 1 x float> %5) #3
-  %7 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %6, <vscale x 1 x float> %6) #3
-  %8 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %7, <vscale x 1 x float> %7) #3
-  %9 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %8, <vscale x 1 x float> %8) #3
-  %10 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %9, <vscale x 1 x float> %9) #3
-  %11 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %10, <vscale x 1 x float> %10) #3
-  %12 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %11, <vscale x 1 x float> %11) #3
-  %13 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %12, <vscale x 1 x float> %12) #3
-  %14 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %13, <vscale x 1 x float> %13) #3
-  %15 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %14, <vscale x 1 x float> %14) #3
-  %16 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %15, <vscale x 1 x float> %15) #3
-  %17 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %16, <vscale x 1 x float> %16) #3
-  %18 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %17, <vscale x 1 x float> %17) #3
-  %19 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %18, <vscale x 1 x float> %18) #3
-  %20 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %19, <vscale x 1 x float> %19) #3
-  %21 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %20, <vscale x 1 x float> %20) #3
-  %22 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %21, <vscale x 1 x float> %21) #3
-  %23 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %22, <vscale x 1 x float> %22) #3
-  %24 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %23, <vscale x 1 x float> %23) #3
-  %25 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %24, <vscale x 1 x float> %24) #3
-  %26 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %25, <vscale x 1 x float> %25) #3
-  %27 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %26, <vscale x 1 x float> %26) #3
-  %28 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %27, <vscale x 1 x float> %27) #3
-  %29 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %28, <vscale x 1 x float> %28) #3
-  %30 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %29, <vscale x 1 x float> %29) #3
-  %31 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %30, <vscale x 1 x float> %30) #3
-  %32 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %31, <vscale x 1 x float> %31) #3
-  %33 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %32, <vscale x 1 x float> %32) #3
-  %34 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %33, <vscale x 1 x float> %1) #3
-  %35 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %34, <vscale x 1 x float> %2) #3
-  %36 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %35, <vscale x 1 x float> %3) #3
-  %37 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %36, <vscale x 1 x float> %4) #3
-  %38 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %37, <vscale x 1 x float> %5) #3
-  %39 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %38, <vscale x 1 x float> %6) #3
-  %40 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %39, <vscale x 1 x float> %7) #3
-  %41 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %40, <vscale x 1 x float> %8) #3
-  %42 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %41, <vscale x 1 x float> %9) #3
-  %43 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %42, <vscale x 1 x float> %10) #3
-  %44 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %43, <vscale x 1 x float> %11) #3
-  %45 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %44, <vscale x 1 x float> %12) #3
-  %46 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %45, <vscale x 1 x float> %13) #3
-  %47 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %46, <vscale x 1 x float> %14) #3
-  %48 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %47, <vscale x 1 x float> %15) #3
-  %49 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %48, <vscale x 1 x float> %16) #3
-  %50 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %49, <vscale x 1 x float> %17) #3
-  %51 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %50, <vscale x 1 x float> %18) #3
-  %52 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %51, <vscale x 1 x float> %19) #3
-  %53 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %52, <vscale x 1 x float> %20) #3
-  %54 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %53, <vscale x 1 x float> %21) #3
-  %55 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %54, <vscale x 1 x float> %22) #3
-  %56 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %55, <vscale x 1 x float> %23) #3
-  %57 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %56, <vscale x 1 x float> %24) #3
-  %58 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %57, <vscale x 1 x float> %25) #3
-  %59 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %58, <vscale x 1 x float> %26) #3
-  %60 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %59, <vscale x 1 x float> %27) #3
-  %61 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %60, <vscale x 1 x float> %28) #3
-  %62 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %61, <vscale x 1 x float> %29) #3
-  %63 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %62, <vscale x 1 x float> %30) #3
-  %64 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %63, <vscale x 1 x float> %31) #3
-  %65 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %64, <vscale x 1 x float> %32) #3
-  %66 = tail call <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float> %65, <vscale x 1 x float> %33) #3
-  tail call void @llvm.riscv.vse32.v.f32m1(<vscale x 1 x float> %66, float* %input) #3
+  %1 = tail call <vscale x 2 x float> @llvm.riscv.vle32.v.f32m1(float* %input) #3
+  %2 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %1, <vscale x 2 x float> %1) #3
+  %3 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %2, <vscale x 2 x float> %2) #3
+  %4 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %3, <vscale x 2 x float> %3) #3
+  %5 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %4, <vscale x 2 x float> %4) #3
+  %6 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %5, <vscale x 2 x float> %5) #3
+  %7 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %6, <vscale x 2 x float> %6) #3
+  %8 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %7, <vscale x 2 x float> %7) #3
+  %9 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %8, <vscale x 2 x float> %8) #3
+  %10 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %9, <vscale x 2 x float> %9) #3
+  %11 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %10, <vscale x 2 x float> %10) #3
+  %12 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %11, <vscale x 2 x float> %11) #3
+  %13 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %12, <vscale x 2 x float> %12) #3
+  %14 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %13, <vscale x 2 x float> %13) #3
+  %15 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %14, <vscale x 2 x float> %14) #3
+  %16 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %15, <vscale x 2 x float> %15) #3
+  %17 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %16, <vscale x 2 x float> %16) #3
+  %18 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %17, <vscale x 2 x float> %17) #3
+  %19 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %18, <vscale x 2 x float> %18) #3
+  %20 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %19, <vscale x 2 x float> %19) #3
+  %21 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %20, <vscale x 2 x float> %20) #3
+  %22 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %21, <vscale x 2 x float> %21) #3
+  %23 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %22, <vscale x 2 x float> %22) #3
+  %24 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %23, <vscale x 2 x float> %23) #3
+  %25 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %24, <vscale x 2 x float> %24) #3
+  %26 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %25, <vscale x 2 x float> %25) #3
+  %27 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %26, <vscale x 2 x float> %26) #3
+  %28 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %27, <vscale x 2 x float> %27) #3
+  %29 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %28, <vscale x 2 x float> %28) #3
+  %30 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %29, <vscale x 2 x float> %29) #3
+  %31 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %30, <vscale x 2 x float> %30) #3
+  %32 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %31, <vscale x 2 x float> %31) #3
+  %33 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %32, <vscale x 2 x float> %32) #3
+  %34 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %33, <vscale x 2 x float> %1) #3
+  %35 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %34, <vscale x 2 x float> %2) #3
+  %36 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %35, <vscale x 2 x float> %3) #3
+  %37 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %36, <vscale x 2 x float> %4) #3
+  %38 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %37, <vscale x 2 x float> %5) #3
+  %39 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %38, <vscale x 2 x float> %6) #3
+  %40 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %39, <vscale x 2 x float> %7) #3
+  %41 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %40, <vscale x 2 x float> %8) #3
+  %42 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %41, <vscale x 2 x float> %9) #3
+  %43 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %42, <vscale x 2 x float> %10) #3
+  %44 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %43, <vscale x 2 x float> %11) #3
+  %45 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %44, <vscale x 2 x float> %12) #3
+  %46 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %45, <vscale x 2 x float> %13) #3
+  %47 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %46, <vscale x 2 x float> %14) #3
+  %48 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %47, <vscale x 2 x float> %15) #3
+  %49 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %48, <vscale x 2 x float> %16) #3
+  %50 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %49, <vscale x 2 x float> %17) #3
+  %51 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %50, <vscale x 2 x float> %18) #3
+  %52 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %51, <vscale x 2 x float> %19) #3
+  %53 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %52, <vscale x 2 x float> %20) #3
+  %54 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %53, <vscale x 2 x float> %21) #3
+  %55 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %54, <vscale x 2 x float> %22) #3
+  %56 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %55, <vscale x 2 x float> %23) #3
+  %57 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %56, <vscale x 2 x float> %24) #3
+  %58 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %57, <vscale x 2 x float> %25) #3
+  %59 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %58, <vscale x 2 x float> %26) #3
+  %60 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %59, <vscale x 2 x float> %27) #3
+  %61 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %60, <vscale x 2 x float> %28) #3
+  %62 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %61, <vscale x 2 x float> %29) #3
+  %63 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %62, <vscale x 2 x float> %30) #3
+  %64 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %63, <vscale x 2 x float> %31) #3
+  %65 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %64, <vscale x 2 x float> %32) #3
+  %66 = tail call <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float> %65, <vscale x 2 x float> %33) #3
+  tail call void @llvm.riscv.vse32.v.f32m1(<vscale x 2 x float> %66, float* %input) #3
   ret void
 }
 
@@ -174,10 +174,10 @@ entry:
 declare i64 @llvm.riscv.vsetvl.i64.i64.i64(i64, i64) #3
 
 ; Function Attrs: nounwind readonly
-declare <vscale x 1 x float> @llvm.riscv.vle32.v.f32m1(float*) #4
+declare <vscale x 2 x float> @llvm.riscv.vle32.v.f32m1(float*) #4
 
 ; Function Attrs: nounwind readnone
-declare <vscale x 1 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 1 x float>, <vscale x 1 x float>) #5
+declare <vscale x 2 x float> @llvm.riscv.vfadd.vv.f32m1(<vscale x 2 x float>, <vscale x 2 x float>) #5
 
 ; Function Attrs: nounwind writeonly
-declare void @llvm.riscv.vse32.v.f32m1(<vscale x 1 x float>, float*) #6
+declare void @llvm.riscv.vse32.v.f32m1(<vscale x 2 x float>, float*) #6

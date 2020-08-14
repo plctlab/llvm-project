@@ -7749,18 +7749,18 @@ static void HandleArmMveStrictPolymorphismAttr(TypeProcessingState &State,
 
 static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
                                       Sema &S) {
-    if (Attr.getNumArgs() != 3) {
+  if (Attr.getNumArgs() != 3) {
     S.Diag(Attr.getLoc(), diag::err_attribute_wrong_number_arguments)
-           << Attr << 3;
-	Attr.setInvalid();
+      << Attr << 3;
+    Attr.setInvalid();
     return;
   }
 
-   Expr *ELENExpr = static_cast<Expr *>(Attr.getArgAsExpr(0));
-   llvm::APSInt ELENInt(32);
-   if (!ELENExpr->isIntegerConstantExpr(ELENInt, S.Context)) {
+  Expr *ELENExpr = static_cast<Expr *>(Attr.getArgAsExpr(0));
+  llvm::APSInt ELENInt(32);
+  if (!ELENExpr->isIntegerConstantExpr(ELENInt, S.Context)) {
     S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
-        << Attr << AANT_ArgumentIntegerConstant << ELENExpr->getSourceRange();
+      << Attr << AANT_ArgumentIntegerConstant << ELENExpr->getSourceRange();
     Attr.setInvalid();
     return;
   }
@@ -7771,7 +7771,7 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
 
   if (!LMULExpr->isIntegerConstantExpr(LMULInt, S.Context)) {
     S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
-           << Attr << AANT_ArgumentIntegerConstant << LMULExpr->getSourceRange();
+      << Attr << AANT_ArgumentIntegerConstant << LMULExpr->getSourceRange();
     Attr.setInvalid();
     return;
   }
@@ -7782,7 +7782,7 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
 
   if (!FractExpr->isIntegerConstantExpr(FractInt, S.Context)) {
     S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
-        << Attr << AANT_ArgumentIntegerConstant << FractExpr->getSourceRange();
+      << Attr << AANT_ArgumentIntegerConstant << FractExpr->getSourceRange();
     Attr.setInvalid();
   }
   bool IsFract = static_cast<bool>(FractInt.getZExtValue());
@@ -7800,17 +7800,16 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
       CurType = S.Context.DoubleTy;
       break;
     case 32:
-
       CurType = S.Context.FloatTy;
       break;
     case 16:
       CurType = S.Context.Float16Ty;
       break;
     default:
-        S.Diag(Attr.getLoc(), diag::err_attribute_invalid_size)
-            << Attr << ELENExpr->getSourceRange();
-        Attr.setInvalid();
-        return;
+      S.Diag(Attr.getLoc(), diag::err_attribute_invalid_size)
+        << Attr << ELENExpr->getSourceRange();
+      Attr.setInvalid();
+      return;
     }
   } else if (BTy->isSignedInteger()) {
     switch (ELEN) {
@@ -7827,10 +7826,10 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
       CurType = S.Context.SignedCharTy;
       break;
     default:
-        S.Diag(Attr.getLoc(), diag::err_attribute_invalid_size)
-            << Attr << ELENExpr->getSourceRange();
-        Attr.setInvalid();
-        return;
+      S.Diag(Attr.getLoc(), diag::err_attribute_invalid_size)
+        << Attr << ELENExpr->getSourceRange();
+      Attr.setInvalid();
+      return;
     }
   } else if (BTy->isUnsignedInteger()) {
     switch (ELEN) {
@@ -7847,20 +7846,20 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
       CurType = S.Context.UnsignedCharTy;
       break;
     default:
-        S.Diag(Attr.getLoc(), diag::err_attribute_invalid_size)
-            << Attr << ELENExpr->getSourceRange();
-        Attr.setInvalid();
-        return;
+      S.Diag(Attr.getLoc(), diag::err_attribute_invalid_size)
+        << Attr << ELENExpr->getSourceRange();
+      Attr.setInvalid();
+      return;
     }
   } else {
-      S.Diag(Attr.getLoc(), diag::err_attribute_wrong_decl_type)
-        << Attr << ELENExpr->getSourceRange();
+    S.Diag(Attr.getLoc(), diag::err_attribute_wrong_decl_type)
+      << Attr << ELENExpr->getSourceRange();
     Attr.setInvalid();
     return;
   }
 
-
-  CurType = S.Context.getVectorType(CurType, (LMUL << 6) / ELEN, VectorType::RISCVVector);
+  CurType = S.Context.getVectorType(CurType, (LMUL << 6) / ELEN,
+                                    VectorType::RISCVVector);
 }
 
 static void HandleRISCVMaskTypeAttr(QualType &CurType, const ParsedAttr &Attr,

@@ -1,4 +1,4 @@
-//RISCVBuiltin(vsetvl, "zzz", "", 0, 1, 2, )
+RISCVBuiltin(vsetvl, "zzz", "", 0, 1, 2, )
 
 RISCVBuiltin(vsetvlmax, "zz", "", 0, 1, )
 

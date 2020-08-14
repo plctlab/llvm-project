@@ -346,13 +346,13 @@ def int_riscv_vse64_v_u64m8
               [IntrWriteMem]>;
 
 def int_riscv_vle32_v_f32m1
-  : Intrinsic<[llvm_nxv1f32_ty],
+  : Intrinsic<[llvm_nxv2f32_ty],
               [llvm_anyptr_ty],
               [IntrReadMem]>;
 
 def int_riscv_vse32_v_f32m1
   : Intrinsic<[],
-              [llvm_nxv1f32_ty, llvm_anyptr_ty],
+              [llvm_nxv2f32_ty, llvm_anyptr_ty],
               [IntrWriteMem]>;
 
 def int_riscv_vle32_v_f32m2
@@ -747,7 +747,7 @@ def int_riscv_vmv_s_x_u64m8
 
 def int_riscv_vfmv_f_s_f32m1_f32
   : Intrinsic<[llvm_float_ty],
-              [llvm_nxv1f32_ty],
+              [llvm_nxv2f32_ty],
               [IntrNoMem]>;
 
 def int_riscv_vfmv_s_f_f32m1
@@ -3336,8 +3336,8 @@ def int_riscv_vdiv_vv_f64m8 : Intrinsic<[llvm_nxv8f64_ty],
                                [llvm_nxv8f64_ty, llvm_nxv8f64_ty],
                                [IntrNoMem]>;
 
-def int_riscv_vfadd_vv_f32m1 : Intrinsic<[llvm_nxv1f32_ty],
-                               [llvm_nxv1f32_ty, llvm_nxv1f32_ty],
+def int_riscv_vfadd_vv_f32m1 : Intrinsic<[llvm_nxv2f32_ty],
+                               [llvm_nxv2f32_ty, llvm_nxv2f32_ty],
                                [IntrNoMem]>;
 
 def int_riscv_vfadd_vv_f64m1 : Intrinsic<[llvm_nxv1f64_ty],

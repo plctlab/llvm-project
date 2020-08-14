@@ -88,6 +88,7 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
   if (STI.hasStdExtV()) {
     addRegisterClass(MVT::nxv1i32, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv1f32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv2f32, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv8f32, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv8i8, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv4i16, &RISCV::VRRegClass);

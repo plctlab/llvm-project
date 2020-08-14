@@ -2730,8 +2730,8 @@ def : PatSE32<int_riscv_vse32_v_f32m8>;
 //           (VSE32_V_um $src, $dst, 0)>;
  
 
-//def : Pat<(int_riscv_vfmacc_vf_f32m1 VR:$acc, FPR32:$op1, VR:$op2),
-//          (VFMACC_VF_um $acc, $op1, $op2)>;
+def : Pat<(int_riscv_vfmacc_vf_f32m1 VR:$acc, FPR32:$op1, VR:$op2),
+          (VFMACC_VF_um $acc, $op1, $op2)>;
 
 //def : Pat<(int_riscv_vfmacc_vf_f32m8 VR:$acc, FPR32:$op1, VR:$op2),
 //          (VFMACC_VF_um $acc, $op1, $op2)>;
@@ -2739,23 +2739,27 @@ def : PatSE32<int_riscv_vse32_v_f32m8>;
 
 //def : Pat<(int_riscv_vfmv_f_s_f32m1_f32 VR:$src), (VFMV_F_S $src)>;
 
-def : Pat<(nxv1f32 (int_riscv_vfadd_vv_f32m1 VR:$vs2, VR:$vs1)), (VFADD_VV_um VR:$vs2, VR:$vs1)>;
+def : Pat<(nxv2f32 (int_riscv_vfadd_vv_f32m1 VR:$vs2, VR:$vs1)), (VFADD_VV_um VR:$vs2, VR:$vs1)>;
 
 def : Pat<(nxv8i8 (int_riscv_vadd_vv nxv8i8:$vs2, nxv8i8:$vs1)), (VADD_VV_um VR:$vs2, VR:$vs1)>;
 def : Pat<(nxv4i16 (int_riscv_vadd_vv nxv4i16:$vs2, nxv4i16:$vs1)), (VADD_VV_um VR:$vs2, VR:$vs1)>;
 
 
-//def : Pat<(nxv1f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;
+def : Pat<(nxv1f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;
+def : Pat<(nxv2f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;
 
 //def : Pat<(nxv8f32 (load GPR:$src)), (VLE32_V_um $src, 0)>;
 
 
 //def : Pat<(store nxv8f32:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
 
-//def : Pat<(store nxv1f32:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
+def : Pat<(store nxv1f32:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
+def : Pat<(store nxv2f32:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
 
 
 //def : Pat<(vscale GPR:$mul), (MUL VLENB, $mul)>;
+
+def : Pat<(vscale GPR:$mul), (MUL VLENB, $mul)>;
 
 // def : Pat<(store VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
 

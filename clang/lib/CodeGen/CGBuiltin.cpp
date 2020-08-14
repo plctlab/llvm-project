@@ -14513,6 +14513,10 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   SmallVector<llvm::Type*, 4> OverloadedArgTys;
 
   switch (BuiltinID) {
+    case RISCV::BI__builtin_riscv_vfmacc_vf_f32m1: {
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vfmacc_vf_f32m1);
+      return Builder.CreateCall(F, Args);
+    }
     case RISCV::BI__builtin_riscv_vadd_vv_i8m1:
     case RISCV::BI__builtin_riscv_vadd_vv_i16m1: {
       Value *Return = EmitScalarExpr(E->getArg(0));

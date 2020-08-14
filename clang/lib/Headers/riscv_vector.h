@@ -117,6 +117,8 @@ typedef __attribute__((riscv_mask_type(32))) bool vbool32_t;
 
 typedef __attribute__((riscv_mask_type(64))) bool vbool64_t;
 
+typedef float float32_t;
+typedef double float64_t;
 
 static __attribute__((always_inline))
 size_t vsetvl_e8m1(size_t avl) {
@@ -2993,6 +2995,7 @@ vbool64_t vmset_m_b64() {
   return __builtin_riscv_vmset_m_b64();
 }
 
+#if 0
 static __attribute__((always_inline))
 vbool1_t vmclr_m_b1() {
   return __builtin_riscv_vmclr_m_b1();
@@ -3963,6 +3966,19 @@ vfloat32m8_t vfdiv_vv_f32m8(vfloat32m8_t value1, vfloat32m8_t value2) {
 static __attribute__((always_inline))
 vfloat64m8_t vfdiv_vv_f64m8(vfloat64m8_t value1, vfloat64m8_t value2) {
     return __builtin_riscv_vfdiv_vv_f64m8(value1, value2);
+}
+#endif
+
+static __attribute__((always_inline))
+vfloat32m1_t vfmacc_vf_f32m1(vfloat32m1_t acc, float32_t op1,
+                             vfloat32m1_t op2) {
+  return __builtin_riscv_vfmacc_vf_f32m1(acc, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat32m8_t vfmacc_vf_f32m8(vfloat32m8_t acc, float32_t op1,
+                             vfloat32m8_t op2) {
+  return __builtin_riscv_vfmacc_vf_f32m8(acc, op1, op2);
 }
 
 #endif
