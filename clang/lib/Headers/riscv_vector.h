@@ -153,7 +153,7 @@ static __attribute__((always_inline))
 size_t vsetvl_e32m1(size_t avl) {
   return __builtin_riscv_vsetvl(avl, _E32 | _M1);
 }
-
+//add
 static __attribute__((always_inline))
 vint8m1_t vadd_vv_i8m1(vint8m1_t value1, vint8m1_t value2) {
   return  __builtin_riscv_vadd_vv_i8m1(value1, value2);
@@ -188,6 +188,26 @@ static __attribute__((always_inline))
 vfloat64m1_t vfadd_vv_f64m1(vfloat64m1_t value1, vfloat64m1_t value2) {
     return __builtin_riscv_vfadd_vv_f64m1(value1, value2);
 }
+static __attribute__((always_inline))
+vuint8m1_t vadd_vv_u8m1(vuint8m1_t value1, vuint8m1_t value2) {
+  return  __builtin_riscv_vadd_vv_u8m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vadd_vv_u16m1(vuint16m1_t value1, vuint16m1_t value2) {
+  return  __builtin_riscv_vadd_vv_u16m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vadd_vv_u32m1(vuint32m1_t value1, vuint32m1_t value2) {
+  return  __builtin_riscv_vadd_vv_u32m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vadd_vv_u64m1(vuint64m1_t value1, vuint64m1_t value2) {
+  return  __builtin_riscv_vadd_vv_u64m1(value1, value2);
+}
+
 //and
 static __attribute__((always_inline))
 vint8m1_t vand_vv_i8m1(vint8m1_t value1, vint8m1_t value2) {
@@ -243,6 +263,26 @@ vfloat32m1_t vfsub_vv_f32m1(vfloat32m1_t value1, vfloat32m1_t value2) {
 static __attribute__((always_inline))
 vfloat64m1_t vfsub_vv_f64m1(vfloat64m1_t value1, vfloat64m1_t value2) {
     return __builtin_riscv_vfsub_vv_f64m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vsub_vv_u8m1(vuint8m1_t value1, vuint8m1_t value2) {
+  return  __builtin_riscv_vsub_vv_u8m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vsub_vv_u16m1(vuint16m1_t value1, vuint16m1_t value2) {
+  return  __builtin_riscv_vsub_vv_u16m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vsub_vv_u32m1(vuint32m1_t value1, vuint32m1_t value2) {
+  return  __builtin_riscv_vsub_vv_u32m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vsub_vv_u64m1(vuint64m1_t value1, vuint64m1_t value2) {
+  return  __builtin_riscv_vsub_vv_u64m1(value1, value2);
 }
 
 //xor
@@ -439,6 +479,26 @@ static __attribute__((always_inline))
 vfloat64m1_t vfmul_vv_f64m1(vfloat64m1_t value1, vfloat64m1_t value2) {
     return __builtin_riscv_vfmul_vv_f64m1(value1, value2);
 }
+static __attribute__((always_inline))
+vuint8m1_t vmul_vv_u8m1(vuint8m1_t value1, vuint8m1_t value2) {
+  return  __builtin_riscv_vmul_vv_u8m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vmul_vv_u16m1(vuint16m1_t value1, vuint16m1_t value2) {
+  return  __builtin_riscv_vmul_vv_u16m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vmul_vv_u32m1(vuint32m1_t value1, vuint32m1_t value2) {
+  return  __builtin_riscv_vmul_vv_u32m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vmul_vv_u64m1(vuint64m1_t value1, vuint64m1_t value2) {
+  return  __builtin_riscv_vmul_vv_u64m1(value1, value2);
+}
+
 //div
 static __attribute__((always_inline))
 vint8m1_t vdiv_vv_i8m1(vint8m1_t value1, vint8m1_t value2) {
@@ -472,6 +532,26 @@ vfloat32m1_t vfdiv_vv_f32m1(vfloat32m1_t value1, vfloat32m1_t value2) {
 static __attribute__((always_inline))
 vfloat64m1_t vfdiv_vv_f64m1(vfloat64m1_t value1, vfloat64m1_t value2) {
     return __builtin_riscv_vfdiv_vv_f64m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vdivu_vv_u8m1(vuint8m1_t value1, vuint8m1_t value2) {
+  return  __builtin_riscv_vdivu_vv_u8m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vdivu_vv_u16m1(vuint16m1_t value1, vuint16m1_t value2) {
+  return  __builtin_riscv_vdivu_vv_u16m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vdivu_vv_u32m1(vuint32m1_t value1, vuint32m1_t value2) {
+  return  __builtin_riscv_vdivu_vv_u32m1(value1, value2);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vdivu_vv_u64m1(vuint64m1_t value1, vuint64m1_t value2) {
+  return  __builtin_riscv_vdivu_vv_u64m1(value1, value2);
 }
 
 //vle32
@@ -934,4 +1014,507 @@ vbool64_t vmsgeu_vv_u64m1_b64(vuint64m1_t value1, vuint64m1_t value2) {
   return  __builtin_riscv_vmsgeu_vv_u64m1_b64(value1, value2);
 }
 
-#endif 
+//vmfeq
+static __attribute__((always_inline))
+vbool16_t vmfeq_vv_f16m1_b16(vfloat16m1_t value1, vfloat16m1_t value2) {
+    return __builtin_riscv_vmfeq_vv_f16m1_b16(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool32_t vmfeq_vv_f32m1_b32(vfloat32m1_t value1, vfloat32m1_t value2) {
+    return __builtin_riscv_vmfeq_vv_f32m1_b32(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool64_t vmfeq_vv_f64m1_b64(vfloat64m1_t value1, vfloat64m1_t value2) {
+    return __builtin_riscv_vmfeq_vv_f64m1_b64(value1, value2);
+}
+
+//vmfne
+static __attribute__((always_inline))
+vbool16_t vmfne_vv_f16m1_b16(vfloat16m1_t value1, vfloat16m1_t value2) {
+    return __builtin_riscv_vmfne_vv_f16m1_b16(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool32_t vmfne_vv_f32m1_b32(vfloat32m1_t value1, vfloat32m1_t value2) {
+    return __builtin_riscv_vmfne_vv_f32m1_b32(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool64_t vmfne_vv_f64m1_b64(vfloat64m1_t value1, vfloat64m1_t value2) {
+    return __builtin_riscv_vmfne_vv_f64m1_b64(value1, value2);
+}
+
+//vmflt
+static __attribute__((always_inline))
+vbool16_t vmflt_vv_f16m1_b16(vfloat16m1_t value1, vfloat16m1_t value2) {
+    return __builtin_riscv_vmflt_vv_f16m1_b16(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool32_t vmflt_vv_f32m1_b32(vfloat32m1_t value1, vfloat32m1_t value2) {
+    return __builtin_riscv_vmflt_vv_f32m1_b32(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool64_t vmflt_vv_f64m1_b64(vfloat64m1_t value1, vfloat64m1_t value2) {
+    return __builtin_riscv_vmflt_vv_f64m1_b64(value1, value2);
+}
+
+//vmfgt
+static __attribute__((always_inline))
+vbool16_t vmfgt_vv_f16m1_b16(vfloat16m1_t value1, vfloat16m1_t value2) {
+    return __builtin_riscv_vmfgt_vv_f16m1_b16(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool32_t vmfgt_vv_f32m1_b32(vfloat32m1_t value1, vfloat32m1_t value2) {
+    return __builtin_riscv_vmfgt_vv_f32m1_b32(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool64_t vmfgt_vv_f64m1_b64(vfloat64m1_t value1, vfloat64m1_t value2) {
+    return __builtin_riscv_vmfgt_vv_f64m1_b64(value1, value2);
+}
+
+//vmfle
+static __attribute__((always_inline))
+vbool16_t vmfle_vv_f16m1_b16(vfloat16m1_t value1, vfloat16m1_t value2) {
+    return __builtin_riscv_vmfle_vv_f16m1_b16(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool32_t vmfle_vv_f32m1_b32(vfloat32m1_t value1, vfloat32m1_t value2) {
+    return __builtin_riscv_vmfle_vv_f32m1_b32(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool64_t vmfle_vv_f64m1_b64(vfloat64m1_t value1, vfloat64m1_t value2) {
+    return __builtin_riscv_vmfle_vv_f64m1_b64(value1, value2);
+}
+//vmfge
+static __attribute__((always_inline))
+vbool16_t vmfge_vv_f16m1_b16(vfloat16m1_t value1, vfloat16m1_t value2) {
+    return __builtin_riscv_vmfge_vv_f16m1_b16(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool32_t vmfge_vv_f32m1_b32(vfloat32m1_t value1, vfloat32m1_t value2) {
+    return __builtin_riscv_vmfge_vv_f32m1_b32(value1, value2);
+}
+
+static __attribute__((always_inline))
+vbool64_t vmfge_vv_f64m1_b64(vfloat64m1_t value1, vfloat64m1_t value2) {
+    return __builtin_riscv_vmfge_vv_f64m1_b64(value1, value2);
+}
+
+static __attribute__((always_inline))
+vint8m1_t vreinterpret_v_u8m1_i8m1(vuint8m1_t src) {
+  uint8_t* base;
+  vse8_v_u8m1(base, src);
+  return vle8_v_i8m1((int8_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vreinterpret_v_i8m1_u8m1(vint8m1_t src) {
+  int8_t* base;
+  vse8_v_i8m1(base, src);
+  return vle8_v_u8m1((uint8_t*)base);
+}
+
+
+static __attribute__((always_inline))
+vint16m1_t vreinterpret_v_u16m1_i16m1(vuint16m1_t src) {
+  uint16_t* base;
+  vse16_v_u16m1(base, src);
+  return vle16_v_i16m1((int16_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vreinterpret_v_i16m1_u16m1(vint16m1_t src) {
+  int16_t* base;
+  vse16_v_i16m1(base, src);
+  return vle16_v_u16m1((uint16_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vreinterpret_v_f32m1_u32m1(vfloat32m1_t src) {
+  float* base;
+  vse32_v_f32m1(base, src);
+  return vle32_v_u32m1((uint32_t*)base);
+}
+
+static __attribute__((always_inline))
+vfloat32m1_t vreinterpret_v_u32m1_f32m1(vuint32m1_t src) {
+  uint32_t* base;
+  vse32_v_u32m1(base, src);
+  return vle32_v_f32m1((float*)base);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vreinterpret_v_f32m1_i32m1(vfloat32m1_t src) {
+  float* base;
+  vse32_v_f32m1(base, src);
+  return vle32_v_i32m1((int32_t*)base);
+}
+
+static __attribute__((always_inline))
+vfloat32m1_t vreinterpret_v_i32m1_f32m1(vint32m1_t src) {
+  int32_t* base;
+  vse32_v_i32m1(base, src);
+  return vle32_v_f32m1((float*)base);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vreinterpret_v_u32m1_i32m1(vuint32m1_t src) {
+  uint32_t* base;
+  vse32_v_u32m1(base, src);
+  return vle32_v_i32m1((int32_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vreinterpret_v_i32m1_u32m1(vint32m1_t src) {
+  int32_t* base;
+  vse32_v_i32m1(base, src);
+  return vle32_v_u32m1((uint32_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vreinterpret_u64_f64_u64m1(vfloat64m1_t src) {
+  double* base;
+  vse64_v_f64m1(base, src);
+  return vle64_v_u64m1((uint64_t*)base);
+}
+
+static __attribute__((always_inline))
+vfloat64m1_t vreinterpret_f64_u64_f64m1(vuint64m1_t src) {
+  uint64_t* base;
+  vse64_v_u64m1(base, src);
+  return vle64_v_f64m1((double*)base);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vreinterpret_i64_f64_i64m1(vfloat64m1_t src) {
+  double* base;
+  vse64_v_f64m1(base, src);
+  return vle64_v_i64m1((int64_t*)base);
+}
+
+static __attribute__((always_inline))
+vfloat64m1_t vreinterpret_f64_i64_f64m1(vint64m1_t src) {
+  int64_t* base;
+  vse64_v_i64m1(base, src);
+  return vle64_v_f64m1((double*)base);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vreinterpret_v_u64m1_i64m1(vuint64m1_t src) {
+  uint64_t* base;
+  vse64_v_u64m1(base, src);
+  return vle64_v_i64m1((int64_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vreinterpret_v_i64m1_u64m1(vint64m1_t src) {
+  int64_t* base;
+  vse64_v_i64m1(base, src);
+  return vle64_v_u64m1((uint64_t*)base);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vreinterpret_v_i64m1_i32m1(vint64m1_t src) {
+  int64_t* base;
+  vse64_v_i64m1(base, src);
+  return vle32_v_i32m1((int32_t*)base);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vreinterpret_v_i32m1_i64m1(vint32m1_t src) {
+  int32_t* base;
+  vse32_v_i32m1(base, src);
+  return vle64_v_i64m1((int64_t*)base);
+}
+
+static __attribute__((always_inline))
+vint16m1_t vreinterpret_v_i64m1_i16m1(vint64m1_t src) {
+  int64_t* base;
+  vse64_v_i64m1(base, src);
+  return vle16_v_i16m1((int16_t*)base);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vreinterpret_v_i16m1_i64m1(vint16m1_t src) {
+  int16_t* base;
+  vse16_v_i16m1(base, src);
+  return vle64_v_i64m1((int64_t*)base);
+}
+
+static __attribute__((always_inline))
+vint8m1_t vreinterpret_v_i64m1_i8m1(vint64m1_t src) {
+  int64_t* base;
+  vse64_v_i64m1(base, src);
+  return vle8_v_i8m1((int8_t*)base);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vreinterpret_v_i8m1_i64m1(vint8m1_t src) {
+  int8_t* base;
+  vse8_v_i8m1(base, src);
+  return vle64_v_i64m1((int64_t*)base);
+}
+
+static __attribute__((always_inline))
+vint16m1_t vreinterpret_v_i32m1_i16m1(vint32m1_t src) {
+  int32_t* base;
+  vse32_v_i32m1(base, src);
+  return vle16_v_i16m1((int16_t*)base);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vreinterpret_v_i16m1_i32m1(vint16m1_t src) {
+  int16_t* base;
+  vse16_v_i16m1(base, src);
+  return vle32_v_i32m1((int32_t*)base);
+}
+
+static __attribute__((always_inline))
+vint8m1_t vreinterpret_v_i32m1_i8m1(vint32m1_t src) {
+  int32_t* base;
+  vse32_v_i32m1(base, src);
+  return vle8_v_i8m1((int8_t*)base);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vreinterpret_v_i8m1_i32m1(vint8m1_t src) {
+  int8_t* base;
+  vse8_v_i8m1(base, src);
+  return vle32_v_i32m1((int32_t*)base);
+}
+
+static __attribute__((always_inline))
+vint8m1_t vreinterpret_v_i16m1_i8m1(vint16m1_t src) {
+  int16_t* base;
+  vse16_v_i16m1(base, src);
+  return vle8_v_i8m1((int8_t*)base);
+}
+
+static __attribute__((always_inline))
+vint16m1_t vreinterpret_v_i8m1_i16m1(vint8m1_t src) {
+  int8_t* base;
+  vse8_v_i8m1(base, src);
+  return vle16_v_i16m1((int16_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vreinterpret_v_u64m1_u32m1(vuint64m1_t src) {
+  uint64_t* base;
+  vse64_v_u64m1(base, src);
+  return vle32_v_u32m1((uint32_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vreinterpret_v_u32m1_u64m1(vuint32m1_t src) {
+  uint32_t* base;
+  vse32_v_u32m1(base, src);
+  return vle64_v_u64m1((uint64_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vreinterpret_v_u64m1_u16m1(vuint64m1_t src) {
+  uint64_t* base;
+  vse64_v_u64m1(base, src);
+  return vle16_v_u16m1((uint16_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vreinterpret_v_u16m1_u64m1(vuint16m1_t src) {
+  uint16_t* base;
+  vse16_v_u16m1(base, src);
+  return vle64_v_u64m1((uint64_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vreinterpret_v_u64m1_u8m1(vuint64m1_t src) {
+  uint64_t* base;
+  vse64_v_u64m1(base, src);
+  return vle8_v_u8m1((uint8_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vreinterpret_v_u8m1_u64m1(vuint8m1_t src) {
+  uint8_t* base;
+  vse8_v_u8m1(base, src);
+  return vle64_v_u64m1((uint64_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vreinterpret_v_u32m1_u16m1(vuint32m1_t src) {
+  uint32_t* base;
+  vse32_v_u32m1(base, src);
+  return vle16_v_u16m1((uint16_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vreinterpret_v_u16m1_u32m1(vuint16m1_t src) {
+  uint16_t* base;
+  vse16_v_u16m1(base, src);
+  return vle32_v_u32m1((uint32_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vreinterpret_v_u32m1_u8m1(vuint32m1_t src) {
+  uint32_t* base;
+  vse32_v_u32m1(base, src);
+  return vle8_v_u8m1((uint8_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vreinterpret_v_u8m1_u32m1(vuint8m1_t src) {
+  uint8_t* base;
+  vse8_v_u8m1(base, src);
+  return vle32_v_u32m1((uint32_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vreinterpret_v_u16m1_u8m1(vuint16m1_t src) {
+  uint16_t* base;
+  vse16_v_u16m1(base, src);
+  return vle8_v_u8m1((uint8_t*)base);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vreinterpret_v_u8m1_u16m1(vuint8m1_t src) {
+  uint8_t* base;
+  vse8_v_u8m1(base, src);
+  return vle16_v_u16m1((uint16_t*)base);
+}
+
+//slide
+/*vint8m1_t vslideup_vx_i8m1_m(vbool8_t mask, vint8m1_t dst, vint8m1_t src, size_t offset) {
+  return __builtin_riscv_vslideup_vx_i8m1_m(mask, dst, src, offset);
+}
+
+static __attribute__((always_inline))
+vint16m1_t vslideup_vx_i16m1_m(vbool16_t mask, vint16m1_t dst, vint16m1_t src, size_t offset) {
+  return __builtin_riscv_vslideup_vx_i16m1_m(mask, dst, src, offset);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vslideup_vx_i32m1_m(vbool32_t mask, vint32m1_t dst, vint32m1_t src, size_t offset) {
+  return __builtin_riscv_vslideup_vx_i32m1_m(mask, dst, src, offset);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vslideup_vx_i64m1_m(vbool64_t mask, vint64m1_t dst, vint64m1_t src, size_t offset) {
+  return __builtin_riscv_vslideup_vx_i64m1_m(mask, dst, src, offset);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vslideup_vx_u8m1_m(vbool8_t mask, vuint8m1_t dst, vuint8m1_t src, size_t offset) {
+  return __builtin_riscv_vslideup_vx_u8m1_m(mask, dst, src, offset);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vslideup_vx_u16m1_m(vbool16_t mask, vuint16m1_t dst, vuint16m1_t src, size_t offset) {
+  return __builtin_riscv_vslideup_vx_u16m1_m(mask, dst, src, offset);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vslideup_vx_u32m1_m(vbool32_t mask, vuint32m1_t dst, vuint32m1_t src, size_t offset) {
+  return __builtin_riscv_vslideup_vx_u32m1_m(mask, dst, src, offset);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vslideup_vx_u64m1_m(vbool64_t mask, vuint64m1_t dst, vuint64m1_t src, size_t offset) {
+  return __builtin_riscv_vslideup_vx_u64m1_m(mask, dst, src, offset);
+}
+
+static __attribute__((always_inline))
+vfloat32m1_t vslideup_vx_f32m1_m(vbool32_t mask, vfloat32m1_t dst, vfloat32m1_t src, size_t offset) {
+  return __builtin_riscv_vslideup_vx_f32m1_m(mask, dst, src, offset);
+}
+
+static __attribute__((always_inline))
+vfloat64m1_t vslideup_vx_f64m1_m(vbool64_t mask, vfloat64m1_t dst, vfloat64m1_t src, size_t offset) {
+  return __builtin_riscv_vslideup_vx_f64m1_m(mask, dst, src, offset);
+}
+*/
+//vmset
+/*static __attribute__((always_inline))
+vbool1_t vmset_m_b1() {
+  return __builtin_riscv_vmset_m_b1();
+}
+
+static __attribute__((always_inline))
+vbool2_t vmset_m_b2() {
+  return __builtin_riscv_vmset_m_b2();
+}
+
+static __attribute__((always_inline))
+vbool4_t vmset_m_b4() {
+  return __builtin_riscv_vmset_m_b4();
+}
+
+static __attribute__((always_inline))
+vbool8_t vmset_m_b8() {
+  return __builtin_riscv_vmset_m_b8();
+}
+
+static __attribute__((always_inline))
+vbool16_t vmset_m_b16() {
+  return __builtin_riscv_vmset_m_b16();
+}
+
+static __attribute__((always_inline))
+vbool32_t vmset_m_b32() {
+  return __builtin_riscv_vmset_m_b32();
+}
+
+static __attribute__((always_inline))
+vbool64_t vmset_m_b64() {
+  return __builtin_riscv_vmset_m_b64();
+}
+*/
+//vmv_v_x
+static __attribute__((always_inline))
+vint8m1_t vmv_v_x_i8m1(int8_t src) {
+  return __builtin_riscv_vmv_v_x_i8m1(src);
+}
+
+static __attribute__((always_inline)) 
+vint16m1_t vmv_v_x_i16m1(int16_t src) {
+  return __builtin_riscv_vmv_v_x_i16m1(src);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vmv_v_x_i32m1(int32_t src) {
+  return __builtin_riscv_vmv_v_x_i32m1(src);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vmv_v_x_i64m1(int64_t src) {
+  return __builtin_riscv_vmv_v_x_i64m1(src);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vmv_v_x_u8m1(uint8_t src) {
+  return __builtin_riscv_vmv_v_x_u8m1(src);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vmv_v_x_u16m1(uint16_t src) {
+  return __builtin_riscv_vmv_v_x_u16m1(src);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vmv_v_x_u32m1(uint32_t src) {
+  return __builtin_riscv_vmv_v_x_u32m1(src);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vmv_v_x_u64m1(uint64_t src) {
+  return __builtin_riscv_vmv_v_x_u64m1(src);
+}
+
+#endif

@@ -28,6 +28,11 @@ BUILTIN(__builtin_riscv_vfadd_vv_f16m1, "q4hq4hq4h", "n")
 BUILTIN(__builtin_riscv_vfadd_vv_f32m1, "q2fq2fq2f", "")
 BUILTIN(__builtin_riscv_vfadd_vv_f64m1, "q1dq1dq1d", "")
 
+BUILTIN(__builtin_riscv_vadd_vv_u8m1, "q8cq8cq8c", "")
+BUILTIN(__builtin_riscv_vadd_vv_u16m1, "q4sq4sq4s", "")
+BUILTIN(__builtin_riscv_vadd_vv_u32m1, "q2iq2iq2i", "")
+BUILTIN(__builtin_riscv_vadd_vv_u64m1, "q1Wiq1Wiq1Wi", "")
+
 //vand_vv
 BUILTIN(__builtin_riscv_vand_vv_i8m1, "q8cq8cq8c", "")
 BUILTIN(__builtin_riscv_vand_vv_i16m1, "q4sq4sq4s", "")
@@ -53,6 +58,11 @@ BUILTIN(__builtin_riscv_vsub_vv_i64m1, "q1Wiq1Wiq1Wi", "")
 BUILTIN(__builtin_riscv_vfsub_vv_f16m1, "q4hq4hq4h", "n")
 BUILTIN(__builtin_riscv_vfsub_vv_f32m1, "q2fq2fq2f", "")
 BUILTIN(__builtin_riscv_vfsub_vv_f64m1, "q1dq1dq1d", "")
+//
+BUILTIN(__builtin_riscv_vsub_vv_u8m1, "q8cq8cq8c", "")
+BUILTIN(__builtin_riscv_vsub_vv_u16m1, "q4sq4sq4s", "")
+BUILTIN(__builtin_riscv_vsub_vv_u32m1, "q2iq2iq2i", "")
+BUILTIN(__builtin_riscv_vsub_vv_u64m1, "q1Wiq1Wiq1Wi", "")
 
 //vxor_vv
 BUILTIN(__builtin_riscv_vxor_vv_i8m1, "q8cq8cq8c", "")
@@ -99,6 +109,12 @@ BUILTIN(__builtin_riscv_vmul_vv_i64m1, "q1Wiq1Wiq1Wi", "")
 BUILTIN(__builtin_riscv_vfmul_vv_f16m1, "q4hq4hq4h", "n")
 BUILTIN(__builtin_riscv_vfmul_vv_f32m1, "q2fq2fq2f", "")
 BUILTIN(__builtin_riscv_vfmul_vv_f64m1, "q1dq1dq1d", "")
+//
+BUILTIN(__builtin_riscv_vmul_vv_u8m1, "q8cq8cq8c", "")
+BUILTIN(__builtin_riscv_vmul_vv_u16m1, "q4sq4sq4s", "")
+BUILTIN(__builtin_riscv_vmul_vv_u32m1, "q2iq2iq2i", "")
+BUILTIN(__builtin_riscv_vmul_vv_u64m1, "q1Wiq1Wiq1Wi", "")
+
 
 //vdiv_vv
 BUILTIN(__builtin_riscv_vdiv_vv_i8m1, "q8cq8cq8c", "")
@@ -109,7 +125,11 @@ BUILTIN(__builtin_riscv_vdiv_vv_i64m1, "q1Wiq1Wiq1Wi", "")
 BUILTIN(__builtin_riscv_vfdiv_vv_f16m1, "q4hq4hq4h", "n")
 BUILTIN(__builtin_riscv_vfdiv_vv_f32m1, "q2fq2fq2f", "")
 BUILTIN(__builtin_riscv_vfdiv_vv_f64m1, "q1dq1dq1d", "")
-
+//vdivu_vv
+BUILTIN(__builtin_riscv_vdivu_vv_u8m1, "q8cq8cq8c", "")
+BUILTIN(__builtin_riscv_vdivu_vv_u16m1, "q4sq4sq4s", "")
+BUILTIN(__builtin_riscv_vdivu_vv_u32m1, "q2iq2iq2i", "")
+BUILTIN(__builtin_riscv_vdivu_vv_u64m1, "q1Wiq1Wiq1Wi", "")
 
 //vle32
 BUILTIN(__builtin_riscv_vle32_v_f32m1, "q2ffC*", "")
@@ -236,4 +256,67 @@ BUILTIN(__builtin_riscv_vmsgeu_vv_u8m1_b8, "q8bq8cq8c", "")
 BUILTIN(__builtin_riscv_vmsgeu_vv_u16m1_b16, "q16bq4sq4s", "")
 BUILTIN(__builtin_riscv_vmsgeu_vv_u32m1_b32, "q32bq2iq2i", "")
 BUILTIN(__builtin_riscv_vmsgeu_vv_u64m1_b64, "q64bq1Wiq1Wi", "")
+
+//vmfeq
+BUILTIN(__builtin_riscv_vmfeq_vv_f16m1_b16, "q16bq4hq4h", "")
+BUILTIN(__builtin_riscv_vmfeq_vv_f32m1_b32, "q32bq2fq2f", "")
+BUILTIN(__builtin_riscv_vmfeq_vv_f64m1_b64, "q64bq1dq1d", "")
+
+//vmfne
+BUILTIN(__builtin_riscv_vmfne_vv_f16m1_b16, "q16bq4hq4h", "")
+BUILTIN(__builtin_riscv_vmfne_vv_f32m1_b32, "q32bq2fq2f", "")
+BUILTIN(__builtin_riscv_vmfne_vv_f64m1_b64, "q64bq1dq1d", "")
+
+//vmflt
+BUILTIN(__builtin_riscv_vmflt_vv_f16m1_b16, "q16bq4hq4h", "")
+BUILTIN(__builtin_riscv_vmflt_vv_f32m1_b32, "q32bq2fq2f", "")
+BUILTIN(__builtin_riscv_vmflt_vv_f64m1_b64, "q64bq1dq1d", "")
+
+//vmfgt
+BUILTIN(__builtin_riscv_vmfgt_vv_f16m1_b16, "q16bq4hq4h", "")
+BUILTIN(__builtin_riscv_vmfgt_vv_f32m1_b32, "q32bq2fq2f", "")
+BUILTIN(__builtin_riscv_vmfgt_vv_f64m1_b64, "q64bq1dq1d", "")
+
+//vmfle
+BUILTIN(__builtin_riscv_vmfle_vv_f16m1_b16, "q16bq4hq4h", "")
+BUILTIN(__builtin_riscv_vmfle_vv_f32m1_b32, "q32bq2fq2f", "")
+BUILTIN(__builtin_riscv_vmfle_vv_f64m1_b64, "q64bq1dq1d", "")
+
+//vmfge
+BUILTIN(__builtin_riscv_vmfge_vv_f16m1_b16, "q16bq4hq4h", "")
+BUILTIN(__builtin_riscv_vmfge_vv_f32m1_b32, "q32bq2fq2f", "")
+BUILTIN(__builtin_riscv_vmfge_vv_f64m1_b64, "q64bq1dq1d", "")
+
+//vslideup
+//BUILTIN(__builtin_riscv_vslideup_vx_i8m1_m, "q8Scq8Scz", "", 2, )
+//BUILTIN(__builtin_riscv_vslideup_vx_i16m1_m, "q4Ssq4Ssz", "", 2, )
+//BUILTIN(__builtin_riscv_vslideup_vx_i32m1_m, "q2Ziq2Ziz", "", 2, )
+//BUILTIN(__builtin_riscv_vslideup_vx_i64m1_m, "q1Wiq1Wiz", "", 2, )
+//BUILTIN(__builtin_riscv_vslideup_vx_u8m1_m, "q8Ucq8Ucz", "", 2, )
+//BUILTIN(__builtin_riscv_vslideup_vx_u16m1_m, "q4Usq4Usz", "", 2, )
+//BUILTIN(__builtin_riscv_vslideup_vx_u32m1_m, "q2UZiq2UZiz", "", 2, )
+//BUILTIN(__builtin_riscv_vslideup_vx_u64m1_m, "q1UWiq1UWiz", "", 2, )
+//BUILTIN(__builtin_riscv_vslideup_vx_f32m1_m, "q2fq2fz", "", 2, )
+//BUILTIN(__builtin_riscv_vslideup_vx_f64m1_m, "q1dq1dz", "", 2, )
+
+//vmset
+//BUILTIN(__builtin_riscv_vmset_m_b1, "q1b", "")
+//BUILTIN(__builtin_riscv_vmset_m_b2, "q2b", "")
+//BUILTIN(__builtin_riscv_vmset_m_b4, "q4b", "")
+//BUILTIN(__builtin_riscv_vmset_m_b8, "q8b", "")
+//BUILTIN(__builtin_riscv_vmset_m_b16, "q16b", "")
+//BUILTIN(__builtin_riscv_vmset_m_b32, "q32b", "")
+//BUILTIN(__builtin_riscv_vmset_m_b64, "q64b", "")
+
+//vmv_v_x
+BUILTIN(__builtin_riscv_vmv_v_x_i8m1, "q8ScSc", "")
+BUILTIN(__builtin_riscv_vmv_v_x_i16m1, "q4SsSs", "")
+BUILTIN(__builtin_riscv_vmv_v_x_i32m1, "q2ZiZi", "")
+BUILTIN(__builtin_riscv_vmv_v_x_i64m1, "q1WiWi", "")
+BUILTIN(__builtin_riscv_vmv_v_x_u8m1, "q8UcUc", "")
+BUILTIN(__builtin_riscv_vmv_v_x_u16m1, "q4UsUs", "")
+BUILTIN(__builtin_riscv_vmv_v_x_u32m1, "q2UZiUZi", "")
+BUILTIN(__builtin_riscv_vmv_v_x_u64m1, "q1UWiUWi", "")
+
+
 #undef BUILTIN
