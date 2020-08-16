@@ -78,4 +78,8 @@ void validate(const Triple &TT, const FeatureBitset &FeatureBits) {
 
 } // namespace RISCVFeatures
 
+namespace RISCVVectorPseudosTable { 
+#define GET_RISCVVectorPseudoTable_IMPL
+#include "RISCVGenSearchableTables.inc"
+}
 } // namespace llvm

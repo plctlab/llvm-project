@@ -93,15 +93,45 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
     // addRegisterClass(MVT::nxv8i1, &RISCV::VRRegClass);
     // addRegisterClass(MVT::nxv16i1, &RISCV::VRRegClass);
     // addRegisterClass(MVT::nxv32i1, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1i1, &RISCV::VMRegClass);
+    addRegisterClass(MVT::nxv2i1, &RISCV::VMRegClass);
+    addRegisterClass(MVT::nxv4i1, &RISCV::VMRegClass);
+    addRegisterClass(MVT::nxv8i1, &RISCV::VMRegClass);
+    addRegisterClass(MVT::nxv16i1, &RISCV::VMRegClass);
+    addRegisterClass(MVT::nxv32i1, &RISCV::VMRegClass);
+    addRegisterClass(MVT::nxv64i1, &RISCV::VMRegClass);
     addRegisterClass(MVT::nxv1i64, &RISCV::VRRegClass);
-
     addRegisterClass(MVT::nxv2i32, &RISCV::VRRegClass);
-
     addRegisterClass(MVT::nxv4i16, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv8i8, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv4f16, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv2f32, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv1f64, &RISCV::VRRegClass);
+
+    addRegisterClass(MVT::nxv16i8, &RISCV::VRM2RegClass);
+    addRegisterClass(MVT::nxv8i16, &RISCV::VRM2RegClass);
+    addRegisterClass(MVT::nxv4i32, &RISCV::VRM2RegClass);
+    addRegisterClass(MVT::nxv2i64, &RISCV::VRM2RegClass);
+    addRegisterClass(MVT::nxv8f16, &RISCV::VRM2RegClass);
+    addRegisterClass(MVT::nxv4f32, &RISCV::VRM2RegClass);
+    addRegisterClass(MVT::nxv2f64, &RISCV::VRM2RegClass);
+
+    addRegisterClass(MVT::nxv32i8, &RISCV::VRM4RegClass);
+    addRegisterClass(MVT::nxv16i16, &RISCV::VRM4RegClass);
+    addRegisterClass(MVT::nxv8i32, &RISCV::VRM4RegClass);
+    addRegisterClass(MVT::nxv4i64, &RISCV::VRM4RegClass);
+    addRegisterClass(MVT::nxv16f16, &RISCV::VRM4RegClass);
+    addRegisterClass(MVT::nxv8f32, &RISCV::VRM4RegClass);
+    addRegisterClass(MVT::nxv4f64, &RISCV::VRM4RegClass);
+
+    addRegisterClass(MVT::nxv64i8, &RISCV::VRM8RegClass);
+    addRegisterClass(MVT::nxv32i16, &RISCV::VRM8RegClass);
+    addRegisterClass(MVT::nxv16i32, &RISCV::VRM8RegClass);
+    addRegisterClass(MVT::nxv8i64, &RISCV::VRM8RegClass);
+    addRegisterClass(MVT::nxv32f16, &RISCV::VRM8RegClass);
+    addRegisterClass(MVT::nxv16f32, &RISCV::VRM8RegClass);
+    addRegisterClass(MVT::nxv8f64, &RISCV::VRM8RegClass);
+
   }
 
   // Compute derived properties from the register classes.
@@ -1564,9 +1594,14 @@ static bool CC_RISCVAssign2XLen(unsigned XLen, CCState &State, CCValAssign VA1,
   return false;
 }
 
-static const MCPhysReg ArgVRs[] = {RISCV::V16, RISCV::V17, RISCV::V18,
+static const MCPhysReg ArgVRs[] = { RISCV::V16, RISCV::V17, RISCV::V18,
                                     RISCV::V19, RISCV::V20, RISCV::V21,
-                                    RISCV::V22, RISCV::V23};
+                                    RISCV::V22, RISCV::V23 };
+
+static const MCPhysReg ArgVR2s[] = { RISCV::V16M2, RISCV::V18M2,
+                                    RISCV::V20M2, RISCV::V22M2 };
+static const MCPhysReg ArgVR4s[] = { RISCV::V16M4, RISCV::V20M4 };
+static const MCPhysReg ArgVR8s[] = { RISCV::V16M8, RISCV::V24M8};
 
 // Implements the RISC-V calling convention. Returns true upon failure.
 static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
@@ -1702,7 +1737,22 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
   else if (ValVT == MVT::f64 && !UseGPRForF64)
     Reg = State.AllocateReg(ArgFPR64s, ArgFPR32s);
   else if (ValVT.isScalableVector()) {
-    Reg = State.AllocateReg(ArgVRs);
+    switch (ValVT.getSizeInBits().getKnownMinSize()) {
+      case 128:
+        Reg = State.AllocateReg(ArgVR2s);
+        break;
+      case 256:
+        Reg = State.AllocateReg(ArgVR4s);
+        break;
+      case 512:
+        Reg = State.AllocateReg(ArgVR8s);
+        break;
+      default:
+        if (ValVT.getVectorElementType() == MVT::i1)
+          Reg = RISCV::V0;
+        else 
+          Reg = State.AllocateReg(ArgVRs);
+    }
   }
   else
     Reg = State.AllocateReg(ArgGPRs);
@@ -1821,6 +1871,7 @@ static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
   EVT LocVT = VA.getLocVT();
   SDValue Val;
   const TargetRegisterClass *RC;
+  if (!LocVT.isScalableVector()) {
     switch (LocVT.getSimpleVT().SimpleTy) {
     default:
       llvm_unreachable("Unexpected register type");
@@ -1834,14 +1885,24 @@ static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
     case MVT::f64:
       RC = &RISCV::FPR64RegClass;
       break;
-    case MVT::nxv8i8:
-    case MVT::nxv4i16:
-    case MVT::nxv2i32:
-    case MVT::nxv1i64:
-    case MVT::nxv1f64:
-    case MVT::nxv2f32:
-    case MVT::nxv4f16:
-      RC = &RISCV::VRRegClass;
+    }
+  } else {
+    switch (LocVT.getSizeInBits().getKnownMinSize()) {
+      default:
+        if (LocVT.getVectorElementType() == MVT::i1) 
+          RC = &RISCV::VMRegClass;
+        else RC = &RISCV::VRRegClass;
+        break;
+      case 128:
+        RC = &RISCV::VRM2RegClass;
+        break;
+      case 256:
+        RC = &RISCV::VRM4RegClass;
+        break;
+      case 512:
+        RC = &RISCV::VRM8RegClass;
+        break;
+    }
   }
 
   Register VReg = RegInfo.createVirtualRegister(RC);

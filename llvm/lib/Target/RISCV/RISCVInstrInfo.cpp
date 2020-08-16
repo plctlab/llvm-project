@@ -90,6 +90,9 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                  MachineBasicBlock::iterator MBBI,
                                  const DebugLoc &DL, MCRegister DstReg,
                                  MCRegister SrcReg, bool KillSrc) const {
+  MachineFunction *MF = MBB.getParent();
+  const TargetRegisterInfo *TRI = MF->getSubtarget().getRegisterInfo();
+
   if (RISCV::GPRRegClass.contains(DstReg, SrcReg)) {
     BuildMI(MBB, MBBI, DL, get(RISCV::ADDI), DstReg)
         .addReg(SrcReg, getKillRegState(KillSrc))
@@ -104,10 +107,28 @@ void RISCVInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
   else if (RISCV::FPR64RegClass.contains(DstReg, SrcReg))
     Opc = RISCV::FSGNJ_D;
   else if (RISCV::VRRegClass.contains(DstReg, SrcReg)) {
-    BuildMI(MBB, MBBI, DL, get(RISCV::VMV1R_V))
-        .addReg(SrcReg, getKillRegState(KillSrc))
-        .addImm(0);
+    BuildMI(MBB, MBBI, DL, get(RISCV::VMV1R_V), DstReg)
+        .addReg(SrcReg, getKillRegState(KillSrc));
     return;
+  } 
+  else if (RISCV::VRM2RegClass.contains(DstReg, SrcReg) || 
+          RISCV::VRM4RegClass.contains(DstReg, SrcReg) || 
+          RISCV::VRM8RegClass.contains(DstReg, SrcReg)) {
+    unsigned Opcode;
+    if (RISCV::VRM2RegClass.contains(DstReg, SrcReg))
+      Opcode = RISCV::VMV2R_V;
+    else if (RISCV::VRM4RegClass.contains(DstReg, SrcReg))
+      Opcode = RISCV::VMV4R_V;
+    else
+      Opcode = RISCV::VMV8R_V;
+
+    DstReg = TRI->getSubReg(DstReg, RISCV::sub_vrm2);
+    SrcReg = TRI->getSubReg(SrcReg, RISCV::sub_vrm2);
+
+    BuildMI(MBB, MBBI, DL, get(Opcode), DstReg)
+        .addReg(SrcReg, getKillRegState(KillSrc));
+    return;
+    
   } else {
     llvm_unreachable("Impossible reg-to-reg copy");
   }

@@ -218,6 +218,25 @@ void validate(const Triple &TT, const FeatureBitset &FeatureBits);
 
 } // namespace RISCVFeatures
 
+namespace RISCVVectorPseudosTable {
+
+struct RISCVVectorPseudoInfo {
+  unsigned int Pseudo;
+  unsigned int BaseInstr;
+  uint8_t SEWIndex;
+  uint8_t MergeOpIndex;
+  uint8_t VLMul;
+
+  int getSEWIndex() const { return static_cast<int8_t>(SEWIndex); }
+
+  int getMergeOpIndex() const { return static_cast<int8_t>(MergeOpIndex); }
+};
+
+#define GET_RISCVVectorPseudoTable_DECL
+using namespace RISCV;
+#include "RISCVGenSearchableTables.inc"
+}
+
 } // namespace llvm
 
 #endif

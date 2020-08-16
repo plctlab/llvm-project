@@ -914,135 +914,137 @@ foreach nf = [1, 2, 4, 8] in {
 } // hasSideEffects = 0, mayLoad = 0, mayStore = 0
 } // Predicates = [HasStdExtV]
 
-multiclass pat_int_binary<string intrinsic, string instruction> {
-  foreach vector = [nxv8i8, nxv4i16, nxv2i32, nxv1i64] in {
-   def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vv") vector:$vs1, vector:$vs2)), 
-   (!cast<Instruction>(instruction # "_VV") VRegOp:$vs1, VRegOp:$vs2, (nxv1i1 zero_reg))>;
+// multiclass pat_int_binary<string intrinsic, string instruction> {
+//   foreach vector = [nxv8i8, nxv4i16, nxv2i32, nxv1i64] in {
+//    def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vv") vector:$vs1, vector:$vs2)), 
+//    (!cast<Instruction>(instruction # "_VV") VRegOp:$vs1, VRegOp:$vs2, (nxv1i1 zero_reg))>;
  
-   // def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vx") vector:$vs1, i64:$rs1)),
-   // (!cast<Instruction>(instruction # "_VX") VRegOp:$vs1, GPR:$rs1, (nxv1i1 zero_reg))>;
-   }
- }
-multiclass pat_float_binary<string intrinsic, string instruction> {
-  foreach vector = [nxv1f64, nxv2f32, nxv4f16] in {
-  def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vv") vector:$vs1, vector:$vs2)), 
-  (!cast<Instruction>(instruction # "_VV") VRegOp:$vs1, VRegOp:$vs2, (nxv1i1 zero_reg))>;
+//    // def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vx") vector:$vs1, i64:$rs1)),
+//    // (!cast<Instruction>(instruction # "_VX") VRegOp:$vs1, GPR:$rs1, (nxv1i1 zero_reg))>;
+//    }
+//  }
+// multiclass pat_float_binary<string intrinsic, string instruction> {
+//   foreach vector = [nxv1f64, nxv2f32, nxv4f16] in {
+//   def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vv") vector:$vs1, vector:$vs2)), 
+//   (!cast<Instruction>(instruction # "_VV") VRegOp:$vs1, VRegOp:$vs2, (nxv1i1 zero_reg))>;
 
-  // def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vx") vector:$vs1, i64:$rs1)),
-  // (!cast<Instruction>(instruction # "_VX") VRegOp:$vs1, GPR:$rs1, (nxv1i1 zero_reg))>;
-  }
-}
+//   // def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vx") vector:$vs1, i64:$rs1)),
+//   // (!cast<Instruction>(instruction # "_VX") VRegOp:$vs1, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   }
+// }
 
-defm "" : pat_int_binary<"vadd", "VADD">;
-defm "" : pat_int_binary<"vsub", "VSUB">;
-defm "" : pat_int_binary<"vmul", "VMUL">;
-defm "" : pat_int_binary<"vdiv", "VDIV">;
-defm "" : pat_int_binary<"vand", "VAND">;
-defm "" : pat_int_binary<"vor", "VOR">;
-defm "" : pat_int_binary<"vxor", "VXOR">;
-defm "" : pat_int_binary<"vmseq", "VMSEQ">;
-defm "" : pat_int_binary<"vmsle", "VMSLE">; 
-defm "" : pat_int_binary<"vmsleu", "VMSLEU">;
-defm "" : pat_int_binary<"vmin", "VMIN">;
-defm "" : pat_int_binary<"vmax", "VMAX">;
-defm "" : pat_int_binary<"vmsne", "VMSNE">;
-defm "" : pat_int_binary<"vmslt", "VMSLT">;
-defm "" : pat_int_binary<"vmsltu", "VMSLTU">;
+// defm "" : pat_int_binary<"vadd", "VADD">;
+// defm "" : pat_int_binary<"vsub", "VSUB">;
+// defm "" : pat_int_binary<"vmul", "VMUL">;
+// defm "" : pat_int_binary<"vdiv", "VDIV">;
+// defm "" : pat_int_binary<"vand", "VAND">;
+// defm "" : pat_int_binary<"vor", "VOR">;
+// defm "" : pat_int_binary<"vxor", "VXOR">;
+// defm "" : pat_int_binary<"vmseq", "VMSEQ">;
+// defm "" : pat_int_binary<"vmsle", "VMSLE">; 
+// defm "" : pat_int_binary<"vmsleu", "VMSLEU">;
+// defm "" : pat_int_binary<"vmin", "VMIN">;
+// defm "" : pat_int_binary<"vmax", "VMAX">;
+// defm "" : pat_int_binary<"vmsne", "VMSNE">;
+// defm "" : pat_int_binary<"vmslt", "VMSLT">;
+// defm "" : pat_int_binary<"vmsltu", "VMSLTU">;
 
-defm "" : pat_float_binary<"vfadd", "VFADD">;
-defm "" : pat_float_binary<"vfsub", "VFSUB">;
-defm "" : pat_float_binary<"vfmul", "VFMUL">;
-defm "" : pat_float_binary<"vfdiv", "VFDIV">;
-defm "" : pat_float_binary<"vfmin", "VFMIN">;
-defm "" : pat_float_binary<"vfmax", "VFMAX">;
-defm "" : pat_float_binary<"vmfeq", "VMFEQ">;
-defm "" : pat_float_binary<"vmfle", "VMFLE">;
-defm "" : pat_float_binary<"vmfne", "VMFNE">;
+// defm "" : pat_float_binary<"vfadd", "VFADD">;
+// defm "" : pat_float_binary<"vfsub", "VFSUB">;
+// defm "" : pat_float_binary<"vfmul", "VFMUL">;
+// defm "" : pat_float_binary<"vfdiv", "VFDIV">;
+// defm "" : pat_float_binary<"vfmin", "VFMIN">;
+// defm "" : pat_float_binary<"vfmax", "VFMAX">;
+// defm "" : pat_float_binary<"vmfeq", "VMFEQ">;
+// defm "" : pat_float_binary<"vmfle", "VMFLE">;
+// defm "" : pat_float_binary<"vmfne", "VMFNE">;
 
-multiclass pat_alias_int_binary<string intrinsic, string instruction> {
-  foreach vector = [nxv8i8, nxv4i16, nxv2i32, nxv1i64] in {
-  def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vv") vector:$va, vector:$vb)), 
-  (!cast<Instruction>(instruction # "_VV") VRegOp:$vb, VRegOp:$va, (nxv1i1 zero_reg))>;
-  }
-}
+// multiclass pat_alias_int_binary<string intrinsic, string instruction> {
+//   foreach vector = [nxv8i8, nxv4i16, nxv2i32, nxv1i64] in {
+//   def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vv") vector:$va, vector:$vb)), 
+//   (!cast<Instruction>(instruction # "_VV") VRegOp:$vb, VRegOp:$va, (nxv1i1 zero_reg))>;
+//   }
+// }
 
-multiclass pat_alias_float_binary<string intrinsic, string instruction> {
-  foreach vector = [nxv4f16, nxv2f32, nxv1f64] in {
-  def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vv") vector:$va, vector:$vb)), 
-  (!cast<Instruction>(instruction # "_VV") VRegOp:$vb, VRegOp:$va, (nxv1i1 zero_reg))>;
-  }
-}
+// multiclass pat_alias_float_binary<string intrinsic, string instruction> {
+//   foreach vector = [nxv4f16, nxv2f32, nxv1f64] in {
+//   def : Pat<(vector (!cast<Intrinsic>("int_riscv_" # intrinsic # "_vv") vector:$va, vector:$vb)), 
+//   (!cast<Instruction>(instruction # "_VV") VRegOp:$vb, VRegOp:$va, (nxv1i1 zero_reg))>;
+//   }
+// }
 
-defm "" : pat_alias_int_binary<"vmsgt", "VMSLT">;
-defm "" : pat_alias_int_binary<"vmsge", "VMSLE">;
-defm "" : pat_alias_float_binary<"vmfgt", "VMFLT">;
-defm "" : pat_alias_float_binary<"vmfge", "VMFLE">;
+// defm "" : pat_alias_int_binary<"vmsgt", "VMSLT">;
+// defm "" : pat_alias_int_binary<"vmsge", "VMSLE">;
+// defm "" : pat_alias_float_binary<"vmfgt", "VMFLT">;
+// defm "" : pat_alias_float_binary<"vmfge", "VMFLE">;
 
-// pat load
-multiclass pat_load_store {
-  def : Pat<(nxv8i8 (int_riscv_vload i64:$rs1)), (VLE8_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv4i16 (int_riscv_vload i64:$rs1)), (VLE16_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv2i32 (int_riscv_vload i64:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv1i64 (int_riscv_vload i64:$rs1)), (VLE64_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv4f16 (int_riscv_vload i64:$rs1)), (VLE16_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv2f32 (int_riscv_vload i64:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv1f64 (int_riscv_vload i64:$rs1)), (VLE64_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(int_riscv_vstore i64:$rs1, nxv8i8:$vd), (VSE8_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(int_riscv_vstore i64:$rs1, nxv4i16:$vd), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(int_riscv_vstore i64:$rs1, nxv2i32:$vd), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(int_riscv_vstore i64:$rs1, nxv1i64:$vd), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(int_riscv_vstore i64:$rs1, nxv4f16:$vd), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(int_riscv_vstore i64:$rs1, nxv2f32:$vd), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(int_riscv_vstore i64:$rs1, nxv1f64:$vd), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv8i8 (load GPR:$rs1)), (VLE8_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv4i16 (load GPR:$rs1)), (VLE16_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv2i32 (load GPR:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv1i64 (load GPR:$rs1)), (VLE64_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv4f16 (load GPR:$rs1)), (VLE16_V GPR:$rs1, (nxv1i1 zero_reg))>; 
-  def : Pat<(nxv2f32 (load GPR:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv1f64 (load GPR:$rs1)), (VLE64_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(nxv2f32 (load GPR:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(store nxv8i8:$vd, GPR:$rs1), (VSE8_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(store nxv4i16:$vd, GPR:$rs1), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(store nxv2i32:$vd, GPR:$rs1), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(store nxv1i64:$vd, GPR:$rs1), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(store nxv4f16:$vd, GPR:$rs1), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(store nxv2f32:$vd, GPR:$rs1), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-  def : Pat<(store nxv1f64:$vd, GPR:$rs1), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
-}
+// // pat load
+// multiclass pat_load_store {
+//   def : Pat<(nxv8i8 (int_riscv_vload i64:$rs1)), (VLE8_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv4i16 (int_riscv_vload i64:$rs1)), (VLE16_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv2i32 (int_riscv_vload i64:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv1i64 (int_riscv_vload i64:$rs1)), (VLE64_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv4f16 (int_riscv_vload i64:$rs1)), (VLE16_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv2f32 (int_riscv_vload i64:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv1f64 (int_riscv_vload i64:$rs1)), (VLE64_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(int_riscv_vstore i64:$rs1, nxv8i8:$vd), (VSE8_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(int_riscv_vstore i64:$rs1, nxv4i16:$vd), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(int_riscv_vstore i64:$rs1, nxv2i32:$vd), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(int_riscv_vstore i64:$rs1, nxv1i64:$vd), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(int_riscv_vstore i64:$rs1, nxv4f16:$vd), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(int_riscv_vstore i64:$rs1, nxv2f32:$vd), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(int_riscv_vstore i64:$rs1, nxv1f64:$vd), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv8i8 (load GPR:$rs1)), (VLE8_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv4i16 (load GPR:$rs1)), (VLE16_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv2i32 (load GPR:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv1i64 (load GPR:$rs1)), (VLE64_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv4f16 (load GPR:$rs1)), (VLE16_V GPR:$rs1, (nxv1i1 zero_reg))>; 
+//   def : Pat<(nxv2f32 (load GPR:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv1f64 (load GPR:$rs1)), (VLE64_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(nxv2f32 (load GPR:$rs1)), (VLE32_V GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(store nxv8i8:$vd, GPR:$rs1), (VSE8_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(store nxv4i16:$vd, GPR:$rs1), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(store nxv2i32:$vd, GPR:$rs1), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(store nxv1i64:$vd, GPR:$rs1), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(store nxv4f16:$vd, GPR:$rs1), (VSE16_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(store nxv2f32:$vd, GPR:$rs1), (VSE32_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+//   def : Pat<(store nxv1f64:$vd, GPR:$rs1), (VSE64_V VR:$vd, GPR:$rs1, (nxv1i1 zero_reg))>;
+// }
 
-defm "" : pat_load_store;
+// defm "" : pat_load_store;
 
-multiclass pat_vmv_v_x {
-  foreach vector=[nxv8i8, nxv2i32, nxv4i16, nxv1i64] in {
-    def : Pat<(vector (int_riscv_vmv_v_x GPR:$rs1)), (VMV_V_X GPR:$rs1)>;
-  }
-}
+// multiclass pat_vmv_v_x {
+//   foreach vector=[nxv8i8, nxv2i32, nxv4i16, nxv1i64] in {
+//     def : Pat<(vector (int_riscv_vmv_v_x GPR:$rs1)), (VMV_V_X GPR:$rs1)>;
+//   }
+// }
 
-// def : Pat<(nxv2f32 (int_riscv_vfmacc_vf nxv2f32:$vs1, f32:$rs2, nxv2f32:$vs2)),
-//  (VFMACC_VF nxv2f32:$vs1, FPR32:$rs2, VR:$vs2, (nxv1i1 zero_reg))>;
+// // def : Pat<(nxv2f32 (int_riscv_vfmacc_vf nxv2f32:$vs1, f32:$rs2, nxv2f32:$vs2)),
+// //  (VFMACC_VF nxv2f32:$vs1, FPR32:$rs2, VR:$vs2, (nxv1i1 zero_reg))>;
 
-defm "" : pat_vmv_v_x;
+// defm "" : pat_vmv_v_x;
 
-// pat vsetvl
+// // pat vsetvl
 
-def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
+// def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
 
-def PseudoVFMACC_VF : Pseudo<(outs VRegOp:$rd),
-                                (ins VRegOp:$rs3, FPR32:$rs1,
-                                    VRegOp:$rs2, VMaskOp:$vm),
-                                []> {
-let Constraints = "$rd = $rs3";
-let Uses = [VL, VTYPE];
-}
+// def PseudoVFMACC_VF : Pseudo<(outs VRegOp:$rd),
+//                                 (ins VRegOp:$rs3, FPR32:$rs1,
+//                                     VRegOp:$rs2, VMaskOp:$vm),
+//                                 []> {
+// let Constraints = "$rd = $rs3";
+// let Uses = [VL, VTYPE];
+// }
 
-def : Pat<(nxv2f32 (int_riscv_vfmacc_vf
-                          (nxv2f32 VRegOp:$rs3),
-                          (f32 FPR32:$rs1),
-                          (nxv2f32 VRegOp:$rs2))),
-            (!cast<Instruction>("PseudoVFMACC_VF")
-             VRegOp:$rs3,
-             FPR32:$rs1,
-             VRegOp:$rs2,
-             (nxv1i1 zero_reg))>;
+// def : Pat<(nxv2f32 (int_riscv_vfmacc_vf
+//                           (nxv2f32 VRegOp:$rs3),
+//                           (f32 FPR32:$rs1),
+//                           (nxv2f32 VRegOp:$rs2))),
+//             (!cast<Instruction>("PseudoVFMACC_VF")
+//              VRegOp:$rs3,
+//              FPR32:$rs1,
+//              VRegOp:$rs2,
+//              (nxv1i1 zero_reg))>;
+
+include "RISCVPseudoInfoV.td"
 

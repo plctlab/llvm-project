@@ -1095,6 +1095,9 @@ void MachineInstr::tieOperands(unsigned DefIdx, unsigned UseIdx) {
   assert(!DefMO.isTied() && "Def is already tied to another use");
   assert(!UseMO.isTied() && "Use is already tied to another def");
 
+  if (UseMO.getReg() == 0)
+    return;
+
   if (DefIdx < TiedMax)
     UseMO.TiedTo = DefIdx + 1;
   else {

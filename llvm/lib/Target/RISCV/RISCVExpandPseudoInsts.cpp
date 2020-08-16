@@ -61,7 +61,8 @@ private:
                               MachineBasicBlock::iterator &NextMBBI);
   bool expandRISCVVector(MachineBasicBlock &MBB, 
                          MachineBasicBlock::iterator MBBI,
-                         MachineBasicBlock::iterator &NextMBBI);
+                         MachineBasicBlock::iterator &NextMBBI, unsigned BaseInstr, 
+                         int MergeOpIndex, int SEWIndex, int VLMul);
 };
 
 char RISCVExpandPseudo::ID = 0;
@@ -85,7 +86,6 @@ bool RISCVExpandPseudo::expandMBB(MachineBasicBlock &MBB) {
     Modified |= expandMI(MBB, MBBI, NMBBI);
     MBBI = NMBBI;
   }
-
   return Modified;
 }
 
@@ -95,9 +95,12 @@ bool RISCVExpandPseudo::expandMI(MachineBasicBlock &MBB,
   // RISCVInstrInfo::getInstSizeInBytes hard-codes the number of expanded
   // instructions for each pseudo, and must be updated when adding new pseudos
   // or changing existing ones.
+  if (const RISCVVectorPseudosTable::RISCVVectorPseudoInfo* pseudo = 
+        RISCVVectorPseudosTable::getRISCVVectorPseudoInfo(MBBI->getOpcode())) {
+    return expandRISCVVector(MBB, MBBI, NextMBBI, pseudo->BaseInstr, 
+                             pseudo->getMergeOpIndex(), pseudo->getSEWIndex(), pseudo->VLMul);
+  }
   switch (MBBI->getOpcode()) {
-  case RISCV::PseudoVFMACC_VF:
-    return expandRISCVVector(MBB, MBBI, NextMBBI);
   case RISCV::PseudoLLA:
     return expandLoadLocalAddress(MBB, MBBI, NextMBBI);
   case RISCV::PseudoLA:
@@ -107,26 +110,7 @@ bool RISCVExpandPseudo::expandMI(MachineBasicBlock &MBB,
   case RISCV::PseudoLA_TLS_GD:
     return expandLoadTLSGDAddress(MBB, MBBI, NextMBBI);
   }
-
   return false;
-}
-
-bool RISCVExpandPseudo::expandRISCVVector(MachineBasicBlock &MBB, 
-                      MachineBasicBlock::iterator MBBI,
-                      MachineBasicBlock::iterator &NextMBBI) {
-  MachineFunction *MF = MBB.getParent();
-  MachineInstr &MI = *MBBI;
-  DebugLoc DL = MI.getDebugLoc();
-
-  Register DestReg = MI.getOperand(0).getReg();
-
-  BuildMI(MBB, MI, DL, TII->get(RISCV::VFMACC_VF), DestReg)
-      .add(MI.getOperand(2))
-      .add(MI.getOperand(3))
-      .add(MI.getOperand(4));
-
-  MI.eraseFromParent(); // The pseudo instruction is gone now.
-  return true;
 }
 
 bool RISCVExpandPseudo::expandAuipcInstPair(
@@ -214,6 +198,56 @@ bool RISCVExpandPseudo::expandLoadTLSGDAddress(
 }
 
 } // end of anonymous namespace
+
+bool RISCVExpandPseudo::expandRISCVVector(MachineBasicBlock &MBB, 
+                      MachineBasicBlock::iterator MBBI,
+                      MachineBasicBlock::iterator &NextMBBI,
+                      unsigned BaseInstr, int MergeOpIndex,
+                      int SEWIndex, int VLMul) {
+  // MachineFunction *MF = MBB.getParent();
+  MachineInstr &MI = *MBBI;
+  DebugLoc DL = MI.getDebugLoc();
+
+  MachineInstrBuilder MIB = BuildMI(MBB, MI, DL, TII->get(BaseInstr));
+  // MachineInstr *NewMI = MIB.getInstr();
+
+    // Remove implicit operands
+  // for (MachineInstr::const_mop_iterator Op = NewMI->operands_end();
+  //      Op != NewMI->operands_begin(); Op--) {
+  //   MachineInstr::const_mop_iterator Base = Op - 1;
+  //   if (Base->isImplicit()) {
+  //     assert(Base->isReg());
+  //     NewMI->RemoveOperand(NewMI->getOperandNo(Base));
+  //   }
+  // }
+
+  for (MachineInstr::const_mop_iterator Op = MI.operands_begin();
+    Op != MI.operands_end(); Op++) {
+    int Op_num = (int)MI.getOperandNo(Op);
+    if (Op_num == MergeOpIndex || Op_num == SEWIndex)
+      continue;
+
+    if (!Op->isReg() || Op->getReg() == RISCV::NoRegister) {
+      MIB.add(*Op);
+      continue;
+    }
+
+    unsigned int Flags = 0;
+    if (Op->isImplicit())
+      Flags |= RegState::Implicit;
+
+    if (Op->isDef())
+      Flags |= RegState::Define;
+
+    if (Op->isUndef())
+      Flags |= RegState::Undef;
+
+    MIB.addReg(Op->getReg(), Flags);
+  }
+
+  MI.eraseFromParent(); // The pseudo instruction is gone now.
+  return true;
+}
 
 INITIALIZE_PASS(RISCVExpandPseudo, "riscv-expand-pseudo",
                 RISCV_EXPAND_PSEUDO_NAME, false, false)
