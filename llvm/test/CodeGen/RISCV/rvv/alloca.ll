@@ -11,7 +11,7 @@ entry:
 ;CHECK: csrr	a0, vlenb
 ;CHECK: sub	sp, sp, a0
 ;CHECK: sd	sp, -8(s0)
-;CHECK: addi	a0, s0, -8
+;CHECK: ld	a0, -8(s0)
 ;CHECK: vse32.v	v16, (a0)
 ;CHECK: addi	sp, s0, -16
 ;CHECK: addi	sp, sp, 16

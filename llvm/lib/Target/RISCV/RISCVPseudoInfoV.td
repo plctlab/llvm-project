@@ -221,7 +221,7 @@ multiclass pseudo_binary_carryin<RegisterClass result_reg_class,
                                 RegisterClass arg1_reg_class,
                                 RegisterClass arg2_reg_class,
                                 string vlmul, string constraints = ""> {
-  let Constraints = constraints,
+  let Constraints = Join<[constraints, ""], ",">.Result,
       Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 1,
       BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in 
     def "_M" # vlmul : Pseudo<(outs result_reg_class:$rd),
@@ -239,10 +239,25 @@ multiclass pseudo_unary<RegisterClass result_reg_class,
       Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 1,
       BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in
     def "_M" # vlmul : Pseudo<(outs result_reg_class:$rd),
-                              (ins arg1_reg_class:$rs1,
-                                VMaskOp:$vm, ixlenimm:$sew),
+                              (ins result_reg_class:$merge,
+                              arg1_reg_class:$rs1,
+                              VMaskOp:$vm, ixlenimm:$sew),
                               []>,
                               RISCVVectorPseudo;
+}
+
+multiclass pseudo_unary_nomask<RegisterClass result_reg_class,
+                        RegisterClass arg1_reg_class,
+                        string vlmul, string constraints = ""> {
+  let Constraints = Join<[constraints, ""], ",">.Result,
+      Uses = [VL, VTYPE], SEWIndex = 3, MergeOpIndex = 1,
+      BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in
+    def "_M" # vlmul : Pseudo<(outs result_reg_class:$rd),
+                              (ins result_reg_class:$merge,
+                              arg1_reg_class:$rs1,
+                              ixlenimm:$sew),
+                              []>,
+                      RISCVVectorPseudo;
 }
 
 multiclass pseudo_ternary<RegisterClass result_reg_class,
@@ -266,6 +281,17 @@ multiclass pseudo_unary_v_v {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
     foreach evr = AllVlmuls in {
       defm _V : pseudo_unary<evr.RegClass, evr.RegClass, evr.Lmulstr>;
+    }
+  }
+}
+
+multiclass pseudo_unary_nomask_v_x_v_v {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+    foreach evr = AllVlmuls in {
+      let VLMul = evr.Vlmul in {
+      defm _V : pseudo_unary_nomask<evr.RegClass, evr.RegClass, evr.Lmulstr>;
+      defm _X : pseudo_unary_nomask<evr.RegClass, GPR, evr.Lmulstr>;
+      }
     }
   }
 }
@@ -384,6 +410,7 @@ defm PseudoVSLL : pseudo_binary_v_vv_vx;
 defm PseudoVSRL : pseudo_binary_v_vv_vx;
 defm PseudoVSRA : pseudo_binary_v_vv_vx;
 defm PseudoVFMACC : pseudo_ternary_v_vvv_vvf;
+defm PseudoVMV_V : pseudo_unary_nomask_v_x_v_v;
 
 
 
@@ -508,6 +535,21 @@ multiclass pat_intrinsic_unary<string intrinsic_name,
              arg1_operand:$rs1,
              (mask_type V0), sew)>;
 }
+
+multiclass pat_intrinsic_unary_nomask<string intrinsic_name,
+                                      string instruction_name,
+                                      ValueType result_type,
+                                      ValueType arg1_type,
+                                      int sew,
+                                      string lmul,
+                                      RegisterClass result_operand,
+                                      DAGOperand arg1_operand> {
+  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
+                          (arg1_type arg1_operand:$rs1))),
+            (!cast<Instruction>(instruction_name#"_M"#lmul)
+              (result_type zero_reg),
+              ToScalarOp<arg1_type, arg1_operand, "rs1">.Result, sew)>;
+}
                                         
 
 multiclass pat_intrinsic_int_binary_vv_vx
@@ -569,10 +611,10 @@ multiclass pat_intrinsic_int_binary_m_vvm_vxm
   foreach evr = AllIntegerVectors in {
     defm : pat_intrinsic_binary_carryin<intrinsic_name#"_vvm", instruction_name#"_VVM",
                                         evr.Mask, evr.Vector, evr.Vector, evr.Mask,
-                                        evr.SEW, evr.LMULstr, VM, evr.RegClass, evr.RegClass>;
+                                        evr.SEW, evr.LMULstr, VMV0, evr.RegClass, evr.RegClass>;
     defm : pat_intrinsic_binary_carryin<intrinsic_name#"_vxm", instruction_name#"_VXM",
                                         evr.Mask, evr.Vector, evr.Vector, evr.Mask,
-                                        evr.SEW, evr.LMULstr, VM, evr.RegClass, evr.RegClass>;
+                                        evr.SEW, evr.LMULstr, VMV0, evr.RegClass, evr.RegClass>;
   }
 }
 
@@ -582,6 +624,18 @@ multiclass pat_intrinsic_int_unary_v
     defm : pat_intrinsic_unary<intrinsic_name#"_v", instruction_name#"_V",
                                evr.Vector, evr.Vector, evr.Mask,
                                evr.SEW, evr.LMULstr, evr.RegClass, evr.RegClass>;
+  }
+}
+
+multiclass pat_intrinsic_int_unary_nomask_v_v_v_x 
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllIntegerVectors in {
+    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_v", instruction_name#"_V",
+                               evr.Vector, evr.Vector, evr.SEW,
+                               evr.LMULstr, evr.RegClass, evr.RegClass>;
+    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_x", instruction_name#"_X",
+                               evr.Vector, XLenVT, evr.SEW,
+                               evr.LMULstr, evr.RegClass, GPR>;
   }
 }
 
@@ -601,20 +655,20 @@ multiclass pat_intrinsic_vload_store {
   foreach evr = AllVectors in {
     defvar str = evr.LMULstr;
     def : Pat<(evr.Vector (int_riscv_vload i64:$rs1)), 
-          (evr.Vector (!cast<Instruction>("PseudoVLE32_V_M"#str) (evr.Vector zero_reg), i64:$rs1,
-          (evr.Mask zero_reg), 32))>;
+          (evr.Vector (!cast<Instruction>("PseudoVLE"#evr.SEW#"_V_M"#str) (evr.Vector zero_reg), i64:$rs1,
+          (evr.Mask zero_reg), evr.SEW))>;
 
     def : Pat<(evr.Vector (load i64:$rs1)), 
-          (evr.Vector (!cast<Instruction>("PseudoVLE32_V_M"#str) (evr.Vector zero_reg), i64:$rs1,
-          (evr.Mask zero_reg), 32))>;
+          (evr.Vector (!cast<Instruction>("PseudoVLE"#evr.SEW#"_V_M"#str) (evr.Vector zero_reg), i64:$rs1,
+          (evr.Mask zero_reg), evr.SEW))>;
 
     def : Pat<(int_riscv_vstore i64:$rs2, (evr.Vector evr.RegClass:$rs1)), 
-          (!cast<Instruction>("PseudoVSE32_V_M"#str) (evr.Vector zero_reg), 
-          (evr.Vector evr.RegClass:$rs1), i64:$rs2, (evr.Mask zero_reg), 32)>;
+          (!cast<Instruction>("PseudoVSE"#evr.SEW#"_V_M"#str) (evr.Vector zero_reg), 
+          (evr.Vector evr.RegClass:$rs1), i64:$rs2, (evr.Mask zero_reg), evr.SEW)>;
 
     def : Pat<(store (evr.Vector evr.RegClass:$rs1), i64:$rs2), 
-          (!cast<Instruction>("PseudoVSE32_V_M"#str) (evr.Vector zero_reg), 
-          (evr.Vector evr.RegClass:$rs1), i64:$rs2, (evr.Mask zero_reg), 32)>;
+          (!cast<Instruction>("PseudoVSE"#evr.SEW#"_V_M"#str) (evr.Vector zero_reg), 
+          (evr.Vector evr.RegClass:$rs1), i64:$rs2, (evr.Mask zero_reg), evr.SEW)>;
   }
 }
 
@@ -624,4 +678,5 @@ defm "" : pat_intrinsic_int_binary_v_vvm_vxm<"int_riscv_vadc", "PseudoVADC">;
 defm "" : pat_intrinsic_int_binary_m_vvm_vxm<"int_riscv_vmadc", "PseudoVMADC">;
 defm "" : pat_intrinsic_vload_store;
 defm "" : pat_intrinsic_float_ternary_v_vvv_vvf<"int_riscv_vfmacc", "PseudoVFMACC">;
+defm "" : pat_intrinsic_int_unary_nomask_v_v_v_x<"int_riscv_vmv_v", "PseudoVMV_V">;
 // defm "" : pat_intrinsic_int_unary_v<"int_riscv_vnot", "PseudoVNOT">;

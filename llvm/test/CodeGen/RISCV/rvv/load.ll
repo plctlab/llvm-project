@@ -1,3 +1,6 @@
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-v < %s \
+; RUN:   | FileCheck -check-prefix=CHECK %s
+
 declare <vscale x 8 x float> @llvm.riscv.vload.f32(float*);
 define <vscale x 8 x float> @vle32_v_f32m1(float* %0) {
 entry:

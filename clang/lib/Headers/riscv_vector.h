@@ -160,11 +160,6 @@ size_t vsetvl_e32m8(size_t avl) {
 }
 
 static __attribute__((always_inline))
-size_t vsetvl_e32m8(size_t avl) {
-  return __builtin_riscv_vsetvl(avl, _E32 | _M8);
-}
-
-static __attribute__((always_inline))
 vint8m1_t vadd_vv_i8m1(vint8m1_t value1, vint8m1_t value2) {
   return  __builtin_riscv_vadd_vv_i8m1(value1, value2);
 }
