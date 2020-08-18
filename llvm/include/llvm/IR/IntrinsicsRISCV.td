@@ -186,7 +186,7 @@ class V_VVM : Intrinsic<[ llvm_anyvector_ty ],
                         [ IntrNoMem ]>;
 
 class V_VXM : Intrinsic<[ llvm_anyvector_ty ],
-                             [ LLVMMatchType<0>, llvm_anyvector_ty, llvm_anyint_ty ],
+                             [ LLVMMatchType<0>, llvm_anyint_ty, llvm_anyvector_ty ],
                              [ IntrNoMem ]>;
 
 class M_VV : Intrinsic<[ llvm_anyvector_ty ],

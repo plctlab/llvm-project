@@ -1026,7 +1026,7 @@ foreach nf = [1, 2, 4, 8] in {
 
 // // pat vsetvl
 
-// def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
+def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
 
 // def PseudoVFMACC_VF : Pseudo<(outs VRegOp:$rd),
 //                                 (ins VRegOp:$rs3, FPR32:$rs1,

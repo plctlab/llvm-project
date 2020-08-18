@@ -304,18 +304,21 @@ def VR : RegisterClass<"RISCV", [nxv8i8, nxv4i16, nxv2i32, nxv1i64, nxv4f16, nxv
   let Size = 64;
 }
 
-def VRM2 : RegisterClass<"RISCV", [nxv16i8, nxv8i16, nxv4i32, nxv2i64], 64,
+def VRM2 : RegisterClass<"RISCV", [nxv16i8, nxv8i16, nxv4i32, nxv2i64, nxv8f16, nxv4f32, 
+                                    nxv2f64], 64,
                          (add V26M2, V28M2, V30M2, V8M2, V10M2, V12M2, V14M2, V16M2,
                               V18M2, V20M2, V22M2, V24M2, V0M2, V2M2, V4M2, V6M2)> {
   let Size = 128;
 }
 
-def VRM4 : RegisterClass<"RISCV", [nxv32i8, nxv16i16, nxv8i32, nxv4i64], 64,
+def VRM4 : RegisterClass<"RISCV", [nxv32i8, nxv16i16, nxv8i32, nxv4i64,
+                                   nxv16f16, nxv8f32, nxv4f64], 64,
                          (add V28M4, V8M4, V12M4, V16M4, V20M4, V24M4, V0M4, V4M4)> {
   let Size = 256;
 }
 
-def VRM8 : RegisterClass<"RISCV", [nxv64i8, nxv32i16, nxv16i32, nxv8i64], 64,
+def VRM8 : RegisterClass<"RISCV", [nxv64i8, nxv32i16, nxv16i32, nxv8i64,
+                                   nxv32f16, nxv16f32, nxv8f64], 64,
                          (add V8M8, V16M8, V24M8, V0M8)> {
   let Size = 512;
 }

@@ -166,7 +166,20 @@ void RISCVRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   if (MFI.getStackID(FrameIndex) == TargetStackID::RISCVVector) {
     switch (MI.getOpcode()) {
-    case RISCV::ADDI:
+    case RISCV::ADDI: {
+      MachineOperand StackSlot = MI.getOperand(FIOperandNum);
+      unsigned Opcode = getRegSizeInBits(RISCV::GPRRegClass) == 32 ? RISCV::LW :
+                                                                   RISCV::LD;
+      // Register addr = MF.getRegInfo().createVirtualRegister(&RISCV::GPRRegClass);
+      MachineInstr *StoreAddr = BuildMI(MBB, II, DL, TII->get(Opcode), MI.getOperand(0).getReg())
+                                    .add(StackSlot)
+                                    .addImm(0);
+      
+      // MI.getOperand(FIOperandNum).ChangeToRegister(addr, false, false,
+      //                                              false);
+      MI.eraseFromParent();
+      return eliminateFrameIndex(StoreAddr, 0, 1, RS);
+    }
     case RISCV::VLE32_V:
     case RISCV::VSE32_V:
     case RISCV::VL1R_V:

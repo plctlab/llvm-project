@@ -155,6 +155,16 @@ size_t vsetvl_e32m1(size_t avl) {
 }
 //add
 static __attribute__((always_inline))
+size_t vsetvl_e32m8(size_t avl) {
+  return __builtin_riscv_vsetvl(avl, _E32 | _M8);
+}
+
+static __attribute__((always_inline))
+size_t vsetvl_e32m8(size_t avl) {
+  return __builtin_riscv_vsetvl(avl, _E32 | _M8);
+}
+
+static __attribute__((always_inline))
 vint8m1_t vadd_vv_i8m1(vint8m1_t value1, vint8m1_t value2) {
   return  __builtin_riscv_vadd_vv_i8m1(value1, value2);
 }
@@ -566,6 +576,11 @@ vfloat32m1_t vle32_v_f32m1 (const float *src) {
 }
 
 static __attribute__((always_inline))
+vfloat32m8_t vle32_v_f32m8 (const float *src) {
+  return __builtin_riscv_vle32_v_f32m8(src);
+}
+
+static __attribute__((always_inline))
 vuint32m1_t vle32_v_u32m1(const uint32_t* src) {
   return __builtin_riscv_vle32_v_u32m1(src);
 }
@@ -579,6 +594,11 @@ void vse32_v_i32m1(int32_t *base, vint32m1_t value) {
 static __attribute__((always_inline))
 void vse32_v_f32m1 (float *base, vfloat32m1_t value) {
  __builtin_riscv_vse32_v_f32m1(base, value);
+}
+
+static __attribute__((always_inline))
+void vse32_v_f32m8 (float *base, vfloat32m8_t value) {
+ __builtin_riscv_vse32_v_f32m8(base, value);
 }
 
 static __attribute__((always_inline))
@@ -680,6 +700,11 @@ void vse64_v_u64m1(uint64_t *base, vuint64m1_t value) {
 static __attribute__((always_inline))
 vfloat32m1_t vfmacc_vf_f32m1(vfloat32m1_t value1, float op1, vfloat32m1_t value2) {
     return __builtin_riscv_vfmacc_vf_f32m1(value1, op1, value2);
+}
+
+static __attribute__((always_inline))
+vfloat32m8_t vfmacc_vf_f32m8(vfloat32m8_t value1, float op1, vfloat32m8_t value2) {
+    return __builtin_riscv_vfmacc_vf_f32m8(value1, op1, value2);
 }
 
 static __attribute__((always_inline))

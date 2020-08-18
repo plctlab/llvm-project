@@ -408,16 +408,42 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
   BuildMI(MBB, MBBI, DL, TII->get(RISCV::CSRRS), SizeOfVector)
     .addImm(3106)
     .addReg(RISCV::X0);
+  Register RealSizeOfVector = SizeOfVector;
   
   for (int ID = MFI.getObjectIndexBegin(), EID = MFI.getObjectIndexEnd();
         ID < EID; ID++) {
     if (MFI.getStackID(ID) == TargetStackID::RISCVVector) {
       unsigned Opcode = TRI->getRegSizeInBits(RISCV::GPRRegClass) == 32 ?
             RISCV::SW : RISCV::SD;
+      
+      unsigned LeftShift = 0;
+      switch (MFI.getObjectSize(ID)) {
+        case 8:
+          LeftShift = 0;
+          break;
+        case 16:
+          LeftShift = 1;
+          break;
+        case 32:
+          LeftShift = 2;
+          break;
+        case 64:
+          LeftShift = 3;
+          break;
+        default:
+          llvm_unreachable("object size strange!");
+      }
+      if (LeftShift) {
+        Register SizeOfVectorLmul = MF.getRegInfo().createVirtualRegister(&RISCV::GPRRegClass);
+        BuildMI(MBB, MBBI, DL, TII->get(RISCV::SLLI), SizeOfVectorLmul)
+            .addReg(SizeOfVector)
+            .addImm(LeftShift);
+        RealSizeOfVector = SizeOfVectorLmul;
+      }
 
       BuildMI(MBB, MBBI, DL, TII->get(RISCV::SUB), SPReg)
           .addReg(SPReg)
-          .addReg(SizeOfVector);
+          .addReg(RealSizeOfVector);
 
       BuildMI(MBB, MBBI, DL, TII->get(Opcode))
           .addReg(SPReg)
@@ -529,7 +555,8 @@ int RISCVFrameLowering::getFrameIndexReference(const MachineFunction &MF,
       Offset += FirstSPAdjustAmount;
     else
       Offset += MFI.getStackSize();
-  } else if (RI->needsStackRealignment(MF) && !MFI.isFixedObjectIndex(FI)) {
+  } else if (RI->needsStackRealignment(MF) && !MFI.isFixedObjectIndex(FI)
+    && !RVFI->hasSpillVRs()) {
     // If the stack was realigned, the frame pointer is set in order to allow
     // SP to be restored, so we need another base register to record the stack
     // after realignment.

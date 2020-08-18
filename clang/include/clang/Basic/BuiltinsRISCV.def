@@ -135,11 +135,13 @@ BUILTIN(__builtin_riscv_vdivu_vv_u64m1, "q1Wiq1Wiq1Wi", "")
 BUILTIN(__builtin_riscv_vle32_v_f32m1, "q2ffC*", "")
 BUILTIN(__builtin_riscv_vle32_v_i32m1, "q2ZiZiC*", "")
 BUILTIN(__builtin_riscv_vle32_v_u32m1, "q2UZiUZiC*", "")
+BUILTIN(__builtin_riscv_vle32_v_f32m8, "q16ffC*", "")
 
 //vse32
 BUILTIN(__builtin_riscv_vse32_v_f32m1, "vf*q2f", "")
 BUILTIN(__builtin_riscv_vse32_v_i32m1, "vZi*q2Zi", "")
 BUILTIN(__builtin_riscv_vse32_v_u32m1, "vUZi*q2UZi", "")
+BUILTIN(__builtin_riscv_vse32_v_f32m8, "vf*q16f", "")
 
 //vle8
 BUILTIN(__builtin_riscv_vle8_v_i8m1, "q8ccC*", "")
@@ -319,4 +321,5 @@ BUILTIN(__builtin_riscv_vmv_v_x_u32m1, "q2UZiUZi", "")
 BUILTIN(__builtin_riscv_vmv_v_x_u64m1, "q1UWiUWi", "")
 
 
+BUILTIN(__builtin_riscv_vfmacc_vf_f32m8, "q16fq16ffq16f", "")
 #undef BUILTIN
