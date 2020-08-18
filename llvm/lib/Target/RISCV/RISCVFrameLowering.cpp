@@ -145,7 +145,8 @@ void RISCVFrameLowering::determineFrameLayout(MachineFunction &MF) const {
 
   for (int ID = MFI.getObjectIndexBegin(), EID = MFI.getObjectIndexEnd();
        ID < EID; ID++) {
-    if (MFI.getStackID(ID) == TargetStackID::RISCVVector) {
+    if (MFI.getStackID(ID) == TargetStackID::RISCVVector &&
+        !MFI.isDeadObjectIndex(ID)) {
       FrameSize =
           alignTo(FrameSize, TRI->getSpillAlignment(RISCV::GPRRegClass));
       FrameSize += TRI->getSpillSize(RISCV::GPRRegClass);
@@ -428,7 +429,8 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
     
     for (int ID = MFI.getObjectIndexBegin(), EID = MFI.getObjectIndexEnd();
           ID < EID; ID++) {
-      if (MFI.getStackID(ID) == TargetStackID::RISCVVector) {
+      if (MFI.getStackID(ID) == TargetStackID::RISCVVector &&
+          !MFI.isDeadObjectIndex(ID)) {
         unsigned Opcode = TRI->getRegSizeInBits(RISCV::GPRRegClass) == 32 ?
              RISCV::SW : RISCV::SD;
 

@@ -2682,6 +2682,56 @@ let hasSideEffects = 1, mayLoad = 0, mayStore = 0,
                       PseudoInstExpansion<(CSRRS GPR:$rd, 0xC22, X0)>;
 }
 
+//===----------------------------------------------------------------------===//
+// Patterns for intrinsics
+//===----------------------------------------------------------------------===//
+
+class PatLE8<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VLE8_V_um $src, 0)>;
+
+class PatLE16<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VLE16_V_um $src, 0)>;
+
+class PatLE32<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VLE32_V_um $src, 0)>;
+
+class PatLE64<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VLE64_V_um $src, 0)>;
+
+class PatSE8<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src, GPR:$dst), (VSE8_V_um $src, $dst, 0)>;
+
+class PatSE16<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src, GPR:$dst), (VSE16_V_um $src, $dst, 0)>;
+
+class PatSE32<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src, GPR:$dst), (VSE32_V_um $src, $dst, 0)>;
+
+class PatSE64<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src, GPR:$dst), (VSE64_V_um $src, $dst, 0)>;
+
+class PatVMV_X_S<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src), (VMV_X_S $src)>;
+
+class PatVFMV_F_S<SDPatternOperator OpNode>
+    : Pat<(OpNode VR:$src), (VFMV_F_S $src)>;
+
+class PatVMV_V_X<SDPatternOperator OpNode>
+    : Pat<(OpNode GPR:$src), (VMV_V_X $src)>;
+
+class PatVFMV_V_F<SDPatternOperator OpNode>
+    : Pat<(OpNode FPR32:$src), (VFMV_V_F $src)>;
+
+class PatZERO<SDPatternOperator OpNode>
+    : Pat<(OpNode), (VMV_V_I 0)>;
+def : PatZERO<int_riscv_vzero_u8m1>;
+def : PatZERO<int_riscv_vzero_i8m1>;
+def : PatZERO<int_riscv_vzero_u16m1>;
+def : PatZERO<int_riscv_vzero_i16m1>;
+def : PatZERO<int_riscv_vzero_u32m1>;
+def : PatZERO<int_riscv_vzero_i32m1>;
+def : PatZERO<int_riscv_vzero_u64m1>;
+def : PatZERO<int_riscv_vzero_i64m1>;
 
 class PatVrVr<SDPatternOperator OpNode, RVInst Inst>
     : Pat<(OpNode VR:$rs1, VR:$rs2), (Inst VR:$rs1, VR:$rs2)>;
@@ -2691,61 +2741,287 @@ class PatVrXr<SDPatternOperator OpNode, RVInst Inst>
 
 class PatVrIm<SDPatternOperator OpNode, RVInst Inst>
     : Pat<(OpNode VR:$rs1, (RISCVBROADCAST simm5:$imm)), (Inst VR:$rs1, simm5:$imm)>; 
+// 7. Vector Loads and Stores
+// 7.4. Vector Unit-Stride Operations
+def : PatLE8<int_riscv_vle8_v_u8m1>;
+def : PatLE8<int_riscv_vle8_v_i8m1>;
+def : PatLE16<int_riscv_vle16_v_u16m1>;
+def : PatLE16<int_riscv_vle16_v_i16m1>;
+def : PatLE32<int_riscv_vle32_v_u32m1>;
+def : PatLE32<int_riscv_vle32_v_i32m1>;
+def : PatLE32<int_riscv_vle32_v_f32m1>;
+def : PatLE32<int_riscv_vle32_v_f32m1>;
+def : PatLE32<int_riscv_vle32_v_f32m8>;
+def : PatLE64<int_riscv_vle64_v_u64m1>;
+def : PatLE64<int_riscv_vle64_v_i64m1>;
+//def : PatLE64<int_riscv_vle64_v_f64m1>;
 
-def : PatVrVr<int_riscv_vadd_vv_i8m1, VADD_VV_um>;
+def : PatSE8<int_riscv_vse8_v_u8m1>;
+def : PatSE8<int_riscv_vse8_v_i8m1>;
+def : PatSE16<int_riscv_vse16_v_u16m1>;
+def : PatSE16<int_riscv_vse16_v_i16m1>;
+def : PatSE32<int_riscv_vse32_v_u32m1>;
+def : PatSE32<int_riscv_vse32_v_i32m1>;
+def : PatSE32<int_riscv_vse32_v_f32m1>;
+def : PatSE64<int_riscv_vse64_v_u64m1>;
+def : PatSE64<int_riscv_vse64_v_i64m1>;
+//def : PatSE64<int_riscv_vse64_v_f64m1>;
+
+// 7.5. Vector Strided Load/Store Operations
+// 7.6. Vector Indexed Load/Store Operations
+// 7.7. Unit-stride Fault-Only-First Loads Operations
+
+
+// 12. Vector Integer Arithmetic Operations
+
+// 12.1. Vector Single-Width Integer Add and Subtract Functions
+def : PatVrVr<int_riscv_vadd_vv_i8m1,  VADD_VV_um>;
 def : PatVrVr<int_riscv_vadd_vv_i16m1, VADD_VV_um>;
 def : PatVrVr<int_riscv_vadd_vv_i32m1, VADD_VV_um>;
 def : PatVrVr<int_riscv_vadd_vv_i64m1, VADD_VV_um>;
+def : PatVrVr<int_riscv_vadd_vv_u8m1,  VADD_VV_um>;
+def : PatVrVr<int_riscv_vadd_vv_u16m1, VADD_VV_um>;
+def : PatVrVr<int_riscv_vadd_vv_u32m1, VADD_VV_um>;
+def : PatVrVr<int_riscv_vadd_vv_u64m1, VADD_VV_um>;
 
-def : PatVrVr<int_riscv_vsub_vv_i8m1, VSUB_VV_um>;
+def : PatVrVr<int_riscv_vsub_vv_i8m1,  VSUB_VV_um>;
 def : PatVrVr<int_riscv_vsub_vv_i16m1, VSUB_VV_um>;
 def : PatVrVr<int_riscv_vsub_vv_i32m1, VSUB_VV_um>;
 def : PatVrVr<int_riscv_vsub_vv_i64m1, VSUB_VV_um>;
+def : PatVrVr<int_riscv_vsub_vv_u8m1,  VSUB_VV_um>;
+def : PatVrVr<int_riscv_vsub_vv_u16m1, VSUB_VV_um>;
+def : PatVrVr<int_riscv_vsub_vv_u32m1, VSUB_VV_um>;
+def : PatVrVr<int_riscv_vsub_vv_u64m1, VSUB_VV_um>;
 
-def : PatVrVr<int_riscv_vmul_vv_i8m1, VMUL_VV_um>;
-def : PatVrVr<int_riscv_vmul_vv_i16m1, VMUL_VV_um>;
-def : PatVrVr<int_riscv_vmul_vv_i32m1, VMUL_VV_um>;
-def : PatVrVr<int_riscv_vmul_vv_i64m1, VMUL_VV_um>;
+// 12.2. Vector Widening Integer Add/Subtract Operations
+// 12.3 Vector Integer Extension
+// 12.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Operations
 
-def : PatVrVr<int_riscv_vdiv_vv_i8m1, VDIV_VV_um>;
-def : PatVrVr<int_riscv_vdiv_vv_i16m1, VDIV_VV_um>;
-def : PatVrVr<int_riscv_vdiv_vv_i32m1, VDIV_VV_um>;
-def : PatVrVr<int_riscv_vdiv_vv_i64m1, VDIV_VV_um>;
-
-def : PatVrVr<int_riscv_vsadd_vv_i8m1, VSADD_VV_um>;
-def : PatVrVr<int_riscv_vsadd_vv_i16m1, VSADD_VV_um>;
-def : PatVrVr<int_riscv_vsadd_vv_i32m1, VSADD_VV_um>;
-def : PatVrVr<int_riscv_vsadd_vv_i64m1, VSADD_VV_um>;
-
-def : PatVrVr<int_riscv_vsaddu_vv_i8m1, VSADDU_VV_um>;
-def : PatVrVr<int_riscv_vsaddu_vv_i16m1, VSADDU_VV_um>;
-def : PatVrVr<int_riscv_vsaddu_vv_i32m1, VSADDU_VV_um>;
-def : PatVrVr<int_riscv_vsaddu_vv_i64m1, VSADDU_VV_um>;
-
-def : PatVrVr<int_riscv_vssub_vv_i8m1, VSSUB_VV_um>;
-def : PatVrVr<int_riscv_vssub_vv_i16m1, VSSUB_VV_um>;
-def : PatVrVr<int_riscv_vssub_vv_i32m1, VSSUB_VV_um>;
-def : PatVrVr<int_riscv_vssub_vv_i64m1, VSSUB_VV_um>;
-
-def : PatVrVr<int_riscv_vssubu_vv_i8m1, VSSUBU_VV_um>;
-def : PatVrVr<int_riscv_vssubu_vv_i16m1, VSSUBU_VV_um>;
-def : PatVrVr<int_riscv_vssubu_vv_i32m1, VSSUBU_VV_um>;
-def : PatVrVr<int_riscv_vssubu_vv_i64m1, VSSUBU_VV_um>;
-
-def : PatVrVr<int_riscv_vand_vv_i8m1, VAND_VV_um>;
+// 12.5. Vector Bitwise Logical Operations
+def : PatVrVr<int_riscv_vand_vv_i8m1,  VAND_VV_um>;
 def : PatVrVr<int_riscv_vand_vv_i16m1, VAND_VV_um>;
 def : PatVrVr<int_riscv_vand_vv_i32m1, VAND_VV_um>;
 def : PatVrVr<int_riscv_vand_vv_i64m1, VAND_VV_um>;
+def : PatVrVr<int_riscv_vand_vv_u8m1,  VAND_VV_um>;
+def : PatVrVr<int_riscv_vand_vv_u16m1, VAND_VV_um>;
+def : PatVrVr<int_riscv_vand_vv_u32m1, VAND_VV_um>;
+def : PatVrVr<int_riscv_vand_vv_u64m1, VAND_VV_um>;
 
-def : PatVrVr<int_riscv_vor_vv_i8m1, VOR_VV_um>;
+def : PatVrVr<int_riscv_vor_vv_i8m1,  VOR_VV_um>;
 def : PatVrVr<int_riscv_vor_vv_i16m1, VOR_VV_um>;
 def : PatVrVr<int_riscv_vor_vv_i32m1, VOR_VV_um>;
 def : PatVrVr<int_riscv_vor_vv_i64m1, VOR_VV_um>;
+def : PatVrVr<int_riscv_vor_vv_u8m1,  VOR_VV_um>;
+def : PatVrVr<int_riscv_vor_vv_u16m1, VOR_VV_um>;
+def : PatVrVr<int_riscv_vor_vv_u32m1, VOR_VV_um>;
+def : PatVrVr<int_riscv_vor_vv_u64m1, VOR_VV_um>;
 
-def : PatVrVr<int_riscv_vxor_vv_i8m1, VXOR_VV_um>;
+def : PatVrVr<int_riscv_vxor_vv_i8m1,  VXOR_VV_um>;
 def : PatVrVr<int_riscv_vxor_vv_i16m1, VXOR_VV_um>;
 def : PatVrVr<int_riscv_vxor_vv_i32m1, VXOR_VV_um>;
 def : PatVrVr<int_riscv_vxor_vv_i64m1, VXOR_VV_um>;
+def : PatVrVr<int_riscv_vxor_vv_u8m1,  VXOR_VV_um>;
+def : PatVrVr<int_riscv_vxor_vv_u16m1, VXOR_VV_um>;
+def : PatVrVr<int_riscv_vxor_vv_u32m1, VXOR_VV_um>;
+def : PatVrVr<int_riscv_vxor_vv_u64m1, VXOR_VV_um>;
+// 12.6. Vector Single-Width Bit Shift Operations
+// 12.7. Vector Narrowing Integer Right Shift Operations
+
+// 12.8. Vector Integer Comparison Operations
+def : PatVrVr<int_riscv_vmseq_vv_i8m1_b8,   VMSEQ_VV_um>;
+def : PatVrVr<int_riscv_vmseq_vv_i16m1_b16, VMSEQ_VV_um>;
+def : PatVrVr<int_riscv_vmseq_vv_i32m1_b32, VMSEQ_VV_um>;
+def : PatVrVr<int_riscv_vmseq_vv_i64m1_b64, VMSEQ_VV_um>;
+def : PatVrVr<int_riscv_vmseq_vv_u8m1_b8,   VMSEQ_VV_um>;
+def : PatVrVr<int_riscv_vmseq_vv_u16m1_b16, VMSEQ_VV_um>;
+def : PatVrVr<int_riscv_vmseq_vv_u32m1_b32, VMSEQ_VV_um>;
+def : PatVrVr<int_riscv_vmseq_vv_u64m1_b64, VMSEQ_VV_um>;
+
+def : PatVrVr<int_riscv_vmsne_vv_i8m1_b8,   VMSNE_VV_um>;
+def : PatVrVr<int_riscv_vmsne_vv_i16m1_b16, VMSNE_VV_um>;
+def : PatVrVr<int_riscv_vmsne_vv_i32m1_b32, VMSNE_VV_um>;
+def : PatVrVr<int_riscv_vmsne_vv_i64m1_b64, VMSNE_VV_um>;
+def : PatVrVr<int_riscv_vmsne_vv_u8m1_b8,   VMSNE_VV_um>;
+def : PatVrVr<int_riscv_vmsne_vv_u16m1_b16, VMSNE_VV_um>;
+def : PatVrVr<int_riscv_vmsne_vv_u32m1_b32, VMSNE_VV_um>;
+def : PatVrVr<int_riscv_vmsne_vv_u64m1_b64, VMSNE_VV_um>;
+
+def : PatVrVr<int_riscv_vmslt_vv_i8m1_b8,    VMSLT_VV_um>;
+def : PatVrVr<int_riscv_vmslt_vv_i16m1_b16,  VMSLT_VV_um>;
+def : PatVrVr<int_riscv_vmslt_vv_i32m1_b32,  VMSLT_VV_um>;
+def : PatVrVr<int_riscv_vmslt_vv_i64m1_b64,  VMSLT_VV_um>;
+def : PatVrVr<int_riscv_vmsltu_vv_u8m1_b8,   VMSLTU_VV_um>;
+def : PatVrVr<int_riscv_vmsltu_vv_u16m1_b16, VMSLTU_VV_um>;
+def : PatVrVr<int_riscv_vmsltu_vv_u32m1_b32, VMSLTU_VV_um>;
+def : PatVrVr<int_riscv_vmsltu_vv_u64m1_b64, VMSLTU_VV_um>;
+
+def : PatVrVr<int_riscv_vmsle_vv_i8m1_b8,    VMSLE_VV_um>;
+def : PatVrVr<int_riscv_vmsle_vv_i16m1_b16,  VMSLE_VV_um>;
+def : PatVrVr<int_riscv_vmsle_vv_i32m1_b32,  VMSLE_VV_um>;
+def : PatVrVr<int_riscv_vmsle_vv_i64m1_b64,  VMSLE_VV_um>;
+def : PatVrVr<int_riscv_vmsleu_vv_u8m1_b8,   VMSLEU_VV_um>;
+def : PatVrVr<int_riscv_vmsleu_vv_u16m1_b16, VMSLEU_VV_um>;
+def : PatVrVr<int_riscv_vmsleu_vv_u32m1_b32, VMSLEU_VV_um>;
+def : PatVrVr<int_riscv_vmsleu_vv_u64m1_b64, VMSLEU_VV_um>;
+
+//def : PatVrVr<int_riscv_vmsgt_vv_i8m1_b8,    VMSGT_VV_um>;
+//def : PatVrVr<int_riscv_vmsgt_vv_i16m1_b16,  VMSGT_VV_um>;
+//def : PatVrVr<int_riscv_vmsgt_vv_i32m1_b32,  VMSGT_VV_um>;
+//def : PatVrVr<int_riscv_vmsgt_vv_i64m1_b64,  VMSGT_VV_um>;
+//def : PatVrVr<int_riscv_vmsgtu_vv_u8m1_b8,   VMSGTU_VV_um>;
+//def : PatVrVr<int_riscv_vmsgtu_vv_u16m1_b16, VMSGTU_VV_um>;
+//def : PatVrVr<int_riscv_vmsgtu_vv_u32m1_b32, VMSGTU_VV_um>;
+//def : PatVrVr<int_riscv_vmsgtu_vv_u64m1_b64, VMSGTU_VV_um>;
+
+//def : PatVrVr<int_riscv_vmsge_vv_i8m1_b8,    VMSGE_VV_um>;
+//def : PatVrVr<int_riscv_vmsge_vv_i16m1_b16,  VMSGE_VV_um>;
+//def : PatVrVr<int_riscv_vmsge_vv_i32m1_b32,  VMSGE_VV_um>;
+//def : PatVrVr<int_riscv_vmsge_vv_i64m1_b64,  VMSGE_VV_um>;
+//def : PatVrVr<int_riscv_vmsgeu_vv_u8m1_b8,   VMSGEU_VV_um>;
+//def : PatVrVr<int_riscv_vmsgeu_vv_u16m1_b16, VMSGEU_VV_um>;
+//def : PatVrVr<int_riscv_vmsgeu_vv_u32m1_b32, VMSGEU_VV_um>;
+//def : PatVrVr<int_riscv_vmsgeu_vv_u64m1_b64, VMSGEU_VV_um>;
+
+// 12.9. Vector Integer Min/Max Operations
+
+// 12.10. Vector Single-Width Integer Multiply Operations
+def : PatVrVr<int_riscv_vmul_vv_i8m1,  VMUL_VV_um>;
+def : PatVrVr<int_riscv_vmul_vv_i16m1, VMUL_VV_um>;
+def : PatVrVr<int_riscv_vmul_vv_i32m1, VMUL_VV_um>;
+def : PatVrVr<int_riscv_vmul_vv_i64m1, VMUL_VV_um>;
+def : PatVrVr<int_riscv_vmul_vv_u8m1,  VMUL_VV_um>;
+def : PatVrVr<int_riscv_vmul_vv_u16m1, VMUL_VV_um>;
+def : PatVrVr<int_riscv_vmul_vv_u32m1, VMUL_VV_um>;
+def : PatVrVr<int_riscv_vmul_vv_u64m1, VMUL_VV_um>;
+
+// 12.11. Vector Integer Divide Operations
+def : PatVrVr<int_riscv_vdiv_vv_i8m1,  VDIV_VV_um>;
+def : PatVrVr<int_riscv_vdiv_vv_i16m1, VDIV_VV_um>;
+def : PatVrVr<int_riscv_vdiv_vv_i32m1, VDIV_VV_um>;
+def : PatVrVr<int_riscv_vdiv_vv_i64m1, VDIV_VV_um>;
+def : PatVrVr<int_riscv_vdiv_vv_u8m1,  VDIV_VV_um>;
+def : PatVrVr<int_riscv_vdiv_vv_u16m1, VDIV_VV_um>;
+def : PatVrVr<int_riscv_vdiv_vv_u32m1, VDIV_VV_um>;
+def : PatVrVr<int_riscv_vdiv_vv_u64m1, VDIV_VV_um>;
+
+// 12.12. Vector Widening Integer Multiply Operations
+// 12.13. Vector Single-Width Integer Multiply-Add Operations
+// 12.14. Vector Widening Integer Multiply-Add Operations
+// 12.15. Vector Quad-Widening Integer Multiply-Add Operations (Extension Zvqmac)
+
+// 12.16. Vector Integer Merge Operations
+
+// 12.17. Vector Integer Move Operations
+def : PatVMV_V_X<int_riscv_vmv_v_x_u8m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_i8m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_u16m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_i16m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_u32m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_i32m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_u64m1>;
+def : PatVMV_V_X<int_riscv_vmv_v_x_i64m1>;
+
+// 13. Vector Fixed-Point Arithmetic Operations
+// 13.1. Vector Single-Width Saturating Add and Subtract Functions
+def : PatVrVr<int_riscv_vsadd_vv_i8m1,  VSADD_VV_um>;
+def : PatVrVr<int_riscv_vsadd_vv_i16m1, VSADD_VV_um>;
+def : PatVrVr<int_riscv_vsadd_vv_i32m1, VSADD_VV_um>;
+def : PatVrVr<int_riscv_vsadd_vv_i64m1, VSADD_VV_um>;
+def : PatVrVr<int_riscv_vsadd_vv_u8m1,  VSADD_VV_um>;
+def : PatVrVr<int_riscv_vsadd_vv_u16m1, VSADD_VV_um>;
+def : PatVrVr<int_riscv_vsadd_vv_u32m1, VSADD_VV_um>;
+def : PatVrVr<int_riscv_vsadd_vv_u64m1, VSADD_VV_um>;
+
+def : PatVrVr<int_riscv_vsaddu_vv_i8m1,  VSADDU_VV_um>;
+def : PatVrVr<int_riscv_vsaddu_vv_i16m1, VSADDU_VV_um>;
+def : PatVrVr<int_riscv_vsaddu_vv_i32m1, VSADDU_VV_um>;
+def : PatVrVr<int_riscv_vsaddu_vv_i64m1, VSADDU_VV_um>;
+def : PatVrVr<int_riscv_vsaddu_vv_u8m1,  VSADDU_VV_um>;
+def : PatVrVr<int_riscv_vsaddu_vv_u16m1, VSADDU_VV_um>;
+def : PatVrVr<int_riscv_vsaddu_vv_u32m1, VSADDU_VV_um>;
+def : PatVrVr<int_riscv_vsaddu_vv_u64m1, VSADDU_VV_um>;
+
+def : PatVrVr<int_riscv_vssub_vv_i8m1,  VSSUB_VV_um>;
+def : PatVrVr<int_riscv_vssub_vv_i16m1, VSSUB_VV_um>;
+def : PatVrVr<int_riscv_vssub_vv_i32m1, VSSUB_VV_um>;
+def : PatVrVr<int_riscv_vssub_vv_i64m1, VSSUB_VV_um>;
+def : PatVrVr<int_riscv_vssub_vv_u8m1,  VSSUB_VV_um>;
+def : PatVrVr<int_riscv_vssub_vv_u16m1, VSSUB_VV_um>;
+def : PatVrVr<int_riscv_vssub_vv_u32m1, VSSUB_VV_um>;
+def : PatVrVr<int_riscv_vssub_vv_u64m1, VSSUB_VV_um>;
+
+def : PatVrVr<int_riscv_vssubu_vv_i8m1,  VSSUBU_VV_um>;
+def : PatVrVr<int_riscv_vssubu_vv_i16m1, VSSUBU_VV_um>;
+def : PatVrVr<int_riscv_vssubu_vv_i32m1, VSSUBU_VV_um>;
+def : PatVrVr<int_riscv_vssubu_vv_i64m1, VSSUBU_VV_um>;
+def : PatVrVr<int_riscv_vssubu_vv_u8m1,  VSSUBU_VV_um>;
+def : PatVrVr<int_riscv_vssubu_vv_u16m1, VSSUBU_VV_um>;
+def : PatVrVr<int_riscv_vssubu_vv_u32m1, VSSUBU_VV_um>;
+def : PatVrVr<int_riscv_vssubu_vv_u64m1, VSSUBU_VV_um>;
+
+// 13.2. Vector Single-Width Averaging Add and Subtract
+// 13.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
+// 13.4. Vector Single-Width Scaling Shift Operations
+// 13.5. Vector Narrowing Fixed-Point Clip Operations
+
+// 14. Vector Floating-Point Operations
+// 14.2. Vector Single-Width Floating-Point Add/Subtract Operations
+// 14.3. Vector Widening Floating-Point Add/Subtract Operations
+// 14.4. Vector Single-Width Floating-Point Multiply/Divide Operations
+// 14.5. Vector Widening Floating-Point Multiply Operations
+// 14.6. Vector Single-Width Floating-Point Fused Multiply-Add Operations
+// 14.7. Vector Widening Floating-Point Fused Multiply-Add Operations
+// 14.8. Vector Floating-Point Square-Root Operations
+
+// 14.9. Vector Floating-Point MIN/MAX Operations
+// 14.10. Vector Floating-Point Sign-Injection Operations
+
+// 14.11. Vector Floating-Point Compare Operations
+// 14.12. Vector Floating-Point Classify Operations
+// 14.13. Vector Floating-Point Merge Operations
+// 14.14. Vector Floating-Point Move Operations
+// 14.15. Single-Width Floating-Point/Integer Type-Convert Operations
+// 14.16. Widening Floating-Point/Integer Type-Convert Operations
+// 14.17. Narrowing Floating-Point/Integer Type-Convert Operations
+
+// 15. Vector Reduction Operations
+// 15.1. Vector Single-Width Integer Reduction Operations
+
+// 15.2. Vector Widening Integer Reduction Operations
+// 15.3. Vector Single-Width Floating-Point Reduction Operations
+// 15.4. Vector Widening Floating-Point Reduction Operations
+// 16. Vector Mask Instructions
+// 16.1. Vector Mask-Register Logical Operations
+// 16.2. Vector mask population count vpopc
+// 16.3. vfirst find-first-set mask bit
+// 16.4. vmsbf.m set-before-first mask bit
+// 16.5. vmsif.m set-including-first mask bit
+// 16.6. vmsof.m set-only-first mask bit
+// 16.8. Vector Iota Operations
+// 16.9. Vector Element Index Operations
+
+// 17. Vector Permutation Operations
+
+// 17.1. Integer Scalar Move Operations
+def : PatVMV_X_S<int_riscv_vmv_x_s_u8m1_u8>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_i8m1_i8>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_u16m1_u16>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_i16m1_i16>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_u32m1_u32>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_i32m1_i32>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_u64m1_u64>;
+def : PatVMV_X_S<int_riscv_vmv_x_s_i64m1_i64>;
+
+// 17.2. Floating-Point Scalar Move Operations
+def : PatVFMV_F_S<int_riscv_vfmv_f_s_f32m1_f32>;
+//def : PatVFMV_F_S<int_riscv_vfmv_f_s_f64m1_f64>;
+def : PatVFMV_V_F<int_riscv_vfmv_v_f_f32m1>;
+//def : PatVFMV_V_F<int_riscv_vfmv_v_f_f64m1>;
+
+// 17.3. Vector Slide Operations
+// 17.4. Vector Register Gather Operations
+// 17.5. Vector Compress Operations
+
 
 //def : PatVrXr<int_riscv_vadd, VADD_VX_um>;
 //def : PatVrXr<int_riscv_vsub, VSUB_VX_um>;
@@ -2759,12 +3035,6 @@ def : PatVrVr<int_riscv_vxor_vv_i64m1, VXOR_VV_um>;
 
 // def : Pat<(int_riscv_vsw VR:$vs3, GPR:$rs1),
 //           (VSE32_V_um VR:$vs3, GPR:$rs1, 0)>;
-
-class PatLE32<SDPatternOperator OpNode>
-    : Pat<(OpNode GPR:$src), (VLE32_V_um $src, 0)>;
-
-def : PatLE32<int_riscv_vle32_v_f32m1>;
-def : PatLE32<int_riscv_vle32_v_f32m8>;
 
 def : Pat<(nxv8i8 (int_riscv_vle8_v_i8m8 GPR:$rs1)), (VLE8_V_um GPR:$rs1, 0)>;
 

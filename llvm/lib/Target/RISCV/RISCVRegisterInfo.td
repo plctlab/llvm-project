@@ -312,6 +312,7 @@ def VR32 : VRClass<[nxv1i32, nxv2i32, nxv4i32, nxv8i32,
 
 def VR : RegisterClass<"RISCV", [nxv8i8, nxv4i16, nxv2i32, nxv1i64,
                                  nxv2f32, nxv1f64,
+                                 nxv8i1, nxv4i1, nxv2i1, nxv1i1,
                                  nxv8f32, nxv1i32, nxv1f32],
                        32, (sequence "V%u", 0, 31)>;
 
@@ -333,14 +334,3 @@ def VLR: RegisterClass<"RISCV", [XLenVT], 32, (add VL)> {
     [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
 }
 
-/*
-// VCFG
-def VCFG : RISCVReg<0, "vcfg">;
-def VCFGR : RegisterClass<"RISCV", [XLenVT], 32, (add VCFG)> {
-  let CopyCost = -1; // Don't allow copying
-  let isAllocatable = 0; // Not allocatable
-  let RegInfos = RegInfoByHwMode<
-      [RV32,              RV64,              DefaultMode],
-      [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
-}
-*/

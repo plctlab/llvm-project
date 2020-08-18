@@ -86,12 +86,22 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
   if (Subtarget.hasStdExtD())
     addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
   if (STI.hasStdExtV()) {
-    addRegisterClass(MVT::nxv1i32, &RISCV::VRRegClass);
-    addRegisterClass(MVT::nxv1f32, &RISCV::VRRegClass);
-    addRegisterClass(MVT::nxv2f32, &RISCV::VRRegClass);
-    addRegisterClass(MVT::nxv8f32, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv8i8, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv4i16, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv2i32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1i64, &RISCV::VRRegClass);
+
+    addRegisterClass(MVT::nxv2f32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1f64, &RISCV::VRRegClass);
+
+    addRegisterClass(MVT::nxv8i1, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv4i1, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv2i1, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1i1, &RISCV::VRRegClass);
+
+    addRegisterClass(MVT::nxv1i32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1f32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv8f32, &RISCV::VRRegClass);
   }
 
   // Compute derived properties from the register classes.

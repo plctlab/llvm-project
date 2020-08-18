@@ -4644,6 +4644,13 @@ public:
   }
 
   bool runOnFunction(Function &F) override {
+    // FIXME: Disable SROA pass temporarily, fix it later.
+    Triple TargetTriple = Triple(F.getParent()->getTargetTriple());
+    bool IsRISCV = TargetTriple.getArch() == Triple::riscv64 ||
+                   TargetTriple.getArch() == Triple::riscv32;
+    if (IsRISCV)
+      return false;
+
     if (skipFunction(F))
       return false;
 
