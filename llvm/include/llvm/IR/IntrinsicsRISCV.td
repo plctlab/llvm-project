@@ -68,60 +68,32 @@ let TargetPrefix = "riscv" in {
 //===----------------------------------------------------------------------===//
 // Vector extension
 
-def int_riscv_vadd : Intrinsic<[llvm_nxv1i32_ty],
-                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
-                               [IntrNoMem]>;
-
-def int_riscv_vsub : Intrinsic<[llvm_nxv1i32_ty],
-                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
-                               [IntrNoMem]>;
-
-
-def int_riscv_vmul : Intrinsic<[llvm_nxv1i32_ty],
-                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
-                               [IntrNoMem]>;
-
-
-def int_riscv_vand : Intrinsic<[llvm_nxv1i32_ty],
-                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
-                               [IntrNoMem]>;
-
-
-def int_riscv_vor : Intrinsic<[llvm_nxv1i32_ty],
-                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
-                               [IntrNoMem]>;
-
-def int_riscv_vxor : Intrinsic<[llvm_nxv1i32_ty],
-                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
-                               [IntrNoMem]>;
-
-//def int_riscv_vle32_v_f32m1
-//    : Intrinsic<[llvm_nxv1f32_ty], [llvm_fptr32_ty], [IntrReadMem]>;
-
-//def int_riscv_vle32_v_f32m8
-//    : Intrinsic<[llvm_nxv8f32_ty], [llvm_fptr32_ty], [IntrReadMem]>;
-
-//def int_riscv_vse32_v_f32m1
-//    : Intrinsic<[], [llvm_nxv1f32_ty, llvm_fptr32_ty], [IntrWriteMem]>;
-
-//def int_riscv_vse32_v_f32m8
-//    : Intrinsic<[], [llvm_nxv8f32_ty, llvm_fptr32_ty], [IntrWriteMem]>;
-
-def int_riscv_vfmacc_vf_f32m1
-    : Intrinsic<[llvm_nxv2f32_ty],
-                [llvm_nxv2f32_ty, llvm_float_ty, llvm_nxv2f32_ty],
-                [IntrNoMem]>;
-
-def int_riscv_vfmacc_vf_f32m8
-    : Intrinsic<[llvm_nxv16f32_ty],
-                [llvm_nxv16f32_ty, llvm_float_ty, llvm_nxv16f32_ty],
-                [IntrNoMem]>;
-
-//def int_riscv_vfmv_f_s_f32m1_f32
-//    : Intrinsic<[llvm_float_ty],
-//                [llvm_nxv1f32_ty],
-//                [IntrNoMem]>;
-	
+//def int_riscv_vadd : Intrinsic<[llvm_nxv1i32_ty],
+//                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
+//                               [IntrNoMem]>;
+//
+//def int_riscv_vsub : Intrinsic<[llvm_nxv1i32_ty],
+//                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
+//                               [IntrNoMem]>;
+//
+//
+//def int_riscv_vmul : Intrinsic<[llvm_nxv1i32_ty],
+//                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
+//                               [IntrNoMem]>;
+//
+//
+//def int_riscv_vand : Intrinsic<[llvm_nxv1i32_ty],
+//                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
+//                               [IntrNoMem]>;
+//
+//
+//def int_riscv_vor : Intrinsic<[llvm_nxv1i32_ty],
+//                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
+//                               [IntrNoMem]>;
+//
+//def int_riscv_vxor : Intrinsic<[llvm_nxv1i32_ty],
+//                               [llvm_nxv1i32_ty, llvm_nxv1i32_ty],
+//                               [IntrNoMem]>;
 
 def int_riscv_vmpopcnt : Intrinsic<[llvm_i32_ty],
                                [llvm_nxv1i32_ty],
@@ -130,10 +102,6 @@ def int_riscv_vmpopcnt : Intrinsic<[llvm_i32_ty],
 def int_riscv_vmfirst : Intrinsic<[llvm_i32_ty],
                                [llvm_nxv1i32_ty],
                                [IntrNoMem]>;
-
-//def int_riscv_vfadd_vv_f32m1 : Intrinsic<[llvm_nxv1f32_ty],
-//                        [llvm_nxv1f32_ty, llvm_nxv1f32_ty],
-//                        [IntrNoMem]>;
 
 include "llvm/IR/IntrinsicsRISCVVector.td"
 
