@@ -136,12 +136,14 @@ BUILTIN(__builtin_riscv_vle32_v_f32m1, "q2ffC*", "")
 BUILTIN(__builtin_riscv_vle32_v_i32m1, "q2ZiZiC*", "")
 BUILTIN(__builtin_riscv_vle32_v_u32m1, "q2UZiUZiC*", "")
 BUILTIN(__builtin_riscv_vle32_v_f32m8, "q16ffC*", "")
+BUILTIN(__builtin_riscv_vle32_v_f32mf2, "q1ffC*", "")
 
 //vse32
 BUILTIN(__builtin_riscv_vse32_v_f32m1, "vf*q2f", "")
 BUILTIN(__builtin_riscv_vse32_v_i32m1, "vZi*q2Zi", "")
 BUILTIN(__builtin_riscv_vse32_v_u32m1, "vUZi*q2UZi", "")
 BUILTIN(__builtin_riscv_vse32_v_f32m8, "vf*q16f", "")
+BUILTIN(__builtin_riscv_vse32_v_f32mf2, "vf*q1f", "")
 
 //vle8
 BUILTIN(__builtin_riscv_vle8_v_i8m1, "q8ccC*", "")
@@ -176,6 +178,8 @@ BUILTIN(__builtin_riscv_vse64_v_u64m1, "vUWi*q1UWi", "")
 //BUILTIN(__builtin_riscv_vfmacc_vf_f16m1, "q4hq4hhq4h", "")
 BUILTIN(__builtin_riscv_vfmacc_vf_f32m1, "q2fq2ffq2f", "")
 BUILTIN(__builtin_riscv_vfmacc_vf_f64m1, "q1dq1ddq1d", "")
+BUILTIN(__builtin_riscv_vfmacc_vf_f32m8, "q16fq16ffq16f", "")
+BUILTIN(__builtin_riscv_vfmacc_vf_f32mf2, "q1fq1ffq1f", "")
 
 //vsra
 BUILTIN(__builtin_riscv_vsra_vx_i8m1, "q8cq8cUc", "")
@@ -319,8 +323,11 @@ BUILTIN(__builtin_riscv_vmv_v_x_u8m1, "q8UcUc", "")
 BUILTIN(__builtin_riscv_vmv_v_x_u16m1, "q4UsUs", "")
 BUILTIN(__builtin_riscv_vmv_v_x_u32m1, "q2UZiUZi", "")
 BUILTIN(__builtin_riscv_vmv_v_x_u64m1, "q1UWiUWi", "")
+<<<<<<< HEAD
 
 BUILTIN(__builtin_riscv_vfmv_f_s_f32m1_f32, "fq2f", "")
 
 BUILTIN(__builtin_riscv_vfmacc_vf_f32m8, "q16fq16ffq16f", "")
+=======
+>>>>>>> support lmul < 1 instruction in backend and pass the saxpy test
 #undef BUILTIN

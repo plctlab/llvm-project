@@ -100,6 +100,17 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
     addRegisterClass(MVT::nxv16i1, &RISCV::VMRegClass);
     addRegisterClass(MVT::nxv32i1, &RISCV::VMRegClass);
     addRegisterClass(MVT::nxv64i1, &RISCV::VMRegClass);
+
+    addRegisterClass(MVT::nxv1i32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv2i16, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv4i8, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1i16, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv2i8, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1i8, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1f32, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv1f16, &RISCV::VRRegClass);
+    addRegisterClass(MVT::nxv2f16, &RISCV::VRRegClass);
+
     addRegisterClass(MVT::nxv1i64, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv2i32, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv4i16, &RISCV::VRRegClass);

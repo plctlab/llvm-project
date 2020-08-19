@@ -21,6 +21,7 @@
 
 #define _M8 3
 
+#define _MF2 35
 
 typedef __attribute__((riscv_vector_type(8, 1, 0))) int vint8m1_t;
 
@@ -120,6 +121,8 @@ typedef __attribute__((riscv_vector_type(32, 4, 0))) float vfloat32m4_t;
 
 typedef __attribute__((riscv_vector_type(32, 8, 0))) float vfloat32m8_t;
 
+typedef __attribute__((riscv_vector_type(32, 2, 1))) float vfloat32mf2_t;
+
 typedef __attribute__((riscv_vector_type(64, 1, 0))) float vfloat64m1_t;
 
 typedef __attribute__((riscv_vector_type(64, 2, 0))) float vfloat64m2_t;
@@ -157,6 +160,11 @@ size_t vsetvl_e32m1(size_t avl) {
 static __attribute__((always_inline))
 size_t vsetvl_e32m8(size_t avl) {
   return __builtin_riscv_vsetvl(avl, _E32 | _M8);
+}
+
+static __attribute__((always_inline))
+size_t vsetvl_e32mf2(size_t avl) {
+  return __builtin_riscv_vsetvl(avl, _E32 | _MF2);
 }
 
 static __attribute__((always_inline))
@@ -560,9 +568,15 @@ vuint64m1_t vdivu_vv_u64m1(vuint64m1_t value1, vuint64m1_t value2) {
 }
 
 //vle32
+
 static __attribute__((always_inline))
 vint32m1_t vle32_v_i32m1(const int32_t* src) {
   return __builtin_riscv_vle32_v_i32m1(src);
+}
+
+static __attribute__((always_inline))
+vfloat32mf2_t vle32_v_f32mf2 (const float *src) {
+  return __builtin_riscv_vle32_v_f32mf2(src);
 }
 
 static __attribute__((always_inline))
@@ -584,6 +598,11 @@ vuint32m1_t vle32_v_u32m1(const uint32_t* src) {
 static __attribute__((always_inline))
 void vse32_v_i32m1(int32_t *base, vint32m1_t value) {
   __builtin_riscv_vse32_v_i32m1(base, value);
+}
+
+static __attribute__((always_inline))
+void vse32_v_f32mf2 (float *base, vfloat32mf2_t value) {
+ __builtin_riscv_vse32_v_f32mf2(base, value);
 }
 
 static __attribute__((always_inline))
@@ -691,6 +710,11 @@ void vse64_v_u64m1(uint64_t *base, vuint64m1_t value) {
 //vfloat16m1_t vfmacc_vf_f16m1(vfloat16m1_t value1, float16_t op1, vfloat16m1_t value2) {
 //    return __builtin_riscv_vfmacc_vf_f16m1(value1, op1, value2);
 //}
+
+static __attribute__((always_inline))
+vfloat32mf2_t vfmacc_vf_f32mf2(vfloat32mf2_t value1, float op1, vfloat32mf2_t value2) {
+    return __builtin_riscv_vfmacc_vf_f32mf2(value1, op1, value2);
+}
 
 static __attribute__((always_inline))
 vfloat32m1_t vfmacc_vf_f32m1(vfloat32m1_t value1, float op1, vfloat32m1_t value2) {

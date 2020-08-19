@@ -431,7 +431,8 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
           LeftShift = 3;
           break;
         default:
-          llvm_unreachable("object size strange!");
+          LeftShift = 0;
+          // llvm_unreachable("object size strange!");
       }
       if (LeftShift) {
         Register SizeOfVectorLmul = MF.getRegInfo().createVirtualRegister(&RISCV::GPRRegClass);

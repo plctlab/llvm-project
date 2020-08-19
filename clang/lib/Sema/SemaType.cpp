@@ -7878,11 +7878,6 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
   //bool IsFract = static_cast<bool>(FractInt.getZExtValue());
   bool IsFract = static_cast<bool>(cast<IntegerLiteral>(FractExpr)->getValue().getZExtValue());
 
-  if (IsFract) {
-    S.Diag(Attr.getLoc(), diag::warn_riscv_fractional_lmul_unsupported)
-      << Attr << FractExpr->getSourceRange();
-  }
-
   const BuiltinType *BTy = CurType->getAs<BuiltinType>();
   if (BTy->isFloatingType()) {
     switch (ELEN) {
@@ -7948,7 +7943,12 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
     return;
   }
 
-  CurType = S.Context.getVectorType(CurType, (LMUL << 6)/ELEN, VectorType::RISCVVector);
+  if (IsFract) {
+    CurType = S.Context.getVectorType(CurType, 64/(ELEN * LMUL),
+     VectorType::RISCVVector);
+  } else {
+    CurType = S.Context.getVectorType(CurType, (LMUL << 6)/ELEN, VectorType::RISCVVector);
+  }
 }
 
 static void HandleRISCVMaskTypeAttr(QualType &CurType, const ParsedAttr &Attr,

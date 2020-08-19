@@ -53,6 +53,9 @@ defset list<VlmulToRC> AllVlmuls = {
   def M2 : VlmulToRC<"2", VRM2, 2>;
   def M4 : VlmulToRC<"4", VRM4, 4>;
   def M8 : VlmulToRC<"8", VRM8, 8>;
+  def MF2 : VlmulToRC<"F2", VR, 9>;
+  def MF4 : VlmulToRC<"F4", VR, 10>;
+  def MF8 : VlmulToRC<"F8", VR, 11>;
 }
 
 class WideVlmulToRCInfo<RegisterClass Ori, RegisterClass Wid, string Lmul, int Wlm> {
@@ -71,6 +74,17 @@ defset list<WideVlmulToRCInfo> AllWideVlmuls = {
 
 defset list<VectorTypeInfo> AllVectors = {
   defset list<VectorTypeInfo> AllIntegerVectors = {
+    defset list<VectorTypeInfo> FractionalLmulIntegerVectors = {
+      def Vtypev4xi8 : VectorTypeInfo<nxv4i8, nxv4i1, 8, VR, 9, "F2">;
+      def Vtypev2xi16 : VectorTypeInfo<nxv2i16, nxv2i1, 16, VR, 9, "F2">;
+      def Vtypev1xi32 : VectorTypeInfo<nxv1i32, nxv1i1, 32, VR, 9, "F2">;
+
+      def Vtypev2xi8 : VectorTypeInfo<nxv2i8, nxv2i1, 8, VR, 10, "F4">;
+      def Vtypev1xi16 : VectorTypeInfo<nxv1i16, nxv1i1, 16, VR, 10, "F4">;
+      
+      def Vtypev1xi8 : VectorTypeInfo<nxv1i8, nxv1i1, 8, VR, 11, "F8">;
+    }
+
     defset list<VectorTypeInfo> NoGroupIntegerVectors = {
       def Vtypev8xi8 : VectorTypeInfo<nxv8i8, nxv8i1, 8, VR, 1, "1">;
       def Vtypev4xi16 : VectorTypeInfo<nxv4i16, nxv4i1, 16, VR, 1, "1">;
@@ -97,6 +111,12 @@ defset list<VectorTypeInfo> AllVectors = {
   }
 
   defset list<VectorTypeInfo> AllFloatVectors = {
+    defset list<VectorTypeInfo> FractionalLmulFloatVectors = {
+      def Vtypev1xf32 : VectorTypeInfo<nxv1f32, nxv1i1, 32, VR, 9, "F2">;
+      def Vtypev2xf16 : VectorTypeInfo<nxv2f16, nxv2i1, 16, VR, 9, "F2">;
+      
+      def Vtypev1xf16 : VectorTypeInfo<nxv1f16, nxv1i1, 16, VR, 10, "F4">;
+    }
     defset list<VectorTypeInfo> NoGroupFloatVectors = {
       def Vtypev4xf16 : VectorTypeInfo<nxv4f16, nxv4i1, 16, VR, 1, "1">;
       def Vtypev2xf32 : VectorTypeInfo<nxv2f32, nxv2i1, 32, VR, 1, "1">;
@@ -172,10 +192,10 @@ def RISCVVectorPseudoTable : GenericTable {
 
 // load / store instruction
 foreach evr = AllVlmuls in {
-  defvar vlmul = evr.Vlmul;
-  foreach sew = [8, 16, 32, 64, 128, 256, 512, 1024] in {
+  defvar vlmul = evr.Lmulstr;
+  foreach sew = [8, 16, 32, 64] in {
     let mayLoad = 1, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0, 
-      VLMul = vlmul in {
+      VLMul = evr.Vlmul in {
       let Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 1,
       BaseInstr = !cast<Instruction>("VLE"#sew#"_V") in {
       def PseudoVLE#sew#_V_M#vlmul
@@ -188,7 +208,7 @@ foreach evr = AllVlmuls in {
     }
 
     let mayLoad = 0, mayStore = 1, hasSideEffects = 0, usesCustomInserter = 0,
-      VLMul = vlmul in {
+      VLMul = evr.Vlmul in {
         let Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 0,
         BaseInstr = !cast<Instruction>("VSE"#sew#"_V") in {
           def PseudoVSE#sew#_V_M#vlmul

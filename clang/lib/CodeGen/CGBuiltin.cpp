@@ -14900,6 +14900,7 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
    // case RISCV::BI__builtin_riscv_vfmacc_vf_f16m1:
     case RISCV::BI__builtin_riscv_vfmacc_vf_f32m1:
     case RISCV::BI__builtin_riscv_vfmacc_vf_f32m8:
+    case RISCV::BI__builtin_riscv_vfmacc_vf_f32mf2:
     case RISCV::BI__builtin_riscv_vfmacc_vf_f64m1: {
       Value *Ptr = EmitScalarExpr(E->getArg(0));
       Value *Ptr1 = EmitScalarExpr(E->getArg(1));
@@ -14913,7 +14914,8 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
     case RISCV::BI__builtin_riscv_vse16_v_i16m1:
     case RISCV::BI__builtin_riscv_vse32_v_u32m1: 
     case RISCV::BI__builtin_riscv_vse32_v_f32m1: 
-    case RISCV::BI__builtin_riscv_vse32_v_f32m8: 
+    case RISCV::BI__builtin_riscv_vse32_v_f32m8:
+    case RISCV::BI__builtin_riscv_vse32_v_f32mf2: 
     case RISCV::BI__builtin_riscv_vse32_v_i32m1: 
     case RISCV::BI__builtin_riscv_vse64_v_u64m1:
     case RISCV::BI__builtin_riscv_vse64_v_f64m1:
@@ -15057,6 +15059,7 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
     case RISCV::BI__builtin_riscv_vle16_v_i16m1:
     case RISCV::BI__builtin_riscv_vle32_v_u32m1:
     case RISCV::BI__builtin_riscv_vle32_v_f32m1:
+    case RISCV::BI__builtin_riscv_vle32_v_f32mf2:
     case RISCV::BI__builtin_riscv_vle32_v_f32m8:
     case RISCV::BI__builtin_riscv_vle32_v_i32m1: 
     case RISCV::BI__builtin_riscv_vle64_v_u64m1:
