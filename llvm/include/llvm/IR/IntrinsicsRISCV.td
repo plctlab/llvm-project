@@ -452,7 +452,26 @@ defm vmerge : Merge;
 def int_riscv_vmv_v_x : Intrinsic< [ llvm_anyvector_ty ],
                                   [ llvm_anyint_ty ],
                                   [ IntrNoMem ]>;
+
+def int_riscv_vfmv_v_f : Intrinsic< [ llvm_anyvector_ty ],
+                                    [ llvm_anyfloat_ty ],
+                                    [ IntrNoMem ]>;
 def int_riscv_vmv_v_v : V_V;
+
+def int_riscv_vmv_x_s : Intrinsic<[ llvm_anyint_ty ],
+                                  [ llvm_anyvector_ty ],
+                                  [ IntrNoMem ]>;
+
+def int_riscv_vfmv_f_s : Intrinsic<[ llvm_anyfloat_ty ],
+                                   [ llvm_anyvector_ty ],
+                                   [ IntrNoMem ]>;
+
+def int_riscv_vmv_s_x : Intrinsic<[ llvm_anyvector_ty],
+                                  [ llvm_anyvector_ty, llvm_anyint_ty ],
+                                  [ IntrNoMem ]>;
+def int_riscv_vfmv_s_f : Intrinsic<[ llvm_anyvector_ty ],
+                                   [ llvm_anyvector_ty, llvm_anyfloat_ty ],
+                                   [ IntrNoMem ]>;
 
 // Vector Single-Width Saturating Add and Subtract Functions
 defm vsadd : Binary_int;

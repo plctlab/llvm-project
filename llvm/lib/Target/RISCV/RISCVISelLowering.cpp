@@ -926,10 +926,17 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
     EVT PtrVT = getPointerTy(DAG.getDataLayout());
     return DAG.getRegister(RISCV::X4, PtrVT);
   }
-  case Intrinsic::riscv_vmv_v_x: {
+  case Intrinsic::riscv_vmv_v_x:
+  case Intrinsic::riscv_vmv_s_x: {
     SDValue Op1 = Op.getOperand(1);
+    if (Op1.getSimpleValueType() == MVT::i8 ||
+        Op1.getSimpleValueType() == MVT::i16 ||
+        Op1.getSimpleValueType() == MVT::i32) {
     SDValue Promote = DAG.getNode(ISD::SIGN_EXTEND, DL, MVT::i64, Op1);
     return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), {Op.getOperand(0), Promote});
+  } else {
+    return SDValue();
+  }
   }
   }
 }
@@ -1066,6 +1073,20 @@ void RISCVTargetLowering::ReplaceNodeResults(SDNode *N,
         DAG.getNode(RISCVISD::FMV_X_ANYEXTW_RV64, DL, MVT::i64, Op0);
     Results.push_back(DAG.getNode(ISD::TRUNCATE, DL, MVT::i32, FPConv));
     break;
+  }
+  case ISD::INTRINSIC_WO_CHAIN: {
+    SDNode &Op = *N;
+    unsigned IntNo = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
+    switch (IntNo) {
+      case Intrinsic::riscv_vmv_x_s: {
+        SDValue Arg = N->getOperand(1);
+        MVT Ty = Op.getValueType(0).getSimpleVT();
+        SDValue Promote = DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, MVT::i64, Op.getOperand(0), Arg);
+        SDValue Truncate = DAG.getNode(ISD::TRUNCATE, DL, Ty, Promote);
+        Results.push_back(Truncate);
+        break;
+      }
+    }
   }
   }
 }
