@@ -7882,7 +7882,7 @@ static void HandleRISCVMaskTypeAttr(QualType &CurType, const ParsedAttr &Attr,
   }
 
   unsigned MLEN = static_cast<unsigned>(MLENInt.getZExtValue());
-  CurType = S.Context.getVectorType(S.Context.BoolTy, MLEN, VectorType::RISCVVector);
+  CurType = S.Context.getVectorType(S.Context.BoolTy, 64 / MLEN, VectorType::RISCVVector);
 }
 
 /// Handle OpenCL Access Qualifier Attribute.
