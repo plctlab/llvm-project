@@ -603,23 +603,23 @@ void vse32_v_u32m1(uint32_t *base, vuint32m1_t value) {
 
 //vle8
 static __attribute__((always_inline))
-vint8m1_t vle8_v_i8m1(const int8_t* src) {
+vint8m1_t vle8_v_i8m1(const char* src) {
   return __builtin_riscv_vle8_v_i8m1(src);
 }
 
 static __attribute__((always_inline))
-vuint8m1_t vle8_v_u8m1(const uint8_t* src) {
+vuint8m1_t vle8_v_u8m1(const unsigned char* src) {
   return __builtin_riscv_vle8_v_u8m1(src);
 }
 
 //vse8
 static __attribute__((always_inline))
-void vse8_v_i8m1(int8_t *base, vint8m1_t value) {
+void vse8_v_i8m1(char *base, vint8m1_t value) {
   __builtin_riscv_vse8_v_i8m1(base, value);
 }
 
 static __attribute__((always_inline))
-void vse8_v_u8m1(uint8_t *base, vuint8m1_t value) {
+void vse8_v_u8m1(unsigned char *base, vuint8m1_t value) {
   __builtin_riscv_vse8_v_u8m1(base, value);
 }
 
@@ -662,7 +662,7 @@ vint64m1_t vle64_v_i64m1(const int64_t* src) {
 }
 
 static __attribute__((always_inline))
-vfloat64m1_t vle64_v_f64m1 (const float *src) {
+vfloat64m1_t vle64_v_f64m1 (const double *src) {
   return __builtin_riscv_vle64_v_f64m1(src);
 }
 
@@ -678,7 +678,7 @@ void vse64_v_i64m1(int64_t *base, vint64m1_t value) {
 }
 
 static __attribute__((always_inline))
-void vse64_v_f64m1 (float *base, vfloat64m1_t value) {
+void vse64_v_f64m1 (double *base, vfloat64m1_t value) {
  __builtin_riscv_vse64_v_f64m1(base, value);
 }
 
@@ -1129,11 +1129,11 @@ vbool64_t vmfge_vv_f64m1_b64(vfloat64m1_t value1, vfloat64m1_t value2) {
     return __builtin_riscv_vmfge_vv_f64m1_b64(value1, value2);
 }
 
-static __attribute__((always_inline))
+/*static __attribute__((always_inline))
 vint8m1_t vreinterpret_v_u8m1_i8m1(vuint8m1_t src) {
   uint8_t* base;
   vse8_v_u8m1(base, src);
-  return vle8_v_i8m1((int8_t*)base);
+  return vle8_v_i8m1((char *)base);
 }
 
 static __attribute__((always_inline))
@@ -1409,7 +1409,7 @@ vuint16m1_t vreinterpret_v_u8m1_u16m1(vuint8m1_t src) {
   vse8_v_u8m1(base, src);
   return vle16_v_u16m1((uint16_t*)base);
 }
-
+*/
 //slide
 /*vint8m1_t vslideup_vx_i8m1_m(vbool8_t mask, vint8m1_t dst, vint8m1_t src, size_t offset) {
   return __builtin_riscv_vslideup_vx_i8m1_m(mask, dst, src, offset);
@@ -1537,4 +1537,11 @@ vuint64m1_t vmv_v_x_u64m1(uint64_t src) {
   return __builtin_riscv_vmv_v_x_u64m1(src);
 }
 
+static __attribute__((always_inline))
+float vfmv_f_s_f32m1_f32(vfloat32m1_t src) {
+  return __builtin_riscv_vfmv_f_s_f32m1_f32(src);
+}
+
+
 #endif
+

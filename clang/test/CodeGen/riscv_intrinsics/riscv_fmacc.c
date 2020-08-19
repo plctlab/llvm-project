@@ -16,5 +16,5 @@ vfloat64m1_t  __attribute__((noinline)) testfdiv64(vfloat64m1_t value1, double o
   return vfmacc_vf_f64m1(value1, op1, value2);
 }
 
-//CHECK: %9 = call <vscale x 2 x float> @llvm.riscv.vfmacc.vf.nxv2f32.nxv2f32.f32.nxv2f32(<vscale x 2 x float> %3, float %4, <vscale x 2 x float> %5) #2
-//CHECK: %9 = call <vscale x 1 x double> @llvm.riscv.vfmacc.vf.nxv1f64.nxv1f64.f64.nxv1f64(<vscale x 1 x double> %3, double %4, <vscale x 1 x double> %5) #2
+//CHECK: %{{.*}} = call <vscale x 2 x float> @llvm.riscv.vfmacc.vf.nxv2f32.nxv2f32.f32.nxv2f32(<vscale x 2 x float> %{{.*}}, float %{{.*}}, <vscale x 2 x float> %{{.*}}) #{{.*}}
+//CHECK: %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vfmacc.vf.nxv1f64.nxv1f64.f64.nxv1f64(<vscale x 1 x double> %{{.*}}, double %{{.*}}, <vscale x 1 x double> %{{.*}}) #{{.*}}

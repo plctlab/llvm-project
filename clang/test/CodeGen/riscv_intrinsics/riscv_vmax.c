@@ -8,22 +8,22 @@
 vint8m1_t  __attribute__((noinline)) testmax8(vint8m1_t value1, vint8m1_t value2) {
   return vmax_vv_i8m1(value1, value2);
 }
-//CHECK: %4 = call <vscale x 8 x i8> @llvm.riscv.vmax.vv.nxv8i8(<vscale x 8 x i8> %2, <vscale x 8 x i8> %3) #2
+//CHECK: %{{.*}} = call <vscale x 8 x i8> @llvm.riscv.vmax.vv.nxv8i8(<vscale x 8 x i8> %{{.*}}, <vscale x 8 x i8> %{{.*}}) #{{.*}}
 
 vint16m1_t  __attribute__((noinline)) testmax16(vint16m1_t value1, vint16m1_t value2) {
   return vmax_vv_i16m1(value1, value2);
 }
-//CHECK: %4 = call <vscale x 4 x i16> @llvm.riscv.vmax.vv.nxv4i16(<vscale x 4 x i16> %2, <vscale x 4 x i16> %3) #2
+//CHECK: %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vmax.vv.nxv4i16(<vscale x 4 x i16> %{{.*}}, <vscale x 4 x i16> %{{.*}}) #{{.*}}
 
 vint32m1_t  __attribute__((noinline)) testmax32(vint32m1_t value1, vint32m1_t value2) {
   return vmax_vv_i32m1(value1, value2);
 }
-//CHECK: %4 = call <vscale x 2 x i32> @llvm.riscv.vmax.vv.nxv2i32(<vscale x 2 x i32> %2, <vscale x 2 x i32> %3) #2
+//CHECK: %{{.*}} = call <vscale x 2 x i32> @llvm.riscv.vmax.vv.nxv2i32(<vscale x 2 x i32> %{{.*}}, <vscale x 2 x i32> %{{.*}}) #{{.*}}
 
 vint64m1_t  __attribute__((noinline)) testmax64(vint64m1_t value1, vint64m1_t value2) {
   return vmax_vv_i64m1(value1, value2);
 }
-//CHECK: %4 = call <vscale x 1 x i64> @llvm.riscv.vmax.vv.nxv1i64(<vscale x 1 x i64> %2, <vscale x 1 x i64> %3) #2
+//CHECK: %{{.*}} = call <vscale x 1 x i64> @llvm.riscv.vmax.vv.nxv1i64(<vscale x 1 x i64> %{{.*}}, <vscale x 1 x i64> %{{.*}}) #{{.*}}
 
 
 vuint8m1_t  __attribute__((noinline)) testumax8(vuint8m1_t value1, vuint8m1_t value2) {
@@ -43,8 +43,8 @@ vuint64m1_t  __attribute__((noinline)) testumax64(vuint64m1_t value1, vuint64m1_
 }
 
 
-//CHECK:   %4 = call <vscale x 8 x i8> @llvm.riscv.vmax.vv.nxv8i8(<vscale x 8 x i8> %2, <vscale x 8 x i8> %3) #2
-//CHECK:   %4 = call <vscale x 4 x i16> @llvm.riscv.vmax.vv.nxv4i16(<vscale x 4 x i16> %2, <vscale x 4 x i16> %3) #2
-//CHECK:   %4 = call <vscale x 2 x i32> @llvm.riscv.vmax.vv.nxv2i32(<vscale x 2 x i32> %2, <vscale x 2 x i32> %3) #2
-//CHECK:   %4 = call <vscale x 1 x i64> @llvm.riscv.vmax.vv.nxv1i64(<vscale x 1 x i64> %2, <vscale x 1 x i64> %3) #2
+//CHECK:   %{{.*}} = call <vscale x 8 x i8> @llvm.riscv.vmax.vv.nxv8i8(<vscale x 8 x i8> %{{.*}}, <vscale x 8 x i8> %{{.*}}) #{{.*}}
+//CHECK:   %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vmax.vv.nxv4i16(<vscale x 4 x i16> %{{.*}}, <vscale x 4 x i16> %{{.*}}) #{{.*}}
+//CHECK:   %{{.*}} = call <vscale x 2 x i32> @llvm.riscv.vmax.vv.nxv2i32(<vscale x 2 x i32> %{{.*}}, <vscale x 2 x i32> %{{.*}}) #{{.*}}
+//CHECK:   %{{.*}} = call <vscale x 1 x i64> @llvm.riscv.vmax.vv.nxv1i64(<vscale x 1 x i64> %{{.*}}, <vscale x 1 x i64> %{{.*}}) #{{.*}}
 

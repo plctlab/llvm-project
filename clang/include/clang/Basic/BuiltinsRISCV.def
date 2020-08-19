@@ -320,6 +320,7 @@ BUILTIN(__builtin_riscv_vmv_v_x_u16m1, "q4UsUs", "")
 BUILTIN(__builtin_riscv_vmv_v_x_u32m1, "q2UZiUZi", "")
 BUILTIN(__builtin_riscv_vmv_v_x_u64m1, "q1UWiUWi", "")
 
+BUILTIN(__builtin_riscv_vfmv_f_s_f32m1_f32, "fq2f", "")
 
 BUILTIN(__builtin_riscv_vfmacc_vf_f32m8, "q16fq16ffq16f", "")
 #undef BUILTIN

@@ -20,8 +20,8 @@ vint32m1_t  __attribute__((noinline)) testnot32(vint32m1_t value1) {
 vint64m1_t  __attribute__((noinline)) testnot64(vint64m1_t value1) {
   return vnot_v_i64m1(value1);
 }
-//CHECK: %2 = call <vscale x 8 x i8> @llvm.riscv.vnot.v.nxv8i8(<vscale x 8 x i8> %1) #2
-//CHECK: %2 = call <vscale x 4 x i16> @llvm.riscv.vnot.v.nxv4i16(<vscale x 4 x i16> %1) #2
-//CHECK: %2 = call <vscale x 2 x i32> @llvm.riscv.vnot.v.nxv2i32(<vscale x 2 x i32> %1) #2
-//CHECK: %2 = call <vscale x 1 x i64> @llvm.riscv.vnot.v.nxv1i64(<vscale x 1 x i64> %1) #2
+//CHECK: %{{.*}} = call <vscale x 8 x i8> @llvm.riscv.vnot.v.nxv8i8(<vscale x 8 x i8> %{{.*}}) #{{.*}}
+//CHECK: %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vnot.v.nxv4i16(<vscale x 4 x i16> %{{.*}}) #{{.*}}
+//CHECK: %{{.*}} = call <vscale x 2 x i32> @llvm.riscv.vnot.v.nxv2i32(<vscale x 2 x i32> %{{.*}}) #{{.*}}
+//CHECK: %{{.*}} = call <vscale x 1 x i64> @llvm.riscv.vnot.v.nxv1i64(<vscale x 1 x i64> %{{.*}}) #{{.*}}
 
