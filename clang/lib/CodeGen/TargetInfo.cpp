@@ -10662,8 +10662,7 @@ ABIArgInfo RISCVABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
 
   // Aggregates which are <= 2*XLen will be passed in registers if possible,
   // so coerce to integers.
-  if (isAggregateTypeForABI(Ty)
-      && Size <= 2 * XLen
+  if (Size <= 2 * XLen
       && !hasRISCVVectorField(getContext(), Ty)) {
     unsigned Alignment = getContext().getTypeAlign(Ty);
 
@@ -10681,7 +10680,7 @@ ABIArgInfo RISCVABIInfo::classifyArgumentType(QualType Ty, bool IsFixed,
     }
   }
 
-  if (Ty->isVectorType()) {
+  if (Ty->isVectorType() && hasRISCVVectorField(getContext(), Ty)) {
     return ABIArgInfo::getDirect();
   }
 

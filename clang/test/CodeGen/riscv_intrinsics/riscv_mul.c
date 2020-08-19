@@ -1,7 +1,7 @@
 // RUN: %clang --target=riscv64-unknown-linux-elf -S -emit-llvm  %s -o - |  FileCheck %s
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
+
 #include <riscv_vector.h>
 
 
@@ -25,10 +25,10 @@ vint64m1_t  __attribute__((noinline)) testmul64(vint64m1_t value1, vint64m1_t va
 }
 //CHECK: %{{.*}} = call <vscale x 1 x i64> @llvm.riscv.vmul.vv.nxv1i64(<vscale x 1 x i64> %{{.*}}, <vscale x 1 x i64> %{{.*}}) #{{.*}}
 
-vfloat16m1_t  __attribute__((noinline)) testfmul16(vfloat16m1_t value1, vfloat16m1_t value2) {
-  return vfmul_vv_f16m1(value1, value2);
-}
-//CHECK: %{{.*}} = call <vscale x 4 x half> @llvm.riscv.vfmul.vv.nxv4f16(<vscale x 4 x half> %{{.*}}, <vscale x 4 x half> %{{.*}}) #{{.*}}
+//vfloat16m1_t  __attribute__((noinline)) testfmul16(vfloat16m1_t value1, vfloat16m1_t value2) {
+//  return vfmul_vv_f16m1(value1, value2);
+//}
+//HECK: %{{.*}} = call <vscale x 4 x half> @llvm.riscv.vfmul.vv.nxv4f16(<vscale x 4 x half> %{{.*}}, <vscale x 4 x half> %{{.*}}) #{{.*}}
 
 vfloat32m1_t  __attribute__((noinline)) testfmul32(vfloat32m1_t value1, vfloat32m1_t value2) {
   return vfmul_vv_f32m1(value1, value2);

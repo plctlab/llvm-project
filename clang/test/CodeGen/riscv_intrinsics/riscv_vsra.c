@@ -1,7 +1,7 @@
 // RUN: %clang --target=riscv64-unknown-linux-elf -S -emit-llvm  %s -o - |  FileCheck %s
 //#include <stdbool.h>
 //#include <stddef.h>
-//#include <stdint.h>
+//
 #include <riscv_vector.h>
 
 
