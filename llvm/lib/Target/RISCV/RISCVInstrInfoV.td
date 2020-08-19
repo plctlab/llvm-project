@@ -2912,14 +2912,14 @@ def : PatVrVr<int_riscv_vdiv_vv_u64m1, VDIV_VV_um>;
 // 12.16. Vector Integer Merge Operations
 
 // 12.17. Vector Integer Move Operations
-def : PatVMV_V_X<int_riscv_vmv_v_x_u8m1>;
-def : PatVMV_V_X<int_riscv_vmv_v_x_i8m1>;
-def : PatVMV_V_X<int_riscv_vmv_v_x_u16m1>;
-def : PatVMV_V_X<int_riscv_vmv_v_x_i16m1>;
-def : PatVMV_V_X<int_riscv_vmv_v_x_u32m1>;
-def : PatVMV_V_X<int_riscv_vmv_v_x_i32m1>;
-def : PatVMV_V_X<int_riscv_vmv_v_x_u64m1>;
-def : PatVMV_V_X<int_riscv_vmv_v_x_i64m1>;
+//def : PatVMV_V_X<int_riscv_vmv_v_x_u8m1>;
+//def : PatVMV_V_X<int_riscv_vmv_v_x_i8m1>;
+//def : PatVMV_V_X<int_riscv_vmv_v_x_u16m1>;
+//def : PatVMV_V_X<int_riscv_vmv_v_x_i16m1>;
+//def : PatVMV_V_X<int_riscv_vmv_v_x_u32m1>;
+//def : PatVMV_V_X<int_riscv_vmv_v_x_i32m1>;
+//def : PatVMV_V_X<int_riscv_vmv_v_x_u64m1>;
+//def : PatVMV_V_X<int_riscv_vmv_v_x_i64m1>;
 
 // 13. Vector Fixed-Point Arithmetic Operations
 // 13.1. Vector Single-Width Saturating Add and Subtract Functions
@@ -3003,14 +3003,14 @@ def : PatVrVr<int_riscv_vssubu_vv_u64m1, VSSUBU_VV_um>;
 // 17. Vector Permutation Operations
 
 // 17.1. Integer Scalar Move Operations
-def : PatVMV_X_S<int_riscv_vmv_x_s_u8m1_u8>;
-def : PatVMV_X_S<int_riscv_vmv_x_s_i8m1_i8>;
-def : PatVMV_X_S<int_riscv_vmv_x_s_u16m1_u16>;
-def : PatVMV_X_S<int_riscv_vmv_x_s_i16m1_i16>;
-def : PatVMV_X_S<int_riscv_vmv_x_s_u32m1_u32>;
-def : PatVMV_X_S<int_riscv_vmv_x_s_i32m1_i32>;
-def : PatVMV_X_S<int_riscv_vmv_x_s_u64m1_u64>;
-def : PatVMV_X_S<int_riscv_vmv_x_s_i64m1_i64>;
+//def : PatVMV_X_S<int_riscv_vmv_x_s_u8m1_u8>;
+//def : PatVMV_X_S<int_riscv_vmv_x_s_i8m1_i8>;
+//def : PatVMV_X_S<int_riscv_vmv_x_s_u16m1_u16>;
+//def : PatVMV_X_S<int_riscv_vmv_x_s_i16m1_i16>;
+//def : PatVMV_X_S<int_riscv_vmv_x_s_u32m1_u32>;
+//def : PatVMV_X_S<int_riscv_vmv_x_s_i32m1_i32>;
+//def : PatVMV_X_S<int_riscv_vmv_x_s_u64m1_u64>;
+//def : PatVMV_X_S<int_riscv_vmv_x_s_i64m1_i64>;
 
 // 17.2. Floating-Point Scalar Move Operations
 def : PatVFMV_F_S<int_riscv_vfmv_f_s_f32m1_f32>;
