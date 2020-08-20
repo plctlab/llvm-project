@@ -15263,6 +15263,19 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       Function *F = CGM.getIntrinsic(Intrinsic::riscv_vmv_v_x, {ResultType, Ptr->getType()});
       return Builder.CreateCall(F, Args);
     }
+    case RISCV::BI__builtin_riscv_vmv_x_s_i8m1_i8:
+    case RISCV::BI__builtin_riscv_vmv_x_s_i16m1_i16:
+    case RISCV::BI__builtin_riscv_vmv_x_s_i32m1_i32:
+    case RISCV::BI__builtin_riscv_vmv_x_s_i64m1_i64:
+    case RISCV::BI__builtin_riscv_vmv_x_s_u8m1_u8:
+    case RISCV::BI__builtin_riscv_vmv_x_s_u16m1_u16:
+    case RISCV::BI__builtin_riscv_vmv_x_s_u32m1_u32:
+    case RISCV::BI__builtin_riscv_vmv_x_s_u64m1_u64:  {
+      Value *Ptr = EmitScalarExpr(E->getArg(0));
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vmv_x_s, {ResultType, Ptr->getType()});
+      return Builder.CreateCall(F, Args);
+    }
+    case RISCV::BI__builtin_riscv_vfmv_f_s_f64m1_f64:
     case RISCV::BI__builtin_riscv_vfmv_f_s_f32m1_f32:  {
       Value *Ptr = EmitScalarExpr(E->getArg(0));
       Function *F = CGM.getIntrinsic(Intrinsic::riscv_vfmv_f_s, {ResultType, Ptr->getType()});

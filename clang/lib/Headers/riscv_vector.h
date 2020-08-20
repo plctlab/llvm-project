@@ -1566,6 +1566,100 @@ float vfmv_f_s_f32m1_f32(vfloat32m1_t src) {
   return __builtin_riscv_vfmv_f_s_f32m1_f32(src);
 }
 
+static __attribute__((always_inline))
+double vfmv_f_s_f64m1_f64(vfloat64m1_t src) {
+  return __builtin_riscv_vfmv_f_s_f64m1_f64(src);
+}
+
+//vmv_v_s
+static __attribute__((always_inline))
+int8_t vmv_x_s_i8m1_i8(vint8m1_t src) {
+  return __builtin_riscv_vmv_x_s_i8m1_i8(src);
+}
+
+static __attribute__((always_inline))
+int16_t vmv_x_s_i16m1_i16(vint16m1_t src) {
+  return __builtin_riscv_vmv_x_s_i16m1_i16(src);
+}
+
+static __attribute__((always_inline))
+int32_t vmv_x_s_i32m1_i32(vint32m1_t src) {
+  return __builtin_riscv_vmv_x_s_i32m1_i32(src);
+}
+
+static __attribute__((always_inline))
+int64_t vmv_x_s_i64m1_i64(vint64m1_t src) {
+  return __builtin_riscv_vmv_x_s_i64m1_i64(src);
+}
+
+static __attribute__((always_inline))
+uint8_t vmv_x_s_u8m1_u8(vuint8m1_t src) {
+  return __builtin_riscv_vmv_x_s_u8m1_u8(src);
+}
+
+static __attribute__((always_inline))
+uint16_t vmv_x_s_u16m1_u16(vuint16m1_t src) {
+  return __builtin_riscv_vmv_x_s_u16m1_u16(src);
+}
+
+static __attribute__((always_inline))
+uint32_t vmv_x_s_u32m1_u32(vuint32m1_t src) {
+  return __builtin_riscv_vmv_x_s_u32m1_u32(src);
+}
+
+static __attribute__((always_inline))
+uint64_t vmv_x_s_u64m1_u64(vuint64m1_t src) {
+  return __builtin_riscv_vmv_x_s_u64m1_u64(src);
+}
+
+//vzero
+static __attribute__((always_inline))
+vint8m1_t vzero_i8m1() {
+  vint8m1_t x;
+  return x;
+}
+
+static __attribute__((always_inline))
+vint16m1_t vzero_i16m1() {
+  vint16m1_t x;
+  return x;
+}
+
+static __attribute__((always_inline))
+vint32m1_t vzero_i32m1() {
+  vint32m1_t x;
+  return x;
+}
+
+static __attribute__((always_inline))
+vint64m1_t vzero_i64m1() {
+  vint64m1_t x;
+  return x;
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vzero_u8m1() {
+  vuint8m1_t x;
+  return x;
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vzero_u16m1() {
+  vuint16m1_t x;
+  return x;
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vzero_u32m1() {
+  vuint32m1_t x;
+  return x;
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vzero_u64m1() {
+  vuint64m1_t x;
+  return x;
+}
 
 #endif
 

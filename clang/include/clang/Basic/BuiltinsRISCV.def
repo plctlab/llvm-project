@@ -324,5 +324,17 @@ BUILTIN(__builtin_riscv_vmv_v_x_u16m1, "q4UsUs", "")
 BUILTIN(__builtin_riscv_vmv_v_x_u32m1, "q2UZiUZi", "")
 BUILTIN(__builtin_riscv_vmv_v_x_u64m1, "q1UWiUWi", "")
 
+//vmv_x_s
+BUILTIN(__builtin_riscv_vmv_x_s_i8m1_i8, "Scq8Sc", "")
+BUILTIN(__builtin_riscv_vmv_x_s_i16m1_i16, "Ssq4Ss", "")
+BUILTIN(__builtin_riscv_vmv_x_s_i32m1_i32, "Ziq2Zi", "")
+BUILTIN(__builtin_riscv_vmv_x_s_i64m1_i64, "Wiq1Wi", "")
+BUILTIN(__builtin_riscv_vmv_x_s_u8m1_u8, "Ucq8Uc", "")
+BUILTIN(__builtin_riscv_vmv_x_s_u16m1_u16, "Usq4Us", "")
+BUILTIN(__builtin_riscv_vmv_x_s_u32m1_u32, "UZiq2UZi", "")
+BUILTIN(__builtin_riscv_vmv_x_s_u64m1_u64, "UWiq1UWi", "")
+
+//vfmv_f_s
+BUILTIN(__builtin_riscv_vfmv_f_s_f64m1_f64, "dq1d", "")
 BUILTIN(__builtin_riscv_vfmv_f_s_f32m1_f32, "fq2f", "")
 #undef BUILTIN
