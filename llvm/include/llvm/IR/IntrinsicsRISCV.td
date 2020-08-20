@@ -195,7 +195,7 @@ class M_VV : Intrinsic<[ llvm_anyvector_ty ],
 
 class M_VV_mask : Intrinsic<[ llvm_anyvector_ty ],
                             [ LLVMMatchType<0>, LLVMMatchType<0>, 
-                            llvm_anyvector_ty, LLVMMatchType<0> ],
+                            llvm_anyvector_ty, llvm_anyvector_ty ],
                             [ IntrNoMem ]>;
 
 class M_VVM : Intrinsic<[ llvm_anyvector_ty ],
@@ -289,6 +289,16 @@ multiclass Binary_w_vx {
   def "int_riscv_" # NAME # "_vx_mask" : W_VX_mask;
 }
 
+multiclass Binary_v_wv {
+  def "int_riscv_" # NAME # "_wv" : V_WV;
+  def "int_riscv_" # NAME # "_wv_mask" : V_WV_mask;
+}
+
+multiclass Binary_v_wx {
+  def "int_riscv_" # NAME # "_wx" : V_WX;
+  def "int_riscv_" # NAME # "_wx_mask" : V_WX_mask;
+}
+
 multiclass Binary_w_wx {
   def "int_riscv_" # NAME # "_wx" : V_VX;
   def "int_riscv_" # NAME # "_wx_mask" : V_VX_mask;
@@ -361,8 +371,8 @@ defm vsrl : Binary_int;
 defm vsra : Binary_int;
 
 multiclass Binary_int_narrow {
-  defm NAME : Binary_w_wv;
-  defm NAME : Binary_w_wx;
+  defm NAME : Binary_v_wv;
+  defm NAME : Binary_v_wx;
 }
 // Vector Narrowing Integer Right Shift Functions
 defm vnsrl : Binary_int_narrow;
@@ -414,7 +424,7 @@ multiclass Binary_int_wide_mul {
 // Vector Widening Integer Multiply Functions
 defm vwmul : Binary_int_wide_mul;
 defm vwmulu : Binary_int_wide_mul;
-defm vmmulsu : Binary_int_wide_mul;
+defm vwmulsu : Binary_int_wide_mul;
 
 multiclass Ternary_int {
   def "int_riscv_" # NAME # "_vv" : V_VVV;
@@ -435,11 +445,16 @@ multiclass Ternary_int_wide {
   def "int_riscv_" # NAME # "_vx" : W_WVX;
   def "int_riscv_" # NAME # "_vx_mask" : W_WVX_mask;
 }
+
+multiclass Ternary_int_wide_w_vx {
+  def "int_riscv_" # NAME # "_vx" : W_WVX;
+  def "int_riscv_" # NAME # "_vx_mask" : W_WVX_mask;
+}
 // Vector Widening Integer Multiply-Add Functions
 defm vwmacc : Ternary_int_wide;
 defm vwmaccu : Ternary_int_wide;
 defm vwmaccsu : Ternary_int_wide;
-defm vwmaccus : Ternary_int_wide;
+defm vwmaccus : Ternary_int_wide_w_vx;
 
 multiclass Merge {
   def "int_riscv_" # NAME # "_vv" : V_VV_mask;
