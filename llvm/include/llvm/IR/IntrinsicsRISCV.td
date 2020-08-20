@@ -69,13 +69,28 @@ class V_VV : Intrinsic<[ llvm_anyvector_ty ],
                      [ LLVMMatchType<0>, LLVMMatchType<0> ],
                      [ IntrNoMem ]>;
 
+class V_VV_mask : Intrinsic<[ llvm_anyvector_ty ],
+                         [ llvm_anyvector_ty, LLVMMatchType<0>, 
+                           LLVMMatchType<0>, LLVMMatchType<0> ],
+                         [ IntrNoMem ]>;
+
 class W_VV : Intrinsic<[ llvm_anyvector_ty ],
                             [ llvm_anyvector_ty, LLVMMatchType<1> ],
                             [ IntrNoMem ]>;
 
+class W_VV_mask : Intrinsic<[ llvm_anyvector_ty ],
+                         [ llvm_anyvector_ty, LLVMMatchType<0>, 
+                           llvm_anyvector_ty, LLVMMatchType<2> ],
+                         [ IntrNoMem ]>;
+
 class V_WV : Intrinsic<[ llvm_anyvector_ty ],
                             [ llvm_anyvector_ty, LLVMMatchType<0> ],
                             [ IntrNoMem ]>;
+
+class V_WV_mask : Intrinsic<[ llvm_anyvector_ty ],
+                         [ llvm_anyvector_ty, LLVMMatchType<0>, 
+                           llvm_anyvector_ty, LLVMMatchType<0> ],
+                         [ IntrNoMem ]>;
 
 class V_WX : Intrinsic<[ llvm_anyvector_ty ],
                        [ llvm_anyvector_ty, llvm_anyint_ty],
@@ -89,22 +104,7 @@ class V_WX_mask : Intrinsic<[ llvm_anyvector_ty ],
 class W_WV : Intrinsic<[ llvm_anyvector_ty ],
                             [ LLVMMatchType<0>, llvm_anyvector_ty ],
                             [ IntrNoMem ]>;
-
-class V_VV_mask : Intrinsic<[ llvm_anyvector_ty ],
-                         [ llvm_anyvector_ty, LLVMMatchType<0>, 
-                           LLVMMatchType<0>, LLVMMatchType<0> ],
-                         [ IntrNoMem ]>;
-
-class W_VV_mask : Intrinsic<[ llvm_anyvector_ty ],
-                         [ llvm_anyvector_ty, LLVMMatchType<0>, 
-                           llvm_anyvector_ty, LLVMMatchType<2> ],
-                         [ IntrNoMem ]>;
-
-class V_WV_mask : Intrinsic<[ llvm_anyvector_ty ],
-                         [ llvm_anyvector_ty, LLVMMatchType<0>, 
-                           llvm_anyvector_ty, LLVMMatchType<0> ],
-                         [ IntrNoMem ]>;
-
+                        
 class W_WV_mask : Intrinsic<[ llvm_anyvector_ty ],
                          [ llvm_anyvector_ty, LLVMMatchType<0>, 
                            LLVMMatchType<0>, llvm_anyvector_ty ],
@@ -114,9 +114,19 @@ class V_VX : Intrinsic<[ llvm_anyvector_ty ],
                      [ llvm_anyvector_ty, llvm_anyint_ty ],
                      [ IntrNoMem ]>;
 
+class V_VX_mask : Intrinsic<[ llvm_anyvector_ty ],
+                            [ llvm_anyvector_ty, LLVMMatchType<0>,
+                              LLVMMatchType<0>, llvm_anyint_ty ],
+                            [ IntrNoMem ]>;
+
 class W_VX : Intrinsic<[ llvm_anyvector_ty ],
                      [ llvm_anyvector_ty, llvm_anyint_ty ],
                      [ IntrNoMem ]>;
+
+class W_VX_mask : Intrinsic<[ llvm_anyvector_ty ],
+                            [ llvm_anyvector_ty, LLVMMatchType<0>,
+                              llvm_anyvector_ty, llvm_anyint_ty ],
+                            [ IntrNoMem ]>;
 
 class W_VF : Intrinsic<[ llvm_anyvector_ty ],
                      [ llvm_anyvector_ty, llvm_anyfloat_ty ],
@@ -125,16 +135,6 @@ class W_VF : Intrinsic<[ llvm_anyvector_ty ],
 class W_VF_mask : Intrinsic<[ llvm_anyvector_ty ],
                             [ llvm_anyvector_ty, LLVMMatchType<0>,
                               llvm_anyvector_ty, llvm_anyfloat_ty ],
-                            [ IntrNoMem ]>;
-
-class V_VX_mask : Intrinsic<[ llvm_anyvector_ty ],
-                            [ llvm_anyvector_ty, LLVMMatchType<0>,
-                              LLVMMatchType<0>, llvm_anyint_ty ],
-                            [ IntrNoMem ]>;
-
-class W_VX_mask : Intrinsic<[ llvm_anyvector_ty ],
-                            [ llvm_anyvector_ty, LLVMMatchType<0>,
-                              llvm_anyvector_ty, llvm_anyint_ty ],
                             [ IntrNoMem ]>;
 
 class V_VF : Intrinsic<[ llvm_anyvector_ty ],
@@ -258,6 +258,16 @@ class W_WVF_mask : Intrinsic<[ llvm_anyvector_ty ],
                              llvm_anyfloat_ty, llvm_anyvector_ty],
                              [ IntrNoMem ]>;
 
+class V_MVV : Intrinsic< [ llvm_anyvector_ty ],
+                         [ llvm_anyvector_ty, LLVMMatchType<0>,
+                           LLVMMatchType<0> ],
+                         [ IntrNoMem ]>;
+
+class V_MVX : Intrinsic<[ llvm_anyvector_ty ],
+                        [ llvm_anyvector_ty, LLVMMatchType<0>,
+                         llvm_anyint_ty ],
+                        [ IntrNoMem ]>;
+
 
 multiclass Binary_int_vv {
   def "int_riscv_" # NAME # "_vv" : V_VV;
@@ -269,14 +279,14 @@ multiclass Binary_int_vx {
   def "int_riscv_" # NAME # "_vx_mask" : V_VX_mask;
 }
 
-multiclass Binary_int {
+multiclass Binary_int_vv_vx {
   defm NAME : Binary_int_vv;
   defm NAME : Binary_int_vx;
 }
 
 // Vector Integer Arithmetic Functions
-defm vadd : Binary_int;
-defm vsub : Binary_int;
+defm vadd : Binary_int_vv_vx;
+defm vsub : Binary_int_vv_vx;
 defm vrsub : Binary_int_vx;
 
 multiclass Binary_w_vv {
@@ -360,15 +370,15 @@ defm vmsbc : carry_int_vm;
 
 
 // Vector Bitwise Logical Functions
-defm vand : Binary_int;
-defm vor : Binary_int;
-defm vxor : Binary_int;
+defm vand : Binary_int_vv_vx;
+defm vor : Binary_int_vv_vx;
+defm vxor : Binary_int_vv_vx;
 def "int_riscv_vnot_v" : V_V; // todo
 
 // Vector Single-Width Bit Shift Functioans
-defm vsll : Binary_int;
-defm vsrl : Binary_int;
-defm vsra : Binary_int;
+defm vsll : Binary_int_vv_vx;
+defm vsrl : Binary_int_vv_vx;
+defm vsra : Binary_int_vv_vx;
 
 multiclass Binary_int_narrow {
   defm NAME : Binary_v_wv;
@@ -400,22 +410,22 @@ defm vmsgeu : Binary_int_comparison;
 
 
 // Vector Integer Min/Max Functions
-defm vmin : Binary_int;
-defm vminu : Binary_int;
-defm vmax : Binary_int;
-defm vmaxu : Binary_int;
+defm vmin : Binary_int_vv_vx;
+defm vminu : Binary_int_vv_vx;
+defm vmax : Binary_int_vv_vx;
+defm vmaxu : Binary_int_vv_vx;
 
 // Vector Single-Width Integer Multiply Functions
-defm vmulh : Binary_int;
-defm vmul : Binary_int;
-defm vmulhu : Binary_int;
-defm vmulhsu : Binary_int;
+defm vmulh : Binary_int_vv_vx;
+defm vmul : Binary_int_vv_vx;
+defm vmulhu : Binary_int_vv_vx;
+defm vmulhsu : Binary_int_vv_vx;
 
 // Vector Integer Divide Functions
-defm vdiv : Binary_int;
-defm vdivu : Binary_int;
-defm vrem : Binary_int;
-defm vremu : Binary_int;
+defm vdiv : Binary_int_vv_vx;
+defm vdivu : Binary_int_vv_vx;
+defm vrem : Binary_int_vv_vx;
+defm vremu : Binary_int_vv_vx;
 
 multiclass Binary_int_wide_mul {
   defm NAME : Binary_w_vv;
@@ -457,8 +467,8 @@ defm vwmaccsu : Ternary_int_wide;
 defm vwmaccus : Ternary_int_wide_w_vx;
 
 multiclass Merge {
-  def "int_riscv_" # NAME # "_vv" : V_VV_mask;
-  def "int_riscv_" # NAME # "_vx" : V_VX_mask;
+  def "int_riscv_" # NAME # "_vvm" : V_MVV;
+  def "int_riscv_" # NAME # "_vxm" : V_MVX;
 }
 // Vector Integer Merge Functions
 defm vmerge : Merge;
@@ -489,23 +499,23 @@ def int_riscv_vfmv_s_f : Intrinsic<[ llvm_anyvector_ty ],
                                    [ IntrNoMem ]>;
 
 // Vector Single-Width Saturating Add and Subtract Functions
-defm vsadd : Binary_int;
-defm vsaddu : Binary_int;
-defm vssub : Binary_int;
-defm vssubu : Binary_int;
+defm vsadd : Binary_int_vv_vx;
+defm vsaddu : Binary_int_vv_vx;
+defm vssub : Binary_int_vv_vx;
+defm vssubu : Binary_int_vv_vx;
 
 // Vector Single-Width Averaging Add and Subtract Functions
-defm vaadd : Binary_int;
-defm vaaddu : Binary_int;
-defm vasub : Binary_int;
-defm vasubu : Binary_int;
+defm vaadd : Binary_int_vv_vx;
+defm vaaddu : Binary_int_vv_vx;
+defm vasub : Binary_int_vv_vx;
+defm vasubu : Binary_int_vv_vx;
 
 // Vector Single-Width Fractional Multiply with Rounding and Saturation Functions
-defm vsmul : Binary_int;
+defm vsmul : Binary_int_vv_vx;
 
 // Vector Single-Width Scaling Shift Functions
-defm vssrl : Binary_int;
-defm vssra : Binary_int;
+defm vssrl : Binary_int_vv_vx;
+defm vssra : Binary_int_vv_vx;
 
 multiclass Narrowing {
   def "int_riscv_" # NAME # "_wv" : V_WV;
@@ -516,15 +526,15 @@ multiclass Narrowing {
 // Vector Narrowing Fixed-Point Clip Functions
 defm vnclip : Narrowing;
 
-multiclass Binary_float {
+multiclass Binary_float_v_vv_vf {
   def "int_riscv_" # NAME # "_vv" : V_VV;
   def "int_riscv_" # NAME # "_vv_mask" : V_VV_mask;
   def "int_riscv_" # NAME # "_vf" : V_VF;
   def "int_riscv_" # NAME # "_vf_mask" : V_VF_mask;
 }
 // Vector Single-Width Floating-Point Add/Subtract Functions
-defm vfadd : Binary_float;
-defm vfsub : Binary_float;
+defm vfadd : Binary_float_v_vv_vf;
+defm vfsub : Binary_float_v_vv_vf;
 def "int_riscv_vfrsub_vf" : V_VF;
 def "int_riscv_vfrsub_vf_mask" : V_VF_mask;
 
@@ -540,8 +550,8 @@ defm vfwadd : Binary_float_wide;
 defm vfwsub : Binary_float_wide;
 
 // Vector Single-Width Floating-Point Multiply/Divide Functions
-defm vfmul : Binary_float;
-defm vfdiv : Binary_float;
+defm vfmul : Binary_float_v_vv_vf;
+defm vfdiv : Binary_float_v_vv_vf;
 def "int_riscv_vfrdiv_vf" : V_VF;
 def "int_riscv_vfrdiv_vf_mask" : V_VF_mask;
 
@@ -550,21 +560,21 @@ def "int_riscv_vfrdiv_vf_mask" : V_VF_mask;
 defm vfwmul :Binary_w_vv;
 defm vfwmul : Binary_w_vf;
 
-multiclass Ternary_float {
+multiclass Ternary_float_v_vv_vf {
   def "int_riscv_" # NAME # "_vv" : V_VVV;
   def "int_riscv_" # NAME # "_vv_mask" : V_VVV_mask;
   def "int_riscv_" # NAME # "_vf" : V_VVF;
   def "int_riscv_" # NAME # "_vf_mask" : V_VVF_mask;
 }
 // Vector Single-Width Floating-Point Fused Multiply-Add Functions
-defm vfmacc : Ternary_float;
-defm vfnmacc : Ternary_float;
-defm vfmsac : Ternary_float;
-defm vfnmsac : Ternary_float;
-defm vfmadd : Ternary_float;
-defm vfnmadd : Ternary_float;
-defm vfmsub : Ternary_float;
-defm vfnmsub : Ternary_float;
+defm vfmacc : Ternary_float_v_vv_vf;
+defm vfnmacc : Ternary_float_v_vv_vf;
+defm vfmsac : Ternary_float_v_vv_vf;
+defm vfnmsac : Ternary_float_v_vv_vf;
+defm vfmadd : Ternary_float_v_vv_vf;
+defm vfnmadd : Ternary_float_v_vv_vf;
+defm vfmsub : Ternary_float_v_vv_vf;
+defm vfnmsub : Ternary_float_v_vv_vf;
 
 multiclass Ternary_float_wide {
   def "int_riscv_" # NAME # "_vv" : W_WVV;
@@ -583,13 +593,13 @@ def "int_riscv_vfsqrt_v" : V_V;
 def "int_riscv_vfsqrt_v_mask" : V_V_mask;
 
 // Vector Floating-Point MIN/MAX Functions
-defm vfmin : Binary_float;
-defm vfmax : Binary_float;
+defm vfmin : Binary_float_v_vv_vf;
+defm vfmax : Binary_float_v_vv_vf;
 
 // Vector Floating-Point Sign-Injection Functions
-defm vfsgnj : Binary_float;
-defm vfsgnjn : Binary_float;
-defm vfsgnjx : Binary_float;
+defm vfsgnj : Binary_float_v_vv_vf;
+defm vfsgnjn : Binary_float_v_vv_vf;
+defm vfsgnjx : Binary_float_v_vv_vf;
 
 multiclass Binary_float_vm {
   def "int_riscv_" # NAME # "_vv" : M_VV;

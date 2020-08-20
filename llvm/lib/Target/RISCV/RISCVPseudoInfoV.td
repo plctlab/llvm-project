@@ -598,6 +598,19 @@ defm PseudoVWMACC : pseudo_ternary_w_wvv_wvx;
 defm PseudoVWMACCU : pseudo_ternary_w_wvv_wvx;
 defm PseudoVWMACCSU : pseudo_ternary_w_wvv_wvx;
 defm PseudoVWMACCUS : pseudo_ternary_w_wvx;
+defm PseudoVMERGE : pseudo_binary_m_vvm_vxm;
+defm PseudoVSADD : pseudo_binary_v_vv_vx;
+defm PseudoVSADDU : pseudo_binary_v_vv_vx;
+defm PseudoVSSUB : pseudo_binary_v_vv_vx;
+defm PseudoVSSUBU : pseudo_binary_v_vv_vx;
+defm PseudoVAADD : pseudo_binary_v_vv_vx;
+defm PseudoVAADDU : pseudo_binary_v_vv_vx;
+defm PseudoVASUB : pseudo_binary_v_vv_vx;
+defm PseudoVASUBU : pseudo_binary_v_vv_vx;
+defm PseudoVSMUL : pseudo_binary_v_vv_vx;
+defm PseudoVSSRL : pseudo_binary_v_vv_vx;
+defm PseudoVSSRA : pseudo_binary_v_vv_vx;
+defm PseudoVNCLIP : pseudo_binary_n_wn_wx;
 
 
 
@@ -1049,4 +1062,17 @@ defm "" : pat_intrinsic_int_ternary_w_wvv_wvx<"int_riscv_vwmacc", "PseudoVWMACC"
 defm "" : pat_intrinsic_int_ternary_w_wvv_wvx<"int_riscv_vwmaccu", "PseudoVWMACCU">;
 defm "" : pat_intrinsic_int_ternary_w_wvv_wvx<"int_riscv_vwmaccsu", "PseudoVWMACCSU">;
 defm "" : pat_intrinsic_int_ternary_w_wvx<"int_riscv_vwmaccus", "PseudoVWMACCUS">;
+defm "" : pat_intrinsic_int_binary_m_vvm_vxm<"int_riscv_vmerge", "PseudoVMERGE">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsadd", "PseudoVSADD">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsaddu", "PseudoVSADDU">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vaadd", "PseudoVAADD">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vaaddu", "PseudoVAADDU">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssub", "PseudoVSSUB">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssubu", "PseudoVSSUBU">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vasub", "PseudoVASUB">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vasubu", "PseudoVASUBU">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsmul", "PseudoVSMUL">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssrl", "PseudoVSSRL">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssra", "PseudoVSSRA">;
+defm "" : pat_intrinsic_int_binary_n_wn_wx<"int_riscv_vnclip", "PseudoVNCLIP">;
 // defm "" : pat_intrinsic_int_unary_v<"int_riscv_vnot", "PseudoVNOT">;
