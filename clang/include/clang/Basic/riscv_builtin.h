@@ -642,86 +642,6 @@ RISCVBuiltin(vreinterpret_u8_u16_u8m8, "q64Ucq32Us", "", )
 
 RISCVBuiltin(vreinterpret_u16_u8_u16m8, "q32Usq64Uc", "", )
 
-RISCVBuiltin(vslideup_vx_i8m1, "q8Scq8Scz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i8m2, "q16Scq16Scz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i8m4, "q32Scq32Scz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i8m8, "q64Scq64Scz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i16m1, "q4Ssq4Ssz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i16m2, "q8Ssq8Ssz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i16m4, "q16Ssq16Ssz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i16m8, "q32Ssq32Ssz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i32m1, "q2Ziq2Ziz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i32m2, "q4Ziq4Ziz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i32m4, "q8Ziq8Ziz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i32m8, "q16Ziq16Ziz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i64m1, "q1Wiq1Wiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i64m2, "q2Wiq2Wiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i64m4, "q4Wiq4Wiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_i64m8, "q8Wiq8Wiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u8m1, "q8Ucq8Ucz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u8m2, "q16Ucq16Ucz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u8m4, "q32Ucq32Ucz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u8m8, "q64Ucq64Ucz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u16m1, "q4Usq4Usz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u16m2, "q8Usq8Usz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u16m4, "q16Usq16Usz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u16m8, "q32Usq32Usz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u32m1, "q2UZiq2UZiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u32m2, "q4UZiq4UZiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u32m4, "q8UZiq8UZiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u32m8, "q16UZiq16UZiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u64m1, "q1UWiq1UWiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u64m2, "q2UWiq2UWiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u64m4, "q4UWiq4UWiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_u64m8, "q8UWiq8UWiz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_f32m1, "q2fq2fz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_f32m2, "q4fq4fz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_f32m4, "q8fq8fz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_f32m8, "q16fq16fz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_f64m1, "q1dq1dz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_f64m2, "q2dq2dz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_f64m4, "q4dq4dz", "", 2, )
-
-RISCVBuiltin(vslideup_vx_f64m8, "q8dq8dz", "", 2, )
-
 // Vector Integer Arithmetic Operations
 
 // Vector Single-Width Integer Add and Subtract Functions
@@ -2478,11 +2398,17 @@ RISCVBuiltin(vfmv_v_f_f64m4, "q4dd", "", )
 
 // Single-Width Floating-Point/Integer Type-Convert Operations
 RISCVBuiltin(vfcvt_rtz_x_f_v_i32m1, "q2Ziq2f", "", )
+RISCVBuiltin(vfcvt_f_x_v_f32m1, "q2fq2Zi", "", )
 RISCVBuiltin(vfcvt_rtz_x_f_v_i32m2, "q4Ziq4f", "", )
+RISCVBuiltin(vfcvt_f_x_v_f32m2, "q4fq4Zi", "", )
 RISCVBuiltin(vfcvt_rtz_x_f_v_i32m4, "q8Ziq8f", "", )
+RISCVBuiltin(vfcvt_f_x_v_f32m4, "q8fq8Zi", "", )
 RISCVBuiltin(vfcvt_rtz_x_f_v_i64m1, "q1Wiq1d", "", )
+RISCVBuiltin(vfcvt_f_x_v_f64m1, "q1dq1Wi", "", )
 RISCVBuiltin(vfcvt_rtz_x_f_v_i64m2, "q2Wiq2d", "", )
+RISCVBuiltin(vfcvt_f_x_v_f64m2, "q2dq2Wi", "", )
 RISCVBuiltin(vfcvt_rtz_x_f_v_i64m4, "q4Wiq4d", "", )
+RISCVBuiltin(vfcvt_f_x_v_f64m4, "q4dq4Wi", "", )
 
 // Vector Single-Width Integer Reduction Operations
 RISCVBuiltin(vredsum_vs_i8m1_i8m1, "q8Scq8Scq8Scq8Sc", "", )
@@ -2715,6 +2641,68 @@ RISCVBuiltin(vfmv_f_s_f64m2_f64, "dq2d", "", )
 RISCVBuiltin(vfmv_s_f_f64m2, "q2dq2dd", "", )
 RISCVBuiltin(vfmv_f_s_f64m4_f64, "dq4d", "", )
 RISCVBuiltin(vfmv_s_f_f64m4, "q4dq4dd", "", )
+
+// Vector Slide Operations
+RISCVBuiltin(vslideup_vx_i8m1, "q8Scq8Scq8Scz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i8m1, "q8Scq8Scq8Scz", "", 3, )
+RISCVBuiltin(vslideup_vx_i8m2, "q16Scq16Scq16Scz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i8m2, "q16Scq16Scq16Scz", "", 3, )
+RISCVBuiltin(vslideup_vx_i8m4, "q32Scq32Scq32Scz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i8m4, "q32Scq32Scq32Scz", "", 3, )
+RISCVBuiltin(vslideup_vx_i16m1, "q4Ssq4Ssq4Ssz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i16m1, "q4Ssq4Ssq4Ssz", "", 3, )
+RISCVBuiltin(vslideup_vx_i16m2, "q8Ssq8Ssq8Ssz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i16m2, "q8Ssq8Ssq8Ssz", "", 3, )
+RISCVBuiltin(vslideup_vx_i16m4, "q16Ssq16Ssq16Ssz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i16m4, "q16Ssq16Ssq16Ssz", "", 3, )
+RISCVBuiltin(vslideup_vx_i32m1, "q2Ziq2Ziq2Ziz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i32m1, "q2Ziq2Ziq2Ziz", "", 3, )
+RISCVBuiltin(vslideup_vx_i32m2, "q4Ziq4Ziq4Ziz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i32m2, "q4Ziq4Ziq4Ziz", "", 3, )
+RISCVBuiltin(vslideup_vx_i32m4, "q8Ziq8Ziq8Ziz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i32m4, "q8Ziq8Ziq8Ziz", "", 3, )
+RISCVBuiltin(vslideup_vx_i64m1, "q1Wiq1Wiq1Wiz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i64m1, "q1Wiq1Wiq1Wiz", "", 3, )
+RISCVBuiltin(vslideup_vx_i64m2, "q2Wiq2Wiq2Wiz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i64m2, "q2Wiq2Wiq2Wiz", "", 3, )
+RISCVBuiltin(vslideup_vx_i64m4, "q4Wiq4Wiq4Wiz", "", 3, )
+RISCVBuiltin(vslidedown_vx_i64m4, "q4Wiq4Wiq4Wiz", "", 3, )
+RISCVBuiltin(vslideup_vx_u8m1, "q8Ucq8Ucq8Ucz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u8m1, "q8Ucq8Ucq8Ucz", "", 3, )
+RISCVBuiltin(vslideup_vx_u8m2, "q16Ucq16Ucq16Ucz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u8m2, "q16Ucq16Ucq16Ucz", "", 3, )
+RISCVBuiltin(vslideup_vx_u8m4, "q32Ucq32Ucq32Ucz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u8m4, "q32Ucq32Ucq32Ucz", "", 3, )
+RISCVBuiltin(vslideup_vx_u16m1, "q4Usq4Usq4Usz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u16m1, "q4Usq4Usq4Usz", "", 3, )
+RISCVBuiltin(vslideup_vx_u16m2, "q8Usq8Usq8Usz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u16m2, "q8Usq8Usq8Usz", "", 3, )
+RISCVBuiltin(vslideup_vx_u16m4, "q16Usq16Usq16Usz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u16m4, "q16Usq16Usq16Usz", "", 3, )
+RISCVBuiltin(vslideup_vx_u32m1, "q2UZiq2UZiq2UZiz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u32m1, "q2UZiq2UZiq2UZiz", "", 3, )
+RISCVBuiltin(vslideup_vx_u32m2, "q4UZiq4UZiq4UZiz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u32m2, "q4UZiq4UZiq4UZiz", "", 3, )
+RISCVBuiltin(vslideup_vx_u32m4, "q8UZiq8UZiq8UZiz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u32m4, "q8UZiq8UZiq8UZiz", "", 3, )
+RISCVBuiltin(vslideup_vx_u64m1, "q1UWiq1UWiq1UWiz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u64m1, "q1UWiq1UWiq1UWiz", "", 3, )
+RISCVBuiltin(vslideup_vx_u64m2, "q2UWiq2UWiq2UWiz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u64m2, "q2UWiq2UWiq2UWiz", "", 3, )
+RISCVBuiltin(vslideup_vx_u64m4, "q4UWiq4UWiq4UWiz", "", 3, )
+RISCVBuiltin(vslidedown_vx_u64m4, "q4UWiq4UWiq4UWiz", "", 3, )
+RISCVBuiltin(vslideup_vx_f32m1, "q2fq2fq2fz", "", 3, )
+RISCVBuiltin(vslidedown_vx_f32m1, "q2fq2fq2fz", "", 3, )
+RISCVBuiltin(vslideup_vx_f32m2, "q4fq4fq4fz", "", 3, )
+RISCVBuiltin(vslidedown_vx_f32m2, "q4fq4fq4fz", "", 3, )
+RISCVBuiltin(vslideup_vx_f32m4, "q8fq8fq8fz", "", 3, )
+RISCVBuiltin(vslidedown_vx_f32m4, "q8fq8fq8fz", "", 3, )
+RISCVBuiltin(vslideup_vx_f64m1, "q1dq1dq1dz", "", 3, )
+RISCVBuiltin(vslidedown_vx_f64m1, "q1dq1dq1dz", "", 3, )
+RISCVBuiltin(vslideup_vx_f64m2, "q2dq2dq2dz", "", 3, )
+RISCVBuiltin(vslidedown_vx_f64m2, "q2dq2dq2dz", "", 3, )
+RISCVBuiltin(vslideup_vx_f64m4, "q4dq4dq4dz", "", 3, )
+RISCVBuiltin(vslidedown_vx_f64m4, "q4dq4dq4dz", "", 3, )
 
 
 #undef RISCVBuiltin

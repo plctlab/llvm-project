@@ -1608,206 +1608,6 @@ def int_riscv_vreinterpret_u16_u8_u16m8
               [llvm_nxv8i8_ty],
               [IntrNoMem]>;
 
-def int_riscv_vslideup_vx_i8m1
-  : Intrinsic<[llvm_nxv8i8_ty],
-              [llvm_nxv8i8_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i8m2
-  : Intrinsic<[llvm_nxv2i8_ty],
-              [llvm_nxv2i8_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i8m4
-  : Intrinsic<[llvm_nxv4i8_ty],
-              [llvm_nxv4i8_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i8m8
-  : Intrinsic<[llvm_nxv8i8_ty],
-              [llvm_nxv8i8_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i16m1
-  : Intrinsic<[llvm_nxv4i16_ty],
-              [llvm_nxv4i16_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i16m2
-  : Intrinsic<[llvm_nxv2i16_ty],
-              [llvm_nxv2i16_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i16m4
-  : Intrinsic<[llvm_nxv4i16_ty],
-              [llvm_nxv4i16_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i16m8
-  : Intrinsic<[llvm_nxv8i16_ty],
-              [llvm_nxv8i16_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i32m1
-  : Intrinsic<[llvm_nxv2i32_ty],
-              [llvm_nxv2i32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i32m2
-  : Intrinsic<[llvm_nxv2i32_ty],
-              [llvm_nxv2i32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i32m4
-  : Intrinsic<[llvm_nxv4i32_ty],
-              [llvm_nxv4i32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i32m8
-  : Intrinsic<[llvm_nxv8i32_ty],
-              [llvm_nxv8i32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i64m1
-  : Intrinsic<[llvm_nxv1i64_ty],
-              [llvm_nxv1i64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i64m2
-  : Intrinsic<[llvm_nxv2i64_ty],
-              [llvm_nxv2i64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i64m4
-  : Intrinsic<[llvm_nxv4i64_ty],
-              [llvm_nxv4i64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_i64m8
-  : Intrinsic<[llvm_nxv8i64_ty],
-              [llvm_nxv8i64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u8m1
-  : Intrinsic<[llvm_nxv8i8_ty],
-              [llvm_nxv8i8_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u8m2
-  : Intrinsic<[llvm_nxv2i8_ty],
-              [llvm_nxv2i8_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u8m4
-  : Intrinsic<[llvm_nxv4i8_ty],
-              [llvm_nxv4i8_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u8m8
-  : Intrinsic<[llvm_nxv8i8_ty],
-              [llvm_nxv8i8_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u16m1
-  : Intrinsic<[llvm_nxv4i16_ty],
-              [llvm_nxv4i16_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u16m2
-  : Intrinsic<[llvm_nxv2i16_ty],
-              [llvm_nxv2i16_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u16m4
-  : Intrinsic<[llvm_nxv4i16_ty],
-              [llvm_nxv4i16_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u16m8
-  : Intrinsic<[llvm_nxv8i16_ty],
-              [llvm_nxv8i16_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u32m1
-  : Intrinsic<[llvm_nxv2i32_ty],
-              [llvm_nxv2i32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u32m2
-  : Intrinsic<[llvm_nxv2i32_ty],
-              [llvm_nxv2i32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u32m4
-  : Intrinsic<[llvm_nxv4i32_ty],
-              [llvm_nxv4i32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u32m8
-  : Intrinsic<[llvm_nxv8i32_ty],
-              [llvm_nxv8i32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u64m1
-  : Intrinsic<[llvm_nxv1i64_ty],
-              [llvm_nxv1i64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u64m2
-  : Intrinsic<[llvm_nxv2i64_ty],
-              [llvm_nxv2i64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u64m4
-  : Intrinsic<[llvm_nxv4i64_ty],
-              [llvm_nxv4i64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_u64m8
-  : Intrinsic<[llvm_nxv8i64_ty],
-              [llvm_nxv8i64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_f32m1
-  : Intrinsic<[llvm_nxv2f32_ty],
-              [llvm_nxv2f32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_f32m2
-  : Intrinsic<[llvm_nxv2f32_ty],
-              [llvm_nxv2f32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_f32m4
-  : Intrinsic<[llvm_nxv4f32_ty],
-              [llvm_nxv4f32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_f32m8
-  : Intrinsic<[llvm_nxv8f32_ty],
-              [llvm_nxv8f32_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_f64m1
-  : Intrinsic<[llvm_nxv1f64_ty],
-              [llvm_nxv1f64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_f64m2
-  : Intrinsic<[llvm_nxv2f64_ty],
-              [llvm_nxv2f64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_f64m4
-  : Intrinsic<[llvm_nxv4f64_ty],
-              [llvm_nxv4f64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
-def int_riscv_vslideup_vx_f64m8
-  : Intrinsic<[llvm_nxv8f64_ty],
-              [llvm_nxv8f64_ty, llvm_anyint_ty],
-              [IntrNoMem]>;
-
 // Vector Integer Arithmetic Operations
 
 // Vector Single-Width Integer Add and Subtract Functions
@@ -10408,9 +10208,19 @@ def int_riscv_vfcvt_rtz_x_f_v_i32m1
               [llvm_nxv2f32_ty],
               [IntrNoMem]>;
 
+def int_riscv_vfcvt_f_x_v_f32m1
+  : Intrinsic<[llvm_nxv2f32_ty],
+              [llvm_nxv2i32_ty],
+              [IntrNoMem]>;
+
 def int_riscv_vfcvt_rtz_x_f_v_i32m2
   : Intrinsic<[llvm_nxv4i32_ty],
               [llvm_nxv4f32_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vfcvt_f_x_v_f32m2
+  : Intrinsic<[llvm_nxv4f32_ty],
+              [llvm_nxv4i32_ty],
               [IntrNoMem]>;
 
 def int_riscv_vfcvt_rtz_x_f_v_i32m4
@@ -10418,9 +10228,19 @@ def int_riscv_vfcvt_rtz_x_f_v_i32m4
               [llvm_nxv8f32_ty],
               [IntrNoMem]>;
 
+def int_riscv_vfcvt_f_x_v_f32m4
+  : Intrinsic<[llvm_nxv8f32_ty],
+              [llvm_nxv8i32_ty],
+              [IntrNoMem]>;
+
 def int_riscv_vfcvt_rtz_x_f_v_i64m1
   : Intrinsic<[llvm_nxv1i64_ty],
               [llvm_nxv1f64_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vfcvt_f_x_v_f64m1
+  : Intrinsic<[llvm_nxv1f64_ty],
+              [llvm_nxv1i64_ty],
               [IntrNoMem]>;
 
 def int_riscv_vfcvt_rtz_x_f_v_i64m2
@@ -10428,9 +10248,19 @@ def int_riscv_vfcvt_rtz_x_f_v_i64m2
               [llvm_nxv2f64_ty],
               [IntrNoMem]>;
 
+def int_riscv_vfcvt_f_x_v_f64m2
+  : Intrinsic<[llvm_nxv2f64_ty],
+              [llvm_nxv2i64_ty],
+              [IntrNoMem]>;
+
 def int_riscv_vfcvt_rtz_x_f_v_i64m4
   : Intrinsic<[llvm_nxv4i64_ty],
               [llvm_nxv4f64_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vfcvt_f_x_v_f64m4
+  : Intrinsic<[llvm_nxv4f64_ty],
+              [llvm_nxv4i64_ty],
               [IntrNoMem]>;
 
 
@@ -11551,6 +11381,308 @@ def int_riscv_vfmv_f_s_f64m4_f64
 def int_riscv_vfmv_s_f_f64m4
   : Intrinsic<[llvm_nxv4f64_ty],
               [llvm_nxv4f64_ty, llvm_double_ty],
+              [IntrNoMem]>;
+
+
+// Vector Slide Operations
+def int_riscv_vslideup_vx_i8m1
+  : Intrinsic<[llvm_nxv8i8_ty],
+              [llvm_nxv8i8_ty, llvm_nxv8i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i8m1
+  : Intrinsic<[llvm_nxv8i8_ty],
+              [llvm_nxv8i8_ty, llvm_nxv8i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i8m2
+  : Intrinsic<[llvm_nxv16i8_ty],
+              [llvm_nxv16i8_ty, llvm_nxv16i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i8m2
+  : Intrinsic<[llvm_nxv16i8_ty],
+              [llvm_nxv16i8_ty, llvm_nxv16i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i8m4
+  : Intrinsic<[llvm_nxv32i8_ty],
+              [llvm_nxv32i8_ty, llvm_nxv32i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i8m4
+  : Intrinsic<[llvm_nxv32i8_ty],
+              [llvm_nxv32i8_ty, llvm_nxv32i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i16m1
+  : Intrinsic<[llvm_nxv4i16_ty],
+              [llvm_nxv4i16_ty, llvm_nxv4i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i16m1
+  : Intrinsic<[llvm_nxv4i16_ty],
+              [llvm_nxv4i16_ty, llvm_nxv4i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i16m2
+  : Intrinsic<[llvm_nxv8i16_ty],
+              [llvm_nxv8i16_ty, llvm_nxv8i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i16m2
+  : Intrinsic<[llvm_nxv8i16_ty],
+              [llvm_nxv8i16_ty, llvm_nxv8i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i16m4
+  : Intrinsic<[llvm_nxv16i16_ty],
+              [llvm_nxv16i16_ty, llvm_nxv16i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i16m4
+  : Intrinsic<[llvm_nxv16i16_ty],
+              [llvm_nxv16i16_ty, llvm_nxv16i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i32m1
+  : Intrinsic<[llvm_nxv2i32_ty],
+              [llvm_nxv2i32_ty, llvm_nxv2i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i32m1
+  : Intrinsic<[llvm_nxv2i32_ty],
+              [llvm_nxv2i32_ty, llvm_nxv2i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i32m2
+  : Intrinsic<[llvm_nxv4i32_ty],
+              [llvm_nxv4i32_ty, llvm_nxv4i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i32m2
+  : Intrinsic<[llvm_nxv4i32_ty],
+              [llvm_nxv4i32_ty, llvm_nxv4i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i32m4
+  : Intrinsic<[llvm_nxv8i32_ty],
+              [llvm_nxv8i32_ty, llvm_nxv8i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i32m4
+  : Intrinsic<[llvm_nxv8i32_ty],
+              [llvm_nxv8i32_ty, llvm_nxv8i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i64m1
+  : Intrinsic<[llvm_nxv1i64_ty],
+              [llvm_nxv1i64_ty, llvm_nxv1i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i64m1
+  : Intrinsic<[llvm_nxv1i64_ty],
+              [llvm_nxv1i64_ty, llvm_nxv1i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i64m2
+  : Intrinsic<[llvm_nxv2i64_ty],
+              [llvm_nxv2i64_ty, llvm_nxv2i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i64m2
+  : Intrinsic<[llvm_nxv2i64_ty],
+              [llvm_nxv2i64_ty, llvm_nxv2i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_i64m4
+  : Intrinsic<[llvm_nxv4i64_ty],
+              [llvm_nxv4i64_ty, llvm_nxv4i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_i64m4
+  : Intrinsic<[llvm_nxv4i64_ty],
+              [llvm_nxv4i64_ty, llvm_nxv4i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u8m1
+  : Intrinsic<[llvm_nxv8i8_ty],
+              [llvm_nxv8i8_ty, llvm_nxv8i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u8m1
+  : Intrinsic<[llvm_nxv8i8_ty],
+              [llvm_nxv8i8_ty, llvm_nxv8i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u8m2
+  : Intrinsic<[llvm_nxv16i8_ty],
+              [llvm_nxv16i8_ty, llvm_nxv16i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u8m2
+  : Intrinsic<[llvm_nxv16i8_ty],
+              [llvm_nxv16i8_ty, llvm_nxv16i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u8m4
+  : Intrinsic<[llvm_nxv32i8_ty],
+              [llvm_nxv32i8_ty, llvm_nxv32i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u8m4
+  : Intrinsic<[llvm_nxv32i8_ty],
+              [llvm_nxv32i8_ty, llvm_nxv32i8_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u16m1
+  : Intrinsic<[llvm_nxv4i16_ty],
+              [llvm_nxv4i16_ty, llvm_nxv4i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u16m1
+  : Intrinsic<[llvm_nxv4i16_ty],
+              [llvm_nxv4i16_ty, llvm_nxv4i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u16m2
+  : Intrinsic<[llvm_nxv8i16_ty],
+              [llvm_nxv8i16_ty, llvm_nxv8i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u16m2
+  : Intrinsic<[llvm_nxv8i16_ty],
+              [llvm_nxv8i16_ty, llvm_nxv8i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u16m4
+  : Intrinsic<[llvm_nxv16i16_ty],
+              [llvm_nxv16i16_ty, llvm_nxv16i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u16m4
+  : Intrinsic<[llvm_nxv16i16_ty],
+              [llvm_nxv16i16_ty, llvm_nxv16i16_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u32m1
+  : Intrinsic<[llvm_nxv2i32_ty],
+              [llvm_nxv2i32_ty, llvm_nxv2i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u32m1
+  : Intrinsic<[llvm_nxv2i32_ty],
+              [llvm_nxv2i32_ty, llvm_nxv2i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u32m2
+  : Intrinsic<[llvm_nxv4i32_ty],
+              [llvm_nxv4i32_ty, llvm_nxv4i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u32m2
+  : Intrinsic<[llvm_nxv4i32_ty],
+              [llvm_nxv4i32_ty, llvm_nxv4i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u32m4
+  : Intrinsic<[llvm_nxv8i32_ty],
+              [llvm_nxv8i32_ty, llvm_nxv8i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u32m4
+  : Intrinsic<[llvm_nxv8i32_ty],
+              [llvm_nxv8i32_ty, llvm_nxv8i32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u64m1
+  : Intrinsic<[llvm_nxv1i64_ty],
+              [llvm_nxv1i64_ty, llvm_nxv1i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u64m1
+  : Intrinsic<[llvm_nxv1i64_ty],
+              [llvm_nxv1i64_ty, llvm_nxv1i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u64m2
+  : Intrinsic<[llvm_nxv2i64_ty],
+              [llvm_nxv2i64_ty, llvm_nxv2i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u64m2
+  : Intrinsic<[llvm_nxv2i64_ty],
+              [llvm_nxv2i64_ty, llvm_nxv2i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_u64m4
+  : Intrinsic<[llvm_nxv4i64_ty],
+              [llvm_nxv4i64_ty, llvm_nxv4i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_u64m4
+  : Intrinsic<[llvm_nxv4i64_ty],
+              [llvm_nxv4i64_ty, llvm_nxv4i64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_f32m1
+  : Intrinsic<[llvm_nxv2f32_ty],
+              [llvm_nxv2f32_ty, llvm_nxv2f32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_f32m1
+  : Intrinsic<[llvm_nxv2f32_ty],
+              [llvm_nxv2f32_ty, llvm_nxv2f32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_f32m2
+  : Intrinsic<[llvm_nxv4f32_ty],
+              [llvm_nxv4f32_ty, llvm_nxv4f32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_f32m2
+  : Intrinsic<[llvm_nxv4f32_ty],
+              [llvm_nxv4f32_ty, llvm_nxv4f32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_f32m4
+  : Intrinsic<[llvm_nxv8f32_ty],
+              [llvm_nxv8f32_ty, llvm_nxv8f32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_f32m4
+  : Intrinsic<[llvm_nxv8f32_ty],
+              [llvm_nxv8f32_ty, llvm_nxv8f32_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_f64m1
+  : Intrinsic<[llvm_nxv1f64_ty],
+              [llvm_nxv1f64_ty, llvm_nxv1f64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_f64m1
+  : Intrinsic<[llvm_nxv1f64_ty],
+              [llvm_nxv1f64_ty, llvm_nxv1f64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_f64m2
+  : Intrinsic<[llvm_nxv2f64_ty],
+              [llvm_nxv2f64_ty, llvm_nxv2f64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_f64m2
+  : Intrinsic<[llvm_nxv2f64_ty],
+              [llvm_nxv2f64_ty, llvm_nxv2f64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslideup_vx_f64m4
+  : Intrinsic<[llvm_nxv4f64_ty],
+              [llvm_nxv4f64_ty, llvm_nxv4f64_ty, llvm_anyint_ty],
+              [IntrNoMem]>;
+
+def int_riscv_vslidedown_vx_f64m4
+  : Intrinsic<[llvm_nxv4f64_ty],
+              [llvm_nxv4f64_ty, llvm_nxv4f64_ty, llvm_anyint_ty],
               [IntrNoMem]>;
 
 

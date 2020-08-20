@@ -2732,6 +2732,11 @@ def : PatZERO<int_riscv_vzero_u32m1>;
 def : PatZERO<int_riscv_vzero_i32m1>;
 def : PatZERO<int_riscv_vzero_u64m1>;
 def : PatZERO<int_riscv_vzero_i64m1>;
+def : PatZERO<int_riscv_vzero_f32m1>;
+def : PatZERO<int_riscv_vzero_f64m1>;
+
+class PatVr<SDPatternOperator OpNode, RVInst Inst>
+    : Pat<(OpNode VR:$rs1), (Inst VR:$rs1)>;
 
 class PatVrVr<SDPatternOperator OpNode, RVInst Inst>
     : Pat<(OpNode VR:$rs1, VR:$rs2), (Inst VR:$rs1, VR:$rs2)>;
@@ -2824,6 +2829,7 @@ def : PatVrVr<int_riscv_vxor_vv_u8m1,  VXOR_VV_um>;
 def : PatVrVr<int_riscv_vxor_vv_u16m1, VXOR_VV_um>;
 def : PatVrVr<int_riscv_vxor_vv_u32m1, VXOR_VV_um>;
 def : PatVrVr<int_riscv_vxor_vv_u64m1, VXOR_VV_um>;
+
 // 12.6. Vector Single-Width Bit Shift Operations
 // 12.7. Vector Narrowing Integer Right Shift Operations
 
@@ -2883,6 +2889,25 @@ def : PatVrVr<int_riscv_vmsleu_vv_u64m1_b64, VMSLEU_VV_um>;
 //def : PatVrVr<int_riscv_vmsgeu_vv_u64m1_b64, VMSGEU_VV_um>;
 
 // 12.9. Vector Integer Min/Max Operations
+def : PatVrVr<int_riscv_vmin_vv_i8m1,  VMIN_VV_um>;
+def : PatVrVr<int_riscv_vmin_vv_i16m1, VMIN_VV_um>;
+def : PatVrVr<int_riscv_vmin_vv_i32m1, VMIN_VV_um>;
+def : PatVrVr<int_riscv_vmin_vv_i64m1, VMIN_VV_um>;
+
+def : PatVrVr<int_riscv_vminu_vv_u8m1,  VMINU_VV_um>;
+def : PatVrVr<int_riscv_vminu_vv_u16m1, VMINU_VV_um>;
+def : PatVrVr<int_riscv_vminu_vv_u32m1, VMINU_VV_um>;
+def : PatVrVr<int_riscv_vminu_vv_u64m1, VMINU_VV_um>;
+
+def : PatVrVr<int_riscv_vmax_vv_i8m1,  VMAX_VV_um>;
+def : PatVrVr<int_riscv_vmax_vv_i16m1, VMAX_VV_um>;
+def : PatVrVr<int_riscv_vmax_vv_i32m1, VMAX_VV_um>;
+def : PatVrVr<int_riscv_vmax_vv_i64m1, VMAX_VV_um>;
+
+def : PatVrVr<int_riscv_vmaxu_vv_u8m1,  VMAXU_VV_um>;
+def : PatVrVr<int_riscv_vmaxu_vv_u16m1, VMAXU_VV_um>;
+def : PatVrVr<int_riscv_vmaxu_vv_u32m1, VMAXU_VV_um>;
+def : PatVrVr<int_riscv_vmaxu_vv_u64m1, VMAXU_VV_um>;
 
 // 12.10. Vector Single-Width Integer Multiply Operations
 def : PatVrVr<int_riscv_vmul_vv_i8m1,  VMUL_VV_um>;
@@ -2966,14 +2991,32 @@ def : PatVrVr<int_riscv_vssubu_vv_u64m1, VSSUBU_VV_um>;
 
 // 14. Vector Floating-Point Operations
 // 14.2. Vector Single-Width Floating-Point Add/Subtract Operations
+def : PatVrVr<int_riscv_vfadd_vv_f32m1, VFADD_VV_um>;
+def : PatVrVr<int_riscv_vfadd_vv_f64m1, VFADD_VV_um>;
+
+def : PatVrVr<int_riscv_vfsub_vv_f32m1, VFSUB_VV_um>;
+def : PatVrVr<int_riscv_vfsub_vv_f64m1, VFSUB_VV_um>;
+
 // 14.3. Vector Widening Floating-Point Add/Subtract Operations
 // 14.4. Vector Single-Width Floating-Point Multiply/Divide Operations
 // 14.5. Vector Widening Floating-Point Multiply Operations
+def : PatVrVr<int_riscv_vfmul_vv_f32m1, VFMUL_VV_um>;
+def : PatVrVr<int_riscv_vfmul_vv_f64m1, VFMUL_VV_um>;
+
+def : PatVrVr<int_riscv_vfdiv_vv_f32m1, VFDIV_VV_um>;
+def : PatVrVr<int_riscv_vfdiv_vv_f64m1, VFDIV_VV_um>;
+
 // 14.6. Vector Single-Width Floating-Point Fused Multiply-Add Operations
 // 14.7. Vector Widening Floating-Point Fused Multiply-Add Operations
 // 14.8. Vector Floating-Point Square-Root Operations
 
 // 14.9. Vector Floating-Point MIN/MAX Operations
+def : PatVrVr<int_riscv_vfmin_vv_f32m1, VFMIN_VV_um>;
+def : PatVrVr<int_riscv_vfmin_vv_f64m1, VFMIN_VV_um>;
+
+def : PatVrVr<int_riscv_vfmax_vv_f32m1, VFMAX_VV_um>;
+def : PatVrVr<int_riscv_vfmax_vv_f64m1, VFMAX_VV_um>;
+
 // 14.10. Vector Floating-Point Sign-Injection Operations
 
 // 14.11. Vector Floating-Point Compare Operations
@@ -3072,6 +3115,9 @@ def : Pat<(int_riscv_vse64_v_f64m1 VR:$src, GPR:$dst), (VSE64_V_um $src, $dst, 0
 
 def : Pat<(int_riscv_vfmacc_vf_f32m1 VR:$acc, FPR32:$op1, VR:$op2),
           (VFMACC_VF_um $acc, $op1, $op2)>;
+
+//def : Pat<(int_riscv_vfmacc_vv_f32m1 VR:$acc, VR:$op1, VR:$op2),
+//          (VFMACC_VV_um $acc, $op1, $op2)>;
 
 def : Pat<(int_riscv_vfmv_f_s_f32m1_f32 VR:$src), (VFMV_F_S $src)>;
 
