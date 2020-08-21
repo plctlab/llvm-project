@@ -1,7 +1,6 @@
 // RUN: %clang --target=riscv64-unknown-linux-elf -S -emit-llvm  %s -o - |  FileCheck %s
 #include <stdbool.h>
 #include <stddef.h>
-
 #include <riscv_vector.h>
 
 //vfloat16m1_t  __attribute__((noinline)) testfdiv16(vfloat16m1_t value1,  half op1, vfloat16m1_t value2) {
@@ -18,3 +17,18 @@ vfloat64m1_t  __attribute__((noinline)) testfdiv64(vfloat64m1_t value1, double o
 
 //CHECK: %{{.*}} = call <vscale x 2 x float> @llvm.riscv.vfmacc.vf.nxv2f32.nxv2f32.f32.nxv2f32(<vscale x 2 x float> %{{.*}}, float %{{.*}}, <vscale x 2 x float> %{{.*}}) #{{.*}}
 //CHECK: %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vfmacc.vf.nxv1f64.nxv1f64.f64.nxv1f64(<vscale x 1 x double> %{{.*}}, double %{{.*}}, <vscale x 1 x double> %{{.*}}) #{{.*}}
+
+
+vint32m1_t __attribute__((noinline)) testmaccvv32(vint32m1_t acc, vint32m1_t op1, vint32m1_t op2) {
+  return vmacc_vv_i32m1(acc, op1, op2);
+}
+
+//CHECK: %{{.*}} = call <vscale x 2 x i32> @llvm.riscv.vmacc.vv.nxv2i32(<vscale x 2 x i32> %{{.*}}, <vscale x 2 x i32> %{{.*}}, <vscale x 2 x i32> %{{.*}}) #{{.*}}
+
+
+
+vfloat64m1_t __attribute__((noinline)) testfmaccvv64(vfloat64m1_t acc, vfloat64m1_t op1, vfloat64m1_t op2) {
+    return vfmacc_vv_f64m1(acc, op1, op2);
+}
+//CHECK:  %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vfmacc.vv.nxv1f64(<vscale x 1 x double> %{{.*}}, <vscale x 1 x double> %{{.*}}, <vscale x 1 x double> %{{.*}}) #{{.*}}
+
