@@ -268,6 +268,13 @@ class V_MVX : Intrinsic<[ llvm_anyvector_ty ],
                          llvm_anyint_ty ],
                         [ IntrNoMem ]>;
 
+class V_V1 : Intrinsic<[ llvm_anyvector_ty ],
+                       [ llvm_anyvector_ty],
+                       [ IntrNoMem ]>;
+
+class V_V1_mask : Intrinsic<[ llvm_anyvector_ty ],
+                            [ llvm_anyvector_ty, LLVMMatchType<0>, llvm_anyvector_ty],
+                            [ IntrNoMem ]>;
 
 multiclass Binary_int_vv {
   def "int_riscv_" # NAME # "_vv" : V_VV;
@@ -614,6 +621,41 @@ defm vmflt : Binary_float_vm;
 defm vmfle : Binary_float_vm;
 defm vmfgt : Binary_float_vm;
 defm vmfge : Binary_float_vm;
+
+// Vector Floating-Point Classify Functions
+def int_riscv_vfclass_v : Intrinsic< [ llvm_anyvector_ty ],
+                                      [ llvm_anyvector_ty ],
+                                      [ IntrNoMem ]>;
+
+def int_riscv_vfclass_v_mask : Intrinsic< [llvm_anyvector_ty ],
+                                          [ llvm_anyvector_ty, llvm_anyvector_ty, llvm_anyvector_ty ],
+                                          [ IntrNoMem ]>;
+
+def int_riscv_vfmerge_vvm : Intrinsic<[ llvm_anyvector_ty ],
+                                      [ llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0> ],
+                                      [ IntrNoMem ]>;
+
+def int_riscv_vfmerge_vfm : Intrinsic<[ llvm_anyvector_ty ],
+                                      [ llvm_anyvector_ty, LLVMMatchType<0>, llvm_anyfloat_ty ],
+                                      [ IntrNoMem ]>;
+
+// Single-Width Floating-Point/Integer Type-Convert Functions
+
+multiclass Unary_V_V1 {
+  def "int_riscv_" # NAME # "_v" : M_VV;
+  def "int_riscv_" # NAME # "_v_mask" : M_VV_mask;
+}
+
+defm vfcvt_x_f : Unary_V_V1;
+defm vfcvt_rtz_x_f : Unary_V_V1;
+defm vfcvt_xu_f_v : Unary_V_V1;
+defm vfcvt_rtz_xu_f : Unary_V_V1;
+defm vwcvt_x_x : Unary_V_V1;
+defm vwcvtu_x_x : Unary_V_V1;
+defm vfwcvt_x_f : Unary_V_V1;
+defm vfwcvt_rtz_x_f : Unary_V_V1;
+
+
 
 // Loads
 multiclass Vload {

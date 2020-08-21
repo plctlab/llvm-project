@@ -152,6 +152,22 @@ class WideVectorInfo<VectorTypeInfo Ori, ValueType Wid, RegisterClass Wrc, strin
   string WidenLMULstr = Widelmulstr;
 }
 
+defset list<WideVectorInfo> AllWideFloatVectors = {
+  def Widev1xf16 : WideVectorInfo<Vtypev1xf16, nxv1f32, VR, "F2">;
+
+  def Widev1xf32 : WideVectorInfo<Vtypev1xf32, nxv1f64, VR, "1">;
+  def Widev2xf16 : WideVectorInfo<Vtypev2xf32, nxv2f32, VR, "1">;
+
+  def Widev4xf16 : WideVectorInfo<Vtypev4xf16, nxv4f32, VRM2, "2">;
+  def Widev2xf32 : WideVectorInfo<Vtypev2xf32, nxv2f64, VRM2, "2">;
+
+  def Widev8xf16 : WideVectorInfo<Vtypev8xf16, nxv8f32, VRM4, "4">;
+  def Widev4xf32 : WideVectorInfo<Vtypev4xf32, nxv4f64, VRM4, "4">;
+  
+  def Widev16xf16 : WideVectorInfo<Vtypev16xf16, nxv16f32, VRM8, "8">;
+  def Widev8xf32 : WideVectorInfo<Vtypev8xf32, nxv8f64, VRM8, "8">;
+}
+
 defset list<WideVectorInfo> AllWideIntegerVectors = {
   def Widev1xi8 : WideVectorInfo<Vtypev1xi8, nxv1i16, VR, "F4">;
 
@@ -329,7 +345,9 @@ multiclass pseudo_ternary<RegisterClass result_reg_class,
 multiclass pseudo_unary_v_v {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
     foreach evr = AllVlmuls in {
+      let VLMul = evr.Vlmul in {
       defm _V : pseudo_unary<evr.RegClass, evr.RegClass, evr.Lmulstr>;
+      }
     }
   }
 }
@@ -414,6 +432,25 @@ multiclass pseudo_binary_v_vv_vx<string constraints = ""> {
   }
 }
 
+multiclass pseudo_binary_v_vv_vf<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  foreach evr = AllVlmuls in {
+    let VLMul = evr.Vlmul in {
+    defm _VV : pseudo_binary<evr.RegClass, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
+    defm _VF : pseudo_binary<evr.RegClass, evr.RegClass, FPR32, evr.Lmulstr, constraints>;
+    }
+  }
+}
+
+multiclass pseudo_binary_v_vf<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in
+  foreach evr = AllVlmuls in {
+    let VLMul = evr.Vlmul in {
+    defm _VF : pseudo_binary<evr.RegClass, evr.RegClass, FPR32, evr.Lmulstr, constraints>;
+    }
+  }
+}
+
 multiclass pseudo_binary_w_vv_vx_wx_wv<string constraints = ""> {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
   foreach evr = AllWideVlmuls in {
@@ -430,6 +467,22 @@ multiclass pseudo_binary_w_vv_vx_wx_wv<string constraints = ""> {
   }
 }
 
+multiclass pseudo_binary_w_vv_vf_wf_wv<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  foreach evr = AllWideVlmuls in {
+    let VLMul = evr.Widelmul in {
+      defm _VV : pseudo_binary<evr.WideRegClass, evr.OriginRegClass, 
+                          evr.OriginRegClass, evr.Lmulstr, constraints>; 
+      defm _VF : pseudo_binary<evr.WideRegClass, evr.OriginRegClass,
+                              FPR32, evr.Lmulstr, constraints>;
+      defm _WV : pseudo_binary<evr.WideRegClass, evr.WideRegClass,
+                              evr.OriginRegClass, evr.Lmulstr, constraints>;
+      defm _WF : pseudo_binary<evr.WideRegClass, evr.WideRegClass,
+                              FPR32, evr.Lmulstr, constraints>;
+    }
+  }
+}
+
 multiclass pseudo_binary_w_vv_vx<string constraints = ""> {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
   foreach evr = AllWideVlmuls in {
@@ -438,6 +491,18 @@ multiclass pseudo_binary_w_vv_vx<string constraints = ""> {
                             evr.OriginRegClass, evr.Lmulstr, constraints>;
       defm _VX : pseudo_binary<evr.WideRegClass, evr.OriginRegClass,
                             GPR, evr.Lmulstr, constraints>;
+    }
+  }
+}
+
+multiclass pseudo_binary_w_vv_vf<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  foreach evr = AllWideVlmuls in {
+    let VLMul = evr.Widelmul in {
+      defm _VV : pseudo_binary<evr.WideRegClass, evr.OriginRegClass,
+                            evr.OriginRegClass, evr.Lmulstr, constraints>;
+      defm _VF : pseudo_binary<evr.WideRegClass, evr.OriginRegClass,
+                            FPR32, evr.Lmulstr, constraints>;
     }
   }
 }
@@ -493,11 +558,30 @@ multiclass pseudo_binary_m_vv_vx<string constraints = ""> {
   }
 }
 
+multiclass pseudo_binary_m_vv_vf<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  foreach evr = AllVlmuls in {
+    let VLMul = evr.Vlmul in {
+      defm _VV : pseudo_binary<VM, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
+      defm _VF : pseudo_binary<VM, evr.RegClass, FPR32, evr.Lmulstr, constraints>;
+    }
+  }
+}
+
 multiclass pseudo_binary_m_vx<string constraints = ""> {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VX : pseudo_binary<VM, evr.RegClass, GPR, evr.Lmulstr, constraints>;
+    }
+  }
+}
+
+multiclass pseudo_binary_m_vf<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  foreach evr = AllVlmuls in {
+    let VLMul = evr.Vlmul in {
+      defm _VF : pseudo_binary<VM, evr.RegClass, FPR32, evr.Lmulstr, constraints>;
     }
   }
 }
@@ -530,6 +614,18 @@ multiclass pseudo_ternary_w_wvv_wvx<string constraints = ""> {
       evr.OriginRegClass, evr.OriginRegClass, evr.Lmulstr, constraints>;
       defm _VX : pseudo_ternary<evr.WideRegClass,
       GPR, evr.OriginRegClass, evr.Lmulstr, constraints>;
+    }
+  }
+}
+
+multiclass pseudo_ternary_w_wvv_wvf<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  foreach evr = AllWideVlmuls in {
+    let VLMul = evr.Widelmul in {
+      defm _VV : pseudo_ternary<evr.WideRegClass, 
+      evr.OriginRegClass, evr.OriginRegClass, evr.Lmulstr, constraints>;
+      defm _VF : pseudo_ternary<evr.WideRegClass,
+      FPR32, evr.OriginRegClass, evr.Lmulstr, constraints>;
     }
   }
 }
@@ -572,7 +668,7 @@ defm PseudoVMSBC : pseudo_binary_v_vvm_vxm<"@earlyclobber $rd">;
 defm PseudoVSLL : pseudo_binary_v_vv_vx;
 defm PseudoVSRL : pseudo_binary_v_vv_vx;
 defm PseudoVSRA : pseudo_binary_v_vv_vx;
-defm PseudoVFMACC : pseudo_ternary_v_vvv_vvf;
+// defm PseudoVFMACC : pseudo_ternary_v_vvv_vvf;
 defm PseudoVMV_V : pseudo_unary_nomask_v_x_v_v;
 defm PseudoVMV : pseudo_unary_nomask_x_s_s_x;
 defm PseudoVFMV : pseudo_vfmv;
@@ -611,6 +707,39 @@ defm PseudoVSMUL : pseudo_binary_v_vv_vx;
 defm PseudoVSSRL : pseudo_binary_v_vv_vx;
 defm PseudoVSSRA : pseudo_binary_v_vv_vx;
 defm PseudoVNCLIP : pseudo_binary_n_wn_wx;
+defm PseudoVFADD : pseudo_binary_v_vv_vf;
+defm PseudoVFSUB : pseudo_binary_v_vv_vf;
+defm PseudoVFRSUB : pseudo_binary_v_vf;
+defm PseudoVFWADD : pseudo_binary_w_vv_vf_wf_wv;
+defm PseudoVFWSUB : pseudo_binary_w_vv_vf_wf_wv;
+defm PseudoVFMUL : pseudo_binary_v_vv_vf;
+defm PseudoVFDIV : pseudo_binary_v_vv_vf;
+defm PseudoVFRDIV : pseudo_binary_v_vf;
+defm PseudoVFWMUL : pseudo_binary_w_vv_vf;
+defm PseudoVFMACC : pseudo_ternary_v_vvv_vvf;
+defm PseudoVFNMACC : pseudo_ternary_v_vvv_vvf;
+defm PseudoVFNMSAC : pseudo_ternary_v_vvv_vvf;
+defm PseudoVFMADD : pseudo_ternary_v_vvv_vvf;
+defm PseudoVFNMADD : pseudo_ternary_v_vvv_vvf;
+defm PseudoVFMSUB : pseudo_ternary_v_vvv_vvf;
+defm PseudoVFNMSUB : pseudo_ternary_v_vvv_vvf;
+defm PseudoVFWMACC : pseudo_ternary_w_wvv_wvf;
+defm PseudoVFWNMACC : pseudo_ternary_w_wvv_wvf;
+defm PseudoVFWMSAC : pseudo_ternary_w_wvv_wvf;
+defm PseudoVFWNMSAC : pseudo_ternary_w_wvv_wvf;
+defm PseudoVFSQRT : pseudo_unary_v_v;
+defm PseudoVFMIN : pseudo_binary_v_vv_vf;
+defm PseudoVFMAX : pseudo_binary_v_vv_vf;
+defm PseudoVFSGNJ : pseudo_binary_v_vv_vf;
+defm PseudoVFSGNJN : pseudo_binary_v_vv_vf;
+defm PseudoVFSGNJX : pseudo_binary_v_vv_vf;
+defm PseudoVMFEQ : pseudo_binary_m_vv_vf;
+defm PseudoVMFNE : pseudo_binary_m_vv_vf;
+defm PseudoVMFLT : pseudo_binary_m_vv_vf;
+defm PseudoVMFGT : pseudo_binary_m_vf;
+defm PseudoVMFGE : pseudo_binary_m_vf;
+defm PseudoVFCLASS : pseudo_unary_v_v;
+
 
 
 
@@ -745,7 +874,8 @@ multiclass pat_intrinsic_unary<string intrinsic_name,
   def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
                           (arg1_type arg1_operand:$rs1))),
             (!cast<Instruction>(instruction_name#"_M"#lmul)
-              arg1_operand:$rs1)>;
+              (result_type zero_reg),
+              arg1_operand:$rs1, (mask_type zero_reg), sew)>;
         
   def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name#"_mask") 
                          (mask_type V0),
@@ -793,6 +923,30 @@ multiclass pat_intrinsic_int_binary_vv_vx
   // }
 }
 
+multiclass pat_intrinsic_float_binary_v_vv_vf
+        <string intrinsic_name, string instruction_name> {
+  foreach evr = AllFloatVectors in {
+    defm : pat_intrinsic_binary<intrinsic_name#"_vv", instruction_name#"_VV",
+                            evr.Vector, evr.Vector, evr.Vector, evr.Mask,
+                            evr.SEW, evr.LMULstr, evr.RegClass, evr.RegClass, 
+                            evr.RegClass>;
+    defm : pat_intrinsic_binary<intrinsic_name#"_vf", instruction_name#"_VF",
+                            evr.Vector, evr.Vector, f32, evr.Mask,
+                            evr.SEW, evr.LMULstr, evr.RegClass, evr.RegClass,
+                            FPR32>;
+  }
+}
+
+multiclass pat_intrinsic_float_binary_v_vf
+        <string intrinsic_name, string instruction_name> {
+  foreach evr = AllFloatVectors in {
+    defm : pat_intrinsic_binary<intrinsic_name#"_vf", instruction_name#"_VF",
+                            evr.Vector, evr.Vector, f32, evr.Mask,
+                            evr.SEW, evr.LMULstr, evr.RegClass, evr.RegClass,
+                            FPR32>;
+  }
+}
+
 multiclass pat_intrinsic_int_binary_w_vv_vx_wv_wx
     <string intrinsic_name, string instruction_name> {
   foreach evr = AllWideIntegerVectors in {
@@ -815,6 +969,28 @@ multiclass pat_intrinsic_int_binary_w_vv_vx_wv_wx
     }
 }
 
+multiclass pat_intrinsic_float_binary_w_vv_vf_wv_wf
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllWideFloatVectors in {
+    defm : pat_intrinsic_binary<intrinsic_name#"_vv", instruction_name#"_VV",
+                              evr.WidenVector, evr.OriginVector.Vector, evr.OriginVector.Vector,
+                              evr.OriginVector.Mask, evr.WidenSEW, evr.WidenLMULstr,
+                              evr.WidenRegClass, evr.OriginVector.RegClass, evr.OriginVector.RegClass>;
+    defm : pat_intrinsic_binary<intrinsic_name#"_vf", instruction_name#"_VF",
+                              evr.WidenVector, evr.OriginVector.Vector, f32, evr.OriginVector.Mask,
+                              evr.WidenSEW, evr.WidenLMULstr, evr.WidenRegClass, 
+                              evr.OriginVector.RegClass, FPR32>;
+    defm : pat_intrinsic_binary<intrinsic_name#"_wv", instruction_name#"_WV",
+                              evr.WidenVector, evr.WidenVector, evr.OriginVector.Vector, evr.OriginVector.Mask,
+                              evr.WidenSEW, evr.WidenLMULstr, evr.WidenRegClass,
+                              evr.WidenRegClass, evr.OriginVector.RegClass>;
+    defm : pat_intrinsic_binary<intrinsic_name#"_wf", instruction_name#"_WF",
+                              evr.WidenVector, evr.WidenVector, f32, evr.OriginVector.Mask, evr.WidenSEW,
+                              evr.WidenLMULstr, evr.WidenRegClass, evr.WidenRegClass,
+                              FPR32>;
+    }
+}
+
 multiclass pat_intrinsic_int_binary_w_vv_vx
     <string intrinsic_name, string instruction_name> {
   foreach evr = AllWideIntegerVectors in {
@@ -829,6 +1005,20 @@ multiclass pat_intrinsic_int_binary_w_vv_vx
     }
 }
 
+multiclass pat_intrinsic_float_binary_w_vv_vf
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllWideFloatVectors in {
+    defm : pat_intrinsic_binary<intrinsic_name#"_vv", instruction_name#"_VV",
+                              evr.WidenVector, evr.OriginVector.Vector, evr.OriginVector.Vector,
+                              evr.OriginVector.Mask, evr.WidenSEW, evr.WidenLMULstr,
+                              evr.WidenRegClass, evr.OriginVector.RegClass, evr.OriginVector.RegClass>;
+    defm : pat_intrinsic_binary<intrinsic_name#"_vf", instruction_name#"_VF",
+                              evr.WidenVector, evr.OriginVector.Vector, f32, evr.OriginVector.Mask,
+                              evr.WidenSEW, evr.WidenLMULstr, evr.WidenRegClass, 
+                              evr.OriginVector.RegClass, FPR32>;
+    }
+}
+
 multiclass pat_intrinsic_int_binary_m_vv_vx
     <string intrinsic_name, string instruction_name> {
   foreach evr = AllIntegerVectors in {
@@ -838,6 +1028,27 @@ multiclass pat_intrinsic_int_binary_m_vv_vx
     defm : pat_intrinsic_binary<intrinsic_name#"_vx", instruction_name#"_VX",
                               evr.Mask, evr.Vector, XLenVT, evr.Mask,
                               evr.SEW, evr.LMULstr, VM, evr.RegClass, GPR>;
+  }
+}
+
+multiclass pat_intrinsic_float_binary_m_vv_vf
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllFloatVectors in {
+    defm : pat_intrinsic_binary<intrinsic_name#"_vv", instruction_name#"_VV",
+                              evr.Mask, evr.Vector, evr.Vector, evr.Mask, 
+                              evr.SEW, evr.LMULstr, VM, evr.RegClass, evr.RegClass>;
+    defm : pat_intrinsic_binary<intrinsic_name#"_vf", instruction_name#"_VF",
+                              evr.Mask, evr.Vector, f32, evr.Mask,
+                              evr.SEW, evr.LMULstr, VM, evr.RegClass, FPR32>;
+  }
+}
+
+multiclass pat_intrinsic_float_binary_m_vf
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllFloatVectors in {
+    defm : pat_intrinsic_binary<intrinsic_name#"_vf", instruction_name#"_VF",
+                              evr.Mask, evr.Vector, f32, evr.Mask,
+                              evr.SEW, evr.LMULstr, VM, evr.RegClass, FPR32>;
   }
 }
 
@@ -904,6 +1115,15 @@ multiclass pat_intrinsic_int_binary_nomask_s_x
 multiclass pat_intrinsic_int_unary_v
     <string intrinsic_name, string instruction_name> {
   foreach evr = AllIntegerVectors in {
+    defm : pat_intrinsic_unary<intrinsic_name#"_v", instruction_name#"_V",
+                               evr.Vector, evr.Vector, evr.Mask,
+                               evr.SEW, evr.LMULstr, evr.RegClass, evr.RegClass>;
+  }
+}
+
+multiclass pat_intrinsic_float_unary_v_v
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllFloatVectors in {
     defm : pat_intrinsic_unary<intrinsic_name#"_v", instruction_name#"_V",
                                evr.Vector, evr.Vector, evr.Mask,
                                evr.SEW, evr.LMULstr, evr.RegClass, evr.RegClass>;
@@ -985,6 +1205,20 @@ multiclass pat_intrinsic_int_ternary_w_wvv_wvx
                                  evr.WidenVector, XLenVT, evr.OriginVector.Vector, evr.OriginVector.Mask,
                                  evr.OriginVector.SEW, evr.WidenLMULstr, evr.WidenRegClass,
                                  GPR, evr.OriginVector.RegClass>; 
+  }
+}
+
+multiclass pat_intrinsic_float_ternary_w_wvv_wvf
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllWideFloatVectors in {
+    defm : pat_intrinsic_ternary<intrinsic_name#"_vv", instruction_name#"_VV",
+                                 evr.WidenVector, evr.OriginVector.Vector, evr.OriginVector.Vector,
+                                 evr.OriginVector.Mask, evr.OriginVector.SEW, evr.WidenLMULstr, evr.WidenRegClass,
+                                 evr.OriginVector.RegClass, evr.OriginVector.RegClass>;
+    defm : pat_intrinsic_ternary<intrinsic_name#"_vf", instruction_name#"_VF",
+                                 evr.WidenVector, f32, evr.OriginVector.Vector, evr.OriginVector.Mask,
+                                 evr.OriginVector.SEW, evr.WidenLMULstr, evr.WidenRegClass,
+                                 FPR32, evr.OriginVector.RegClass>; 
   }
 }
 
@@ -1075,4 +1309,36 @@ defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsmul", "PseudoVSMUL">;
 defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssrl", "PseudoVSSRL">;
 defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssra", "PseudoVSSRA">;
 defm "" : pat_intrinsic_int_binary_n_wn_wx<"int_riscv_vnclip", "PseudoVNCLIP">;
+defm "" : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfadd", "PseudoVFADD">;
+defm "" : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfsub", "PseudoVFSUB">;
+defm "" : pat_intrinsic_float_binary_v_vf<"int_riscv_vfrsub", "PseudoVFRSUB">;
+defm "" : pat_intrinsic_float_binary_w_vv_vf_wv_wf<"int_riscv_vfwadd", "PseudoVFWADD">;
+defm "" : pat_intrinsic_float_binary_w_vv_vf_wv_wf<"int_riscv_vfwsub", "PseudoVFWSUB">;
+defm "" : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfmul", "PseudoVFMUL">;
+defm "" : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfdiv", "PseudoVFDIV">;
+defm "" : pat_intrinsic_float_binary_v_vf<"int_riscv_vfrdiv", "PseudoVFRDIV">;
+defm "" : pat_intrinsic_float_binary_w_vv_vf<"int_riscv_vfwmul", "PseudoVFWMUL">;
+defm "" : pat_intrinsic_float_ternary_v_vvv_vvf<"int_riscv_vfnmacc", "PseudoVFNMACC">;
+defm "" : pat_intrinsic_float_ternary_v_vvv_vvf<"int_riscv_vfnmsac", "PseudoVFNMSAC">;
+defm "" : pat_intrinsic_float_ternary_v_vvv_vvf<"int_riscv_vfmadd", "PseudoVFMADD">;
+defm "" : pat_intrinsic_float_ternary_v_vvv_vvf<"int_riscv_vfnmadd", "PseudoVFNMADD">;
+defm "" : pat_intrinsic_float_ternary_v_vvv_vvf<"int_riscv_vfmsub", "PseudoVFMSUB">;
+defm "" : pat_intrinsic_float_ternary_v_vvv_vvf<"int_riscv_vfnmsub", "PseudoVFNMSUB">;
+defm "" : pat_intrinsic_float_ternary_w_wvv_wvf<"int_riscv_vfwmacc", "PseudoVFWMACC">;
+defm "" : pat_intrinsic_float_ternary_w_wvv_wvf<"int_riscv_vfwnmacc", "PseudoVFWNMACC">;
+defm "" : pat_intrinsic_float_ternary_w_wvv_wvf<"int_riscv_vfwmsac", "PseudoVFWMSAC">;
+defm "" : pat_intrinsic_float_ternary_w_wvv_wvf<"int_riscv_vfwnmsac", "PseudoVFWNMSAC">;
+defm "" : pat_intrinsic_float_unary_v_v<"int_riscv_vfsqrt", "PseudoVFSQRT">;
+defm "" : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfmin", "PseudoVFMIN">;
+defm "" : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfmax", "PseudoVFMAX">;
+defm "" : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfsgnj", "PseudoVFSGNJ">;
+defm "" : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfsgnjn", "PseudoVFSGNJN">;
+defm "" : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfsgnjx", "PseudoVFSGNJX">;
+defm "" : pat_intrinsic_float_binary_m_vv_vf<"int_riscv_vmfeq", "PseudoVMFEQ">;
+defm "" : pat_intrinsic_float_binary_m_vv_vf<"int_riscv_vmfne", "PseudoVMFNE">;
+defm "" : pat_intrinsic_float_binary_m_vv_vf<"int_riscv_vmflt", "PseudoVMFLT">;
+defm "" : pat_intrinsic_float_binary_m_vf<"int_riscv_vmfgt", "PseudoVMFGT">;
+defm "" : pat_intrinsic_float_binary_m_vf<"int_riscv_vmfge", "PseudoVMFGE">;
+defm "" : pat_intrinsic_float_unary_v_v<"int_riscv_vfclass", "PseudoVFCLASS">;
+// defm "" 
 // defm "" : pat_intrinsic_int_unary_v<"int_riscv_vnot", "PseudoVNOT">;
