@@ -7944,7 +7944,7 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
   }
 
   if (IsFract) {
-    CurType = S.Context.getVectorType(CurType, 64/(ELEN * LMUL),
+    CurType = S.Context.getVectorType(CurType, 64 / (ELEN * LMUL),
      VectorType::RISCVVector);
   } else {
     CurType = S.Context.getVectorType(CurType, (LMUL << 6)/ELEN, VectorType::RISCVVector);
@@ -7970,7 +7970,7 @@ static void HandleRISCVMaskTypeAttr(QualType &CurType, const ParsedAttr &Attr,
     return;
   }
   unsigned MLEN = cast<IntegerLiteral>(MLENExpr)->getValue().getZExtValue();
-  CurType = S.Context.getVectorType(S.Context.BoolTy, MLEN, VectorType::RISCVVector);
+  CurType = S.Context.getVectorType(S.Context.BoolTy, 64 / MLEN, VectorType::RISCVVector);
 }
 
 /// Handle OpenCL Access Qualifier Attribute.

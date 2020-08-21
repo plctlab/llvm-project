@@ -636,7 +636,7 @@ def int_riscv_vfmerge_vvm : Intrinsic<[ llvm_anyvector_ty ],
                                       [ IntrNoMem ]>;
 
 def int_riscv_vfmerge_vfm : Intrinsic<[ llvm_anyvector_ty ],
-                                      [ llvm_anyvector_ty, LLVMMatchType<0>, llvm_anyfloat_ty ],
+                                      [ llvm_anyvector_ty, llvm_anyvector_ty, llvm_anyfloat_ty ],
                                       [ IntrNoMem ]>;
 
 // Single-Width Floating-Point/Integer Type-Convert Functions

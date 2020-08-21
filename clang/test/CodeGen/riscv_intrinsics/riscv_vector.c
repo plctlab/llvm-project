@@ -219,7 +219,7 @@ vbool64_t test_vbool64_t() {
   return x;
 }
 //CHECK: %call = call <vscale x 8 x i1> bitcast (<vscale x 8 x i1> (...)* @generate_vbool8_t to <vscale x 8 x i1> ()*)()
-//CHECK: %call = call <vscale x 16 x i1> bitcast (<vscale x 16 x i1> (...)* @generate_vbool16_t to <vscale x 16 x i1> ()*)()
-//CHECK: %call = call <vscale x 32 x i1> bitcast (<vscale x 32 x i1> (...)* @generate_vbool32_t to <vscale x 32 x i1> ()*)()
-//CHECK: %call = call <vscale x 64 x i1> bitcast (<vscale x 64 x i1> (...)* @generate_vbool64_t to <vscale x 64 x i1> ()*)()
+//CHECK: %call = call <vscale x 4 x i1> bitcast (<vscale x 4 x i1> (...)* @generate_vbool16_t to <vscale x 4 x i1> ()*)()
+//CHECK: %call = call <vscale x 2 x i1> bitcast (<vscale x 2 x i1> (...)* @generate_vbool32_t to <vscale x 2 x i1> ()*)()
+//CHECK: %call = call <vscale x 1 x i1> bitcast (<vscale x 1 x i1> (...)* @generate_vbool64_t to <vscale x 1 x i1> ()*)()
 

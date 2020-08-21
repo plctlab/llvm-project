@@ -1847,6 +1847,664 @@ vuint64m1_t vssubu_vv_u64m1(vuint64m1_t value1, vuint64m1_t value2) {
   return  __builtin_riscv_vssubu_vv_u64m1(value1, value2);
 }
 
+// Vector Integer Merge Operations
+
+// Vector Integer Merge Operations
+static __attribute__((always_inline))
+vint8m1_t vmerge_vvm_i8m1(vbool8_t mask, vint8m1_t op1, vint8m1_t op2) {
+  return __builtin_riscv_vmerge_vvm_i8m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint8m1_t vmerge_vxm_i8m1(vbool8_t mask, vint8m1_t op1, int8_t op2) {
+  return __builtin_riscv_vmerge_vxm_i8m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint8m2_t vmerge_vvm_i8m2(vbool4_t mask, vint8m2_t op1, vint8m2_t op2) {
+  return __builtin_riscv_vmerge_vvm_i8m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint8m2_t vmerge_vxm_i8m2(vbool4_t mask, vint8m2_t op1, int8_t op2) {
+  return __builtin_riscv_vmerge_vxm_i8m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint8m4_t vmerge_vvm_i8m4(vbool2_t mask, vint8m4_t op1, vint8m4_t op2) {
+  return __builtin_riscv_vmerge_vvm_i8m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint8m4_t vmerge_vxm_i8m4(vbool2_t mask, vint8m4_t op1, int8_t op2) {
+  return __builtin_riscv_vmerge_vxm_i8m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint16m1_t vmerge_vvm_i16m1(vbool16_t mask, vint16m1_t op1, vint16m1_t op2) {
+  return __builtin_riscv_vmerge_vvm_i16m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint16m1_t vmerge_vxm_i16m1(vbool16_t mask, vint16m1_t op1, int16_t op2) {
+  return __builtin_riscv_vmerge_vxm_i16m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint16m2_t vmerge_vvm_i16m2(vbool8_t mask, vint16m2_t op1, vint16m2_t op2) {
+  return __builtin_riscv_vmerge_vvm_i16m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint16m2_t vmerge_vxm_i16m2(vbool8_t mask, vint16m2_t op1, int16_t op2) {
+  return __builtin_riscv_vmerge_vxm_i16m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint16m4_t vmerge_vvm_i16m4(vbool4_t mask, vint16m4_t op1, vint16m4_t op2) {
+  return __builtin_riscv_vmerge_vvm_i16m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint16m4_t vmerge_vxm_i16m4(vbool4_t mask, vint16m4_t op1, int16_t op2) {
+  return __builtin_riscv_vmerge_vxm_i16m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vmerge_vvm_i32m1(vbool32_t mask, vint32m1_t op1, vint32m1_t op2) {
+  return __builtin_riscv_vmerge_vvm_i32m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vmerge_vxm_i32m1(vbool32_t mask, vint32m1_t op1, int32_t op2) {
+  return __builtin_riscv_vmerge_vxm_i32m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint32m2_t vmerge_vvm_i32m2(vbool16_t mask, vint32m2_t op1, vint32m2_t op2) {
+  return __builtin_riscv_vmerge_vvm_i32m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint32m2_t vmerge_vxm_i32m2(vbool16_t mask, vint32m2_t op1, int32_t op2) {
+  return __builtin_riscv_vmerge_vxm_i32m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint32m4_t vmerge_vvm_i32m4(vbool8_t mask, vint32m4_t op1, vint32m4_t op2) {
+  return __builtin_riscv_vmerge_vvm_i32m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint32m4_t vmerge_vxm_i32m4(vbool8_t mask, vint32m4_t op1, int32_t op2) {
+  return __builtin_riscv_vmerge_vxm_i32m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vmerge_vvm_i64m1(vbool64_t mask, vint64m1_t op1, vint64m1_t op2) {
+  return __builtin_riscv_vmerge_vvm_i64m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vmerge_vxm_i64m1(vbool64_t mask, vint64m1_t op1, int64_t op2) {
+  return __builtin_riscv_vmerge_vxm_i64m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint64m2_t vmerge_vvm_i64m2(vbool32_t mask, vint64m2_t op1, vint64m2_t op2) {
+  return __builtin_riscv_vmerge_vvm_i64m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint64m2_t vmerge_vxm_i64m2(vbool32_t mask, vint64m2_t op1, int64_t op2) {
+  return __builtin_riscv_vmerge_vxm_i64m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint64m4_t vmerge_vvm_i64m4(vbool16_t mask, vint64m4_t op1, vint64m4_t op2) {
+  return __builtin_riscv_vmerge_vvm_i64m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vint64m4_t vmerge_vxm_i64m4(vbool16_t mask, vint64m4_t op1, int64_t op2) {
+  return __builtin_riscv_vmerge_vxm_i64m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vmerge_vvm_u8m1(vbool8_t mask, vuint8m1_t op1, vuint8m1_t op2) {
+  return __builtin_riscv_vmerge_vvm_u8m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vmerge_vxm_u8m1(vbool8_t mask, vuint8m1_t op1, uint8_t op2) {
+  return __builtin_riscv_vmerge_vxm_u8m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint8m2_t vmerge_vvm_u8m2(vbool4_t mask, vuint8m2_t op1, vuint8m2_t op2) {
+  return __builtin_riscv_vmerge_vvm_u8m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint8m2_t vmerge_vxm_u8m2(vbool4_t mask, vuint8m2_t op1, uint8_t op2) {
+  return __builtin_riscv_vmerge_vxm_u8m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint8m4_t vmerge_vvm_u8m4(vbool2_t mask, vuint8m4_t op1, vuint8m4_t op2) {
+  return __builtin_riscv_vmerge_vvm_u8m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint8m4_t vmerge_vxm_u8m4(vbool2_t mask, vuint8m4_t op1, uint8_t op2) {
+  return __builtin_riscv_vmerge_vxm_u8m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vmerge_vvm_u16m1(vbool16_t mask, vuint16m1_t op1, vuint16m1_t op2) {
+  return __builtin_riscv_vmerge_vvm_u16m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vmerge_vxm_u16m1(vbool16_t mask, vuint16m1_t op1, uint16_t op2) {
+  return __builtin_riscv_vmerge_vxm_u16m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint16m2_t vmerge_vvm_u16m2(vbool8_t mask, vuint16m2_t op1, vuint16m2_t op2) {
+  return __builtin_riscv_vmerge_vvm_u16m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint16m2_t vmerge_vxm_u16m2(vbool8_t mask, vuint16m2_t op1, uint16_t op2) {
+  return __builtin_riscv_vmerge_vxm_u16m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint16m4_t vmerge_vvm_u16m4(vbool4_t mask, vuint16m4_t op1, vuint16m4_t op2) {
+  return __builtin_riscv_vmerge_vvm_u16m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint16m4_t vmerge_vxm_u16m4(vbool4_t mask, vuint16m4_t op1, uint16_t op2) {
+  return __builtin_riscv_vmerge_vxm_u16m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vmerge_vvm_u32m1(vbool32_t mask, vuint32m1_t op1, vuint32m1_t op2) {
+  return __builtin_riscv_vmerge_vvm_u32m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vmerge_vxm_u32m1(vbool32_t mask, vuint32m1_t op1, uint32_t op2) {
+  return __builtin_riscv_vmerge_vxm_u32m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint32m2_t vmerge_vvm_u32m2(vbool16_t mask, vuint32m2_t op1, vuint32m2_t op2) {
+  return __builtin_riscv_vmerge_vvm_u32m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint32m4_t vmerge_vvm_u32m4(vbool8_t mask, vuint32m4_t op1, vuint32m4_t op2) {
+  return __builtin_riscv_vmerge_vvm_u32m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint32m4_t vmerge_vxm_u32m4(vbool8_t mask, vuint32m4_t op1, uint32_t op2) {
+  return __builtin_riscv_vmerge_vxm_u32m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vmerge_vvm_u64m1(vbool64_t mask, vuint64m1_t op1, vuint64m1_t op2) {
+  return __builtin_riscv_vmerge_vvm_u64m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vmerge_vxm_u64m1(vbool64_t mask, vuint64m1_t op1, uint64_t op2) {
+  return __builtin_riscv_vmerge_vxm_u64m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint64m2_t vmerge_vvm_u64m2(vbool32_t mask, vuint64m2_t op1, vuint64m2_t op2) {
+  return __builtin_riscv_vmerge_vvm_u64m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint64m2_t vmerge_vxm_u64m2(vbool32_t mask, vuint64m2_t op1, uint64_t op2) {
+  return __builtin_riscv_vmerge_vxm_u64m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint64m4_t vmerge_vvm_u64m4(vbool16_t mask, vuint64m4_t op1, vuint64m4_t op2) {
+  return __builtin_riscv_vmerge_vvm_u64m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vuint64m4_t vmerge_vxm_u64m4(vbool16_t mask, vuint64m4_t op1, uint64_t op2) {
+  return __builtin_riscv_vmerge_vxm_u64m4(mask, op1, op2);
+}
+
+
+
+// Vector Single-Width Integer Reduction Operations
+static __attribute__((always_inline))
+vint8m1_t vredsum_vs_i8m1_i8m1(vint8m1_t dst, vint8m1_t vector, vint8m1_t scalar) {
+  return __builtin_riscv_vredsum_vs_i8m1_i8m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint8m1_t vredmax_vs_i8m1_i8m1(vint8m1_t dst, vint8m1_t vector, vint8m1_t scalar) {
+  return __builtin_riscv_vredmax_vs_i8m1_i8m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint8m1_t vredmin_vs_i8m1_i8m1(vint8m1_t dst, vint8m1_t vector, vint8m1_t scalar) {
+  return __builtin_riscv_vredmin_vs_i8m1_i8m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint8m2_t vredsum_vs_i8m2_i8m2(vint8m2_t dst, vint8m2_t vector, vint8m2_t scalar) {
+  return __builtin_riscv_vredsum_vs_i8m2_i8m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint8m2_t vredmax_vs_i8m2_i8m2(vint8m2_t dst, vint8m2_t vector, vint8m2_t scalar) {
+  return __builtin_riscv_vredmax_vs_i8m2_i8m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint8m2_t vredmin_vs_i8m2_i8m2(vint8m2_t dst, vint8m2_t vector, vint8m2_t scalar) {
+  return __builtin_riscv_vredmin_vs_i8m2_i8m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint8m4_t vredsum_vs_i8m4_i8m4(vint8m4_t dst, vint8m4_t vector, vint8m4_t scalar) {
+  return __builtin_riscv_vredsum_vs_i8m4_i8m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint8m4_t vredmax_vs_i8m4_i8m4(vint8m4_t dst, vint8m4_t vector, vint8m4_t scalar) {
+  return __builtin_riscv_vredmax_vs_i8m4_i8m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint8m4_t vredmin_vs_i8m4_i8m4(vint8m4_t dst, vint8m4_t vector, vint8m4_t scalar) {
+  return __builtin_riscv_vredmin_vs_i8m4_i8m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint16m1_t vredsum_vs_i16m1_i16m1(vint16m1_t dst, vint16m1_t vector, vint16m1_t scalar) {
+  return __builtin_riscv_vredsum_vs_i16m1_i16m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint16m1_t vredmax_vs_i16m1_i16m1(vint16m1_t dst, vint16m1_t vector, vint16m1_t scalar) {
+  return __builtin_riscv_vredmax_vs_i16m1_i16m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint16m1_t vredmin_vs_i16m1_i16m1(vint16m1_t dst, vint16m1_t vector, vint16m1_t scalar) {
+  return __builtin_riscv_vredmin_vs_i16m1_i16m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint16m2_t vredsum_vs_i16m2_i16m2(vint16m2_t dst, vint16m2_t vector, vint16m2_t scalar) {
+  return __builtin_riscv_vredsum_vs_i16m2_i16m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint16m2_t vredmax_vs_i16m2_i16m2(vint16m2_t dst, vint16m2_t vector, vint16m2_t scalar) {
+  return __builtin_riscv_vredmax_vs_i16m2_i16m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint16m2_t vredmin_vs_i16m2_i16m2(vint16m2_t dst, vint16m2_t vector, vint16m2_t scalar) {
+  return __builtin_riscv_vredmin_vs_i16m2_i16m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint16m4_t vredsum_vs_i16m4_i16m4(vint16m4_t dst, vint16m4_t vector, vint16m4_t scalar) {
+  return __builtin_riscv_vredsum_vs_i16m4_i16m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint16m4_t vredmax_vs_i16m4_i16m4(vint16m4_t dst, vint16m4_t vector, vint16m4_t scalar) {
+  return __builtin_riscv_vredmax_vs_i16m4_i16m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint16m4_t vredmin_vs_i16m4_i16m4(vint16m4_t dst, vint16m4_t vector, vint16m4_t scalar) {
+  return __builtin_riscv_vredmin_vs_i16m4_i16m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vredsum_vs_i32m1_i32m1(vint32m1_t dst, vint32m1_t vector, vint32m1_t scalar) {
+  return __builtin_riscv_vredsum_vs_i32m1_i32m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vredmax_vs_i32m1_i32m1(vint32m1_t dst, vint32m1_t vector, vint32m1_t scalar) {
+  return __builtin_riscv_vredmax_vs_i32m1_i32m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint32m1_t vredmin_vs_i32m1_i32m1(vint32m1_t dst, vint32m1_t vector, vint32m1_t scalar) {
+  return __builtin_riscv_vredmin_vs_i32m1_i32m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint32m2_t vredsum_vs_i32m2_i32m2(vint32m2_t dst, vint32m2_t vector, vint32m2_t scalar) {
+  return __builtin_riscv_vredsum_vs_i32m2_i32m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint32m2_t vredmax_vs_i32m2_i32m2(vint32m2_t dst, vint32m2_t vector, vint32m2_t scalar) {
+  return __builtin_riscv_vredmax_vs_i32m2_i32m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint32m2_t vredmin_vs_i32m2_i32m2(vint32m2_t dst, vint32m2_t vector, vint32m2_t scalar) {
+  return __builtin_riscv_vredmin_vs_i32m2_i32m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint32m4_t vredsum_vs_i32m4_i32m4(vint32m4_t dst, vint32m4_t vector, vint32m4_t scalar) {
+  return __builtin_riscv_vredsum_vs_i32m4_i32m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint32m4_t vredmax_vs_i32m4_i32m4(vint32m4_t dst, vint32m4_t vector, vint32m4_t scalar) {
+  return __builtin_riscv_vredmax_vs_i32m4_i32m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint32m4_t vredmin_vs_i32m4_i32m4(vint32m4_t dst, vint32m4_t vector, vint32m4_t scalar) {
+  return __builtin_riscv_vredmin_vs_i32m4_i32m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vredsum_vs_i64m1_i64m1(vint64m1_t dst, vint64m1_t vector, vint64m1_t scalar) {
+  return __builtin_riscv_vredsum_vs_i64m1_i64m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vredmax_vs_i64m1_i64m1(vint64m1_t dst, vint64m1_t vector, vint64m1_t scalar) {
+  return __builtin_riscv_vredmax_vs_i64m1_i64m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint64m1_t vredmin_vs_i64m1_i64m1(vint64m1_t dst, vint64m1_t vector, vint64m1_t scalar) {
+  return __builtin_riscv_vredmin_vs_i64m1_i64m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint64m2_t vredsum_vs_i64m2_i64m2(vint64m2_t dst, vint64m2_t vector, vint64m2_t scalar) {
+  return __builtin_riscv_vredsum_vs_i64m2_i64m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint64m2_t vredmax_vs_i64m2_i64m2(vint64m2_t dst, vint64m2_t vector, vint64m2_t scalar) {
+  return __builtin_riscv_vredmax_vs_i64m2_i64m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint64m2_t vredmin_vs_i64m2_i64m2(vint64m2_t dst, vint64m2_t vector, vint64m2_t scalar) {
+  return __builtin_riscv_vredmin_vs_i64m2_i64m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint64m4_t vredsum_vs_i64m4_i64m4(vint64m4_t dst, vint64m4_t vector, vint64m4_t scalar) {
+  return __builtin_riscv_vredsum_vs_i64m4_i64m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint64m4_t vredmax_vs_i64m4_i64m4(vint64m4_t dst, vint64m4_t vector, vint64m4_t scalar) {
+  return __builtin_riscv_vredmax_vs_i64m4_i64m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vint64m4_t vredmin_vs_i64m4_i64m4(vint64m4_t dst, vint64m4_t vector, vint64m4_t scalar) {
+  return __builtin_riscv_vredmin_vs_i64m4_i64m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vredsum_vs_u8m1_u8m1(vuint8m1_t dst, vuint8m1_t vector, vuint8m1_t scalar) {
+  return __builtin_riscv_vredsum_vs_u8m1_u8m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vredmaxu_vs_u8m1_u8m1(vuint8m1_t dst, vuint8m1_t vector, vuint8m1_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u8m1_u8m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint8m1_t vredminu_vs_u8m1_u8m1(vuint8m1_t dst, vuint8m1_t vector, vuint8m1_t scalar) {
+  return __builtin_riscv_vredminu_vs_u8m1_u8m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint8m2_t vredsum_vs_u8m2_u8m2(vuint8m2_t dst, vuint8m2_t vector, vuint8m2_t scalar) {
+  return __builtin_riscv_vredsum_vs_u8m2_u8m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint8m2_t vredmaxu_vs_u8m2_u8m2(vuint8m2_t dst, vuint8m2_t vector, vuint8m2_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u8m2_u8m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint8m2_t vredminu_vs_u8m2_u8m2(vuint8m2_t dst, vuint8m2_t vector, vuint8m2_t scalar) {
+  return __builtin_riscv_vredminu_vs_u8m2_u8m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint8m4_t vredsum_vs_u8m4_u8m4(vuint8m4_t dst, vuint8m4_t vector, vuint8m4_t scalar) {
+  return __builtin_riscv_vredsum_vs_u8m4_u8m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint8m4_t vredmaxu_vs_u8m4_u8m4(vuint8m4_t dst, vuint8m4_t vector, vuint8m4_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u8m4_u8m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint8m4_t vredminu_vs_u8m4_u8m4(vuint8m4_t dst, vuint8m4_t vector, vuint8m4_t scalar) {
+  return __builtin_riscv_vredminu_vs_u8m4_u8m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vredsum_vs_u16m1_u16m1(vuint16m1_t dst, vuint16m1_t vector, vuint16m1_t scalar) {
+  return __builtin_riscv_vredsum_vs_u16m1_u16m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vredmaxu_vs_u16m1_u16m1(vuint16m1_t dst, vuint16m1_t vector, vuint16m1_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u16m1_u16m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint16m1_t vredminu_vs_u16m1_u16m1(vuint16m1_t dst, vuint16m1_t vector, vuint16m1_t scalar) {
+  return __builtin_riscv_vredminu_vs_u16m1_u16m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint16m2_t vredsum_vs_u16m2_u16m2(vuint16m2_t dst, vuint16m2_t vector, vuint16m2_t scalar) {
+  return __builtin_riscv_vredsum_vs_u16m2_u16m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint16m2_t vredmaxu_vs_u16m2_u16m2(vuint16m2_t dst, vuint16m2_t vector, vuint16m2_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u16m2_u16m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint16m2_t vredminu_vs_u16m2_u16m2(vuint16m2_t dst, vuint16m2_t vector, vuint16m2_t scalar) {
+  return __builtin_riscv_vredminu_vs_u16m2_u16m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint16m4_t vredsum_vs_u16m4_u16m4(vuint16m4_t dst, vuint16m4_t vector, vuint16m4_t scalar) {
+  return __builtin_riscv_vredsum_vs_u16m4_u16m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint16m4_t vredmaxu_vs_u16m4_u16m4(vuint16m4_t dst, vuint16m4_t vector, vuint16m4_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u16m4_u16m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint16m4_t vredminu_vs_u16m4_u16m4(vuint16m4_t dst, vuint16m4_t vector, vuint16m4_t scalar) {
+  return __builtin_riscv_vredminu_vs_u16m4_u16m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vredsum_vs_u32m1_u32m1(vuint32m1_t dst, vuint32m1_t vector, vuint32m1_t scalar) {
+  return __builtin_riscv_vredsum_vs_u32m1_u32m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vredmaxu_vs_u32m1_u32m1(vuint32m1_t dst, vuint32m1_t vector, vuint32m1_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u32m1_u32m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint32m1_t vredminu_vs_u32m1_u32m1(vuint32m1_t dst, vuint32m1_t vector, vuint32m1_t scalar) {
+  return __builtin_riscv_vredminu_vs_u32m1_u32m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint32m2_t vredsum_vs_u32m2_u32m2(vuint32m2_t dst, vuint32m2_t vector, vuint32m2_t scalar) {
+  return __builtin_riscv_vredsum_vs_u32m2_u32m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint32m2_t vredmaxu_vs_u32m2_u32m2(vuint32m2_t dst, vuint32m2_t vector, vuint32m2_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u32m2_u32m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint32m2_t vredminu_vs_u32m2_u32m2(vuint32m2_t dst, vuint32m2_t vector, vuint32m2_t scalar) {
+  return __builtin_riscv_vredminu_vs_u32m2_u32m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint32m4_t vredsum_vs_u32m4_u32m4(vuint32m4_t dst, vuint32m4_t vector, vuint32m4_t scalar) {
+  return __builtin_riscv_vredsum_vs_u32m4_u32m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint32m4_t vredmaxu_vs_u32m4_u32m4(vuint32m4_t dst, vuint32m4_t vector, vuint32m4_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u32m4_u32m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint32m4_t vredminu_vs_u32m4_u32m4(vuint32m4_t dst, vuint32m4_t vector, vuint32m4_t scalar) {
+  return __builtin_riscv_vredminu_vs_u32m4_u32m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vredsum_vs_u64m1_u64m1(vuint64m1_t dst, vuint64m1_t vector, vuint64m1_t scalar) {
+  return __builtin_riscv_vredsum_vs_u64m1_u64m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vredmaxu_vs_u64m1_u64m1(vuint64m1_t dst, vuint64m1_t vector, vuint64m1_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u64m1_u64m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint64m1_t vredminu_vs_u64m1_u64m1(vuint64m1_t dst, vuint64m1_t vector, vuint64m1_t scalar) {
+  return __builtin_riscv_vredminu_vs_u64m1_u64m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint64m2_t vredsum_vs_u64m2_u64m2(vuint64m2_t dst, vuint64m2_t vector, vuint64m2_t scalar) {
+  return __builtin_riscv_vredsum_vs_u64m2_u64m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint64m2_t vredmaxu_vs_u64m2_u64m2(vuint64m2_t dst, vuint64m2_t vector, vuint64m2_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u64m2_u64m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint64m2_t vredminu_vs_u64m2_u64m2(vuint64m2_t dst, vuint64m2_t vector, vuint64m2_t scalar) {
+  return __builtin_riscv_vredminu_vs_u64m2_u64m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint64m4_t vredsum_vs_u64m4_u64m4(vuint64m4_t dst, vuint64m4_t vector, vuint64m4_t scalar) {
+  return __builtin_riscv_vredsum_vs_u64m4_u64m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint64m4_t vredmaxu_vs_u64m4_u64m4(vuint64m4_t dst, vuint64m4_t vector, vuint64m4_t scalar) {
+  return __builtin_riscv_vredmaxu_vs_u64m4_u64m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vuint64m4_t vredminu_vs_u64m4_u64m4(vuint64m4_t dst, vuint64m4_t vector, vuint64m4_t scalar) {
+  return __builtin_riscv_vredminu_vs_u64m4_u64m4(dst, vector, scalar);
+}
+
+
+//vfmerge
+static __attribute__((always_inline))
+vfloat32m1_t vfmerge_vfm_f32m1(vbool32_t mask, vfloat32m1_t op1, float op2) {
+  return __builtin_riscv_vfmerge_vfm_f32m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat32m2_t vmerge_vvm_f32m2(vbool16_t mask, vfloat32m2_t op1, vfloat32m2_t op2) {
+  return __builtin_riscv_vmerge_vvm_f32m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat32m2_t vfmerge_vfm_f32m2(vbool16_t mask, vfloat32m2_t op1, float op2) {
+  return __builtin_riscv_vfmerge_vfm_f32m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat32m4_t vmerge_vvm_f32m4(vbool8_t mask, vfloat32m4_t op1, vfloat32m4_t op2) {
+  return __builtin_riscv_vmerge_vvm_f32m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat32m4_t vfmerge_vfm_f32m4(vbool8_t mask, vfloat32m4_t op1, float op2) {
+  return __builtin_riscv_vfmerge_vfm_f32m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat64m1_t vmerge_vvm_f64m1(vbool64_t mask, vfloat64m1_t op1, vfloat64m1_t op2) {
+  return __builtin_riscv_vmerge_vvm_f64m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat64m1_t vfmerge_vfm_f64m1(vbool64_t mask, vfloat64m1_t op1, double op2) {
+  return __builtin_riscv_vfmerge_vfm_f64m1(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat64m2_t vmerge_vvm_f64m2(vbool32_t mask, vfloat64m2_t op1, vfloat64m2_t op2) {
+  return __builtin_riscv_vmerge_vvm_f64m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat64m2_t vfmerge_vfm_f64m2(vbool32_t mask, vfloat64m2_t op1, double op2) {
+  return __builtin_riscv_vfmerge_vfm_f64m2(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat64m4_t vmerge_vvm_f64m4(vbool16_t mask, vfloat64m4_t op1, vfloat64m4_t op2) {
+  return __builtin_riscv_vmerge_vvm_f64m4(mask, op1, op2);
+}
+
+static __attribute__((always_inline))
+vfloat64m4_t vfmerge_vfm_f64m4(vbool16_t mask, vfloat64m4_t op1, double op2) {
+  return __builtin_riscv_vfmerge_vfm_f64m4(mask, op1, op2);
+}
+
 
 #endif
 
