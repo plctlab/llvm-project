@@ -768,6 +768,10 @@ defm PseudoVREDOR : pseudo_ternary_reduction;
 defm PseudoVREDXOR : pseudo_ternary_reduction;
 defm PseudoVSLIDEUP : pseudo_ternary_v_vvx;
 defm PseudoVSLIDEDOWN : pseudo_ternary_v_vvx;
+defm PseudoVFREDOSUM : pseudo_ternary_reduction;
+defm PseudoVFREDSUM : pseudo_ternary_reduction;
+defm PseudoVFREDMAX : pseudo_ternary_reduction;
+defm PseudoVFREDMIN : pseudo_ternary_reduction;
 
 
 
@@ -1281,6 +1285,17 @@ multiclass pat_intrinsic_int_reduction
   }
 }
 
+multiclass pat_intrinsic_float_reduction
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllFloatVectors in {
+    foreach evr1 = NoGroupFloatVectors in {
+      defm : pat_intrinsic_ternary<intrinsic_name#"_vs", instruction_name#"_VS", 
+                                   evr1.Vector, evr.Vector, evr1.Vector, evr.Mask, evr.SEW, evr.LMULstr, 
+                                   evr1.RegClass, evr.RegClass, evr1.RegClass>;
+    }
+  }
+}
+
 multiclass pat_intrinsic_vload_store {
   foreach evr = AllVectors in {
     defvar str = evr.LMULstr;
@@ -1399,5 +1414,9 @@ defm "" : pat_intrinsic_int_reduction<"int_riscv_vredor", "PseudoVREDOR">;
 defm "" : pat_intrinsic_int_reduction<"int_riscv_vredxor", "PseudoVREDXOR">;
 defm "" : pat_intrinsic_int_ternary_v_vvx<"int_riscv_vslideup", "PseudoVSLIDEUP">;
 defm "" : pat_intrinsic_int_ternary_v_vvx<"int_riscv_vslidedown", "PseudoVSLIDEDOWN">;
+defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredosum", "PseudoVFREDOSUM">;
+defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredsum", "PseudoVFREDSUM">;
+defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredmax", "PseudoVFREDMAX">;
+defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredmin", "PseudoVFREDMIN">;
 // defm "" 
 // defm "" : pat_intrinsic_int_unary_v<"int_riscv_vnot", "PseudoVNOT">;

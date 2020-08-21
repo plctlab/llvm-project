@@ -658,8 +658,8 @@ def int_riscv_vfmerge_vfm : Intrinsic<[ llvm_anyvector_ty ],
 // Single-Width Floating-Point/Integer Type-Convert Functions
 
 multiclass Unary_V_V1 {
-  def "int_riscv_" # NAME # "_v" : M_VV;
-  def "int_riscv_" # NAME # "_v_mask" : M_VV_mask;
+  def "int_riscv_" # NAME # "_v" : V_V1;
+  def "int_riscv_" # NAME # "_v_mask" : V_V1_mask;
 }
 
 defm vfcvt_x_f : Unary_V_V1;
@@ -696,6 +696,12 @@ multiclass Ternary_int_v_vvz {
 }
 defm vslideup : Ternary_int_v_vvz;
 defm vslidedown : Ternary_int_v_vvz;
+
+// Vector Single-Width Floating-Point Reduction Functions
+defm vfredosum : Reduction_v_vrv;
+defm vfredsum : Reduction_v_vrv;
+defm vfredmax : Reduction_v_vrv;
+defm vfredmin : Reduction_v_vrv;
 
 
 
