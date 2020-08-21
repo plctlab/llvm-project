@@ -342,6 +342,16 @@ multiclass pseudo_ternary<RegisterClass result_reg_class,
                               RISCVVectorPseudo;
 }
 
+multiclass pseudo_ternary_reduction {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+    foreach evr = AllVlmuls in {
+      let VLMul = evr.Vlmul in {
+        defm _VS : pseudo_ternary<VR, evr.RegClass, VR, evr.Lmulstr>; 
+      }
+    }
+  }
+}
+
 multiclass pseudo_unary_v_v {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
     foreach evr = AllVlmuls in {
@@ -606,6 +616,15 @@ multiclass pseudo_ternary_v_vvv_vvx<string constraints = ""> {
   }
 }
 
+multiclass pseudo_ternary_v_vvx<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  foreach evr = AllVlmuls in {
+    let VLMul = evr.Vlmul in {
+      defm _VX : pseudo_ternary<evr.RegClass, evr.RegClass, GPR, evr.Lmulstr, constraints>;
+    }
+  }
+}
+
 multiclass pseudo_ternary_w_wvv_wvx<string constraints = ""> {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
   foreach evr = AllWideVlmuls in {
@@ -739,6 +758,16 @@ defm PseudoVMFLT : pseudo_binary_m_vv_vf;
 defm PseudoVMFGT : pseudo_binary_m_vf;
 defm PseudoVMFGE : pseudo_binary_m_vf;
 defm PseudoVFCLASS : pseudo_unary_v_v;
+defm PseudoVREDSUM : pseudo_ternary_reduction;
+defm PseudoVREDMAX : pseudo_ternary_reduction;
+defm PseudoVREDMAXU : pseudo_ternary_reduction;
+defm PseudoVREDMIN : pseudo_ternary_reduction;
+defm PseudoVREDMINU : pseudo_ternary_reduction;
+defm PseudoVREDAND : pseudo_ternary_reduction;
+defm PseudoVREDOR : pseudo_ternary_reduction;
+defm PseudoVREDXOR : pseudo_ternary_reduction;
+defm PseudoVSLIDEUP : pseudo_ternary_v_vvx;
+defm PseudoVSLIDEDOWN : pseudo_ternary_v_vvx;
 
 
 
@@ -1194,6 +1223,15 @@ multiclass pat_intrinsic_int_ternary_v_vvv_vvx
   }
 }
 
+multiclass pat_intrinsic_int_ternary_v_vvx 
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllIntegerVectors in {
+    defm : pat_intrinsic_ternary<intrinsic_name#"_vx", instruction_name#"_VX",
+                                 evr.Vector, evr.Vector, XLenVT, evr.Mask,
+                                 evr.SEW, evr.LMULstr, evr.RegClass, evr.RegClass, GPR>;
+  }
+}
+
 multiclass pat_intrinsic_int_ternary_w_wvv_wvx
     <string intrinsic_name, string instruction_name> {
   foreach evr = AllWideIntegerVectors in {
@@ -1229,6 +1267,17 @@ multiclass pat_intrinsic_int_ternary_w_wvx
                                  evr.WidenVector, XLenVT, evr.OriginVector.Vector, evr.OriginVector.Mask,
                                  evr.OriginVector.SEW, evr.WidenLMULstr, evr.WidenRegClass,
                                  GPR, evr.OriginVector.RegClass>; 
+  }
+}
+
+multiclass pat_intrinsic_int_reduction
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllIntegerVectors in {
+    foreach evr1 = NoGroupIntegerVectors in {
+      defm : pat_intrinsic_ternary<intrinsic_name#"_vs", instruction_name#"_VS", 
+                                   evr1.Vector, evr.Vector, evr1.Vector, evr.Mask, evr.SEW, evr.LMULstr, 
+                                   evr1.RegClass, evr.RegClass, evr1.RegClass>;
+    }
   }
 }
 
@@ -1340,5 +1389,15 @@ defm "" : pat_intrinsic_float_binary_m_vv_vf<"int_riscv_vmflt", "PseudoVMFLT">;
 defm "" : pat_intrinsic_float_binary_m_vf<"int_riscv_vmfgt", "PseudoVMFGT">;
 defm "" : pat_intrinsic_float_binary_m_vf<"int_riscv_vmfge", "PseudoVMFGE">;
 defm "" : pat_intrinsic_float_unary_v_v<"int_riscv_vfclass", "PseudoVFCLASS">;
+defm "" : pat_intrinsic_int_reduction<"int_riscv_vredsum", "PseudoVREDSUM">;
+defm "" : pat_intrinsic_int_reduction<"int_riscv_vredmax", "PseudoVREDMAX">;
+defm "" : pat_intrinsic_int_reduction<"int_riscv_vredmaxu", "PseudoVREDMAXU">;
+defm "" : pat_intrinsic_int_reduction<"int_riscv_vredmin", "PseudoVREDMIN">;
+defm "" : pat_intrinsic_int_reduction<"int_riscv_vredminu", "PseudoVREDMINU">;
+defm "" : pat_intrinsic_int_reduction<"int_riscv_vredand", "PseudoVREDAND">;
+defm "" : pat_intrinsic_int_reduction<"int_riscv_vredor", "PseudoVREDOR">;
+defm "" : pat_intrinsic_int_reduction<"int_riscv_vredxor", "PseudoVREDXOR">;
+defm "" : pat_intrinsic_int_ternary_v_vvx<"int_riscv_vslideup", "PseudoVSLIDEUP">;
+defm "" : pat_intrinsic_int_ternary_v_vvx<"int_riscv_vslidedown", "PseudoVSLIDEDOWN">;
 // defm "" 
 // defm "" : pat_intrinsic_int_unary_v<"int_riscv_vnot", "PseudoVNOT">;

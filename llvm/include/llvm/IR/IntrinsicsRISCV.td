@@ -164,6 +164,14 @@ class V_VVX_mask : Intrinsic<[ llvm_anyvector_ty ],
                                llvm_anyint_ty, LLVMMatchType<0> ],
                              [ IntrNoMem ]>;
 
+class V_VVZ : Intrinsic<[ llvm_anyvector_ty ],
+                        [ LLVMMatchType<0>, LLVMMatchType<0>, llvm_anyint_ty ],
+                        [ IntrNoMem ]>;
+
+class V_VVZ_mask : Intrinsic<[ llvm_anyvector_ty ],
+                        [ llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0>, llvm_anyint_ty ],
+                        [ IntrNoMem ]>;
+
 class V_VVF : Intrinsic<[ llvm_anyvector_ty ],
                         [ llvm_anyvector_ty, llvm_anyfloat_ty, llvm_anyvector_ty ],
                         [ IntrNoMem ]>;
@@ -275,6 +283,14 @@ class V_V1 : Intrinsic<[ llvm_anyvector_ty ],
 class V_V1_mask : Intrinsic<[ llvm_anyvector_ty ],
                             [ llvm_anyvector_ty, LLVMMatchType<0>, llvm_anyvector_ty],
                             [ IntrNoMem ]>;
+
+class V_VRV : Intrinsic<[ llvm_anyvector_ty ],
+                        [ LLVMMatchType<0>, llvm_anyvector_ty, LLVMMatchType<0> ],
+                        [ IntrNoMem ]>;
+
+class V_VRV_mask : Intrinsic<[ llvm_anyvector_ty ],
+                             [ llvm_anyvector_ty, LLVMMatchType<0>, llvm_anyvector_ty, LLVMMatchType<0> ],
+                             [ IntrNoMem ]>;
 
 multiclass Binary_int_vv {
   def "int_riscv_" # NAME # "_vv" : V_VV;
@@ -443,18 +459,18 @@ defm vwmul : Binary_int_wide_mul;
 defm vwmulu : Binary_int_wide_mul;
 defm vwmulsu : Binary_int_wide_mul;
 
-multiclass Ternary_int {
+multiclass Ternary_int_v_vvx_vvv {
   def "int_riscv_" # NAME # "_vv" : V_VVV;
   def "int_riscv_" # NAME # "_vv_mask" : V_VVV_mask;
   def "int_riscv_" # NAME # "_vx" : V_VVX;
   def "int_riscv_" # NAME # "_vx_mask" : V_VVX_mask;
 }
 // Vector Single-Width Integer Multiply-Add Functions
-defm vmacc : Ternary_int;
-defm vnmacc : Ternary_int;
-defm vnmsac : Ternary_int;
-defm vmadd : Ternary_int;
-defm vnmsub : Ternary_int;
+defm vmacc : Ternary_int_v_vvx_vvv;
+defm vnmacc : Ternary_int_v_vvx_vvv;
+defm vnmsac : Ternary_int_v_vvx_vvv;
+defm vmadd : Ternary_int_v_vvx_vvv;
+defm vnmsub : Ternary_int_v_vvx_vvv;
 
 multiclass Ternary_int_wide {
   def "int_riscv_" # NAME # "_vv" : W_WVV;
@@ -654,6 +670,32 @@ defm vwcvt_x_x : Unary_V_V1;
 defm vwcvtu_x_x : Unary_V_V1;
 defm vfwcvt_x_f : Unary_V_V1;
 defm vfwcvt_rtz_x_f : Unary_V_V1;
+defm vfwcvt_rtz_xu_f : Unary_V_V1;
+defm vfwcvt_f_xu : Unary_V_V1;
+defm vfwcvt_f_f : Unary_V_V1;
+
+// Vector Single-Width Integer Reduction Functions
+multiclass Reduction_v_vrv {
+  def "int_riscv_" # NAME # "_vs" : V_VRV;
+  def "int_riscv_" # NAME # "_vs_mask" : V_VRV_mask;
+}
+
+defm vredsum : Reduction_v_vrv;
+defm vredmax : Reduction_v_vrv;
+defm vredmaxu : Reduction_v_vrv;
+defm vredmin : Reduction_v_vrv;
+defm vredminu : Reduction_v_vrv;
+defm vredand : Reduction_v_vrv;
+defm vredor : Reduction_v_vrv;
+defm vredxor : Reduction_v_vrv;
+
+// Vector Slideup and Slidedown Functions
+multiclass Ternary_int_v_vvz {
+  def "int_riscv_" # NAME # "_vx" : V_VVZ;
+  def "int_riscv_" # NAME # "_vx_mask" : V_VVZ_mask;
+}
+defm vslideup : Ternary_int_v_vvz;
+defm vslidedown : Ternary_int_v_vvz;
 
 
 
