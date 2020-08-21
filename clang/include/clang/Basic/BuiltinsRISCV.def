@@ -121,9 +121,9 @@ BUILTIN(__builtin_riscv_vminu_vv_u16m1, "q4sq4sq4s", "")
 BUILTIN(__builtin_riscv_vminu_vv_u32m1, "q2iq2iq2i", "")
 BUILTIN(__builtin_riscv_vminu_vv_u64m1, "q1Wiq1Wiq1Wi", "")
 //
-BUILTIN(__builtin_riscv_vfmin_vv_f16m1, "q4hq4hq4h", "n")
-BUILTIN(__builtin_riscv_vfmin_vv_f32m1, "q2fq2fq2f", "")
-BUILTIN(__builtin_riscv_vfmin_vv_f64m1, "q1dq1dq1d", "")
+//BUILTIN(__builtin_riscv_vfmin_vv_f16m1, "q4hq4hq4h", "n")
+//BUILTIN(__builtin_riscv_vfmin_vv_f32m1, "q2fq2fq2f", "")
+//BUILTIN(__builtin_riscv_vfmin_vv_f64m1, "q1dq1dq1d", "")
 
 //vmax_vv
 BUILTIN(__builtin_riscv_vmax_vv_i8m1, "q8cq8cq8c", "")
@@ -651,6 +651,40 @@ BUILTIN(__builtin_riscv_vfcvt_rtz_x_f_v_i64m2, "q2Wiq2d", "")
 BUILTIN(__builtin_riscv_vfcvt_f_x_v_f64m2, "q2dq2Wi", "")
 BUILTIN(__builtin_riscv_vfcvt_rtz_x_f_v_i64m4, "q4Wiq4d", "")
 BUILTIN(__builtin_riscv_vfcvt_f_x_v_f64m4, "q4dq4Wi", "")
+
+// Vector Floating-Point Square-Root Operations
+BUILTIN(__builtin_riscv_vfsqrt_v_f32m1, "q2fq2f", "")
+BUILTIN(__builtin_riscv_vfsqrt_v_f32m2, "q4fq4f", "")
+BUILTIN(__builtin_riscv_vfsqrt_v_f32m4, "q8fq8f", "")
+BUILTIN(__builtin_riscv_vfsqrt_v_f64m1, "q1dq1d", "")
+BUILTIN(__builtin_riscv_vfsqrt_v_f64m2, "q2dq2d", "")
+BUILTIN(__builtin_riscv_vfsqrt_v_f64m4, "q4dq4d", "")
+
+// Vector Floating-Point MIN/MAX Operations
+BUILTIN(__builtin_riscv_vfmin_vv_f32m1, "q2fq2fq2f", "")
+BUILTIN(__builtin_riscv_vfmin_vx_f32m1, "q2fq2ff", "")
+BUILTIN(__builtin_riscv_vfmax_vv_f32m1, "q2fq2fq2f", "")
+BUILTIN(__builtin_riscv_vfmax_vx_f32m1, "q2fq2ff", "")
+BUILTIN(__builtin_riscv_vfmin_vv_f32m2, "q4fq4fq4f", "")
+BUILTIN(__builtin_riscv_vfmin_vx_f32m2, "q4fq4ff", "")
+BUILTIN(__builtin_riscv_vfmax_vv_f32m2, "q4fq4fq4f", "")
+BUILTIN(__builtin_riscv_vfmax_vx_f32m2, "q4fq4ff", "")
+BUILTIN(__builtin_riscv_vfmin_vv_f32m4, "q8fq8fq8f", "")
+BUILTIN(__builtin_riscv_vfmin_vx_f32m4, "q8fq8ff", "")
+BUILTIN(__builtin_riscv_vfmax_vv_f32m4, "q8fq8fq8f", "")
+BUILTIN(__builtin_riscv_vfmax_vx_f32m4, "q8fq8ff", "")
+BUILTIN(__builtin_riscv_vfmin_vv_f64m1, "q1dq1dq1d", "")
+BUILTIN(__builtin_riscv_vfmin_vx_f64m1, "q1dq1dd", "")
+BUILTIN(__builtin_riscv_vfmax_vv_f64m1, "q1dq1dq1d", "")
+BUILTIN(__builtin_riscv_vfmax_vx_f64m1, "q1dq1dd", "")
+BUILTIN(__builtin_riscv_vfmin_vv_f64m2, "q2dq2dq2d", "")
+BUILTIN(__builtin_riscv_vfmin_vx_f64m2, "q2dq2dd", "")
+BUILTIN(__builtin_riscv_vfmax_vv_f64m2, "q2dq2dq2d", "")
+BUILTIN(__builtin_riscv_vfmax_vx_f64m2, "q2dq2dd", "")
+BUILTIN(__builtin_riscv_vfmin_vv_f64m4, "q4dq4dq4d", "")
+BUILTIN(__builtin_riscv_vfmin_vx_f64m4, "q4dq4dd", "")
+BUILTIN(__builtin_riscv_vfmax_vv_f64m4, "q4dq4dq4d", "")
+BUILTIN(__builtin_riscv_vfmax_vx_f64m4, "q4dq4dd", "")
 
 
 #undef BUILTIN

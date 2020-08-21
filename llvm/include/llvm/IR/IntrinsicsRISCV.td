@@ -272,7 +272,7 @@ class V_MVV : Intrinsic< [ llvm_anyvector_ty ],
                          [ IntrNoMem ]>;
 
 class V_MVX : Intrinsic<[ llvm_anyvector_ty ],
-                        [ llvm_anyvector_ty, LLVMMatchType<0>,
+                        [ llvm_anyvector_ty, llvm_anyvector_ty,
                          llvm_anyint_ty ],
                         [ IntrNoMem ]>;
 
@@ -285,7 +285,7 @@ class V_V1_mask : Intrinsic<[ llvm_anyvector_ty ],
                             [ IntrNoMem ]>;
 
 class V_VRV : Intrinsic<[ llvm_anyvector_ty ],
-                        [ LLVMMatchType<0>, llvm_anyvector_ty, LLVMMatchType<0> ],
+                        [ llvm_anyvector_ty, llvm_anyvector_ty, LLVMMatchType<0> ],
                         [ IntrNoMem ]>;
 
 class V_VRV_mask : Intrinsic<[ llvm_anyvector_ty ],

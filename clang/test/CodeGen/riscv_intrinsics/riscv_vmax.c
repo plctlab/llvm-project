@@ -48,3 +48,9 @@ vuint64m1_t  __attribute__((noinline)) testumax64(vuint64m1_t value1, vuint64m1_
 //CHECK:   %{{.*}} = call <vscale x 2 x i32> @llvm.riscv.vmax.vv.nxv2i32(<vscale x 2 x i32> %{{.*}}, <vscale x 2 x i32> %{{.*}}) #{{.*}}
 //CHECK:   %{{.*}} = call <vscale x 1 x i64> @llvm.riscv.vmax.vv.nxv1i64(<vscale x 1 x i64> %{{.*}}, <vscale x 1 x i64> %{{.*}}) #{{.*}}
 
+
+vfloat32m1_t __attribute__((noinline)) testvfmax_vv_f32m1 (vfloat32m1_t op1, vfloat32m1_t op2) {
+  return vfmax_vv_f32m1(op1, op2);
+}
+
+//CHECK;  %{{.*}} = call <vscale x 2 x float> @llvm.riscv.vfmax.vv.nxv2f32(<vscale x 2 x float> %{{.*}}, <vscale x 2 x float> %{{.*}}) #{{.*}}
