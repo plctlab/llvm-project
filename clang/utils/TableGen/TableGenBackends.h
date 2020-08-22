@@ -98,6 +98,10 @@ void EmitSveBuiltinCG(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitSveTypeFlags(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitSveRangeChecks(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 
+void EmitRiscvVectorHeader(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+void EmitRiscvVectorBuiltinCG(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+void EmitRiscvVectorBuiltin(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+
 void EmitMveHeader(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitMveBuiltinDef(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitMveBuiltinSema(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);

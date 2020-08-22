@@ -43,6 +43,13 @@ clang_tablegen("arm_cde") {
   output_name = "arm_cde.h"
 }
 
+# Generate riscv_vector.h
+clang_tablegen("riscv_vector") {
+  args = [ "-gen-arm-sve-header" ]
+  td_file = "//clang/include/clang/Basic/riscv_vector.td"
+  output_name = "riscv_vector.h"
+}
+
 copy("arm_headers") {
   visibility = [ ":Headers" ]
   deps = [
