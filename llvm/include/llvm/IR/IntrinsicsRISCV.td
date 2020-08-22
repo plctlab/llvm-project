@@ -111,7 +111,7 @@ class W_WV_mask : Intrinsic<[ llvm_anyvector_ty ],
                          [ IntrNoMem ]>;
 
 class V_VX : Intrinsic<[ llvm_anyvector_ty ],
-                     [ llvm_anyvector_ty, llvm_anyint_ty ],
+                     [ LLVMMatchType<0>, llvm_anyint_ty ],
                      [ IntrNoMem ]>;
 
 class V_VX_mask : Intrinsic<[ llvm_anyvector_ty ],
@@ -173,7 +173,7 @@ class V_VVZ_mask : Intrinsic<[ llvm_anyvector_ty ],
                         [ IntrNoMem ]>;
 
 class V_VVF : Intrinsic<[ llvm_anyvector_ty ],
-                        [ llvm_anyvector_ty, llvm_anyfloat_ty, llvm_anyvector_ty ],
+                        [ LLVMMatchType<0>, llvm_anyfloat_ty, LLVMMatchType<0> ],
                         [ IntrNoMem ]>;
 
 class V_VVF_mask : Intrinsic<[ llvm_anyvector_ty ],
@@ -198,7 +198,7 @@ class V_VXM : Intrinsic<[ llvm_anyvector_ty ],
                              [ IntrNoMem ]>;
 
 class M_VV : Intrinsic<[ llvm_anyvector_ty ],
-                       [ llvm_anyvector_ty, llvm_anyvector_ty ],
+                       [ llvm_anyvector_ty,  LLVMMatchType<1> ],
                        [ IntrNoMem ]>;
 
 class M_VV_mask : Intrinsic<[ llvm_anyvector_ty ],
@@ -272,7 +272,7 @@ class V_MVV : Intrinsic< [ llvm_anyvector_ty ],
                          [ IntrNoMem ]>;
 
 class V_MVX : Intrinsic<[ llvm_anyvector_ty ],
-                        [ llvm_anyvector_ty, llvm_anyvector_ty,
+                        [ llvm_anyvector_ty, LLVMMatchType<0>,
                          llvm_anyint_ty ],
                         [ IntrNoMem ]>;
 
@@ -285,7 +285,7 @@ class V_V1_mask : Intrinsic<[ llvm_anyvector_ty ],
                             [ IntrNoMem ]>;
 
 class V_VRV : Intrinsic<[ llvm_anyvector_ty ],
-                        [ llvm_anyvector_ty, llvm_anyvector_ty, LLVMMatchType<0> ],
+                        [ LLVMMatchType<0>, llvm_anyvector_ty, LLVMMatchType<0> ],
                         [ IntrNoMem ]>;
 
 class V_VRV_mask : Intrinsic<[ llvm_anyvector_ty ],
@@ -652,7 +652,7 @@ def int_riscv_vfmerge_vvm : Intrinsic<[ llvm_anyvector_ty ],
                                       [ IntrNoMem ]>;
 
 def int_riscv_vfmerge_vfm : Intrinsic<[ llvm_anyvector_ty ],
-                                      [ llvm_anyvector_ty, llvm_anyvector_ty, llvm_anyfloat_ty ],
+                                      [ llvm_anyvector_ty, LLVMMatchType<0>, llvm_anyfloat_ty ],
                                       [ IntrNoMem ]>;
 
 // Single-Width Floating-Point/Integer Type-Convert Functions
