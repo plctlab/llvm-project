@@ -165,7 +165,7 @@ class V_VVX_mask : Intrinsic<[ llvm_anyvector_ty ],
                              [ IntrNoMem ]>;
 
 class V_VVZ : Intrinsic<[ llvm_anyvector_ty ],
-                        [ LLVMMatchType<0>, LLVMMatchType<0>, llvm_anyint_ty ],
+                        [ llvm_anyvector_ty, llvm_anyvector_ty, llvm_anyint_ty ],
                         [ IntrNoMem ]>;
 
 class V_VVZ_mask : Intrinsic<[ llvm_anyvector_ty ],

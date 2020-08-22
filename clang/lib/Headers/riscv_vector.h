@@ -3317,6 +3317,97 @@ vfloat64m4_t vfmax_vx_f64m4(vfloat64m4_t op1, double op2) {
   return __builtin_riscv_vfmax_vx_f64m4(op1, op2);
 }
 
+// Vector Single-Width Floating-Point Reduction Operations
+static __attribute__((always_inline))
+vfloat32m1_t vfredsum_vs_f32m1_f32m1(vfloat32m1_t dst, vfloat32m1_t vector, vfloat32m1_t scalar) {
+  return __builtin_riscv_vfredsum_vs_f32m1_f32m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat32m1_t vfredmax_vs_f32m1_f32m1(vfloat32m1_t dst, vfloat32m1_t vector, vfloat32m1_t scalar) {
+  return __builtin_riscv_vfredmax_vs_f32m1_f32m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat32m1_t vfredmin_vs_f32m1_f32m1(vfloat32m1_t dst, vfloat32m1_t vector, vfloat32m1_t scalar) {
+  return __builtin_riscv_vfredmin_vs_f32m1_f32m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat32m2_t vfredsum_vs_f32m2_f32m2(vfloat32m2_t dst, vfloat32m2_t vector, vfloat32m2_t scalar) {
+  return __builtin_riscv_vfredsum_vs_f32m2_f32m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat32m2_t vfredmax_vs_f32m2_f32m2(vfloat32m2_t dst, vfloat32m2_t vector, vfloat32m2_t scalar) {
+  return __builtin_riscv_vfredmax_vs_f32m2_f32m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat32m2_t vfredmin_vs_f32m2_f32m2(vfloat32m2_t dst, vfloat32m2_t vector, vfloat32m2_t scalar) {
+  return __builtin_riscv_vfredmin_vs_f32m2_f32m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat32m4_t vfredsum_vs_f32m4_f32m4(vfloat32m4_t dst, vfloat32m4_t vector, vfloat32m4_t scalar) {
+  return __builtin_riscv_vfredsum_vs_f32m4_f32m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat32m4_t vfredmax_vs_f32m4_f32m4(vfloat32m4_t dst, vfloat32m4_t vector, vfloat32m4_t scalar) {
+  return __builtin_riscv_vfredmax_vs_f32m4_f32m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat32m4_t vfredmin_vs_f32m4_f32m4(vfloat32m4_t dst, vfloat32m4_t vector, vfloat32m4_t scalar) {
+  return __builtin_riscv_vfredmin_vs_f32m4_f32m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat64m1_t vfredsum_vs_f64m1_f64m1(vfloat64m1_t dst, vfloat64m1_t vector, vfloat64m1_t scalar) {
+  return __builtin_riscv_vfredsum_vs_f64m1_f64m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat64m1_t vfredmax_vs_f64m1_f64m1(vfloat64m1_t dst, vfloat64m1_t vector, vfloat64m1_t scalar) {
+  return __builtin_riscv_vfredmax_vs_f64m1_f64m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat64m1_t vfredmin_vs_f64m1_f64m1(vfloat64m1_t dst, vfloat64m1_t vector, vfloat64m1_t scalar) {
+  return __builtin_riscv_vfredmin_vs_f64m1_f64m1(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat64m2_t vfredsum_vs_f64m2_f64m2(vfloat64m2_t dst, vfloat64m2_t vector, vfloat64m2_t scalar) {
+  return __builtin_riscv_vfredsum_vs_f64m2_f64m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat64m2_t vfredmax_vs_f64m2_f64m2(vfloat64m2_t dst, vfloat64m2_t vector, vfloat64m2_t scalar) {
+  return __builtin_riscv_vfredmax_vs_f64m2_f64m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat64m2_t vfredmin_vs_f64m2_f64m2(vfloat64m2_t dst, vfloat64m2_t vector, vfloat64m2_t scalar) {
+  return __builtin_riscv_vfredmin_vs_f64m2_f64m2(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat64m4_t vfredsum_vs_f64m4_f64m4(vfloat64m4_t dst, vfloat64m4_t vector, vfloat64m4_t scalar) {
+  return __builtin_riscv_vfredsum_vs_f64m4_f64m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat64m4_t vfredmax_vs_f64m4_f64m4(vfloat64m4_t dst, vfloat64m4_t vector, vfloat64m4_t scalar) {
+  return __builtin_riscv_vfredmax_vs_f64m4_f64m4(dst, vector, scalar);
+}
+
+static __attribute__((always_inline))
+vfloat64m4_t vfredmin_vs_f64m4_f64m4(vfloat64m4_t dst, vfloat64m4_t vector, vfloat64m4_t scalar) {
+  return __builtin_riscv_vfredmin_vs_f64m4_f64m4(dst, vector, scalar);
+}
+
 
 #endif
 
