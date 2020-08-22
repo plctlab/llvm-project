@@ -14927,10 +14927,8 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
     case RISCV::BI__builtin_riscv_vslidedown_vx_f64m1:
     case RISCV::BI__builtin_riscv_vslidedown_vx_f64m2:
     case RISCV::BI__builtin_riscv_vslidedown_vx_f64m4: {
-      Value *Ptr = EmitScalarExpr(E->getArg(0));
-      Value *Ptr1 = EmitScalarExpr(E->getArg(1));
-      Value *Ptr2 = EmitScalarExpr(E->getArg(2));
-      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vslidedown_vx, {ResultType, Ptr->getType(),  Ptr1->getType(), Ptr2->getType()});
+      Value *Arg2 = EmitScalarExpr(E->getArg(2));
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vslidedown_vx, {ResultType, Arg2->getType()});
       return Builder.CreateCall(F, Args);
     }
     case RISCV::BI__builtin_riscv_vslideup_vx_i8m1:
@@ -14963,10 +14961,8 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
     case RISCV::BI__builtin_riscv_vslideup_vx_f64m1:
     case RISCV::BI__builtin_riscv_vslideup_vx_f64m2:
     case RISCV::BI__builtin_riscv_vslideup_vx_f64m4: {
-      Value *Ptr = EmitScalarExpr(E->getArg(0));
-      Value *Ptr1 = EmitScalarExpr(E->getArg(1));
-      Value *Ptr2 = EmitScalarExpr(E->getArg(2));
-      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vslideup_vx, {ResultType, Ptr->getType(),  Ptr1->getType(), Ptr2->getType()});
+      Value *Arg2 = EmitScalarExpr(E->getArg(2));
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vslideup_vx, {ResultType, Arg2->getType()});
       return Builder.CreateCall(F, Args);
     }
     case RISCV::BI__builtin_riscv_vfcvt_rtz_x_f_v_i32m1:

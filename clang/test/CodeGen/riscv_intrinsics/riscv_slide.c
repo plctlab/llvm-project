@@ -12,6 +12,6 @@ vfloat64m1_t __attribute__((noinline)) testvslideup_vx_f64m1 (vfloat64m1_t dst, 
 }
 
 
-//CHECK:  %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vslidedown.vx.nxv1f64.nxv1f64.nxv1f64.i64(<vscale x 1 x double> %{{.*}}, <vscale x 1 x double> %{{.*}}, i64 %{{.*}}) #{{.*}}
-//CHECK:  %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vslideup.vx.nxv1f64.nxv1f64.nxv1f64.i64(<vscale x 1 x double> %{{.*}}, <vscale x 1 x double> %{{.*}}, i64 %{{.*}}) #{{.*}}
+//CHECK:  %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vslidedown.vx.nxv1f64.i64(<vscale x 1 x double> %{{.*}}, <vscale x 1 x double> %{{.*}}, i64 %{{.*}}) #{{.*}}
+//CHECK:  %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vslideup.vx.nxv1f64.i64(<vscale x 1 x double> %{{.*}}, <vscale x 1 x double> %{{.*}}, i64 %{{.*}}) #{{.*}}
 
