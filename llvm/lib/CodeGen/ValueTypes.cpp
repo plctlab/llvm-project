@@ -123,12 +123,13 @@ EVT EVT::getExtendedVectorElementType() const {
 unsigned EVT::getExtendedVectorNumElements() const {
   assert(isExtended() && "Type is not extended!");
   ElementCount EC = cast<VectorType>(LLVMTy)->getElementCount();
-  if (EC.Scalable) {
-    WithColor::warning()
-        << "The code that requested the fixed number of elements has made the "
-           "assumption that this vector is not scalable. This assumption was "
-           "not correct, and this may lead to broken code\n";
-  }
+  // FIXME: when scalable was supported well.
+  // if (EC.Scalable) {
+  //   WithColor::warning()
+  //       << "The code that requested the fixed number of elements has made the "
+  //          "assumption that this vector is not scalable. This assumption was "
+  //          "not correct, and this may lead to broken code\n";
+  // }
   return EC.Min;
 }
 

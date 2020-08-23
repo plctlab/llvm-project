@@ -780,6 +780,9 @@ private:
         LI.getPointerAddressSpace() != DL.getAllocaAddrSpace())
       return PI.setAborted(&LI);
 
+    if (LI.getType()->getPrimitiveSizeInBits().isScalable())
+      return PI.setAborted(&LI);
+
     uint64_t Size = DL.getTypeStoreSize(LI.getType()).getFixedSize();
     return handleLoadOrStore(LI.getType(), LI, Offset, Size, LI.isVolatile());
   }
@@ -793,6 +796,9 @@ private:
 
     if (SI.isVolatile() &&
         SI.getPointerAddressSpace() != DL.getAllocaAddrSpace())
+      return PI.setAborted(&SI);
+
+    if (ValOp->getType()->getPrimitiveSizeInBits().isScalable())
       return PI.setAborted(&SI);
 
     uint64_t Size = DL.getTypeStoreSize(ValOp->getType()).getFixedSize();
@@ -4576,6 +4582,9 @@ bool SROA::runOnAlloca(AllocaInst &AI) {
     return true;
   }
   const DataLayout &DL = AI.getModule()->getDataLayout();
+
+  if (AI.getAllocatedType()->getPrimitiveSizeInBits().isScalable())
+    return false;
 
   // Skip alloca forms that this analysis can't handle.
   auto *AT = AI.getAllocatedType();
