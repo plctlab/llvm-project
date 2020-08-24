@@ -14975,6 +14975,12 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       Function *F = CGM.getIntrinsic(Intrinsic::riscv_vfcvt_rtz_x_f_v, {ResultType, Ptr->getType()});
       return Builder.CreateCall(F, Args);
     }
+
+    case RISCV::BI__builtin_riscv_vfcvt_f_x_v_f32m1: {
+      Value *Arg = EmitScalarExpr(E->getArg(0));
+      Function *F = CGM.getIntrinsic(Intrinsic::riscv_vfcvt_f_x_v, {ResultType, Arg->getType()});
+      return Builder.CreateCall(F, Args);
+    }
    // case RISCV::BI__builtin_riscv_vfmacc_vf_f16m1:
     case RISCV::BI__builtin_riscv_vfmacc_vf_f32m2:
     case RISCV::BI__builtin_riscv_vfmacc_vf_f32m4:

@@ -945,11 +945,21 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
         Op1.getSimpleValueType() == MVT::i32) {
     SDValue Promote = DAG.getNode(ISD::SIGN_EXTEND, DL, MVT::i64, Op1);
     return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), {Op.getOperand(0), Promote});
-  } else {
-    return SDValue();
   }
+    break;
   }
+  case Intrinsic::riscv_vmerge_vxm:
+    SDValue Op3 = Op.getOperand(3);
+    if (Op3.getSimpleValueType() == MVT::i8 || 
+        Op3.getSimpleValueType() == MVT::i16 || 
+        Op3.getSimpleValueType() == MVT::i32) {
+          SDValue Promote = DAG.getNode(ISD::SIGN_EXTEND, DL, MVT::i64, Op3);
+          return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), 
+            {Op.getOperand(0), Op.getOperand(1), Op.getOperand(2), Promote});
+    }
+    break;
   }
+  return SDValue();
 }
 
 // Returns the opcode of the target-specific SDNode that implements the 32-bit

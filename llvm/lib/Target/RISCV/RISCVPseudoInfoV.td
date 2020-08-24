@@ -713,7 +713,7 @@ defm PseudoVWMACC : pseudo_ternary_w_wvv_wvx;
 defm PseudoVWMACCU : pseudo_ternary_w_wvv_wvx;
 defm PseudoVWMACCSU : pseudo_ternary_w_wvv_wvx;
 defm PseudoVWMACCUS : pseudo_ternary_w_wvx;
-defm PseudoVMERGE : pseudo_binary_m_vvm_vxm;
+defm PseudoVMERGE : pseudo_binary_v_vvm_vxm;
 defm PseudoVSADD : pseudo_binary_v_vv_vx;
 defm PseudoVSADDU : pseudo_binary_v_vv_vx;
 defm PseudoVSSUB : pseudo_binary_v_vv_vx;
@@ -893,6 +893,29 @@ multiclass pat_intrinsic_ternary<string intrinsic_name,
                           (arg2_type arg2_operand:$rs2))),
             (instruction result_operand:$merge, ToScalarOp<arg1_type, arg1_operand, "rs1">.Result, arg2_operand:$rs2, (mask_type zero_reg), sew)>;
 }
+
+multiclass pat_intrinsic_ternary_nomask<string intrinsic_name,
+                                        string instruction_name,
+                                        ValueType result_type,
+                                        ValueType arg1_type,
+                                        ValueType arg2_type,
+                                        ValueType arg3_type,
+                                        int sew,
+                                        string lmul,
+                                        RegisterClass result_operand,
+                                        RegisterClass arg1_operand,
+                                        RegisterClass arg2_operand,
+                                        DAGOperand arg3_operand> {
+  defvar instruction = !cast<Instruction>(instruction_name#"_M"#lmul);
+  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
+                          (arg1_type V0),
+                          (arg2_type arg2_operand:$rs2),
+                          (arg3_type arg3_operand:$rs3))),
+            (instruction (result_type zero_reg), arg2_operand:$rs2, 
+                ToScalarOp<arg3_type, arg3_operand, "rs3">.Result, (arg1_type V0), sew)>;
+}
+
+
 
 multiclass pat_intrinsic_unary<string intrinsic_name,
                                string instruction_name,
@@ -1104,6 +1127,20 @@ multiclass pat_intrinsic_int_binary_v_vvm_vxm
                                         evr.Vector, evr.Vector, XLenVT, evr.Mask,
                                         evr.SEW, evr.LMULstr, evr.RegClass, evr.RegClass, GPR>;
   }
+}
+
+multiclass pat_intrinsic_vmerge
+  <string intrinsic_name, string instruction_name> {
+    foreach evr = AllVectors in {
+      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vvm", instruction_name#"_VVM",
+      evr.Vector, evr.Mask, evr.Vector, evr.Vector, evr.SEW, evr.LMULstr, 
+      evr.RegClass, VMV0, evr.RegClass, evr.RegClass>;
+    }
+    foreach evr = AllIntegerVectors in {
+      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vxm", instruction_name#"_VXM",
+      evr.Vector, evr.Mask, evr.Vector, XLenVT, evr.SEW, evr.LMULstr, 
+      evr.RegClass, VMV0, evr.RegClass, GPR>;
+    }
 }
 
 multiclass pat_intrinsic_int_binary_m_vvm_vxm
@@ -1360,7 +1397,7 @@ defm "" : pat_intrinsic_int_ternary_w_wvv_wvx<"int_riscv_vwmacc", "PseudoVWMACC"
 defm "" : pat_intrinsic_int_ternary_w_wvv_wvx<"int_riscv_vwmaccu", "PseudoVWMACCU">;
 defm "" : pat_intrinsic_int_ternary_w_wvv_wvx<"int_riscv_vwmaccsu", "PseudoVWMACCSU">;
 defm "" : pat_intrinsic_int_ternary_w_wvx<"int_riscv_vwmaccus", "PseudoVWMACCUS">;
-defm "" : pat_intrinsic_int_binary_m_vvm_vxm<"int_riscv_vmerge", "PseudoVMERGE">;
+defm "" : pat_intrinsic_vmerge<"int_riscv_vmerge", "PseudoVMERGE">;
 defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsadd", "PseudoVSADD">;
 defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsaddu", "PseudoVSADDU">;
 defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vaadd", "PseudoVAADD">;

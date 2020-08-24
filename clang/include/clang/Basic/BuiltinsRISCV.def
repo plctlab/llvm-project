@@ -652,6 +652,7 @@ BUILTIN(__builtin_riscv_vfcvt_f_x_v_f64m2, "q2dq2Wi", "")
 BUILTIN(__builtin_riscv_vfcvt_rtz_x_f_v_i64m4, "q4Wiq4d", "")
 BUILTIN(__builtin_riscv_vfcvt_f_x_v_f64m4, "q4dq4Wi", "")
 
+
 // Vector Floating-Point Square-Root Operations
 BUILTIN(__builtin_riscv_vfsqrt_v_f32m1, "q2fq2f", "")
 BUILTIN(__builtin_riscv_vfsqrt_v_f32m2, "q4fq4f", "")

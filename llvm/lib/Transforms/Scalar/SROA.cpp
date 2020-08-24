@@ -4573,6 +4573,8 @@ void SROA::clobberUse(Use &U) {
 /// the slices of the alloca, and then hands it off to be split and
 /// rewritten as needed.
 bool SROA::runOnAlloca(AllocaInst &AI) {
+  return false;
+  
   LLVM_DEBUG(dbgs() << "SROA alloca: " << AI << "\n");
   ++NumAllocasAnalyzed;
 
@@ -4583,8 +4585,9 @@ bool SROA::runOnAlloca(AllocaInst &AI) {
   }
   const DataLayout &DL = AI.getModule()->getDataLayout();
 
-  if (AI.getAllocatedType()->getPrimitiveSizeInBits().isScalable())
+  if (auto *VTy = dyn_cast<ScalableVectorType>(AI.getAllocatedType())) {
     return false;
+  }
 
   // Skip alloca forms that this analysis can't handle.
   auto *AT = AI.getAllocatedType();
