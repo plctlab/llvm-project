@@ -467,7 +467,6 @@ multiclass Ternary_int_v_vvx_vvv {
 }
 // Vector Single-Width Integer Multiply-Add Functions
 defm vmacc : Ternary_int_v_vvx_vvv;
-defm vnmacc : Ternary_int_v_vvx_vvv;
 defm vnmsac : Ternary_int_v_vvx_vvv;
 defm vmadd : Ternary_int_v_vvx_vvv;
 defm vnmsub : Ternary_int_v_vvx_vvv;
@@ -665,7 +664,7 @@ multiclass Unary_V_V1 {
 
 defm vfcvt_x_f : Unary_V_V1;
 defm vfcvt_rtz_x_f : Unary_V_V1;
-defm vfcvt_xu_f_v : Unary_V_V1;
+defm vfcvt_xu_f : Unary_V_V1;
 defm vfcvt_rtz_xu_f : Unary_V_V1;
 defm vfcvt_f_x : Unary_V_V1;
 defm vwcvt_x_x : Unary_V_V1;
