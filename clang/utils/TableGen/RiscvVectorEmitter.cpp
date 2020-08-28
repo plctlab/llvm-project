@@ -43,6 +43,8 @@ private:
   // The any type operands
   std::vector<int64_t> AnyTypeOperands;
 
+  bool MaskBit;
+
 public:
 
   std::string getName() { return Name; }
@@ -57,11 +59,12 @@ public:
   bool isLoad() { return Name.find("vle") != std::string::npos; }
   bool isStore() { return (Name.find("vse") != std::string::npos) && (Infix != ""); }
   bool isVsetvl() { return Name.find("vsetvl") != std::string::npos; }
+  bool isMask() { return MaskBit; }
 
   Intrinsic(StringRef Name, std::vector<std::shared_ptr<RISCVVectorType>> & Types, StringRef Infix, 
-                    StringRef Suffix, std::vector<int64_t> &Operands)
+                    StringRef Suffix, std::vector<int64_t> &Operands, bool Mask)
       : Name(Name.str()), Types(Types), Infix(Infix.str()),
-        Suffix(Suffix), AnyTypeOperands(Operands) {}
+        Suffix(Suffix), AnyTypeOperands(Operands), MaskBit(Mask) {}
 
   std::string createStatementInCase();
 };
@@ -218,23 +221,30 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "#include <stdint.h>\n";
   OS << "#define float32_t float\n";
   OS << "#define float64_t double\n";
-  OS << "#define _E8 0\n";
-  OS << "#define _E16 4\n";
-  OS << "#define _E32 8\n";
-  OS << "#define _E64 12\n";
-  OS << "#define _M1 0\n";
-  OS << "#define _M2 1\n";
-  OS << "#define _M4 2\n";
-  OS << "#define _M8 3\n";
-  OS << "#define _MF2 35\n";
+  OS << "#define float16_t _Float16\n";
+  OS << "#define _e8 0\n";
+  OS << "#define _e16 4\n";
+  OS << "#define _e32 8\n";
+  OS << "#define _e64 12\n";
+  OS << "#define _m1 0\n";
+  OS << "#define _m2 1\n";
+  OS << "#define _m4 2\n";
+  OS << "#define _m8 3\n";
+  OS << "#define _mf2 35\n";
+  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1))) int vint8mf8_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1))) int vint8mf4_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(8, 2, 1))) int vint8mf2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 1, 0))) int vint8m1_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 2, 0))) int vint8m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 4, 0))) int vint8m4_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 8, 0))) int vint8m8_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(16, 4, 1))) int vint16mf4_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(16, 2, 1))) int vint16mf2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 1, 0))) int vint16m1_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 2, 0))) int vint16m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 4, 0))) int vint16m4_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 8, 0))) int vint16m8_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(32, 2, 1))) int vint32mf2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 1, 0))) int vint32m1_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 2, 0))) int vint32m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 4, 0))) int vint32m4_t;\n";
@@ -252,14 +262,20 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "typedef __attribute__((riscv_vector_type(64, 2, 8))) int vint64m2x8_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(64, 4, 8))) int vint64m4x8_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(64, 8, 8))) int vint64m8x8_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1))) unsigned vuint8mf8_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1))) unsigned vuint8mf4_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(8, 2, 1))) unsigned vuint8mf2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 1, 0))) unsigned vuint8m1_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 2, 0))) unsigned vuint8m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 4, 0))) unsigned vuint8m4_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 8, 0))) unsigned vuint8m8_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(16, 4, 1))) unsigned vuint16mf4_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(16, 2, 1))) unsigned vuint16mf2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 1, 0))) unsigned vuint16m1_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 2, 0))) unsigned vuint16m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 4, 0))) unsigned vuint16m4_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 8, 0))) unsigned vuint16m8_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(32, 2, 1))) unsigned vuint32mf2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 1, 0))) unsigned vuint32m1_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 2, 0))) unsigned vuint32m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 4, 0))) unsigned vuint32m4_t;\n";
@@ -268,10 +284,13 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "typedef __attribute__((riscv_vector_type(64, 2, 0))) unsigned vuint64m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(64, 4, 0))) unsigned vuint64m4_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(64, 8, 0))) unsigned vuint64m8_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(16, 4, 1))) float vfloat16mf4_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(16, 2, 1))) float vfloat16mf2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 1, 0))) float vfloat16m1_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 2, 0))) float vfloat16m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 4, 0))) float vfloat16m4_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(16, 8, 0))) float vfloat16m8_t;\n";
+  OS << "typedef __attribute__((riscv_vector_type(32, 2, 1))) float vfloat32mf2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 1, 0))) float vfloat32m1_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 2, 0))) float vfloat32m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 4, 0))) float vfloat32m4_t;\n";
@@ -301,37 +320,21 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
       OS << def->getName() << "_" << def->getSuffix();
       OS << "(size_t avl) {\n";
       OS << "return __builtin_riscv_vsetvl(avl, ";
-      OS << "_E32 | _M8);\n}\n";
+      size_t MPosition = def->getSuffix().find('m');
+      std::string Sew = def->getSuffix().substr(0, MPosition);
+      std::string Lmul = def->getSuffix().substr(MPosition, def->getSuffix().size());
+      OS << "_" << Sew << " | " << "_" << Lmul << ");\n}\n";
     } else {
-      OS << "static __attribute__((always_inline))\n";
-      OS << def->getTypes()[0]->parseTypeName() << " ";
+      OS << "#define ";
       OS << def->getName() << def->getInfix() << "_" << def->getSuffix();
-      OS << "(";
-      std::vector<std::shared_ptr<RISCVVectorType>> arguments = 
-          {def->getTypes().begin() + 1, def->getTypes().end()};
-      std::string argument = "";
-      std::vector<std::string> ArgumentName;
-      if (arguments.size() > 0) {
-        int ArgIndex = 0;
-        for (auto type : arguments) {
-          ArgumentName.push_back("value" + std::to_string(ArgIndex));
-          argument += type->parseTypeName() + " value" + std::to_string(ArgIndex) + ", ";
-          ArgIndex++;
-        }
-        argument = argument.substr(0, argument.size() - 2);
-        OS << argument;
-      }
-      OS << ") {\n";
-      OS << "return __builtin_riscv_" << def->getName() << def->getInfix() << "_" << def->getSuffix() << "(";
-
-      std::string CallArguments = "";
-      for (auto Arg : ArgumentName) {
-        CallArguments += Arg + ", ";
-      }
-      CallArguments = CallArguments.substr(0, CallArguments.size() - 2);
-
-      OS << CallArguments << ");\n";
-      OS << "}\n\n";
+      if (def->isMask())
+        OS << "_m";
+      OS << "(...)";
+      OS << " __builtin_riscv_" << def->getName() 
+         << def->getInfix() << "_" << def->getSuffix();
+      if (def->isMask())
+        OS << "_m";
+      OS << "(__VA_ARGS__)\n";
     }
   }
   OS << "#endif";
@@ -348,8 +351,9 @@ void RISCVVectorEmitter::createIntrinsic(Record *R, std::vector<std::shared_ptr<
   StringRef Infix = R->getValueAsString("Infix");
   StringRef Suffix = R->getValueAsString("Suffix");
   std::vector<int64_t> Operands = R->getValueAsListOfInts("AnyTypeOperands");
+  bool Mask = R->getValueAsInt("Mask") == 1;
 
-  Out.push_back(std::make_shared<Intrinsic>(Name, BuiltinTypes, Infix, Suffix, Operands));
+  Out.push_back(std::make_shared<Intrinsic>(Name, BuiltinTypes, Infix, Suffix, Operands, Mask));
 }
 
 void RISCVVectorEmitter::createBuiltinCG(raw_ostream &OS) {
@@ -363,6 +367,8 @@ void RISCVVectorEmitter::createBuiltinCG(raw_ostream &OS) {
 
   for (auto def : Defs) {
     std::string IntrinsicName = def->getName() + def->getInfix();
+    if (def->isMask())
+      IntrinsicName += "_m";
     if (SplitedIntrinsics.count(IntrinsicName))
       SplitedIntrinsics[IntrinsicName].push_back(def);
     else 
@@ -371,9 +377,14 @@ void RISCVVectorEmitter::createBuiltinCG(raw_ostream &OS) {
 
   for (auto intrinsics : SplitedIntrinsics) {
     for (auto &intrinsic : intrinsics.second) {
-      OS << "case RISCV::BI__builtin_riscv_" << intrinsic->getName() << intrinsic->getInfix();
-      if (!intrinsic->isVsetvl())
-        OS << "_" << intrinsic->getSuffix();
+      if (intrinsic->isVsetvl()) {
+        OS << "case RISCV::BI__builtin_riscv_vsetvl:\n";
+        break;
+      }
+      OS << "case RISCV::BI__builtin_riscv_" << intrinsic->getName() 
+         << intrinsic->getInfix() << "_" << intrinsic->getSuffix();
+      if (intrinsic->isMask())
+        OS << "_m";
       OS <<  ":\n";
     }
     OS << "{\n";
@@ -389,12 +400,19 @@ void RISCVVectorEmitter::createBuiltins(raw_ostream &OS) {
     createIntrinsic(R, Defs);
   }
 
+  OS << "BUILTIN(__builtin_riscv_vsetvl, \"zzz\", \"n\")\n";
+
   for (auto def : Defs) {
-    OS << "BUILTIN(__builtin_riscv_" << def->getName() << def->getInfix();
-    if (!def->isVsetvl()) {
-      OS << "_" << def->getSuffix();
+    if (def->isVsetvl()) {
+      continue;
     }
+
+    OS << "BUILTIN(__builtin_riscv_" << def->getName() 
+       << def->getInfix() << "_" << def->getSuffix();
     
+    if (def->isMask())
+      OS << "_m";
+
     OS << ", " << "\"";
     
     for (auto type : def->getTypes()) {
@@ -412,7 +430,10 @@ std::string Intrinsic::createStatementInCase() {
   } else if (isStore()) {
     result += "Function *F = CGM.getIntrinsic(Intrinsic::riscv_vstore, {";
   } else {
-    result += "Function *F = CGM.getIntrinsic(Intrinsic::riscv_" + getName() + getInfix() + ", {";
+    result += "Function *F = CGM.getIntrinsic(Intrinsic::riscv_" + getName() + getInfix();
+    if (isMask())
+      result += "_mask";
+    result += ", {";
   }
   if (!isVsetvl()) {
     for (auto operandIndex : AnyTypeOperands) {

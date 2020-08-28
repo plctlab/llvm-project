@@ -548,6 +548,7 @@ multiclass Narrowing {
 }
 // Vector Narrowing Fixed-Point Clip Functions
 defm vnclip : Narrowing;
+defm vnclipu : Narrowing;
 
 multiclass Binary_float_v_vv_vf {
   def "int_riscv_" # NAME # "_vv" : V_VV;
