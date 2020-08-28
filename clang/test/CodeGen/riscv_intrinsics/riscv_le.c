@@ -47,13 +47,13 @@ vuint16m1_t  __attribute__((noinline)) testle16_u(const uint16_t* src) {
   return vle16_v_u16m1(src);
 }
 
-//CHECK:   %{{.*}} = call <vscale x 2 x i32> @llvm.riscv.vload.nxv2i32.p0i32(i32* %{{.*}}) #{{.*}}
-//CHECK:    %{{.*}} = call <vscale x 2 x float> @llvm.riscv.vload.nxv2f32.p0f32(float* %{{.*}}) #{{.*}}
-//CHECK: %{{.*}} = call <vscale x 2 x i32> @llvm.riscv.vload.nxv2i32.p0i32(i32* %{{.*}}) #{{.*}}
-//CHECK:   %{{.*}} = call <vscale x 8 x i8> @llvm.riscv.vload.nxv8i8.p0i8(i8* %{{.*}}) #{{.*}}
-//CHECK:   %{{.*}} = call <vscale x 8 x i8> @llvm.riscv.vload.nxv8i8.p0i8(i8* %{{.*}}) #{{.*}}
-//CHECK:   %{{.*}} = call <vscale x 1 x i64> @llvm.riscv.vload.nxv1i64.p0i64(i64* %{{.*}}) #{{.*}}
-//CHECK:   %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vload.nxv1f64.p0f64(double* %{{.*}}) #{{.*}}
-//CHECK:   %{{.*}} = call <vscale x 1 x i64> @llvm.riscv.vload.nxv1i64.p0i64(i64* %{{.*}}) #{{.*}}
-//CHECK:  %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vload.nxv4i16.p0i16(i16* %{{.*}}) #{{.*}}
-//CHECK:  %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vload.nxv4i16.p0i16(i16* %{{.*}}) #{{.*}}
+//CHECK:   %{{.*}} = call <vscale x 2 x i32> @llvm.riscv.vload.nxv2i32.p0i32(i32* %{{.*}}) 
+//CHECK:    %{{.*}} = call <vscale x 2 x float> @llvm.riscv.vload.nxv2f32.p0f32(float* %{{.*}}) 
+//CHECK: %{{.*}} = call <vscale x 2 x i32> @llvm.riscv.vload.nxv2i32.p0i32(i32* %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 8 x i8> @llvm.riscv.vload.nxv8i8.p0i8(i8* %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 8 x i8> @llvm.riscv.vload.nxv8i8.p0i8(i8* %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 1 x i64> @llvm.riscv.vload.nxv1i64.p0i64(i64* %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vload.nxv1f64.p0f64(double* %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 1 x i64> @llvm.riscv.vload.nxv1i64.p0i64(i64* %{{.*}}) 
+//CHECK:  %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vload.nxv4i16.p0i16(i16* %{{.*}}) 
+//CHECK:  %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vload.nxv4i16.p0i16(i16* %{{.*}}) 

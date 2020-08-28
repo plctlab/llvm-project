@@ -54,7 +54,7 @@ defset list<VectorInfo> AllVector = {
     defset list<VectorInfo> AllSignedVectorType = {
       foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         def i8#lmul : VectorInfo<"vint8"#lmul#"_t", "q"#ComputeVectorNum<3, lmul>.Result#"c",
-        "vbool8"#lmul#"_t", "q"#ComputeVectorNum<3, lmul>.Result#"b", i8, "u8"#lmul, 8>;
+        "vbool8"#lmul#"_t", "q"#ComputeVectorNum<3, lmul>.Result#"b", i8, "i8"#lmul, 8>;
         
       }
       foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
@@ -64,7 +64,7 @@ defset list<VectorInfo> AllVector = {
 
       foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
         def i32#lmul : VectorInfo<"vint32"#lmul#"_t", "q"#ComputeVectorNum<5, lmul>.Result#"i", 
-        "vbool32"#lmul#"_t", "q"#ComputeVectorNum<5, lmul>.Result#"b", i32, "32"#lmul, 32>;
+        "vbool32"#lmul#"_t", "q"#ComputeVectorNum<5, lmul>.Result#"b", i32, "i32"#lmul, 32>;
       }
       
       foreach lmul = ["m1", "m2", "m4", "m8"] in {
@@ -75,7 +75,7 @@ defset list<VectorInfo> AllVector = {
     defset list<VectorInfo> AllUnsignedVectorType = {
       foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         def u8#lmul : VectorInfo<"vuint8"#lmul#"_t", "q"#ComputeVectorNum<3, lmul>.Result#"Uc",
-        "vbool8"#lmul#"_t", "q"#ComputeVectorNum<3, lmul>.Result#"b", i8, "i8"#lmul, 8>;
+        "vbool8"#lmul#"_t", "q"#ComputeVectorNum<3, lmul>.Result#"b", i8, "u8"#lmul, 8>;
       }
       foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         def u16#lmul : VectorInfo<"vuint16"#lmul#"_t", "q"#ComputeVectorNum<4, lmul>.Result#"Us", 
