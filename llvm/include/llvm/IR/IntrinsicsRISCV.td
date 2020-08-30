@@ -696,8 +696,18 @@ multiclass Ternary_int_v_vvz {
   def "int_riscv_" # NAME # "_vx" : V_VVZ;
   def "int_riscv_" # NAME # "_vx_mask" : V_VVZ_mask;
 }
+
+multiclass Binary_float_v_vf {
+  def "int_riscv_" # NAME # "_vf" : V_VF;
+  def "int_riscv_" # NAME # "_vf_mask" : V_VF_mask;
+}
+
 defm vslideup : Ternary_int_v_vvz;
 defm vslidedown : Ternary_int_v_vvz;
+defm vslide1up : Binary_int_vx;
+defm vslide1down : Binary_int_vx;
+defm vfslide1up : Binary_float_v_vf;
+defm vfslide1down : Binary_float_v_vf;
 
 // Vector Single-Width Floating-Point Reduction Functions
 defm vfredosum : Reduction_v_vrv;

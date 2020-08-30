@@ -16,4 +16,4 @@ size_t  __attribute__((noinline)) testadd(size_t rvl) {
    return vsetvl_e16m1(rvl);
 }
 
-//CHECK: %{{.*}} = call i64 @llvm.riscv.vsetvl(i64 %{{.*}}, i64 0) #{{.*}}
+//CHECK: %{{.*}} = call i64 @llvm.riscv.vsetvl(i64 %{{.*}}, i64 0) 

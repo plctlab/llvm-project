@@ -7,4 +7,4 @@ int32_t __attribute__((noinline)) testmax8(vint32m1_t src) {
   return vmv_x_s_i32m1_i32(src);
 }
 
-//CHECK: %{{.*}} = call i32 @llvm.riscv.vmv.x.s.i32.nxv2i32(<vscale x 2 x i32> %1) #{{.*}}
+//CHECK: %{{.*}} = call i32 @llvm.riscv.vmv.x.s.i32.nxv2i32(<vscale x 2 x i32> %{{.*}}) 
