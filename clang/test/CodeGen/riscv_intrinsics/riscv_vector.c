@@ -1,4 +1,4 @@
-// RUN: %clang --target=riscv64-unknown-linux-elf -S -emit-llvm -O0 %s -o - | FileCheck %s
+// RUN: %clang_cc1 -triple riscv64-unknown-linux-elf -S -emit-llvm -O0 %s -o - | FileCheck %s
 
 #include "riscv_vector.h"
 
