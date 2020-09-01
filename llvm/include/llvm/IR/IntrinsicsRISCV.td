@@ -667,6 +667,7 @@ defm vfcvt_rtz_x_f : Unary_V_V1;
 defm vfcvt_xu_f : Unary_V_V1;
 defm vfcvt_rtz_xu_f : Unary_V_V1;
 defm vfcvt_f_x : Unary_V_V1;
+defm vfcvt_f_xu : Unary_V_V1;
 defm vwcvt_x_x : Unary_V_V1;
 defm vwcvtu_x_x : Unary_V_V1;
 defm vfwcvt_x_f : Unary_V_V1;

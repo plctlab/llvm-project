@@ -5,18 +5,24 @@ class ScalarInfo<string TypeName, string TypeStr> {
 
 class VectorInfo<string TypeStr, string MStr, 
               ScalarInfo Sca, string Suf, int Sew,
-              string BType> {
+              string BType, string M1Type> {
   string Str = TypeStr;
   string TypeSuffix = Suf;
   string MaskStr = MStr;
   int SEW = Sew;
   ScalarInfo ScalarType = Sca;
   string BoolType = BType;
+  string Lmul1Type = M1Type;
 }
 
 class WideVectorInfo<VectorInfo Origin, VectorInfo Wide> {
   VectorInfo WideVector = Wide;
   VectorInfo OriginVector = Origin;
+}
+
+class IntToFloat<VectorInfo integer, VectorInfo float> {
+  VectorInfo Integer = integer;
+  VectorInfo Float = float;
 }
 
 class ComputeVectorNum<int shift_size, string lmul> {
@@ -63,44 +69,45 @@ defset list<ScalarInfo> AllScalarType = {
   def f64 : ScalarInfo<"f64", "d">;
 }
 
+
 defset list<VectorInfo> AllVector = {
   defset list<VectorInfo> AllIntegerVectorType = {
     defset list<VectorInfo> AllSignedVectorType = {
       foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         def i8#lmul : VectorInfo<"q"#ComputeVectorNum<3, lmul>.Result#"c",
-        "q"#ComputeVectorNum<3, lmul>.Result#"b", i8, "i8"#lmul, 8, ComputeBoolType<ComputeVectorNum<3, lmul>.Result>.Result>;
+        "q"#ComputeVectorNum<3, lmul>.Result#"b", i8, "i8"#lmul, 8, ComputeBoolType<ComputeVectorNum<3, lmul>.Result>.Result, "i8m1">;
       }
       foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         def i16#lmul : VectorInfo<"q"#ComputeVectorNum<4, lmul>.Result#"s", 
-        "q"#ComputeVectorNum<4, lmul>.Result#"b", i16, "i16"#lmul, 16, ComputeBoolType<ComputeVectorNum<4, lmul>.Result>.Result>;
+        "q"#ComputeVectorNum<4, lmul>.Result#"b", i16, "i16"#lmul, 16, ComputeBoolType<ComputeVectorNum<4, lmul>.Result>.Result, "i16m1">;
       }
 
       foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
         def i32#lmul : VectorInfo<"q"#ComputeVectorNum<5, lmul>.Result#"i", 
-        "q"#ComputeVectorNum<5, lmul>.Result#"b", i32, "i32"#lmul, 32, ComputeBoolType<ComputeVectorNum<5, lmul>.Result>.Result>;
+        "q"#ComputeVectorNum<5, lmul>.Result#"b", i32, "i32"#lmul, 32, ComputeBoolType<ComputeVectorNum<5, lmul>.Result>.Result, "i32m1">;
       }
       
       foreach lmul = ["m1", "m2", "m4", "m8"] in {
         def i64#lmul : VectorInfo<"q"#ComputeVectorNum<6, lmul>.Result#"Wi", 
-        "q"#ComputeVectorNum<6, lmul>.Result#"b", i64, "i64"#lmul, 64, ComputeBoolType<ComputeVectorNum<6, lmul>.Result>.Result>;
+        "q"#ComputeVectorNum<6, lmul>.Result#"b", i64, "i64"#lmul, 64, ComputeBoolType<ComputeVectorNum<6, lmul>.Result>.Result, "i64m1">;
       }
     }
     defset list<VectorInfo> AllUnsignedVectorType = {
       foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         def u8#lmul : VectorInfo<"q"#ComputeVectorNum<3, lmul>.Result#"Uc",
-        "q"#ComputeVectorNum<3, lmul>.Result#"b", i8, "u8"#lmul, 8, ComputeBoolType<ComputeVectorNum<3, lmul>.Result>.Result>;
+        "q"#ComputeVectorNum<3, lmul>.Result#"b", i8, "u8"#lmul, 8, ComputeBoolType<ComputeVectorNum<3, lmul>.Result>.Result, "u8m1">;
       }
       foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         def u16#lmul : VectorInfo<"q"#ComputeVectorNum<4, lmul>.Result#"Us", 
-        "q"#ComputeVectorNum<4, lmul>.Result#"b", i16, "u16"#lmul, 16, ComputeBoolType<ComputeVectorNum<4, lmul>.Result>.Result>;
+        "q"#ComputeVectorNum<4, lmul>.Result#"b", i16, "u16"#lmul, 16, ComputeBoolType<ComputeVectorNum<4, lmul>.Result>.Result, "u16m1">;
       }
       foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
         def u32#lmul : VectorInfo<"q"#ComputeVectorNum<5, lmul>.Result#"Ui", 
-        "q"#ComputeVectorNum<5, lmul>.Result#"b", i32, "u32"#lmul, 32, ComputeBoolType<ComputeVectorNum<5, lmul>.Result>.Result>;
+        "q"#ComputeVectorNum<5, lmul>.Result#"b", i32, "u32"#lmul, 32, ComputeBoolType<ComputeVectorNum<5, lmul>.Result>.Result, "u32m1">;
       }
       foreach lmul = ["m1", "m2", "m4", "m8"] in {
         def u64#lmul : VectorInfo<"q"#ComputeVectorNum<6, lmul>.Result#"UWi", 
-        "q"#ComputeVectorNum<6, lmul>.Result#"b", i64, "u64"#lmul, 64, ComputeBoolType<ComputeVectorNum<6, lmul>.Result>.Result>;
+        "q"#ComputeVectorNum<6, lmul>.Result#"b", i64, "u64"#lmul, 64, ComputeBoolType<ComputeVectorNum<6, lmul>.Result>.Result, "u64m1">;
       }
     }
   }
@@ -108,15 +115,15 @@ defset list<VectorInfo> AllVector = {
   defset list<VectorInfo> AllFloatVectorType = {
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
       def f16#lmul : VectorInfo<"q"#ComputeVectorNum<4, lmul>.Result#"h",
-      "q"#ComputeVectorNum<4, lmul>.Result#"b", f16, "f16"#lmul, 16, ComputeBoolType<ComputeVectorNum<4, lmul>.Result>.Result>;
+      "q"#ComputeVectorNum<4, lmul>.Result#"b", f16, "f16"#lmul, 16, ComputeBoolType<ComputeVectorNum<4, lmul>.Result>.Result, "f16m1">;
     }
     foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
       def f32#lmul : VectorInfo<"q"#ComputeVectorNum<5, lmul>.Result#"f", 
-      "q"#ComputeVectorNum<5, lmul>.Result#"b", f32, "f32"#lmul, 32, ComputeBoolType<ComputeVectorNum<5, lmul>.Result>.Result>;
+      "q"#ComputeVectorNum<5, lmul>.Result#"b", f32, "f32"#lmul, 32, ComputeBoolType<ComputeVectorNum<5, lmul>.Result>.Result, "f32m1">;
     }
     foreach lmul = ["m1", "m2", "m4", "m8"] in {
       def f64#lmul : VectorInfo<"q"#ComputeVectorNum<6, lmul>.Result#"d",
-      "q"#ComputeVectorNum<6, lmul>.Result#"b", f64, "f64"#lmul, 64, ComputeBoolType<ComputeVectorNum<6, lmul>.Result>.Result>;
+      "q"#ComputeVectorNum<6, lmul>.Result#"b", f64, "f64"#lmul, 64, ComputeBoolType<ComputeVectorNum<6, lmul>.Result>.Result, "f64m1">;
     }
   }
 }
@@ -152,6 +159,31 @@ defset list<WideVectorInfo> AllWideVector = {
     }
     foreach lmul = ["mf2", "m1", "m2", "m4"] in {
       def wf32#lmul : WideVectorInfo<!cast<VectorInfo>("f32"#lmul), !cast<VectorInfo>("f64"#ComputeWideLmul<lmul>.Result)>;
+    }
+  }
+}
+
+defset list<IntToFloat> IntToFloat = {
+  defset list<IntToFloat> SignedToFloat = {
+    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
+      def 16b#lmul : IntToFloat<!cast<VectorInfo>("i16"#lmul), !cast<VectorInfo>("f16"#lmul)>;
+    }
+    foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
+      def 32b#lmul : IntToFloat<!cast<VectorInfo>("i32"#lmul), !cast<VectorInfo>("f32"#lmul)>;
+    }
+    foreach lmul = ["m1", "m2", "m4", "m8"] in {
+      def 64b#lmul : IntToFloat<!cast<VectorInfo>("i64"#lmul), !cast<VectorInfo>("f64"#lmul)>;
+    }
+  }
+  defset list<IntToFloat> UnsignedToFloat = {
+    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
+      def u16b#lmul : IntToFloat<!cast<VectorInfo>("u16"#lmul), !cast<VectorInfo>("f16"#lmul)>;
+    }
+    foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
+      def u32b#lmul : IntToFloat<!cast<VectorInfo>("i32"#lmul), !cast<VectorInfo>("f32"#lmul)>;
+    }
+    foreach lmul = ["m1", "m2", "m4", "m8"] in {
+      def u64b#lmul : IntToFloat<!cast<VectorInfo>("u64"#lmul), !cast<VectorInfo>("f64"#lmul)>;
     }
   }
 }
@@ -212,6 +244,25 @@ multiclass ternary_nomask<string name, string result_str, string arg1_str,
                           string mask_str, list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
   def NAME#infix#suffix : Inst<name, [result_str, arg1_str, arg2_str, arg3_str],
                               infix, suffix, 0, AnyTypeOperands>;
+}
+
+multiclass vfcvt<string Name> {
+  foreach evr = SignedToFloat in {
+    defm NAME : unary<Name, evr.Integer.Str, evr.Float.Str, "_x_f_v", evr.Integer.TypeSuffix,
+                      evr.Integer.MaskStr, [-1, 0], [-1, 0, 2]>;
+    defm NAME : unary<Name, evr.Integer.Str, evr.Float.Str, "_rtz_x_f_v", evr.Integer.TypeSuffix,
+                      evr.Integer.MaskStr, [-1, 0], [-1, 0, 2]>;
+    defm NAME : unary<Name, evr.Float.Str, evr.Integer.Str, "_f_x_v", evr.Float.TypeSuffix,
+                      evr.Integer.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+  foreach evr = UnsignedToFloat in {
+    defm NAME : unary<Name, evr.Integer.Str, evr.Float.Str, "_xu_f_v", evr.Integer.TypeSuffix,
+                      evr.Integer.MaskStr, [-1, 0], [-1, 0, 2]>;
+    defm NAME : unary<Name, evr.Integer.Str, evr.Float.Str, "_rtz_xu_f_v", evr.Integer.TypeSuffix,
+                      evr.Integer.MaskStr, [-1, 0], [-1, 0, 2]>;
+    defm NAME : unary<Name, evr.Float.Str, evr.Integer.Str, "_f_xu_v", evr.Float.TypeSuffix,
+                      evr.Integer.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
 }
 
 multiclass vslide<string Name> {
@@ -410,6 +461,24 @@ multiclass ternary_v_vvx_vvv<string Name> {
                             "_vv", evr.TypeSuffix, evr.MaskStr, [-1], [-1, 0]>;
     defm NAME : ternary<Name, evr.Str, evr.Str, evr.ScalarType.Str, evr.Str,
                             "_vx", evr.TypeSuffix, evr.MaskStr, [-1, 1], [-1, 0, 2]>;
+  }
+}
+
+multiclass int_ternary_v_vs<string Name> {
+  foreach evr = AllIntegerVectorType in {
+    defvar Lmul1Type = !cast<VectorInfo>(evr.Lmul1Type);
+    defm NAME : ternary<Name, Lmul1Type.Str, Lmul1Type.Str, evr.Str, Lmul1Type.Str,
+                        "_vs", evr.TypeSuffix#"_"#Lmul1Type.TypeSuffix, evr.MaskStr, [-1, 1],
+                        [-1, 0, 2]>;
+  }
+}
+
+multiclass float_ternary_v_vs<string Name> {
+  foreach evr = AllFloatVectorType in {
+    defvar Lmul1Type = !cast<VectorInfo>(evr.Lmul1Type);
+    defm NAME : ternary<Name, Lmul1Type.Str, Lmul1Type.Str, evr.Str, Lmul1Type.Str,
+                        "_vs", evr.TypeSuffix#"_"#Lmul1Type.TypeSuffix, evr.MaskStr, [-1, 1],
+                        [-1, 0, 2]>;
   }
 }
 
@@ -614,7 +683,7 @@ defm vssubu : unsigned_binary_v_vv_vx<"vssubu">;
 defm vaadd : int_binary_v_vv_vx<"vaadd">;
 defm vaaddu : unsigned_binary_v_vv_vx<"vaaddu">;
 defm vasub : int_binary_v_vv_vx<"vasub">;
-defm vasubu : unsigned_binary_v_vv_vx<"vasubu">;
+defm vasubu : unsigned_binary_v_vv_vx<"vasubu">; 
 defm vsmul : int_binary_v_vv_vx<"vsmul">;
 defm vssrl : unsigned_binary_v_vv_vx<"vssrl">;
 defm vssra : int_binary_v_vv_vx<"vssra">;
@@ -676,7 +745,19 @@ defm vfslide1up : float_binary_v_vf<"vfslide1up">;
 defm vfslide1down : float_binary_v_vf<"vfslide1down">;
 defm vmv : vmv_x_s_s_x<"vmv">;
 defm vfmv : vfmv_f_s_s_f<"vfmv">;
-
+defm vredsum : int_ternary_v_vs<"vredsum">;
+defm vredmax : int_ternary_v_vs<"vredmax">;
+defm vredmaxu : int_ternary_v_vs<"vredmaxu">;
+defm vredmin : int_ternary_v_vs<"vredmin">;
+defm vredminu : int_ternary_v_vs<"vredminu">;
+defm vredand : int_ternary_v_vs<"vredand">;
+defm vredor : int_ternary_v_vs<"vredor">;
+defm vredxor : int_ternary_v_vs<"vredxor">;
+defm vfredsum : float_ternary_v_vs<"vfredsum">;
+defm vfredosum : float_ternary_v_vs<"vfredosum">;
+defm vfredmax : float_ternary_v_vs<"vfredmax">;
+defm vfredmin : float_ternary_v_vs<"vfredmin">;
+defm vfcvt : vfcvt<"vfcvt">;
 
 
 defm "" : load_store;
