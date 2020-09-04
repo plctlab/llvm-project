@@ -56,8 +56,14 @@ public:
   std::vector<int64_t> getAnyTypeOperand() { return AnyTypeOperands; }
 
   // FixMe: for stride index load or store
-  bool isLoad() { return Name.find("vle") != std::string::npos; }
-  bool isStore() { return (Name.find("vse") != std::string::npos) && (Infix != ""); }
+  bool isLoadOrStore() { return (Name.find("vle") != std::string::npos 
+                      || Name.find("vse") != std::string::npos
+                      || Name.find("vlse") != std::string::npos 
+                      || Name.find("vsse") != std::string::npos
+                      || Name.find("vlxei") != std::string::npos
+                      || Name.find("vsuxei") != std::string::npos
+                      || Name.find("vsxei") != std::string::npos) && (Infix != ""); }
+  
   bool isVsetvl() { return Name.find("vsetvl") != std::string::npos; }
   bool isMask() { return MaskBit; }
 
@@ -425,10 +431,16 @@ void RISCVVectorEmitter::createBuiltins(raw_ostream &OS) {
 
 std::string Intrinsic::createStatementInCase() {
   std::string result = "";
-  if (isLoad()) {
-    result += "Function *F = CGM.getIntrinsic(Intrinsic::riscv_vload, {";
-  } else if (isStore()) {
-    result += "Function *F = CGM.getIntrinsic(Intrinsic::riscv_vstore, {";
+  std::map<std::string, std::string> intrinsicMap= 
+    {{"vle", "vload"}, {"vse", "vstore"}, {"vlse", "vload_strided"}, {"vsse", "vstore_strided"},
+     {"vlxei", "vload_indexed"}, {"vsxei", "vstore_indexed"}};
+  if (isLoadOrStore()) {
+    std::string Name = getName();
+    std::string::iterator NameIter = Name.begin();
+    while (!isdigit(*(NameIter++))) {}
+    result += "Function *F = CGM.getIntrinsic(Intrinsic::riscv_";
+    result += intrinsicMap[std::string(Name.begin(), NameIter-1)];
+    result += ", {";
   } else {
     result += "Function *F = CGM.getIntrinsic(Intrinsic::riscv_" + getName() + getInfix();
     if (isMask())

@@ -57,3 +57,21 @@ vuint16m1_t  __attribute__((noinline)) testle16_u(const uint16_t* src) {
 //CHECK:   %{{.*}} = call <vscale x 1 x i64> @llvm.riscv.vload.nxv1i64.p0i64(i64* %{{.*}}) 
 //CHECK:  %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vload.nxv4i16.p0i16(i16* %{{.*}}) 
 //CHECK:  %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vload.nxv4i16.p0i16(i16* %{{.*}}) 
+
+vint16m1_t  __attribute__((noinline)) testloadstride(const int16_t* src, ptrdiff_t bstride) {
+  return vlse16_v_i16m1(src, bstride);
+}
+
+//CHECK: %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vload.strided.nxv4i16.p0i16(i16* %0, i64 %1)
+
+vint16m1_t  __attribute__((noinline)) testloadindexed(const int16_t* src, ptrdiff_t bstride) {
+  return vlse16_v_i16m1(src, bstride);
+}
+
+//CHECK: %{{.*}} = call <vscale x 4 x i16> @llvm.riscv.vload.strided.nxv4i16.p0i16(i16* %0, i64 %1)
+
+void  __attribute__((noinline)) teststoreindexed(int16_t *base, ptrdiff_t bstride, vint16m1_t value) {
+  return vsse16_v_i16m1(base, bstride, value);
+}
+
+//CHECK: call void @llvm.riscv.vstore.strided.p0i16.nxv4i16(i16* %0, i64 %1, <vscale x 4 x i16> %2)

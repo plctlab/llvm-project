@@ -723,31 +723,30 @@ multiclass Vload {
   def ""              : Intrinsic<[ llvm_anyvector_ty ],
                                   [ llvm_anyptr_ty ],
                                   [ IntrReadMem ]>;
-  // def "_strided"      : Intrinsic<[ llvm_anyvector_ty ],
-  //                                 [ LLVMPointerType<LLVMMatchType<0>>,
-  //                                   llvm_i64_ty, llvm_i64_ty ],
-  //                                 [ NoCapture<0>, IntrReadMem ]>;
-  // def "_indexed"      : Intrinsic<[ llvm_anyvector_ty ],
-  //                                 [ LLVMPointerType<LLVMMatchType<0>>,
-  //                                   llvm_anyvector_ty, llvm_i64_ty ],
-  //                                 [ NoCapture<0>, IntrReadMem ]>;
-  // def "_mask"         : Intrinsic<[ llvm_anyvector_ty ],
-  //                                 [ LLVMMatchType<0>,
-  //                                   LLVMPointerType<LLVMMatchType<0>>,
-  //                                   llvm_anyvector_ty, llvm_i64_ty ],
-  //                                 [ NoCapture<0>, IntrReadMem ]>;
-  // def "_strided_mask" : Intrinsic<[ llvm_anyvector_ty ],
-  //                                 [ LLVMMatchType<0>,
-  //                                   LLVMPointerType<LLVMMatchType<0>>,
-  //                                   llvm_i64_ty, llvm_anyvector_ty,
-  //                                   llvm_i64_ty ],
-  //                                 [ NoCapture<0>, IntrReadMem ]>;
-  // def "_indexed_mask" : Intrinsic<[ llvm_anyvector_ty ],
-  //                                 [ LLVMMatchType<0>,
-  //                                   LLVMPointerType<LLVMMatchType<0>>,
-  //                                   llvm_anyvector_ty, llvm_anyvector_ty,
-  //                                   llvm_i64_ty ],
-  //                                 [ NoCapture<0>, IntrReadMem ]>;
+  def "_strided"      : Intrinsic<[ llvm_anyvector_ty ],
+                                  [ llvm_anyptr_ty,
+                                    llvm_i64_ty ],
+                                  [ IntrReadMem ]>;
+  def "_indexed"      : Intrinsic<[ llvm_anyvector_ty ],
+                                  [ llvm_anyptr_ty,
+                                    llvm_anyvector_ty ],
+                                  [ IntrReadMem ]>;
+  def "_mask"         : Intrinsic<[ llvm_anyvector_ty ],
+                                  [ llvm_anyvector_ty,
+                                    LLVMPointerType<LLVMMatchType<0>>,
+                                    llvm_anyptr_ty ],
+                                  [ IntrReadMem ]>;
+  def "_strided_mask" : Intrinsic<[ llvm_anyvector_ty ],
+                                  [ llvm_anyvector_ty,
+                                    LLVMMatchType<0>,
+                                    llvm_anyptr_ty, llvm_i64_ty],
+                                  [ IntrReadMem ]>;
+  def "_indexed_mask" : Intrinsic<[ llvm_anyvector_ty ],
+                                  [ llvm_anyvector_ty,
+                                    LLVMMatchType<0>,
+                                    llvm_anyptr_ty,
+                                    llvm_anyvector_ty],
+                                  [ IntrReadMem ]>;
 }
 
 defm int_riscv_vload : Vload;
@@ -758,33 +757,31 @@ multiclass Vstore {
                                   [ llvm_anyptr_ty,
                                     llvm_anyvector_ty],
                                   [ IntrWriteMem ]>;
-  // def "_strided"      : Intrinsic<[],
-  //                                 [ llvm_anyvector_ty,
-  //                                   LLVMPointerType<llvm_any_ty>,
-  //                                   llvm_i64_ty, llvm_i64_ty ],
-  //                                 [ NoCapture<1>, IntrWriteMem ]>;
-  // def "_indexed"      : Intrinsic<[],
-  //                                 [ llvm_anyvector_ty,
-  //                                   LLVMPointerType<LLVMMatchType<0>>,
-  //                                   llvm_anyvector_ty, llvm_i64_ty ],
-  //                                 [ NoCapture<1>, IntrWriteMem ]>;
-  // def "_mask"         : Intrinsic<[],
-  //                                 [ llvm_anyvector_ty,
-  //                                   LLVMPointerType<LLVMMatchType<0>>,
-  //                                   llvm_anyvector_ty, llvm_i64_ty ],
-  //                                 [ NoCapture<1>, IntrWriteMem ]>;
-  // def "_strided_mask" : Intrinsic<[],
-  //                                 [ llvm_anyvector_ty,
-  //                                   LLVMPointerType<LLVMMatchType<0>>,
-  //                                   llvm_i64_ty, llvm_anyvector_ty,
-  //                                   llvm_i64_ty ],
-  //                                 [ NoCapture<1>, IntrWriteMem ]>;
-  // def "_indexed_mask" : Intrinsic<[],
-  //                                 [ llvm_anyvector_ty,
-  //                                   LLVMPointerType<LLVMMatchType<0>>,
-  //                                   llvm_anyvector_ty, llvm_anyvector_ty,
-  //                                   llvm_i64_ty ],
-  //                                 [ NoCapture<1>, IntrWriteMem ]>;
+  def "_strided"      : Intrinsic<[],
+                                  [ llvm_anyptr_ty,
+                                    llvm_i64_ty,
+                                    llvm_anyvector_ty ],
+                                  [ IntrWriteMem ]>;
+  def "_mask"      : Intrinsic<[],
+                                  [ llvm_anyvector_ty,
+                                    llvm_anyptr_ty,
+                                    llvm_anyvector_ty ],
+                                  [ IntrWriteMem ]>;
+  def "_indexed"         : Intrinsic<[],
+                                  [ llvm_anyvector_ty,
+                                    LLVMPointerType<LLVMMatchType<0>>,
+                                    llvm_anyvector_ty, llvm_i64_ty ],
+                                  [ IntrWriteMem ]>;
+  def "_strided_mask" : Intrinsic<[],
+                                  [ llvm_anyptr_ty,
+                                    llvm_i64_ty,
+                                    llvm_anyvector_ty ],
+                                  [ IntrWriteMem ]>;
+  def "_indexed_mask" : Intrinsic<[],
+                                  [ llvm_anyvector_ty,
+                                    llvm_anyptr_ty,
+                                    llvm_anyvector_ty, llvm_anyvector_ty],
+                                  [ IntrWriteMem ]>;
 }
 
 defm int_riscv_vstore : Vstore;

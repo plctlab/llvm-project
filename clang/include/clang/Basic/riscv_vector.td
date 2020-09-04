@@ -625,8 +625,32 @@ multiclass load_store {
   foreach evr = AllVector in {
     def "vle"#evr.SEW#"_v"#evr.TypeSuffix : Inst<"vle"#evr.SEW, 
       [evr.Str, evr.ScalarType.Str#"C*"], "_v", evr.TypeSuffix, 0, [-1, 0]>;
+    def "vle"#evr.SEW#"_v"#evr.TypeSuffix#"_mask" : Inst<"vle"#evr.SEW, 
+      [evr.Str, evr.MaskStr, evr.Str, evr.ScalarType.Str#"C*"], "_v", evr.TypeSuffix, 1, [-1, 0, 2]>;
     def "vse"#evr.SEW#"_v"#evr.TypeSuffix : Inst<"vse"#evr.SEW, 
       ["v", evr.ScalarType.Str#"*", evr.Str], "_v", evr.TypeSuffix, 0, [0, 1]>;
+    def "vse"#evr.SEW#"_v"#evr.TypeSuffix#"_mask" : Inst<"vse"#evr.SEW,
+      ["v", evr.MaskStr, evr.Str, evr.ScalarType.Str#"C*"], "_v", evr.TypeSuffix, 1, [0, 1, 2]>;
+    def "vlse"#evr.SEW#"_v"#evr.TypeSuffix : Inst<"vlse"#evr.SEW,
+      [evr.Str, evr.ScalarType.Str#"C*", "Y"], "_v", evr.TypeSuffix, 0, [-1, 0]>;
+    def "vlse"#evr.SEW#"_v"#evr.TypeSuffix#"_mask" : Inst<"vlse"#evr.SEW,
+      [evr.Str, evr.MaskStr, evr.Str, evr.ScalarType.Str#"C*", "Y"], "_v", evr.TypeSuffix, 1, [-1, 0, 2]>;
+    def "vsse"#evr.SEW#"_v"#evr.TypeSuffix : Inst<"vsse"#evr.SEW, 
+      ["v", evr.ScalarType.Str#"*", "Y", evr.Str], "_v", evr.TypeSuffix, 0, [0, 2]>;
+    def "vsse"#evr.SEW#"_v"#evr.TypeSuffix#"_mask" : Inst<"vsse"#evr.SEW,
+      ["v", evr.MaskStr, evr.ScalarType.Str#"*", "Y", evr.Str], "_v", evr.TypeSuffix, 1, [0, 1, 2]>;
+    // def "vlxei"#evr.SEW#"_v"#evr.TypeSuffix : Inst<"vlxei"#evr.SEW,
+    //   [evr.Str, evr.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(evr))).Str],
+    //    "_v", evr.TypeSuffix, 0, [-1, 0, 1]>;
+    // def "vlxei"#evr.SEW#"_v"#evr.TypeSuffix#"_mask" : Inst<"vlxei"#evr.SEW, 
+    //   [evr.Str, evr.MaskStr, evr.Str, evr.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(evr))).Str],
+    //    "_v", evr.TypeSuffix, 1, [-1, 0, 2, 3]>;
+    // def "vsxei"#evr.SEW#"_v"#evr.TypeSuffix : Inst<"vsxei"#evr.SEW,
+    //   ["v", evr.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(evr))).Str, evr.Str],
+    //   "_v", evr.TypeSuffix, 0, [0, 2, 3]>;
+    // def "vsxei"#evr.SEW#"_v"#evr.TypeSuffix#"_mask" : Inst<"vsxei"#evr.SEW,
+    //   ["v", evr.MaskStr, evr.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(evr))).Str, 
+    //   evr.Str], "_v", evr.TypeSuffix, 1, [0, 1, 2, 3]>;
   }
 }
 
