@@ -223,7 +223,7 @@ def RISCVVectorPseudoTable : GenericTable {
 foreach evr = AllVlmuls in {
   defvar vlmul = evr.Lmulstr;
   foreach sew = [8, 16, 32, 64] in {
-    let mayLoad = 1, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0, 
+    let mayLoad = 1, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1, 
       VLMul = evr.Vlmul in {
       let Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 1,
       BaseInstr = !cast<Instruction>("VLE"#sew#"_V") in {
@@ -236,7 +236,7 @@ foreach evr = AllVlmuls in {
       }
     }
 
-    let mayLoad = 0, mayStore = 1, hasSideEffects = 0, usesCustomInserter = 0,
+    let mayLoad = 0, mayStore = 1, hasSideEffects = 0, usesCustomInserter = 1,
       VLMul = evr.Vlmul in {
         let Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 0,
         BaseInstr = !cast<Instruction>("VSE"#sew#"_V") in {
@@ -437,7 +437,6 @@ multiclass pseudo_binary_v_vv_vx<string constraints = ""> {
     let VLMul = evr.Vlmul in {
       defm _VV : pseudo_binary<evr.RegClass, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
       defm _VX : pseudo_binary<evr.RegClass, evr.RegClass, GPR, evr.Lmulstr, constraints>;
-      // defm _VI : pseudo_binary<evr.RegClass, evr.RegClass, simm5, evr.Lmulstr, con
     }
   }
 }
