@@ -658,40 +658,40 @@ multiclass pseudo_ternary_w_wvx<string constraints = ""> {
   }
 }
 
+// 12.1. Vector Single-Width Integer Add and Subtract
 defm PseudoVADD : pseudo_binary_v_vv_vx;
 defm PseudoVSUB : pseudo_binary_v_vv_vx;
-defm PseudoVMUL : pseudo_binary_v_vv_vx;
-defm PseudoVMULH : pseudo_binary_v_vv_vx;
-defm PseudoVMULHU : pseudo_binary_v_vv_vx;
-defm PseudoVMULHSU : pseudo_binary_v_vv_vx;
-defm PseudoVDIV : pseudo_binary_v_vv_vx;
-defm PseudoVDIVU : pseudo_binary_v_vv_vx;
-defm PseudoVREM : pseudo_binary_v_vv_vx;
-defm PseudoVREMU : pseudo_binary_v_vv_vx;
-defm PseudoVAND : pseudo_binary_v_vv_vx;
-defm PseudoVOR : pseudo_binary_v_vv_vx;
-defm PseudoVXOR : pseudo_binary_v_vv_vx;
+
+// 12.2. Vector Widening Integer Add/Subtract
 defm PseudoVWADD : pseudo_binary_w_vv_vx_wx_wv<"@earlyclobber $rd">;
 defm PseudoVWADDU : pseudo_binary_w_vv_vx_wx_wv<"@earlyclobber $rd">;
 defm PseudoVWSUB : pseudo_binary_w_vv_vx_wx_wv<"@earlyclobber $rd">;
 defm PseudoVWSUBU : pseudo_binary_w_vv_vx_wx_wv<"@earlyclobber $rd">;
-defm PseudoVWMUL : pseudo_binary_w_vv_vx<"@earlyclobber $rd">;
-defm PseudoVWMULU : pseudo_binary_w_vv_vx<"@earlyclobber $rd">;
-defm PseudoVWMULSU : pseudo_binary_w_vv_vx<"@earlyclobber $rd">;
+
+// 12.3. Vector Integer Extension
+
+// 12.4. Vector Integer Add-with-Carry/Subtract-with-Borrow Instructions
 defm PseudoVADC : pseudo_binary_v_vvm_vxm;
 defm PseudoVMADC : pseudo_binary_m_vvm_vxm<"@earlyclobber $rd">;
 defm PseudoVSBC : pseudo_binary_v_vvm_vxm;
 defm PseudoVMSBC : pseudo_binary_v_vvm_vxm<"@earlyclobber $rd">;
+
+// 12.5. Vector Bitwise Logical Instructions
+defm PseudoVAND : pseudo_binary_v_vv_vx;
+defm PseudoVOR : pseudo_binary_v_vv_vx;
+defm PseudoVXOR : pseudo_binary_v_vv_vx;
 // defm PseudoVNOT : pseudo_unary_v_v;
+
+// 12.6. Vector Single-Width Bit Shift Instructions
 defm PseudoVSLL : pseudo_binary_v_vv_vx;
 defm PseudoVSRL : pseudo_binary_v_vv_vx;
 defm PseudoVSRA : pseudo_binary_v_vv_vx;
-// defm PseudoVFMACC : pseudo_ternary_v_vvv_vvf;
-defm PseudoVMV_V : pseudo_unary_nomask_v_x_v_v;
-defm PseudoVMV : pseudo_unary_nomask_x_s_s_x;
-defm PseudoVFMV : pseudo_vfmv;
+
+// 12.7. Vector Narrowing Integer Right Shift Instructions
 defm PseudoVNSRL : pseudo_binary_n_wn_wx;
 defm PseudoVNSRA : pseudo_binary_n_wn_wx;
+
+// 12.8. Vector Integer Comparison Instructions
 defm PseudoVMSEQ : pseudo_binary_m_vv_vx;
 defm PseudoVMSNE : pseudo_binary_m_vv_vx;
 defm PseudoVMSLT : pseudo_binary_m_vv_vx;
@@ -700,40 +700,90 @@ defm PseudoVMSLE : pseudo_binary_m_vv_vx;
 defm PseudoVMSLEU : pseudo_binary_m_vv_vx;
 defm PseudoVMSGT : pseudo_binary_m_vx;
 defm PseudoVMSGTU : pseudo_binary_m_vx;
+
+// 12.9. Vector Integer Min/Max Instructions
 defm PseudoVMIN : pseudo_binary_v_vv_vx;
 defm PseudoVMINU : pseudo_binary_v_vv_vx;
 defm PseudoVMAX : pseudo_binary_v_vv_vx;
 defm PseudoVMAXU : pseudo_binary_v_vv_vx;
+
+// 12.10. Vector Single-Width Integer Multiply Instructions
+defm PseudoVMUL : pseudo_binary_v_vv_vx;
+defm PseudoVMULH : pseudo_binary_v_vv_vx;
+defm PseudoVMULHU : pseudo_binary_v_vv_vx;
+defm PseudoVMULHSU : pseudo_binary_v_vv_vx;
+
+// 12.11. Vector Integer Divide Instructions
+defm PseudoVDIV : pseudo_binary_v_vv_vx;
+defm PseudoVDIVU : pseudo_binary_v_vv_vx;
+defm PseudoVREM : pseudo_binary_v_vv_vx;
+defm PseudoVREMU : pseudo_binary_v_vv_vx;
+
+// 12.12. Vector Widening Integer Multiply Instructions
+defm PseudoVWMUL : pseudo_binary_w_vv_vx<"@earlyclobber $rd">;
+defm PseudoVWMULU : pseudo_binary_w_vv_vx<"@earlyclobber $rd">;
+defm PseudoVWMULSU : pseudo_binary_w_vv_vx<"@earlyclobber $rd">;
+
+// 12.13. Vector Single-Width Integer Multiply-Add Instructions
 defm PseudoVMACC : pseudo_ternary_v_vvv_vvx;
 defm PseudoVNMSAC : pseudo_ternary_v_vvv_vvx;
 defm PseudoVMADD : pseudo_ternary_v_vvv_vvx;
 defm PseudoVNMSUB : pseudo_ternary_v_vvv_vvx;
+
+// 12.14. Vector Widening Integer Multiply-Add Instructions
 defm PseudoVWMACC : pseudo_ternary_w_wvv_wvx;
 defm PseudoVWMACCU : pseudo_ternary_w_wvv_wvx;
 defm PseudoVWMACCSU : pseudo_ternary_w_wvv_wvx;
 defm PseudoVWMACCUS : pseudo_ternary_w_wvx;
+
+// 12.15. Vector Quad-Widening Integer Multiply-Add Instructions (Extension Zvqmac)
+
+// 12.16. Vector Integer Merge Instructions
 defm PseudoVMERGE : pseudo_binary_v_vvm_vxm;
+
+// 12.17. Vector Integer Move Instructions
+defm PseudoVMV_V : pseudo_unary_nomask_v_x_v_v;
+
+// 13.1. Vector Single-Width Saturating Add and Subtract
 defm PseudoVSADD : pseudo_binary_v_vv_vx;
 defm PseudoVSADDU : pseudo_binary_v_vv_vx;
 defm PseudoVSSUB : pseudo_binary_v_vv_vx;
 defm PseudoVSSUBU : pseudo_binary_v_vv_vx;
+
+// 13.2. Vector Single-Width Averaging Add and Subtract
 defm PseudoVAADD : pseudo_binary_v_vv_vx;
 defm PseudoVAADDU : pseudo_binary_v_vv_vx;
 defm PseudoVASUB : pseudo_binary_v_vv_vx;
 defm PseudoVASUBU : pseudo_binary_v_vv_vx;
+
+// 13.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
 defm PseudoVSMUL : pseudo_binary_v_vv_vx;
+
+// 13.4. Vector Single-Width Scaling Shift Instructions
 defm PseudoVSSRL : pseudo_binary_v_vv_vx;
 defm PseudoVSSRA : pseudo_binary_v_vv_vx;
+
+// 13.5. Vector Narrowing Fixed-Point Clip Instructions
 defm PseudoVNCLIP : pseudo_binary_n_wn_wx;
+
+// 14.2. Vector Single-Width Floating-Point Add/Subtract Instructions
 defm PseudoVFADD : pseudo_binary_v_vv_vf;
 defm PseudoVFSUB : pseudo_binary_v_vv_vf;
 defm PseudoVFRSUB : pseudo_binary_v_vf;
+
+// 14.3. Vector Widening Floating-Point Add/Subtract Instructions
 defm PseudoVFWADD : pseudo_binary_w_vv_vf_wf_wv;
 defm PseudoVFWSUB : pseudo_binary_w_vv_vf_wf_wv;
+
+// 14.4. Vector Single-Width Floating-Point Multiply/Divide Instructions
 defm PseudoVFMUL : pseudo_binary_v_vv_vf;
 defm PseudoVFDIV : pseudo_binary_v_vv_vf;
 defm PseudoVFRDIV : pseudo_binary_v_vf;
+
+// 14.5. Vector Widening Floating-Point Multiply
 defm PseudoVFWMUL : pseudo_binary_w_vv_vf;
+
+// 14.6. Vector Single-Width Floating-Point Fused Multiply-Add Instructions
 defm PseudoVFMACC : pseudo_ternary_v_vvv_vvf;
 defm PseudoVFNMACC : pseudo_ternary_v_vvv_vvf;
 defm PseudoVFNMSAC : pseudo_ternary_v_vvv_vvf;
@@ -741,22 +791,46 @@ defm PseudoVFMADD : pseudo_ternary_v_vvv_vvf;
 defm PseudoVFNMADD : pseudo_ternary_v_vvv_vvf;
 defm PseudoVFMSUB : pseudo_ternary_v_vvv_vvf;
 defm PseudoVFNMSUB : pseudo_ternary_v_vvv_vvf;
+
+// 14.7. Vector Widening Floating-Point Fused MultiplyAdd Instructions
 defm PseudoVFWMACC : pseudo_ternary_w_wvv_wvf;
 defm PseudoVFWNMACC : pseudo_ternary_w_wvv_wvf;
 defm PseudoVFWMSAC : pseudo_ternary_w_wvv_wvf;
 defm PseudoVFWNMSAC : pseudo_ternary_w_wvv_wvf;
+
+// 14.8. Vector Floating-Point Square-Root Instruction
 defm PseudoVFSQRT : pseudo_unary_v_v;
+
+// 14.9. Vector Floating-Point MIN/MAX Instructions
 defm PseudoVFMIN : pseudo_binary_v_vv_vf;
 defm PseudoVFMAX : pseudo_binary_v_vv_vf;
+
+// 14.10. Vector Floating-Point Sign-Injection Instructions
 defm PseudoVFSGNJ : pseudo_binary_v_vv_vf;
 defm PseudoVFSGNJN : pseudo_binary_v_vv_vf;
 defm PseudoVFSGNJX : pseudo_binary_v_vv_vf;
+
+// 14.11. Vector Floating-Point Compare Instructions
 defm PseudoVMFEQ : pseudo_binary_m_vv_vf;
 defm PseudoVMFNE : pseudo_binary_m_vv_vf;
 defm PseudoVMFLT : pseudo_binary_m_vv_vf;
 defm PseudoVMFGT : pseudo_binary_m_vf;
 defm PseudoVMFGE : pseudo_binary_m_vf;
+
+// 14.12. Vector Floating-Point Classify Instruction
 defm PseudoVFCLASS : pseudo_unary_v_v;
+
+// 14.13. Vector Floating-Point Merge Instruction
+
+// 14.14. Vector Floating-Point Move Instruction
+// 17.2. Floating-Point Scalar Move Instructions
+defm PseudoVFMV : pseudo_vfmv;
+
+// 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
+// 14.16. Widening Floating-Point/Integer Type-Convert Instructions
+// 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
+
+// 15.1. Vector Single-Width Integer Reduction Instructions
 defm PseudoVREDSUM : pseudo_ternary_reduction;
 defm PseudoVREDMAX : pseudo_ternary_reduction;
 defm PseudoVREDMAXU : pseudo_ternary_reduction;
@@ -765,15 +839,45 @@ defm PseudoVREDMINU : pseudo_ternary_reduction;
 defm PseudoVREDAND : pseudo_ternary_reduction;
 defm PseudoVREDOR : pseudo_ternary_reduction;
 defm PseudoVREDXOR : pseudo_ternary_reduction;
-defm PseudoVSLIDEUP : pseudo_ternary_v_vvx;
-defm PseudoVSLIDEDOWN : pseudo_ternary_v_vvx;
+
+// 15.2. Vector Widening Integer Reduction Instructions
+
+// 15.3. Vector Single-Width Floating-Point Reduction Instructions
 defm PseudoVFREDOSUM : pseudo_ternary_reduction;
 defm PseudoVFREDSUM : pseudo_ternary_reduction;
 defm PseudoVFREDMAX : pseudo_ternary_reduction;
 defm PseudoVFREDMIN : pseudo_ternary_reduction;
 
+// 15.4. Vector Widening Floating-Point Reduction Instructions
+// 16.1. Vector Mask-Register Logical Instructions
+// 16.2. Vector mask population count vpopc
+// 16.3. vfirst find-first-set mask bit
+// 16.4. vmsbf.m set-before-first mask bit
+// 16.5. vmsif.m set-including-first mask bit
+// 16.6. vmsof.m set-only-first mask bit
+// 16.8. Vector Iota Instruction
+// 16.9. Vector Element Index Instruction
 
+// 17.1. Integer Scalar Move Instructions
+defm PseudoVMV : pseudo_unary_nomask_x_s_s_x;
 
+// 17.3.1. Vector Slideup Instructions
+defm PseudoVSLIDEUP : pseudo_ternary_v_vvx;
+
+// 17.3.2. Vector Slidedown Instructions
+defm PseudoVSLIDEDOWN : pseudo_ternary_v_vvx;
+
+// 17.3.3. Vector Slide1up
+// 17.3.4. Vector Slide1down Instruction
+// 17.4. Vector Register Gather Instruction
+// 17.5. Vector Compress Instruction
+// 17.6. Whole Vector Register Move
+// 19.3. Vector Integer Dot-Product Instruction
+// 19.4. Vector Floating-Point Dot Product Instruction
+
+//===----------------------------------------------------------------------===//
+// Patterns for intrinsics
+//===----------------------------------------------------------------------===//
 
 class swap_helper<dag Prefix,
                   dag A,
