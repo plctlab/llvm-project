@@ -8194,6 +8194,10 @@ Value *CodeGenFunction::EmitSVEReinterpret(Value *Val, llvm::Type *Ty) {
   return Builder.CreateBitCast(Val, Ty);
 }
 
+Value *CodeGenFunction::EmitRISCVReinterpret(Value *Val, llvm::Type *Ty) {
+  return Builder.CreateBitCast(Val, Ty);
+}
+
 static void InsertExplicitZeroOperand(CGBuilderTy &Builder, llvm::Type *Ty,
                                       SmallVectorImpl<Value *> &Ops) {
   auto *SplatZero = Constant::getNullValue(Ty);
@@ -14894,6 +14898,11 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   for (unsigned i = 0, e = E->getNumArgs(); i != e; i++)
     Ops.push_back(EmitScalarExpr(E->getArg(i)));
 
+  if (BuiltinID >= RISCV::BI__builtin_riscv_vreinterpret_v_f16m1_i16m1 && 
+      BuiltinID <= RISCV::BI__builtin_riscv_vreinterpret_v_u8mf8_i8mf8) {
+    return EmitRISCVReinterpret(Ops[0], ResultType);
+    
+  }
  
   switch (BuiltinID) {
     #define GEN_RISCV_VECTOR_BUILTIN_CG

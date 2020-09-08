@@ -631,6 +631,13 @@ def ArmBuiltinAlias : InheritableAttr, TargetSpecificAttr<TargetAnyArm> {
   let Documentation = [ArmBuiltinAliasDocs];
 }
 
+def RiscvVectorBuiltinAlias : InheritableAttr, TargetSpecificAttr<TargetRISCV> {
+  let Spellings = [Clang<"__clang_riscv_vector_builtin_alias">];
+  let Args = [IdentifierArgument<"BuiltinName">];
+  let Subjects = SubjectList<[Function], ErrorDiag>;
+  let Documentation = [Undocumented];
+}
+
 def Aligned : InheritableAttr {
   let Spellings = [GCC<"aligned">, Declspec<"align">, Keyword<"alignas">,
                    Keyword<"_Alignas">];

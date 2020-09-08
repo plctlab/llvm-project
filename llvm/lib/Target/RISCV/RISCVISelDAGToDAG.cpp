@@ -146,6 +146,23 @@ void RISCVDAGToDAGISel::Select(SDNode *Node) {
     }
     break;
   }
+  case ISD::BITCAST: {
+    SDValue Op0 = Node->getOperand(0);
+    EVT VTOrig = Op0->getValueType(0);
+    if (VT.isScalableVector() && VTOrig.isScalableVector()) {
+      const TargetRegisterClass *RCDest = TLI->getRegClassFor(VT.getSimpleVT());
+      const TargetRegisterClass *RCOrig =
+          TLI->getRegClassFor(VTOrig.getSimpleVT());
+      bool BitcastIsTrivial = RCDest == RCOrig;
+
+      if (BitcastIsTrivial) {
+        ReplaceUses(SDValue(Node, 0), Op0);
+        CurDAG->RemoveDeadNode(Node);
+        return;
+      }
+    }
+    break;
+  }
   case RISCVISD::READ_CYCLE_WIDE:
     assert(!Subtarget->is64Bit() && "READ_CYCLE_WIDE is only used on riscv32");
 

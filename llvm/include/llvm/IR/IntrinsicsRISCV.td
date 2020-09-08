@@ -715,6 +715,9 @@ defm vfredsum : Reduction_v_vrv;
 defm vfredmax : Reduction_v_vrv;
 defm vfredmin : Reduction_v_vrv;
 
+// Reinterpret Cast Conversion Functions
+def int_riscv_vreinterpret_v : V_V1; 
+
 
 
 // Loads

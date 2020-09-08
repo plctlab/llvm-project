@@ -25,6 +25,10 @@ class IntToFloat<VectorInfo integer, VectorInfo float> {
   VectorInfo Float = float;
 }
 
+class IntToUnsigned<VectorInfo Integer> {
+  string Result = !cast<VectorInfo>(!subst("i", "u", !cast<string>(Integer))).Str;
+}
+
 class ComputeVectorNum<int shift_size, string lmul> {
   int VectorLength = !cond(!eq(lmul, "mf8") : !sra(64, 3),
                            !eq(lmul, "mf4") : !sra(64, 2),
@@ -68,7 +72,6 @@ defset list<ScalarInfo> AllScalarType = {
   def f32 : ScalarInfo<"f32", "f">;
   def f64 : ScalarInfo<"f64", "d">;
 }
-
 
 defset list<VectorInfo> AllVector = {
   defset list<VectorInfo> AllIntegerVectorType = {
@@ -163,7 +166,7 @@ defset list<WideVectorInfo> AllWideVector = {
   }
 }
 
-defset list<IntToFloat> IntToFloat = {
+defset list<IntToFloat> AllIntToFloat = {
   defset list<IntToFloat> SignedToFloat = {
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
       def 16b#lmul : IntToFloat<!cast<VectorInfo>("i16"#lmul), !cast<VectorInfo>("f16"#lmul)>;
@@ -180,7 +183,7 @@ defset list<IntToFloat> IntToFloat = {
       def u16b#lmul : IntToFloat<!cast<VectorInfo>("u16"#lmul), !cast<VectorInfo>("f16"#lmul)>;
     }
     foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
-      def u32b#lmul : IntToFloat<!cast<VectorInfo>("i32"#lmul), !cast<VectorInfo>("f32"#lmul)>;
+      def u32b#lmul : IntToFloat<!cast<VectorInfo>("u32"#lmul), !cast<VectorInfo>("f32"#lmul)>;
     }
     foreach lmul = ["m1", "m2", "m4", "m8"] in {
       def u64b#lmul : IntToFloat<!cast<VectorInfo>("u64"#lmul), !cast<VectorInfo>("f64"#lmul)>;
@@ -352,10 +355,125 @@ multiclass int_binary_v_vv_vx<string Name> {
 
 multiclass int_binary_v_vv_vi8<string Name> {
   foreach evr = AllSignedVectorType in {
-    defm NAME : binary<Name, evr.Str, evr.Str, !subst("q", "qU", evr.Str), "_vv", 
+    defm NAME : binary<Name, evr.Str, evr.Str, IntToUnsigned<evr>.Result, "_vv", 
                           evr.TypeSuffix, evr.MaskStr, [-1], [-1, 0]>;
     defm NAME : binary<Name, evr.Str, evr.Str, "Uc",
                           "_vx", evr.TypeSuffix, evr.MaskStr, [-1, 1], [-1, 0, 3]>;
+  }
+}
+
+multiclass reinterpret<string Name> {
+  foreach evr = AllSignedVectorType in {
+    defm NAME : unary_nomask<Name, evr.Str, IntToUnsigned<evr>.Result, "_v",
+                         evr.TypeSuffix#"_"#!subst("i", "u", evr.TypeSuffix), "", [-1, 0], []>;
+    defm NAME : unary_nomask<Name, IntToUnsigned<evr>.Result, evr.Str, "_v",
+                         !subst("i", "u", evr.TypeSuffix)#"_"#evr.TypeSuffix, "", [-1, 0], []>; 
+  }
+  foreach evr = AllIntToFloat in {
+    defm NAME : unary_nomask<Name, evr.Integer.Str, evr.Float.Str, "_v",
+                         evr.Integer.TypeSuffix#"_"#evr.Float.TypeSuffix, "", [-1, 0], []>;
+    defm NAME : unary_nomask<Name, evr.Float.Str, evr.Integer.Str, "_v",
+                         evr.Float.TypeSuffix#"_"#evr.Integer.TypeSuffix, "", [-1, 0], []>;
+  }
+
+  defm NAME : unary_nomask<Name, i16mf4.Str, i8mf4.Str, "_v", "i8mf4"#"_"#!cast<VectorInfo>("i16mf4").TypeSuffix,
+                          "", [-1, 0], []>;
+  foreach evr = [i16mf2, i32mf2] in {
+    defm NAME : unary_nomask<Name, evr.Str, i8mf2.Str, "_v", i8mf2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i16m1, i32m1, i64m1] in {
+    defm NAME : unary_nomask<Name, evr.Str, i8m1.Str, "_v", i8m1.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i16m2, i32m2, i64m2] in {
+    defm NAME : unary_nomask<Name, evr.Str, i8m2.Str, "_v", i8m2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i16m4, i32m4, i64m4] in {
+    defm NAME : unary_nomask<Name, evr.Str, i8m4.Str, "_v", i8m4.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i16m8, i32m8, i64m8] in {
+    defm NAME : unary_nomask<Name, evr.Str, i8m8.Str, "_v", i8m8.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  defm NAME : unary_nomask<Name, i8mf4.Str, i16mf4.Str, "_v", "i16mf4"#"_"#!cast<VectorInfo>("i8mf4").TypeSuffix,
+                          "", [-1, 0], []>;
+  foreach evr = [i8mf2, i32mf2] in {
+    defm NAME : unary_nomask<Name, evr.Str, i16mf2.Str, "_v", i16mf2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m1, i32m1, i64m1] in {
+    defm NAME : unary_nomask<Name, evr.Str, i16m1.Str, "_v", i16m1.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m2, i32m2, i64m2] in {
+    defm NAME : unary_nomask<Name, evr.Str, i16m2.Str, "_v", i16m2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m4, i32m4, i64m4] in {
+    defm NAME : unary_nomask<Name, evr.Str, i16m4.Str, "_v", i16m4.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m8, i32m8, i64m8] in {
+    defm NAME : unary_nomask<Name, evr.Str, i16m8.Str, "_v", i16m8.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8mf2, i16mf2] in {
+    defm NAME : unary_nomask<Name, evr.Str, i32mf2.Str, "_v", i32mf2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m1, i16m1, i64m1] in {
+    defm NAME : unary_nomask<Name, evr.Str, i32m1.Str, "_v", i32m1.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m2, i16m2, i64m2] in {
+    defm NAME : unary_nomask<Name, evr.Str, i32m2.Str, "_v", i32m2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m4, i16m4, i64m4] in {
+    defm NAME : unary_nomask<Name, evr.Str, i32m4.Str, "_v", i32m4.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m8, i16m8, i64m8] in {
+    defm NAME : unary_nomask<Name, evr.Str, i32m8.Str, "_v", i32m8.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+
+  defm NAME : unary_nomask<Name, u16mf4.Str, u8mf4.Str, "_v", "u8mf4"#"_"#!cast<VectorInfo>("u16mf4").TypeSuffix,
+                          "", [-1, 0], []>;
+  foreach evr = [u16mf2, u32mf2] in {
+    defm NAME : unary_nomask<Name, evr.Str, u8mf2.Str, "_v", i8mf2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u16m1, u32m1, u64m1] in {
+    defm NAME : unary_nomask<Name, evr.Str, u8m1.Str, "_v", u8m1.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u16m2, u32m2, u64m2] in {
+    defm NAME : unary_nomask<Name, evr.Str, u8m2.Str, "_v", u8m2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u16m4, u32m4, u64m4] in {
+    defm NAME : unary_nomask<Name, evr.Str, u8m4.Str, "_v", u8m4.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u16m8, u32m8, u64m8] in {
+    defm NAME : unary_nomask<Name, evr.Str, u8m8.Str, "_v", u8m8.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  defm NAME : unary_nomask<Name, u8mf4.Str, u16mf4.Str, "_v", "u16mf4"#"_"#!cast<VectorInfo>("u8mf4").TypeSuffix,
+                          "", [-1, 0], []>;
+  foreach evr = [u8mf2, u32mf2] in {
+    defm NAME : unary_nomask<Name, evr.Str, u16mf2.Str, "_v", u16mf2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m1, u32m1, u64m1] in {
+    defm NAME : unary_nomask<Name, evr.Str, u16m1.Str, "_v", u16m1.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m2, u32m2, u64m2] in {
+    defm NAME : unary_nomask<Name, evr.Str, u16m2.Str, "_v", u16m2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m4, u32m4, u64m4] in {
+    defm NAME : unary_nomask<Name, evr.Str, u16m4.Str, "_v", u16m4.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m8, u32m8, u64m8] in {
+    defm NAME : unary_nomask<Name, evr.Str, u16m8.Str, "_v", u16m8.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8mf2, u16mf2] in {
+    defm NAME : unary_nomask<Name, evr.Str, u32mf2.Str, "_v", u32mf2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m1, u16m1, u64m1] in {
+    defm NAME : unary_nomask<Name, evr.Str, u32m1.Str, "_v", u32m1.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m2, u16m2, u64m2] in {
+    defm NAME : unary_nomask<Name, evr.Str, u32m2.Str, "_v", u32m2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m4, u16m4, u64m4] in {
+    defm NAME : unary_nomask<Name, evr.Str, u32m4.Str, "_v", u32m4.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m8, u16m8, u64m8] in {
+    defm NAME : unary_nomask<Name, evr.Str, u32m8.Str, "_v", u32m8.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
   }
 }
 
@@ -782,6 +900,7 @@ defm vfredosum : float_ternary_v_vs<"vfredosum">;
 defm vfredmax : float_ternary_v_vs<"vfredmax">;
 defm vfredmin : float_ternary_v_vs<"vfredmin">;
 defm vfcvt : vfcvt<"vfcvt">;
+defm vreinterpret : reinterpret<"vreinterpret">;
 
 
 defm "" : load_store;
