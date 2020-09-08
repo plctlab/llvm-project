@@ -718,7 +718,66 @@ defm vfredmin : Reduction_v_vrv;
 // Reinterpret Cast Conversion Functions
 def int_riscv_vreinterpret_v : V_V1; 
 
+// Vector Mask-Register Logical Functions
+def int_riscv_vmand_mm : V_VV;
+def int_riscv_vmnand_mm : V_VV;
+def int_riscv_vmandnot_mm : V_VV;
+def int_riscv_vmxor_mm : V_VV;
+def int_riscv_vmor_mm : V_VV;
+def int_riscv_vmnor_mm : V_VV;
+def int_riscv_vmornot_mm : V_VV;
+def int_riscv_vmxnor_mm : V_VV;
+def int_riscv_vmmv_m : V_V;
+def int_riscv_vmnot_m : V_V;
 
+// Vector mask population count Functions
+def int_riscv_vpopc_m : Intrinsic< [ llvm_i64_ty ],
+                       [ llvm_anyvector_ty ],
+                       [ IntrNoMem ]>;
+def int_riscv_vpopc_m_mask : Intrinsic< [ llvm_i64_ty ],
+                            [ llvm_anyvector_ty, llvm_anyvector_ty ],
+                            [ IntrNoMem ]>;
+
+// Find-first-set mask bit Functions
+def int_riscv_vfirst_m : Intrinsic< [ llvm_i64_ty ],
+                        [ llvm_anyvector_ty ],
+                        [ IntrNoMem ]>;
+def int_riscv_vfirst_m_mask : Intrinsic< [ llvm_i64_ty ],
+                             [ llvm_anyvector_ty, llvm_anyvector_ty ],
+                             [ IntrNoMem ]>;
+
+// Set-before-first mask bit Functions
+def int_riscv_vmsbf_m : V_V;
+def int_riscv_vmsbf_m_mask : V_VVV;
+
+// Set-including-first mask bit Functions
+def int_riscv_vmsif_m : V_V;
+def int_riscv_vmsif_m_mask : V_VVV;
+
+// Set-only-first mask bit Functions
+def int_riscv_vmsof_m : V_V;
+def int_riscv_vmsof_m_mask : V_VVV;
+
+// Vector Iota Functions
+def int_riscv_viota_m : V_V1;
+def int_riscv_viota_m_mask : V_V1_mask;
+
+// Vector Element Index Functions
+def int_riscv_vid_v : Intrinsic< [ llvm_anyvector_ty ],
+                                 [],
+                                 [ IntrNoMem ]>;
+
+def int_riscv_vid_v_mask : Intrinsic< [ llvm_anyvector_ty ],
+                                      [ llvm_anyvector_ty, llvm_anyvector_ty ],
+                                      [ IntrNoMem ]>;
+
+// Vector Register Gather Functions
+defm vrgather : Binary_int_vv_vx;
+
+// Vector Compress Functions
+def int_riscv_vcompress_vm : Intrinsic< [ llvm_anyvector_ty ],
+                           [ llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0> ],
+                           [ IntrNoMem ]>;
 
 // Loads
 multiclass Vload {
