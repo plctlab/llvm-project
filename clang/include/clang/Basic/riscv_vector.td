@@ -15,6 +15,11 @@ class VectorInfo<string TypeStr, string MStr,
   string Lmul1Type = M1Type;
 }
 
+class MaskInfo<string TypeStr, string Suf> {
+  string Str = TypeStr;
+  string TypeSuffix = Suf;
+}
+
 class WideVectorInfo<VectorInfo Origin, VectorInfo Wide> {
   VectorInfo WideVector = Wide;
   VectorInfo OriginVector = Origin;
@@ -71,6 +76,16 @@ defset list<ScalarInfo> AllScalarType = {
   def f16 : ScalarInfo<"f16", "h">;
   def f32 : ScalarInfo<"f32", "f">;
   def f64 : ScalarInfo<"f64", "d">;
+}
+
+defset list<MaskInfo> AllMaskType = {
+  def b1 : MaskInfo<"q64b", "b1">;
+  def b2 : MaskInfo<"q32b", "b2">;
+  def b4 : MaskInfo<"q16b", "b4">;
+  def b8 : MaskInfo<"q8b", "b8">;
+  def b16 : MaskInfo<"q4b", "b16">;
+  def b32 : MaskInfo<"q2b", "b32">;
+  def b64 : MaskInfo<"q1b", "b64">;
 }
 
 defset list<VectorInfo> AllVector = {
@@ -236,6 +251,13 @@ multiclass unary<string name, string result_str, string arg1_str,
   def NAME#infix#suffix : Inst<name, [result_str, arg1_str], infix, suffix, 0, AnyTypeOperands>;
 }
 
+multiclass unary_m<string name, string result_str, string arg1_str,
+                   string infix, string suffix, string mask_str,
+                   list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
+  def NAME#infix#suffix#"_mask" : Inst<name, [result_str, mask_str, arg1_str], infix, suffix, 1, MaskAnyTypeOperands>;
+  def NAME#infix#suffix : Inst<name, [result_str, arg1_str], infix, suffix, 0, AnyTypeOperands>;
+}
+
 multiclass unary_nomask<string name, string result_str, string arg1_str,
                  string infix, string suffix, string mask_str,
                  list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
@@ -247,6 +269,30 @@ multiclass ternary_nomask<string name, string result_str, string arg1_str,
                           string mask_str, list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
   def NAME#infix#suffix : Inst<name, [result_str, arg1_str, arg2_str, arg3_str],
                               infix, suffix, 0, AnyTypeOperands>;
+}
+
+multiclass unary_pop<string Name> {
+  foreach evr = AllMaskType in {
+    defm NAME : unary_m<Name, "ULi", evr.Str, "_m", evr.TypeSuffix, evr.Str, [0], [0, 1]>;
+  }
+}
+
+multiclass unary_vfirst<string Name> {
+  foreach evr = AllMaskType in {
+    defm NAME : unary_m<Name, "Li", evr.Str, "_m", evr.TypeSuffix, evr.Str, [0], [0, 1]>;
+  }
+}
+
+multiclass binary_vmsbf_vmsif_vmsof<string Name> {
+  foreach evr = AllMaskType in {
+    defm NAME : unary<Name, evr.Str, evr.Str, "_m", evr.TypeSuffix, evr.Str, [-1], [-1]>;
+  }
+}
+
+multiclass binary_viota<string Name> {
+  foreach evr = AllUnsignedVectorType in {
+    defm NAME : unary<Name, evr.Str, evr.MaskStr, "_m", evr.TypeSuffix, evr.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
 }
 
 multiclass vfcvt<string Name> {
@@ -908,7 +954,12 @@ defm vfredmax : float_ternary_v_vs<"vfredmax">;
 defm vfredmin : float_ternary_v_vs<"vfredmin">;
 defm vfcvt : vfcvt<"vfcvt">;
 defm vreinterpret : reinterpret<"vreinterpret">;
-
+defm vpopc : unary_pop<"vpopc">;
+defm vfirst : unary_vfirst<"vfirst">;
+defm vmsbf : binary_vmsbf_vmsif_vmsof<"vmsbf">;
+defm vmsif : binary_vmsbf_vmsif_vmsof<"vmsif">;
+defm vmsof : binary_vmsbf_vmsif_vmsof<"vmsof">;
+defm viota : binary_viota<"viota">;
 
 defm "" : load_store;
 defm "" : vsetvl;
