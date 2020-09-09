@@ -312,6 +312,12 @@ multiclass float_unary_v_v<string Name> {
   }
 }
 
+multiclass float_unary_v_f<string Name> {
+  foreach evr = AllFloatVectorType in {
+    defm NAME : unary_nomask<Name, evr.Str, evr.ScalarType.Str, "_v_f", evr.TypeSuffix, "", [-1, 0], []>;
+  }
+}
+
 multiclass int_ternary_v_vvm_vxm<string Name> {
   foreach evr = AllIntegerVectorType in {
     defm NAME : ternary_nomask<Name, evr.Str, evr.Str, evr.Str, evr.MaskStr, "_vvm",
@@ -877,6 +883,7 @@ defm vmfle : float_binary_m_vv_vx<"vmfle">;
 defm vmfgt : float_binary_m_vv_vx<"vmfgt">;
 defm vmfge : float_binary_m_vv_vx<"vmfge">;
 defm vmv : int_unary_v_v_v_x<"vmv">;
+defm vfmv : float_unary_v_f<"vfmv">;
 defm vmerge : float_vmerge_vvm<"vmerge">;
 defm vfmerge : float_vmerge_vfm<"vfmerge">;
 defm vslideup : vslide<"vslideup">;
