@@ -164,7 +164,10 @@ void RISCVInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
   else if (RISCV::VRRegClass.hasSubClassEq(RC)) {
     RVFI->setHasSpillVRs();
     MFI.setStackID(FI, TargetStackID::RISCVVector);
-    Opcode = RISCV::VS1R_V;
+    BuildMI(MBB, I, DL, get(RISCV::VS1R_V))
+        .addReg(SrcReg, getKillRegState(IsKill))
+        .addFrameIndex(FI);
+    return;
   }
   else
     llvm_unreachable("Can't store this register to stack slot");
@@ -200,7 +203,9 @@ void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
   else if (RISCV::VRRegClass.hasSubClassEq(RC)) {
     RVFI->setHasSpillVRs();
     MFI.setStackID(FI, TargetStackID::RISCVVector);
-    Opcode = RISCV::VL1R_V;
+    BuildMI(MBB, I, DL, get(RISCV::VL1R_V), DstReg)
+        .addFrameIndex(FI);
+    return;
   }
   else
     llvm_unreachable("Can't load this register from stack slot");
