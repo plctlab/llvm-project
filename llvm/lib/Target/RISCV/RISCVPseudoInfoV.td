@@ -191,6 +191,29 @@ defset list<WideVectorInfo> AllWideIntegerVectors = {
   def Widev8xi32 : WideVectorInfo<Vtypev8xi32, nxv8i64, VRM8, "8">;
 }
 
+class VectorTypeInfoToWide<ValueType vti, ValueType VMas, int VSew, RegisterClass VReg, int VLmul, string VLmulstr,
+                           ValueType wti, ValueType WMas, int WSew, RegisterClass WReg, int WLmul, string WLmulstr>
+{
+  ValueType Vti = vti;
+  ValueType VMask = VMas;
+  int VSEW = VSew;
+  RegisterClass VRegClass = VReg;
+  int VLMUL = VLmul;
+  string VLMULstr = VLmulstr;
+
+  ValueType Wti = wti;
+  ValueType WMask = WMas;
+  int WSEW = WSew;
+  RegisterClass WRegClass = WReg;
+  int WLMUL = WLmul;
+  string WLMULstr = WLmulstr;
+}
+
+defset list<VectorTypeInfoToWide> AllWideableIntToFloatVectors = {
+  def : VectorTypeInfoToWide<nxv4i16, nxv4i1, 16, VR, 1, "1",
+                             nxv4f32, nxv4i1, 32, VRM2, 2, "2">;
+}
+
 class RISCVVectorPseudo {
   Pseudo Pseudo = !cast<Pseudo>(NAME);
   Instruction BaseInstr;
@@ -351,6 +374,17 @@ multiclass pseudo_ternary_reduction {
     }
   }
 }
+
+multiclass pseudo_unary_v_w {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+    foreach evr = AllWideableIntToFloatVectors in {
+      let VLMul = evr.VLMUL in {
+        defm _W : pseudo_unary<evr.VRegClass, evr.WRegClass, evr.VLMULstr, "@earlyclobber $rd">;
+      }
+    }
+  }
+}
+
 
 multiclass pseudo_unary_v_v {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
@@ -829,6 +863,7 @@ defm PseudoVFMV : pseudo_vfmv;
 // 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
 // 14.16. Widening Floating-Point/Integer Type-Convert Instructions
 // 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
+defm PseudoVFNCVT_X_F : pseudo_unary_v_w;
 
 // 15.1. Vector Single-Width Integer Reduction Instructions
 defm PseudoVREDSUM : pseudo_ternary_reduction;
@@ -1342,6 +1377,15 @@ multiclass pat_intrinsic_vfmv
   }
 }
 
+multiclass pat_intrinsic_unary_int_v_fp_w
+    <string intrinsic_name, string instruction_name> {
+  foreach vtiToWti = AllWideableIntToFloatVectors in {
+    defm : pat_intrinsic_unary<intrinsic_name#"_w", instruction_name#"_W",
+                               vtiToWti.Vti, vtiToWti.Wti, vtiToWti.VMask, vtiToWti.VSEW,
+                               vtiToWti.VLMULstr, vtiToWti.VRegClass, vtiToWti.WRegClass>;
+
+  }
+}
 
 multiclass pat_intrinsic_float_ternary_v_vvv_vvf 
     <string intrinsic_name, string instruction_name> {
@@ -1558,5 +1602,6 @@ defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredosum", "PseudoVFREDOSUM"
 defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredsum", "PseudoVFREDSUM">;
 defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredmax", "PseudoVFREDMAX">;
 defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredmin", "PseudoVFREDMIN">;
+defm "" : pat_intrinsic_unary_int_v_fp_w<"int_riscv_vfncvt_x_f", "PseudoVFNCVT_X_F">;
 // defm "" 
 // defm "" : pat_intrinsic_int_unary_v<"int_riscv_vnot", "PseudoVNOT">;

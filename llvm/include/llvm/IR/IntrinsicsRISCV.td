@@ -779,6 +779,15 @@ def int_riscv_vcompress_vm : Intrinsic< [ llvm_anyvector_ty ],
                            [ llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0> ],
                            [ IntrNoMem ]>;
 
+// Narrowing Floating-Point/Integer Type-Convert Functions
+multiclass Unary_V_V1_w {
+  def "int_riscv_" # NAME # "_w" : V_V1;
+  def "int_riscv_" # NAME # "_w_mask" : V_V1_mask;
+}
+
+defm vfncvt_x_f : Unary_V_V1_w;
+
+
 // Loads
 multiclass Vload {
 
