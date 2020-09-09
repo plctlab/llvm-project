@@ -61,7 +61,7 @@ class ComputeBoolType<int VectorNum> {
 
 defset list<ScalarInfo> AllScalarType = {
   def i8 : ScalarInfo<"i8", "c">;
-  def u8 : ScalarInfo<"i8", "Uc">;
+  def u8 : ScalarInfo<"u8", "Uc">;
   def i16 : ScalarInfo<"i16", "s">;
   def u16 : ScalarInfo<"u16", "Us">;
   def i32 : ScalarInfo<"i32", "i">;
@@ -98,19 +98,19 @@ defset list<VectorInfo> AllVector = {
     defset list<VectorInfo> AllUnsignedVectorType = {
       foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         def u8#lmul : VectorInfo<"q"#ComputeVectorNum<3, lmul>.Result#"Uc",
-        "q"#ComputeVectorNum<3, lmul>.Result#"b", i8, "u8"#lmul, 8, ComputeBoolType<ComputeVectorNum<3, lmul>.Result>.Result, "u8m1">;
+        "q"#ComputeVectorNum<3, lmul>.Result#"b", u8, "u8"#lmul, 8, ComputeBoolType<ComputeVectorNum<3, lmul>.Result>.Result, "u8m1">;
       }
       foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         def u16#lmul : VectorInfo<"q"#ComputeVectorNum<4, lmul>.Result#"Us", 
-        "q"#ComputeVectorNum<4, lmul>.Result#"b", i16, "u16"#lmul, 16, ComputeBoolType<ComputeVectorNum<4, lmul>.Result>.Result, "u16m1">;
+        "q"#ComputeVectorNum<4, lmul>.Result#"b", u16, "u16"#lmul, 16, ComputeBoolType<ComputeVectorNum<4, lmul>.Result>.Result, "u16m1">;
       }
       foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
         def u32#lmul : VectorInfo<"q"#ComputeVectorNum<5, lmul>.Result#"Ui", 
-        "q"#ComputeVectorNum<5, lmul>.Result#"b", i32, "u32"#lmul, 32, ComputeBoolType<ComputeVectorNum<5, lmul>.Result>.Result, "u32m1">;
+        "q"#ComputeVectorNum<5, lmul>.Result#"b", u32, "u32"#lmul, 32, ComputeBoolType<ComputeVectorNum<5, lmul>.Result>.Result, "u32m1">;
       }
       foreach lmul = ["m1", "m2", "m4", "m8"] in {
         def u64#lmul : VectorInfo<"q"#ComputeVectorNum<6, lmul>.Result#"UWi", 
-        "q"#ComputeVectorNum<6, lmul>.Result#"b", i64, "u64"#lmul, 64, ComputeBoolType<ComputeVectorNum<6, lmul>.Result>.Result, "u64m1">;
+        "q"#ComputeVectorNum<6, lmul>.Result#"b", u64, "u64"#lmul, 64, ComputeBoolType<ComputeVectorNum<6, lmul>.Result>.Result, "u64m1">;
       }
     }
   }
