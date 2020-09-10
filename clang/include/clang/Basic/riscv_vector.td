@@ -824,76 +824,45 @@ multiclass load_store {
   }
 }
 
-defm vmul : int_binary_v_vv_vx<"vmul">;
-defm vmul : unsigned_binary_v_vv_vx<"vmul">;
+// 12.1. Vector Single-Width Integer Add and Subtract
 defm vadd : int_binary_v_vv_vx<"vadd">;
 defm vadd : unsigned_binary_v_vv_vx<"vadd">;
 defm vsub : int_binary_v_vv_vx<"vsub">;
 defm vsub : unsigned_binary_v_vv_vx<"vsub">;
 defm vrsub : binary_v_vx<"vrsub">;
-defm vand : int_binary_v_vv_vx<"vand">;
-defm vand : unsigned_binary_v_vv_vx<"vand">;
-defm vxor : int_binary_v_vv_vx<"vxor">;
-defm vxor : unsigned_binary_v_vv_vx<"vxor">;
-defm vor : int_binary_v_vv_vx<"vor">; 
-defm vor : unsigned_binary_v_vv_vx<"vor">;
 
+// 12.2. Vector Widening Integer Add/Subtract
 defm vwadd : int_binary_w_vv_vx_wv_wx<"vwadd">;
 defm vwsub : int_binary_w_vv_vx_wv_wx<"vwsub">;
 defm vwaddu : unsigned_binary_w_vv_vx_wv_wx<"vwaddu">;
 defm vwsubu : unsigned_binary_w_vv_vx_wv_wx<"vwsubu">;
+
+// 12.3. Vector Integer Extension
+
+// 12.4. Vector Integer Add-with-Carry/Subtract-with-Borrow Instructions
 defm vadc : int_ternary_v_vvm_vxm<"vadc">;
 defm vsbc : int_ternary_v_vvm_vxm<"vsbc">;
 
+// 12.5. Vector Bitwise Logical Instructions
+defm vand : int_binary_v_vv_vx<"vand">;
+defm vand : unsigned_binary_v_vv_vx<"vand">;
+defm vxor : int_binary_v_vv_vx<"vxor">;
+defm vxor : unsigned_binary_v_vv_vx<"vxor">;
+defm vor : int_binary_v_vv_vx<"vor">;
+defm vor : unsigned_binary_v_vv_vx<"vor">;
+
+// 12.6. Vector Single-Width Bit Shift Instructions
 defm vsll : int_binary_v_vv_vi8<"vsll">;
 defm vsll : unsigned_binary_v_vv_vi8<"vsll">;
 defm vsrl : int_binary_v_vv_vi8<"vsrl">;
 defm vsrl : unsigned_binary_v_vv_vi8<"vsrl">;
 defm vsra : int_binary_v_vv_vi8<"vsra">;
-defm vmin : int_binary_v_vv_vx<"vmin">;
-defm vminu : unsigned_binary_v_vv_vx<"vminu">;
-defm vmax : int_binary_v_vv_vx<"vmax">;
-defm vmaxu : unsigned_binary_v_vv_vx<"vmaxu">;
-defm vmulh : int_binary_v_vv_vx<"vmulh">;
-defm vmulhu : unsigned_binary_v_vv_vx<"vmulhu">;
-defm vmulhsu : int_binary_v_vv_vx<"vmulhsu">;
-defm vdiv : int_binary_v_vv_vx<"vdiv">;
-defm vdivu : unsigned_binary_v_vv_vx<"vdivu">;
-defm vrem : int_binary_v_vv_vx<"vrem">;
-defm vremu : unsigned_binary_v_vv_vx<"vremu">;
-defm vmacc : ternary_v_vvx_vvv<"vmacc">;
-defm vnmsac : ternary_v_vvx_vvv<"vnmsac">;
-defm vmadd : ternary_v_vvx_vvv<"vmadd">;
-defm vnmsub : ternary_v_vvx_vvv<"vnmsub">;
-defm vwmacc : int_ternary_w_vvx_vvv<"vwmacc">;
-defm vwmaccu : unsigned_ternary_w_vvx_vvv<"vwmaccu">;
-defm vwmaccsu : int_ternary_w_vvx_vvv<"vwmaccsu">;
-defm vwmaccus : int_ternary_w_vvx<"vwmaccus">;
-defm vmerge : int_vmerge_vvm_vxm<"vmerge">;
-defm vsadd : int_binary_v_vv_vx<"vsadd">;
-defm vsaddu : unsigned_binary_v_vv_vx<"vsaddu">;
-defm vssub : int_binary_v_vv_vx<"vssub">;
-defm vssubu : unsigned_binary_v_vv_vx<"vssubu">;
-defm vaadd : int_binary_v_vv_vx<"vaadd">;
-defm vaaddu : unsigned_binary_v_vv_vx<"vaaddu">;
-defm vasub : int_binary_v_vv_vx<"vasub">;
-defm vasubu : unsigned_binary_v_vv_vx<"vasubu">; 
-defm vsmul : int_binary_v_vv_vx<"vsmul">;
-defm vssrl : unsigned_binary_v_vv_vx<"vssrl">;
-defm vssra : int_binary_v_vv_vx<"vssra">;
-defm vnclip : int_binary_v_wv_wx<"vnclip">;
-defm vnclipu : unsigned_binary_v_wv_wx<"vnclipu">;
-defm vfadd : float_binary_v_vv_vf<"vfadd">;
-defm vfsub : float_binary_v_vv_vf<"vfsub">;
-defm vfrsub : float_binary_v_vf<"vfrsub">;
-defm vfwadd : float_binary_w_vv_vf_wv_wf<"vfwadd">;
-defm vfwsub : float_binary_w_vv_vf_wv_wf<"vfwsub">;
-defm vfmul : float_binary_v_vv_vf<"vfmul">;
-defm vfdiv : float_binary_v_vv_vf<"vfdiv">;
-defm vfrdiv : float_binary_v_vf<"vfrdiv">;
-defm vfwmul : float_binary_w_vv_vf<"vfwmul">;
+
+// 12.7. Vector Narrowing Integer Right Shift Instructions
 defm vnsrl : unsigned_binary_v_wv_wx<"vnsrl">;
 defm vnsra : int_binary_v_wv_wx<"vnsra">;
+
+// 12.8. Vector Integer Comparison Instructions
 defm vmseq : binary_m_vv_vx<"vmseq">;
 defm vmsne : binary_m_vv_vx<"vmsne">;
 defm vmslt : int_binary_m_vv_vx<"vmslt">;
@@ -905,6 +874,88 @@ defm vmsgtu : unsigned_binary_m_vv_vx<"vmsgtu">;
 defm vmsge : int_binary_m_vv_vx<"vmsge">;
 defm vmsgeu : unsigned_binary_m_vv_vx<"vmsgeu">;
 
+// 12.9. Vector Integer Min/Max Instructions
+defm vmin : int_binary_v_vv_vx<"vmin">;
+defm vminu : unsigned_binary_v_vv_vx<"vminu">;
+defm vmax : int_binary_v_vv_vx<"vmax">;
+defm vmaxu : unsigned_binary_v_vv_vx<"vmaxu">;
+
+// 12.10. Vector Single-Width Integer Multiply Instructions
+defm vmul : int_binary_v_vv_vx<"vmul">;
+defm vmul : unsigned_binary_v_vv_vx<"vmul">;
+defm vmulh : int_binary_v_vv_vx<"vmulh">;
+defm vmulhu : unsigned_binary_v_vv_vx<"vmulhu">;
+defm vmulhsu : int_binary_v_vv_vx<"vmulhsu">;
+
+// 12.11. Vector Integer Divide Instructions
+defm vdiv : int_binary_v_vv_vx<"vdiv">;
+defm vdivu : unsigned_binary_v_vv_vx<"vdivu">;
+defm vrem : int_binary_v_vv_vx<"vrem">;
+defm vremu : unsigned_binary_v_vv_vx<"vremu">;
+
+// 12.12. Vector Widening Integer Multiply Instructions
+
+// 12.13. Vector Single-Width Integer Multiply-Add Instructions
+defm vmacc : ternary_v_vvx_vvv<"vmacc">;
+defm vnmsac : ternary_v_vvx_vvv<"vnmsac">;
+defm vmadd : ternary_v_vvx_vvv<"vmadd">;
+defm vnmsub : ternary_v_vvx_vvv<"vnmsub">;
+
+// 12.14. Vector Widening Integer Multiply-Add Instructions
+defm vwmacc : int_ternary_w_vvx_vvv<"vwmacc">;
+defm vwmaccu : unsigned_ternary_w_vvx_vvv<"vwmaccu">;
+defm vwmaccsu : int_ternary_w_vvx_vvv<"vwmaccsu">;
+defm vwmaccus : int_ternary_w_vvx<"vwmaccus">;
+
+// 12.15. Vector Quad-Widening Integer Multiply-Add Instructions (Extension Zvqmac)
+
+// 12.16. Vector Integer Merge Instructions
+defm vmerge : int_vmerge_vvm_vxm<"vmerge">;
+
+// 12.17. Vector Integer Move Instructions
+defm vmv : int_unary_v_v_v_x<"vmv">;
+
+// 13.1. Vector Single-Width Saturating Add and Subtract
+defm vsadd : int_binary_v_vv_vx<"vsadd">;
+defm vsaddu : unsigned_binary_v_vv_vx<"vsaddu">;
+defm vssub : int_binary_v_vv_vx<"vssub">;
+defm vssubu : unsigned_binary_v_vv_vx<"vssubu">;
+
+// 13.2. Vector Single-Width Averaging Add and Subtract
+defm vaadd : int_binary_v_vv_vx<"vaadd">;
+defm vaaddu : unsigned_binary_v_vv_vx<"vaaddu">;
+defm vasub : int_binary_v_vv_vx<"vasub">;
+defm vasubu : unsigned_binary_v_vv_vx<"vasubu">; 
+
+// 13.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
+defm vsmul : int_binary_v_vv_vx<"vsmul">;
+
+// 13.4. Vector Single-Width Scaling Shift Instructions
+defm vssrl : unsigned_binary_v_vv_vx<"vssrl">;
+defm vssra : int_binary_v_vv_vx<"vssra">;
+
+// 13.5. Vector Narrowing Fixed-Point Clip Instructions
+defm vnclip : int_binary_v_wv_wx<"vnclip">;
+defm vnclipu : unsigned_binary_v_wv_wx<"vnclipu">;
+
+// 14.2. Vector Single-Width Floating-Point Add/Subtract Instructions
+defm vfadd : float_binary_v_vv_vf<"vfadd">;
+defm vfsub : float_binary_v_vv_vf<"vfsub">;
+defm vfrsub : float_binary_v_vf<"vfrsub">;
+
+// 14.3. Vector Widening Floating-Point Add/Subtract Instructions
+defm vfwadd : float_binary_w_vv_vf_wv_wf<"vfwadd">;
+defm vfwsub : float_binary_w_vv_vf_wv_wf<"vfwsub">;
+
+// 14.4. Vector Single-Width Floating-Point Multiply/Divide Instructions
+defm vfmul : float_binary_v_vv_vf<"vfmul">;
+defm vfdiv : float_binary_v_vv_vf<"vfdiv">;
+defm vfrdiv : float_binary_v_vf<"vfrdiv">;
+
+// 14.5. Vector Widening Floating-Point Multiply
+defm vfwmul : float_binary_w_vv_vf<"vfwmul">;
+
+// 14.6. Vector Single-Width Floating-Point Fused Multiply-Add Instructions
 defm vfmacc : float_ternary_v_vvf_vvv<"vfmacc">;
 defm vfnmacc : float_ternary_v_vvf_vvv<"vfnmacc">;
 defm vfmsac : float_ternary_v_vvf_vvv<"vfmsac">;
@@ -912,34 +963,49 @@ defm vfmadd : float_ternary_v_vvf_vvv<"vfmadd">;
 defm vfnmadd : float_ternary_v_vvf_vvv<"vfnmadd">;
 defm vfmsub : float_ternary_v_vvf_vvv<"vfmsub">;
 defm vfnmsub : float_ternary_v_vvf_vvv<"vfnmsub">;
+
+// 14.7. Vector Widening Floating-Point Fused MultiplyAdd Instructions
 defm vfwmacc : float_ternary_w_wvv_wvf<"vfwmacc">;
 defm vfwnmacc : float_ternary_w_wvv_wvf<"vfwnmacc">;
 defm vfwmsac : float_ternary_w_wvv_wvf<"vfwmsac">;
 defm vfwnmsac : float_ternary_w_wvv_wvf<"vfwnmsac">;
+
+// 14.8. Vector Floating-Point Square-Root Instruction
 defm vfsqrt : float_unary_v_v<"vfsqrt">;
+
+// 14.9. Vector Floating-Point MIN/MAX Instructions
 defm vfmin : float_binary_v_vv_vf<"vfmin">;
 defm vfmax : float_binary_v_vv_vf<"vfmax">;
+
+// 14.10. Vector Floating-Point Sign-Injection Instructions
 defm vfsgnj : float_binary_v_vv_vf<"vfsgnj">;
 defm vfsgnjn : float_binary_v_vv_vf<"vfsgnjn">;
 defm vfsgnjx : float_binary_v_vv_vf<"vfsgnjx">;
+
+// 14.11. Vector Floating-Point Compare Instructions
 defm vmfeq : float_binary_m_vv_vx<"vmfeq">;
 defm vmfne : float_binary_m_vv_vx<"vmfne">;
 defm vmflt : float_binary_m_vv_vx<"vmflt">;
 defm vmfle : float_binary_m_vv_vx<"vmfle">;
 defm vmfgt : float_binary_m_vv_vx<"vmfgt">;
 defm vmfge : float_binary_m_vv_vx<"vmfge">;
-defm vmv : int_unary_v_v_v_x<"vmv">;
-defm vfmv : float_unary_v_f<"vfmv">;
+
+// 14.12. Vector Floating-Point Classify Instruction
+
+// 14.13. Vector Floating-Point Merge Instruction
 defm vmerge : float_vmerge_vvm<"vmerge">;
 defm vfmerge : float_vmerge_vfm<"vfmerge">;
-defm vslideup : vslide<"vslideup">;
-defm vslidedown : vslide<"vslidedown">;
-defm vslide1up : binary_v_vx<"vslide1up">;
-defm vslide1down : binary_v_vx<"vslide1down">;
-defm vfslide1up : float_binary_v_vf<"vfslide1up">;
-defm vfslide1down : float_binary_v_vf<"vfslide1down">;
-defm vmv : vmv_x_s_s_x<"vmv">;
-defm vfmv : vfmv_f_s_s_f<"vfmv">;
+
+// 14.14. Vector Floating-Point Move Instruction
+defm vfmv : float_unary_v_f<"vfmv">;
+
+// 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
+defm vfcvt : vfcvt<"vfcvt">;
+
+// 14.16. Widening Floating-Point/Integer Type-Convert Instructions
+// 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
+
+// 15.1. Vector Single-Width Integer Reduction Instructions
 defm vredsum : int_ternary_v_vs<"vredsum">;
 defm vredmax : int_ternary_v_vs<"vredmax">;
 defm vredmaxu : int_ternary_v_vs<"vredmaxu">;
@@ -948,18 +1014,64 @@ defm vredminu : int_ternary_v_vs<"vredminu">;
 defm vredand : int_ternary_v_vs<"vredand">;
 defm vredor : int_ternary_v_vs<"vredor">;
 defm vredxor : int_ternary_v_vs<"vredxor">;
+
+// 15.2. Vector Widening Integer Reduction Instructions
+
+// 15.3. Vector Single-Width Floating-Point Reduction Instructions
 defm vfredsum : float_ternary_v_vs<"vfredsum">;
 defm vfredosum : float_ternary_v_vs<"vfredosum">;
 defm vfredmax : float_ternary_v_vs<"vfredmax">;
 defm vfredmin : float_ternary_v_vs<"vfredmin">;
-defm vfcvt : vfcvt<"vfcvt">;
-defm vreinterpret : reinterpret<"vreinterpret">;
+
+// 15.4. Vector Widening Floating-Point Reduction Instructions
+// 16.1. Vector Mask-Register Logical Instructions
+// 16.2. Vector mask population count vpopc
 defm vpopc : unary_pop<"vpopc">;
+
+// 16.3. vfirst find-first-set mask bit
 defm vfirst : unary_vfirst<"vfirst">;
+
+// 16.4. vmsbf.m set-before-first mask bit
 defm vmsbf : binary_vmsbf_vmsif_vmsof<"vmsbf">;
+
+// 16.5. vmsif.m set-including-first mask bit
 defm vmsif : binary_vmsbf_vmsif_vmsof<"vmsif">;
+
+// 16.6. vmsof.m set-only-first mask bit
 defm vmsof : binary_vmsbf_vmsif_vmsof<"vmsof">;
+
+// 16.8. Vector Iota Instruction
 defm viota : binary_viota<"viota">;
+
+// 16.9. Vector Element Index Instruction
+
+// 17.1. Integer Scalar Move Instructions
+defm vmv : vmv_x_s_s_x<"vmv">;
+
+// 17.2. Floating-Point Scalar Move Instructions
+defm vfmv : vfmv_f_s_s_f<"vfmv">;
+
+// 17.3.1. Vector Slideup Instructions
+defm vslideup : vslide<"vslideup">;
+
+// 17.3.2. Vector Slidedown Instructions
+defm vslidedown : vslide<"vslidedown">;
+
+// 17.3.3. Vector Slide1up
+defm vslide1up : binary_v_vx<"vslide1up">;
+defm vfslide1up : float_binary_v_vf<"vfslide1up">;
+
+// 17.3.4. Vector Slide1down Instruction
+defm vslide1down : binary_v_vx<"vslide1down">;
+defm vfslide1down : float_binary_v_vf<"vfslide1down">;
+
+// 17.4. Vector Register Gather Instruction
+// 17.5. Vector Compress Instruction
+// 17.6. Whole Vector Register Move
+// 19.3. Vector Integer Dot-Product Instruction
+// 19.4. Vector Floating-Point Dot Product Instruction
+
+defm vreinterpret : reinterpret<"vreinterpret">;
 
 defm "" : load_store;
 defm "" : vsetvl;
