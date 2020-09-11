@@ -396,7 +396,7 @@ multiclass float_vmerge_vfm<string Name> {
   }
 }
 
-multiclass int_binary_v_vv_vx<string Name> {
+multiclass signed_binary_v_vv_vx<string Name> {
   foreach evr = AllSignedVectorType in {
     defm NAME : binary<Name, evr.Str, evr.Str, evr.Str, "_vv", 
                           evr.TypeSuffix, evr.MaskStr, [-1], [-1, 0]>;
@@ -405,7 +405,7 @@ multiclass int_binary_v_vv_vx<string Name> {
   }
 }
 
-multiclass int_binary_v_vv_vi8<string Name> {
+multiclass signed_binary_v_vv_vi8<string Name> {
   foreach evr = AllSignedVectorType in {
     defm NAME : binary<Name, evr.Str, evr.Str, IntToUnsigned<evr>.Result, "_vv", 
                           evr.TypeSuffix, evr.MaskStr, [-1], [-1, 0]>;
@@ -538,6 +538,9 @@ multiclass unsigned_binary_v_vv_vi8<string Name> {
   }
 }
 
+multiclass int_binary_v_vv_vi8<string Name> :
+  signed_binary_v_vv_vi8<Name>, unsigned_binary_v_vv_vi8<Name>;
+
 multiclass binary_m_vv_vx<string Name> {
   foreach evr = AllIntegerVectorType in {
     defm NAME : binary<Name, evr.MaskStr, evr.Str, evr.Str, "_vv",
@@ -547,7 +550,7 @@ multiclass binary_m_vv_vx<string Name> {
   }
 }
 
-multiclass int_binary_m_vv_vx<string Name> {
+multiclass signed_binary_m_vv_vx<string Name> {
   foreach evr = AllSignedVectorType in {
     defm NAME : binary<Name, evr.MaskStr, evr.Str, evr.Str, "_vv",
                           evr.TypeSuffix#"_"#evr.BoolType, evr.MaskStr, [-1, 0], [-1, 2, 3]>;
@@ -598,6 +601,9 @@ multiclass unsigned_binary_v_vv_vx<string Name> {
                           "_vx", evr.TypeSuffix, evr.MaskStr, [-1, 1], [-1, 0, 3]>;
   }
 }
+
+multiclass int_binary_v_vv_vx<string Name> :
+  signed_binary_v_vv_vx<Name>, unsigned_binary_v_vv_vx<Name>;
 
 multiclass binary_v_vx<string Name> {
   foreach evr = AllIntegerVectorType in {
@@ -826,9 +832,7 @@ multiclass load_store {
 
 // 12.1. Vector Single-Width Integer Add and Subtract
 defm vadd : int_binary_v_vv_vx<"vadd">;
-defm vadd : unsigned_binary_v_vv_vx<"vadd">;
 defm vsub : int_binary_v_vv_vx<"vsub">;
-defm vsub : unsigned_binary_v_vv_vx<"vsub">;
 defm vrsub : binary_v_vx<"vrsub">;
 
 // 12.2. Vector Widening Integer Add/Subtract
@@ -845,18 +849,13 @@ defm vsbc : int_ternary_v_vvm_vxm<"vsbc">;
 
 // 12.5. Vector Bitwise Logical Instructions
 defm vand : int_binary_v_vv_vx<"vand">;
-defm vand : unsigned_binary_v_vv_vx<"vand">;
 defm vxor : int_binary_v_vv_vx<"vxor">;
-defm vxor : unsigned_binary_v_vv_vx<"vxor">;
 defm vor : int_binary_v_vv_vx<"vor">;
-defm vor : unsigned_binary_v_vv_vx<"vor">;
 
 // 12.6. Vector Single-Width Bit Shift Instructions
 defm vsll : int_binary_v_vv_vi8<"vsll">;
-defm vsll : unsigned_binary_v_vv_vi8<"vsll">;
 defm vsrl : int_binary_v_vv_vi8<"vsrl">;
-defm vsrl : unsigned_binary_v_vv_vi8<"vsrl">;
-defm vsra : int_binary_v_vv_vi8<"vsra">;
+defm vsra : signed_binary_v_vv_vi8<"vsra">;
 
 // 12.7. Vector Narrowing Integer Right Shift Instructions
 defm vnsrl : unsigned_binary_v_wv_wx<"vnsrl">;
@@ -865,32 +864,31 @@ defm vnsra : int_binary_v_wv_wx<"vnsra">;
 // 12.8. Vector Integer Comparison Instructions
 defm vmseq : binary_m_vv_vx<"vmseq">;
 defm vmsne : binary_m_vv_vx<"vmsne">;
-defm vmslt : int_binary_m_vv_vx<"vmslt">;
+defm vmslt : signed_binary_m_vv_vx<"vmslt">;
 defm vmsltu : unsigned_binary_m_vv_vx<"vmsltu">;
-defm vmsle : int_binary_m_vv_vx<"vmsle">;
+defm vmsle : signed_binary_m_vv_vx<"vmsle">;
 defm vmsleu : unsigned_binary_m_vv_vx<"vmsleu">;
-defm vmsgt : int_binary_m_vv_vx<"vmsgt">;
+defm vmsgt : signed_binary_m_vv_vx<"vmsgt">;
 defm vmsgtu : unsigned_binary_m_vv_vx<"vmsgtu">;
-defm vmsge : int_binary_m_vv_vx<"vmsge">;
+defm vmsge : signed_binary_m_vv_vx<"vmsge">;
 defm vmsgeu : unsigned_binary_m_vv_vx<"vmsgeu">;
 
 // 12.9. Vector Integer Min/Max Instructions
-defm vmin : int_binary_v_vv_vx<"vmin">;
+defm vmin : signed_binary_v_vv_vx<"vmin">;
 defm vminu : unsigned_binary_v_vv_vx<"vminu">;
-defm vmax : int_binary_v_vv_vx<"vmax">;
+defm vmax : signed_binary_v_vv_vx<"vmax">;
 defm vmaxu : unsigned_binary_v_vv_vx<"vmaxu">;
 
 // 12.10. Vector Single-Width Integer Multiply Instructions
 defm vmul : int_binary_v_vv_vx<"vmul">;
-defm vmul : unsigned_binary_v_vv_vx<"vmul">;
-defm vmulh : int_binary_v_vv_vx<"vmulh">;
+defm vmulh : signed_binary_v_vv_vx<"vmulh">;
 defm vmulhu : unsigned_binary_v_vv_vx<"vmulhu">;
-defm vmulhsu : int_binary_v_vv_vx<"vmulhsu">;
+defm vmulhsu : signed_binary_v_vv_vx<"vmulhsu">;
 
 // 12.11. Vector Integer Divide Instructions
-defm vdiv : int_binary_v_vv_vx<"vdiv">;
+defm vdiv : signed_binary_v_vv_vx<"vdiv">;
 defm vdivu : unsigned_binary_v_vv_vx<"vdivu">;
-defm vrem : int_binary_v_vv_vx<"vrem">;
+defm vrem : signed_binary_v_vv_vx<"vrem">;
 defm vremu : unsigned_binary_v_vv_vx<"vremu">;
 
 // 12.12. Vector Widening Integer Multiply Instructions
@@ -916,23 +914,23 @@ defm vmerge : int_vmerge_vvm_vxm<"vmerge">;
 defm vmv : int_unary_v_v_v_x<"vmv">;
 
 // 13.1. Vector Single-Width Saturating Add and Subtract
-defm vsadd : int_binary_v_vv_vx<"vsadd">;
+defm vsadd : signed_binary_v_vv_vx<"vsadd">;
 defm vsaddu : unsigned_binary_v_vv_vx<"vsaddu">;
-defm vssub : int_binary_v_vv_vx<"vssub">;
+defm vssub : signed_binary_v_vv_vx<"vssub">;
 defm vssubu : unsigned_binary_v_vv_vx<"vssubu">;
 
 // 13.2. Vector Single-Width Averaging Add and Subtract
-defm vaadd : int_binary_v_vv_vx<"vaadd">;
+defm vaadd : signed_binary_v_vv_vx<"vaadd">;
 defm vaaddu : unsigned_binary_v_vv_vx<"vaaddu">;
-defm vasub : int_binary_v_vv_vx<"vasub">;
+defm vasub : signed_binary_v_vv_vx<"vasub">;
 defm vasubu : unsigned_binary_v_vv_vx<"vasubu">; 
 
 // 13.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
-defm vsmul : int_binary_v_vv_vx<"vsmul">;
+defm vsmul : signed_binary_v_vv_vx<"vsmul">;
 
 // 13.4. Vector Single-Width Scaling Shift Instructions
 defm vssrl : unsigned_binary_v_vv_vx<"vssrl">;
-defm vssra : int_binary_v_vv_vx<"vssra">;
+defm vssra : signed_binary_v_vv_vx<"vssra">;
 
 // 13.5. Vector Narrowing Fixed-Point Clip Instructions
 defm vnclip : int_binary_v_wv_wx<"vnclip">;
