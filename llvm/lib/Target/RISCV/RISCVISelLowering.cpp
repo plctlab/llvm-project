@@ -948,6 +948,17 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
   }
     break;
   }
+  case Intrinsic::riscv_vxor_vx: {
+    SDValue Scalar = Op.getOperand(2);
+    if (Scalar.getSimpleValueType() == MVT::i8 ||
+        Scalar.getSimpleValueType() == MVT::i16 || 
+        Scalar.getSimpleValueType() == MVT::i32) {
+    SDValue Promote = DAG.getNode(ISD::SIGN_EXTEND, DL, MVT::i64, Scalar);
+    return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), {Op.getOperand(0), Op.getOperand(1),
+            Promote});
+    }
+    break;
+  }
   case Intrinsic::riscv_vmerge_vxm:
     SDValue Op3 = Op.getOperand(3);
     if (Op3.getSimpleValueType() == MVT::i8 || 

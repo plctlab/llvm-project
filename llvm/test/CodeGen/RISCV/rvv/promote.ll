@@ -22,3 +22,15 @@ entry:
 %a =  tail call i8 @llvm.riscv.vmv.x.s(<vscale x 64 x i8> %0)
 ret i8 %a
 }
+
+declare <vscale x 8 x i8> @llvm.riscv.vxor.vx(<vscale x 8 x i8>, i8);
+define <vscale x 8 x i8> @vxor_vx_i8m1(<vscale x 8 x i8> %0, i8 %1) {
+entry:
+; CHECK-LABEL: vxor_vx_i8m1
+; CHECK: slli	a0, a0, 56
+; CHECK: srai	a0, a0, 56
+; CHECK: vxor.vx v16, v16, a0
+; CHECK: ret 
+%a =  tail call <vscale x 8 x i8> @llvm.riscv.vxor.vx(<vscale x 8 x i8> %0, i8 %1)
+ret <vscale x 8 x i8> %a
+}
