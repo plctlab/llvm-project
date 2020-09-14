@@ -65,7 +65,7 @@ class ComputeBoolType<int VectorNum> {
 }
 
 defset list<ScalarInfo> AllScalarType = {
-  def i8 : ScalarInfo<"i8", "c">;
+  def i8 : ScalarInfo<"i8", "Sc">;
   def u8 : ScalarInfo<"u8", "Uc">;
   def i16 : ScalarInfo<"i16", "s">;
   def u16 : ScalarInfo<"u16", "Us">;

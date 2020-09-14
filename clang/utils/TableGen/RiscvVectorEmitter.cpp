@@ -227,7 +227,8 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "#include <stdint.h>\n";
   OS << "#define float32_t float\n";
   OS << "#define float64_t double\n";
-  OS << "#define float16_t _Float16\n";
+  //Todo: build opencv error, need to check it and reopen
+  //OS << "#define float16_t _Float16\n";
   OS << "#define _e8 0\n";
   OS << "#define _e16 4\n";
   OS << "#define _e32 8\n";
@@ -343,6 +344,65 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
       OS << "(__VA_ARGS__)\n";
     }
   }
+  OS << "#define vzero_i8mf8() vmv_v_x_i8mf8(0)\n";
+  OS << "#define vzero_i8mf4() vmv_v_x_i8mf4(0)\n";
+  OS << "#define vzero_i8mf2() vmv_v_x_i8mf2(0)\n";
+  OS << "#define vzero_i8m1() vmv_v_x_i8m1(0)\n";
+  OS << "#define vzero_i8m2() vmv_v_x_i8m2(0)\n";
+  OS << "#define vzero_i8m4() vmv_v_x_i8m4(0)\n";
+  OS << "#define vzero_i8m8() vmv_v_x_i8m8(0)\n";
+  OS << "#define vzero_i16mf4() vmv_v_x_i16mf4(0)\n";
+  OS << "#define vzero_i16mf2() vmv_v_x_i16mf2(0)\n";
+  OS << "#define vzero_i16m1() vmv_v_x_i16m1(0)\n";
+  OS << "#define vzero_i16m2() vmv_v_x_i16m2(0)\n";
+  OS << "#define vzero_i16m4() vmv_v_x_i16m4(0)\n";
+  OS << "#define vzero_i16m8() vmv_v_x_i16m8(0)\n";
+  OS << "#define vzero_i32mf2() vmv_v_x_i32mf2(0)\n";
+  OS << "#define vzero_i32m1() vmv_v_x_i32m1(0)\n";
+  OS << "#define vzero_i32m2() vmv_v_x_i32m2(0)\n";
+  OS << "#define vzero_i32m4() vmv_v_x_i32m4(0)\n";
+  OS << "#define vzero_i32m8() vmv_v_x_i32m8(0)\n";
+  OS << "#define vzero_i64m1() vmv_v_x_i64m1(0)\n";
+  OS << "#define vzero_i64m2() vmv_v_x_i64m2(0)\n";
+  OS << "#define vzero_i64m4() vmv_v_x_i64m4(0)\n";
+  OS << "#define vzero_i64m8() vmv_v_x_i64m8(0)\n";
+  OS << "#define vzero_u8mf8() vmv_v_x_u8mf8(0)\n";
+  OS << "#define vzero_u8mf4() vmv_v_x_u8mf4(0)\n";
+  OS << "#define vzero_u8mf2() vmv_v_x_u8mf2(0)\n";
+  OS << "#define vzero_u8m1() vmv_v_x_u8m1(0)\n";
+  OS << "#define vzero_u8m2() vmv_v_x_u8m2(0)\n";
+  OS << "#define vzero_u8m4() vmv_v_x_u8m4(0)\n";
+  OS << "#define vzero_u8m8() vmv_v_x_u8m8(0)\n";
+  OS << "#define vzero_u16mf4() vmv_v_x_u16mf4(0)\n";
+  OS << "#define vzero_u16mf2() vmv_v_x_u16mf2(0)\n";
+  OS << "#define vzero_u16m1() vmv_v_x_u16m1(0)\n";
+  OS << "#define vzero_u16m2() vmv_v_x_u16m2(0)\n";
+  OS << "#define vzero_u16m4() vmv_v_x_u16m4(0)\n";
+  OS << "#define vzero_u16m8() vmv_v_x_u16m8(0)\n";
+  OS << "#define vzero_u32mf2() vmv_v_x_u32mf2(0)\n";
+  OS << "#define vzero_u32m1() vmv_v_x_u32m1(0)\n";
+  OS << "#define vzero_u32m2() vmv_v_x_u32m2(0)\n";
+  OS << "#define vzero_u32m4() vmv_v_x_u32m4(0)\n";
+  OS << "#define vzero_u32m8() vmv_v_x_u32m8(0)\n";
+  OS << "#define vzero_u64m1() vmv_v_x_u64m1(0)\n";
+  OS << "#define vzero_u64m2() vmv_v_x_u64m2(0)\n";
+  OS << "#define vzero_u64m4() vmv_v_x_u64m4(0)\n";
+  OS << "#define vzero_u64m8() vmv_v_x_u64m8(0)\n";
+  OS << "#define vzero_f16mf4() vfmv_v_f_f16mf4(0)\n";
+  OS << "#define vzero_f16mf2() vfmv_v_f_f16mf2(0)\n";
+  OS << "#define vzero_f16m1() vfmv_v_f_f16m1(0)\n";
+  OS << "#define vzero_f16m2() vfmv_v_f_f16m2(0)\n";
+  OS << "#define vzero_f16m4() vfmv_v_f_f16m4(0)\n";
+  OS << "#define vzero_f16m8() vfmv_v_f_f16m8(0)\n";
+  OS << "#define vzero_f32mf2() vfmv_v_f_f32mf2(0)\n";
+  OS << "#define vzero_f32m1() vfmv_v_f_f32m1(0)\n";
+  OS << "#define vzero_f32m2() vfmv_v_f_f32m2(0)\n";
+  OS << "#define vzero_f32m4() vfmv_v_f_f32m4(0)\n";
+  OS << "#define vzero_f32m8() vfmv_v_f_f32m8(0)\n";
+  OS << "#define vzero_f64m1() vfmv_v_f_f64m1(0)\n";
+  OS << "#define vzero_f64m2() vfmv_v_f_f64m2(0)\n";
+  OS << "#define vzero_f64m4() vfmv_v_f_f64m4(0)\n";
+  OS << "#define vzero_f64m8() vfmv_v_f_f64m8(0)\n";
   OS << "#endif";
 }
 
