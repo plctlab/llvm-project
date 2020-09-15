@@ -206,6 +206,46 @@ defset list<IntToFloat> AllIntToFloat = {
   }
 }
 
+defset list<WideVectorInfo> AllWideIntToFloat = {
+  defset list<WideVectorInfo> WideSignedToFloat = {
+    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
+      def 32wsf#lmul : WideVectorInfo<!cast<VectorInfo>("f16"#lmul), !cast<VectorInfo>(i32#ComputeWideLmul<lmul>.Result)>;
+    }
+    foreach lmul = ["mf2", "m1", "m2", "m4"] in {
+      def 64wsf#lmul : WideVectorInfo<!cast<VectorInfo>("f32"#lmul), !cast<VectorInfo>(i64#ComputeWideLmul<lmul>.Result)>;
+    }
+  }
+
+  defset list<WideVectorInfo> WideUnsignedToFloat = {
+    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
+      def 32wuf#lmul : WideVectorInfo<!cast<VectorInfo>("f16"#lmul), !cast<VectorInfo>(u32#ComputeWideLmul<lmul>.Result)>;
+    }
+    foreach lmul = ["mf2", "m1", "m2", "m4"] in {
+      def 64wuf#lmul : WideVectorInfo<!cast<VectorInfo>("f32"#lmul), !cast<VectorInfo>(u64#ComputeWideLmul<lmul>.Result)>;
+    }
+  }
+}
+
+defset list<WideVectorInfo> AllWideFloatToInt = {
+  defset list<WideVectorInfo> WideFloatToSigned = {
+    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
+      def 32wfs#lmul : WideVectorInfo<!cast<VectorInfo>("i16"#lmul), !cast<VectorInfo>(f32#ComputeWideLmul<lmul>.Result)>;
+    }
+    foreach lmul = ["mf2", "m1", "m2", "m4"] in {
+      def 64wfs#lmul : WideVectorInfo<!cast<VectorInfo>("i32"#lmul), !cast<VectorInfo>(f64#ComputeWideLmul<lmul>.Result)>;
+    }
+  }
+
+  defset list<WideVectorInfo> WideFloatToUnsigned = {
+    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
+      def 32wfu#lmul : WideVectorInfo<!cast<VectorInfo>("u16"#lmul), !cast<VectorInfo>(f32#ComputeWideLmul<lmul>.Result)>;
+    }
+    foreach lmul = ["mf2", "m1", "m2", "m4"] in {
+      def 64wfu#lmul : WideVectorInfo<!cast<VectorInfo>("u32"#lmul), !cast<VectorInfo>(f64#ComputeWideLmul<lmul>.Result)>;
+    }
+  }
+}
+
 class Inst<string Name, list<string> Types, string Inf, string Suf,
            int isMask, list<int> TypeOperands, code Def = ""> {
   string IntrinsicName = Name;
@@ -322,6 +362,32 @@ multiclass vfcvt {
                       evr.Integer.MaskStr, [-1, 0], [-1, 0, 2]>;
   }
 }
+
+multiclass vfwcvt {
+  foreach evr = WideSignedToFloat in {
+    defm NAME : unary<NAME, evr.WideVector.Str, evr.OriginVector.Str, "_x_f_v", evr.WideVector.TypeSuffix,
+                      evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+    defm NAME : unary<NAME, evr.WideVector.Str, evr.OriginVector.Str, "_rtz_x_f_v", evr.WideVector.TypeSuffix,
+                      evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+  foreach evr = WideUnsignedToFloat in {
+    defm NAME : unary<NAME, evr.WideVector.Str, evr.OriginVector.Str, "_xu_f_v", evr.WideVector.TypeSuffix,
+                      evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+    defm NAME : unary<NAME, evr.WideVector.Str, evr.OriginVector.Str, "_rtz_xu_f_v", evr.WideVector.TypeSuffix,
+                      evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+
+  foreach evr = WideFloatToSigned in {
+    defm NAME : unary<NAME, evr.WideVector.Str, evr.OriginVector.Str, "_f_x_v", evr.WideVector.TypeSuffix,
+                      evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+
+  foreach evr = WideFloatToUnsigned in {
+    defm NAME : unary<NAME, evr.WideVector.Str, evr.OriginVector.Str, "_f_xu_v", evr.WideVector.TypeSuffix,
+                      evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+}
+
 
 multiclass vslide {
   foreach evr = AllVector in {
@@ -1015,6 +1081,7 @@ defm vfmv : float_unary_v_f;
 
 // 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
 defm vfcvt : vfcvt;
+defm vfwcvt : vfwcvt;
 
 // 14.16. Widening Floating-Point/Integer Type-Convert Instructions
 // 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
