@@ -1081,9 +1081,9 @@ defm vfmv : float_unary_v_f;
 
 // 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
 defm vfcvt : vfcvt;
-defm vfwcvt : vfwcvt;
 
 // 14.16. Widening Floating-Point/Integer Type-Convert Instructions
+defm vfwcvt : vfwcvt;
 // 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
 
 // 15.1. Vector Single-Width Integer Reduction Instructions
