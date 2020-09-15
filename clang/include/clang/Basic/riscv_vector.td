@@ -206,14 +206,20 @@ defset list<IntToFloat> AllIntToFloat = {
   }
 }
 
-class Inst<string Name, list<string> Types, string Inf, 
-           string Suf, int isMask, list<int> TypeOperands> {
+class Inst<string Name, list<string> Types, string Inf, string Suf,
+           int isMask, list<int> TypeOperands, code Def = ""> {
   string IntrinsicName = Name;
   list<string> BuiltinStr = Types;
   string Infix = Inf;
   string Suffix = Suf;
   list<int> AnyTypeOperands = TypeOperands;
   int Mask = isMask;
+  // If not empty, the emitter will use it to define the intrinsic function.
+  // Otherwise, the emitter will generate intrinsic in the default way.
+  code CustomDef = Def;
+  // Should emit BUILTIN macro. Set to false if the intrinsic function can
+  // be implemented by other existing builtin functions.
+  bit ShouldEmitBuiltin = 1;
 } 
 
 // multiclass binary<string Name, string Types, string Inf, string Suf> {
@@ -247,8 +253,11 @@ multiclass ternary<string name, string result_str, string arg1_str,
 multiclass unary<string name, string result_str, string arg1_str,
                  string infix, string suffix, string mask_str,
                  list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
-  def NAME#infix#suffix#"_mask" : Inst<name, [result_str, mask_str, result_str, arg1_str], infix, suffix, 1, MaskAnyTypeOperands>;
-  def NAME#infix#suffix : Inst<name, [result_str, arg1_str], infix, suffix, 0, AnyTypeOperands>;
+  def NAME#infix#suffix#"_mask" : Inst<name, [result_str, mask_str, result_str,
+                                       arg1_str], infix, suffix, 1,
+                                       MaskAnyTypeOperands>;
+  def NAME#infix#suffix : Inst<name, [result_str, arg1_str], infix, suffix, 0,
+                               AnyTypeOperands>;
 }
 
 multiclass unary_m<string name, string result_str, string arg1_str,
@@ -851,6 +860,13 @@ defm vsbc : int_ternary_v_vvm_vxm;
 defm vand : int_binary_v_vv_vx;
 defm vxor : int_binary_v_vv_vx;
 defm vor : int_binary_v_vv_vx;
+let ShouldEmitBuiltin = 0 in {
+  foreach evr = AllIntegerVectorType in {
+    def "vnot_v"#evr.TypeSuffix : Inst<"vnot", [evr.Str, evr.Str], "_v",
+                                  evr.TypeSuffix, 0, [-1],
+                                  "vxor_vx_"#evr.TypeSuffix#"(ARG0, -1)">;
+  }
+}
 
 // 12.6. Vector Single-Width Bit Shift Instructions
 defm vsll : int_binary_v_vv_vi8;

@@ -45,6 +45,10 @@ private:
 
   bool MaskBit;
 
+  // If not empty, the emitter will use it to define the intrinsic function.
+  // Otherwise, the emitter will generate intrinsic in the default way.
+  std::string CustomDef;
+
 public:
 
   std::string getName() { return Name; }
@@ -67,10 +71,13 @@ public:
   bool isVsetvl() { return Name.find("vsetvl") != std::string::npos; }
   bool isMask() { return MaskBit; }
 
-  Intrinsic(StringRef Name, std::vector<std::shared_ptr<RISCVVectorType>> & Types, StringRef Infix, 
-                    StringRef Suffix, std::vector<int64_t> &Operands, bool Mask)
-      : Name(Name.str()), Types(Types), Infix(Infix.str()),
-        Suffix(Suffix), AnyTypeOperands(Operands), MaskBit(Mask) {}
+  std::string getCustomDef() { return CustomDef; }
+
+  Intrinsic(StringRef Name, std::vector<std::shared_ptr<RISCVVectorType>> &Types,
+            StringRef Infix, StringRef Suffix, std::vector<int64_t> &Operands,
+            bool Mask, StringRef Def)
+      : Name(Name.str()), Types(Types), Infix(Infix.str()), Suffix(Suffix),
+        AnyTypeOperands(Operands), MaskBit(Mask), CustomDef(Def) {}
 
   std::string createStatementInCase();
 };
@@ -316,6 +323,7 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "typedef __attribute__((riscv_mask_type(64))) bool vbool64_t;\n";
   std::vector<Record *> RV = Records.getAllDerivedDefinitions("Inst");
   std::vector<std::shared_ptr<Intrinsic>> Defs;
+  std::vector<std::shared_ptr<Intrinsic>> CustomDefs;
   for (auto R : RV) {
     createIntrinsic(R, Defs);
   }
@@ -331,6 +339,8 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
       std::string Sew = def->getSuffix().substr(0, MPosition);
       std::string Lmul = def->getSuffix().substr(MPosition, def->getSuffix().size());
       OS << "_" << Sew << " | " << "_" << Lmul << ");\n}\n";
+    } else if (!def->getCustomDef().empty()) {
+      CustomDefs.push_back(def);
     } else {
       OS << "#define ";
       OS << def->getName() << def->getInfix() << "_" << def->getSuffix();
@@ -344,6 +354,24 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
       OS << "(__VA_ARGS__)\n";
     }
   }
+
+  for (auto def : CustomDefs) {
+    OS << "#define ";
+    OS << def->getName() << def->getInfix() << "_" << def->getSuffix();
+    if (def->isMask())
+      OS << "_m";
+    OS << "(";
+    assert(def->getTypes().size() > 1);
+    for (unsigned i = 0; i < def->getTypes().size() - 1; ++i) {
+      if (i)
+        OS << ", ";
+      OS << "ARG" << i;
+    }
+    OS << ") ";
+    OS << def->getCustomDef();
+    OS << "\n";
+  }
+
   OS << "#define vzero_i8mf8() vmv_v_x_i8mf8(0)\n";
   OS << "#define vzero_i8mf4() vmv_v_x_i8mf4(0)\n";
   OS << "#define vzero_i8mf2() vmv_v_x_i8mf2(0)\n";
@@ -418,15 +446,18 @@ void RISCVVectorEmitter::createIntrinsic(Record *R, std::vector<std::shared_ptr<
   StringRef Suffix = R->getValueAsString("Suffix");
   std::vector<int64_t> Operands = R->getValueAsListOfInts("AnyTypeOperands");
   bool Mask = R->getValueAsInt("Mask") == 1;
+  StringRef Def = R->getValueAsString("CustomDef");
 
-  Out.push_back(std::make_shared<Intrinsic>(Name, BuiltinTypes, Infix, Suffix, Operands, Mask));
+  Out.push_back(std::make_shared<Intrinsic>(Name, BuiltinTypes, Infix, Suffix,
+                                            Operands, Mask, Def));
 }
 
 void RISCVVectorEmitter::createBuiltinCG(raw_ostream &OS) {
   std::vector<Record *> RV = Records.getAllDerivedDefinitions("Inst");
   std::vector<std::shared_ptr<Intrinsic>> Defs;
   for (auto R : RV) {
-    createIntrinsic(R, Defs);
+    if (R->getValueAsBit("ShouldEmitBuiltin"))
+      createIntrinsic(R, Defs);
   }
 
   std::map<std::string, std::vector<std::shared_ptr<Intrinsic>>> SplitedIntrinsics;
@@ -463,7 +494,8 @@ void RISCVVectorEmitter::createBuiltins(raw_ostream &OS) {
   std::vector<Record *> RV = Records.getAllDerivedDefinitions("Inst");
   std::vector<std::shared_ptr<Intrinsic>> Defs;
   for (auto R : RV) {
-    createIntrinsic(R, Defs);
+    if (R->getValueAsBit("ShouldEmitBuiltin"))
+      createIntrinsic(R, Defs);
   }
 
   OS << "BUILTIN(__builtin_riscv_vsetvl, \"zzz\", \"n\")\n";

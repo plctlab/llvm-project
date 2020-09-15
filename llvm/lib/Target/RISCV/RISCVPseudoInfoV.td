@@ -714,7 +714,6 @@ defm PseudoVMSBC : pseudo_binary_v_vvm_vxm<"@earlyclobber $rd">;
 defm PseudoVAND : pseudo_binary_v_vv_vx;
 defm PseudoVOR : pseudo_binary_v_vv_vx;
 defm PseudoVXOR : pseudo_binary_v_vv_vx;
-// defm PseudoVNOT : pseudo_unary_v_v;
 
 // 12.6. Vector Single-Width Bit Shift Instructions
 defm PseudoVSLL : pseudo_binary_v_vv_vx;
@@ -1606,5 +1605,4 @@ defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredsum", "PseudoVFREDSUM">;
 defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredmax", "PseudoVFREDMAX">;
 defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredmin", "PseudoVFREDMIN">;
 defm "" : pat_intrinsic_unary_int_v_fp_w<"int_riscv_vfncvt_x_f", "PseudoVFNCVT_X_F">;
-// defm "" 
-// defm "" : pat_intrinsic_int_unary_v<"int_riscv_vnot", "PseudoVNOT">;
+
