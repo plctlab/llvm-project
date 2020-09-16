@@ -246,6 +246,15 @@ defset list<WideVectorInfo> AllWideFloatToInt = {
   }
 }
 
+defset list<WideVectorInfo> WideFloatToFloat = {
+  foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
+    def 32wff#lmul : WideVectorInfo<!cast<VectorInfo>("f16"#lmul), !cast<VectorInfo>(f32#ComputeWideLmul<lmul>.Result)>;
+  }
+  foreach lmul = ["mf2", "m1", "m2", "m4"] in {
+    def 64wff#lmul : WideVectorInfo<!cast<VectorInfo>("f32"#lmul), !cast<VectorInfo>(f64#ComputeWideLmul<lmul>.Result)>;
+  }
+}
+
 class Inst<string Name, list<string> Types, string Inf, string Suf,
            int isMask, list<int> TypeOperands, code Def = ""> {
   string IntrinsicName = Name;
@@ -384,6 +393,11 @@ multiclass vfwcvt {
 
   foreach evr = WideFloatToUnsigned in {
     defm NAME : unary<NAME, evr.WideVector.Str, evr.OriginVector.Str, "_f_xu_v", evr.WideVector.TypeSuffix,
+                      evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+  
+  foreach evr = WideFloatToFloat in {
+    defm NAME : unary<NAME, evr.WideVector.Str, evr.OriginVector.Str, "_f_f_v", evr.WideVector.TypeSuffix,
                       evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
   }
 }

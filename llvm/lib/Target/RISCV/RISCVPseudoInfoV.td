@@ -105,7 +105,7 @@ defset list<VectorTypeInfo> AllVectors = {
       def Vtypev32xi8 : VectorTypeInfo<nxv32i8, nxv32i1, 8, VRM4, 4, "4">;
       def Vtypev16xi16 : VectorTypeInfo<nxv16i16, nxv16i1, 16, VRM4, 4, "4">;
       def Vtypev8xi32 : VectorTypeInfo<nxv8i32, nxv8i1, 32, VRM4, 4, "4">;
-      def Vtypev4i64 : VectorTypeInfo<nxv4i64, nxv4i1, 64, VRM4, 4, "4">;
+      def Vtypev4xi64 : VectorTypeInfo<nxv4i64, nxv4i1, 64, VRM4, 4, "4">;
 
       def Vtypev64xi8 : VectorTypeInfo<nxv64i8, nxv64i1, 8, VRM8, 8, "8">;
       def Vtypev32xi16 : VectorTypeInfo<nxv32i16, nxv32i1, 16, VRM8, 8, "8">;
@@ -191,27 +191,33 @@ defset list<WideVectorInfo> AllWideIntegerVectors = {
   def Widev8xi32 : WideVectorInfo<Vtypev8xi32, nxv8i64, VRM8, "8">;
 }
 
-class VectorTypeInfoToWide<ValueType vti, ValueType VMas, int VSew, RegisterClass VReg, int VLmul, string VLmulstr,
-                           ValueType wti, ValueType WMas, int WSew, RegisterClass WReg, int WLmul, string WLmulstr>
+class VectorTypeInfoToNarrow<VectorTypeInfo vti, VectorTypeInfo wti>
 {
-  ValueType Vti = vti;
-  ValueType VMask = VMas;
-  int VSEW = VSew;
-  RegisterClass VRegClass = VReg;
-  int VLMUL = VLmul;
-  string VLMULstr = VLmulstr;
-
-  ValueType Wti = wti;
-  ValueType WMask = WMas;
-  int WSEW = WSew;
-  RegisterClass WRegClass = WReg;
-  int WLMUL = WLmul;
-  string WLMULstr = WLmulstr;
+   VectorTypeInfo Vti = vti;
+   VectorTypeInfo Wti = wti;
 }
 
-defset list<VectorTypeInfoToWide> AllWideableIntToFloatVectors = {
-  def : VectorTypeInfoToWide<nxv4i16, nxv4i1, 16, VR, 1, "1",
-                             nxv4f32, nxv4i1, 32, VRM2, 2, "2">;
+defset list<VectorTypeInfoToNarrow> AllNarrowIntToFloatVectors = {
+  def : VectorTypeInfoToNarrow<Vtypev4xi16, Vtypev4xf32>;
+}
+
+class VectorTypeInfoToNarrowOrWide<VectorTypeInfo vti, VectorTypeInfo wti, string Lmulstr>
+{
+   VectorTypeInfo Vti = vti;
+   VectorTypeInfo Wti = wti;
+   string LMULstr = Lmulstr;
+}
+
+defset list<VectorTypeInfoToNarrowOrWide> AllWideFloatToIntVectors = {
+  def : VectorTypeInfoToNarrowOrWide<Vtypev1xi32, Vtypev1xf16, "F4_16_MF2">; //vfloat16mf4_t, vint32mf2_t
+  def : VectorTypeInfoToNarrowOrWide<Vtypev2xi32, Vtypev2xf16, "F2_16_M1">; //vfloat16mf2_t, vint32m1_t
+  def : VectorTypeInfoToNarrowOrWide<Vtypev4xi32, Vtypev4xf16, "1_16_M2">; //vfloat16m1_t, vint32m2_t
+  def : VectorTypeInfoToNarrowOrWide<Vtypev8xi32, Vtypev8xf16, "2_16_M4">; //vfloat16m2_t, vint32m4_t
+  def : VectorTypeInfoToNarrowOrWide<Vtypev16xi32, Vtypev16xf16, "4_16_M8">; //vfloat16m4_t, vint32m8_t
+  def : VectorTypeInfoToNarrowOrWide<Vtypev1xi64, Vtypev1xf32, "F2_32_M1">; //vfloat32mf2_t, vint64m1_t
+  def : VectorTypeInfoToNarrowOrWide<Vtypev2xi64, Vtypev2xf32, "1_32_M2">; //vfloat32m1_t, vint64m2_t
+  def : VectorTypeInfoToNarrowOrWide<Vtypev4xi64, Vtypev4xf32, "2_32_M4">; //vfloat32m2_t, vint64m4_t
+  def : VectorTypeInfoToNarrowOrWide<Vtypev8xi64, Vtypev8xf32, "4_32_M8">; //vfloat32m4_t, vint64m8_t
 }
 
 class RISCVVectorPseudo {
@@ -375,16 +381,78 @@ multiclass pseudo_ternary_reduction {
   }
 }
 
-multiclass pseudo_unary_v_w {
+multiclass pseudo_unary_v_n {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
-    foreach evr = AllWideableIntToFloatVectors in {
-      let VLMul = evr.VLMUL in {
-        defm _W : pseudo_unary<evr.VRegClass, evr.WRegClass, evr.VLMULstr, "@earlyclobber $rd">;
+    foreach evr = AllNarrowIntToFloatVectors in {
+      defvar vti = evr.Vti;
+      defvar wti = evr.Wti;
+      let VLMul = vti.LMUL in {
+        defm _W : pseudo_unary<vti.RegClass, wti.RegClass, vti.LMULstr, "@earlyclobber $rd">;
       }
     }
   }
 }
 
+// This functor is used to obtain the int vector type that has the same SEW and
+// multiplier as the input parameter type
+class GetIntVectorTypeInfo<VectorTypeInfo vti>
+{
+  // Equivalent integer vector type. Eg.
+  //   Vtypev4xf64 → Vtypev4xi64
+  VectorTypeInfo Vti =
+    !cast<VectorTypeInfo>(
+      !subst("xf", "xi", !cast<string>(vti))
+    );
+}
+
+// This functor is used to obtain the float vector type that has the same SEW
+// and multiplier as the input parameter type
+class GetFloatVectorTypeInfo<VectorTypeInfo vti>
+{
+  // Equivalent float vector type. Eg.
+  //   Vtypev2xf32 → Vtypev2xf32 
+  VectorTypeInfo FVti =
+    !cast<VectorTypeInfo>(
+      !subst("xi", "xf", !cast<string>(vti))
+    );
+}
+
+
+multiclass pseudo_unary_v_w<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+    foreach evr = AllWideFloatToIntVectors in {
+      defvar vti = evr.Vti;
+      defvar wti = evr.Wti;
+      let VLMul = vti.LMUL in {
+        defm _V : pseudo_unary<vti.RegClass, wti.RegClass, evr.LMULstr, constraints>;
+      }
+    }
+  }
+}
+
+multiclass pseudo_unary_f_w<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+    foreach evr = AllWideFloatToIntVectors in {
+      defvar fti = GetFloatVectorTypeInfo<evr.Vti>.FVti;
+      defvar vti = GetIntVectorTypeInfo<evr.Wti>.Vti;
+      let VLMul = vti.LMUL in {
+        defm _V : pseudo_unary<fti.RegClass, vti.RegClass, evr.LMULstr, constraints>;
+      }
+    }
+  }
+}
+
+multiclass pseudo_unary_f_f<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+    foreach evr = AllWideFloatToIntVectors in {
+      defvar fti = GetFloatVectorTypeInfo<evr.Vti>.FVti;
+      defvar wti = evr.Wti;
+      let VLMul = fti.LMUL in {
+        defm _V : pseudo_unary<fti.RegClass, wti.RegClass, evr.LMULstr, constraints>;
+      }
+    }
+  }
+}
 
 multiclass pseudo_unary_v_v {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
@@ -861,8 +929,16 @@ defm PseudoVFMV : pseudo_vfmv;
 
 // 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
 // 14.16. Widening Floating-Point/Integer Type-Convert Instructions
+defm PseudoVFWCVT_X_F : pseudo_unary_v_w<"@earlyclobber $rd">;
+defm PseudoVFWCVT_XU_F : pseudo_unary_v_w<"@earlyclobber $rd">;
+defm PseudoVFWCVT_RTZ_X_F : pseudo_unary_v_w<"@earlyclobber $rd">;
+defm PseudoVFWCVT_RTZ_XU_F : pseudo_unary_v_w<"@earlyclobber $rd">;
+defm PseudoVFWCVT_F_X : pseudo_unary_f_w<"@earlyclobber $rd">;
+defm PseudoVFWCVT_F_XU : pseudo_unary_f_w<"@earlyclobber $rd">;
+defm PseudoVFWCVT_F_F : pseudo_unary_f_f<"@earlyclobber $rd">;
+
 // 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
-defm PseudoVFNCVT_X_F : pseudo_unary_v_w;
+defm PseudoVFNCVT_X_F : pseudo_unary_v_n;
 
 // 15.1. Vector Single-Width Integer Reduction Instructions
 defm PseudoVREDSUM : pseudo_ternary_reduction;
@@ -1376,12 +1452,51 @@ multiclass pat_intrinsic_vfmv
   }
 }
 
-multiclass pat_intrinsic_unary_int_v_fp_w
+multiclass pat_intrinsic_unary_n_f_v
     <string intrinsic_name, string instruction_name> {
-  foreach vtiToWti = AllWideableIntToFloatVectors in {
+  foreach evr = AllNarrowIntToFloatVectors in {
+    defvar vti = evr.Vti;
+    defvar wti = evr.Wti;
     defm : pat_intrinsic_unary<intrinsic_name#"_w", instruction_name#"_W",
-                               vtiToWti.Vti, vtiToWti.Wti, vtiToWti.VMask, vtiToWti.VSEW,
-                               vtiToWti.VLMULstr, vtiToWti.VRegClass, vtiToWti.WRegClass>;
+                               vti.Vector, wti.Vector, vti.Mask, vti.SEW,
+                               vti.LMULstr, vti.RegClass, wti.RegClass>;
+
+  }
+}
+
+multiclass pat_intrinsic_unary_w_f_v
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllWideFloatToIntVectors in {
+    defvar vti = evr.Vti;
+    defvar wti = evr.Wti;
+    defm : pat_intrinsic_unary<intrinsic_name#"_v", instruction_name#"_V",
+                               vti.Vector, wti.Vector, vti.Mask, vti.SEW,
+                               evr.LMULstr, vti.RegClass, wti.RegClass>;
+
+  }
+}
+
+multiclass pat_intrinsic_unary_w_v_f
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllWideFloatToIntVectors in {
+    defvar fti = GetFloatVectorTypeInfo<evr.Vti>.FVti;
+    defvar vti = GetIntVectorTypeInfo<evr.Wti>.Vti;
+    defm : pat_intrinsic_unary<intrinsic_name#"_v", instruction_name#"_V",
+                               fti.Vector, vti.Vector, fti.Mask, fti.SEW,
+                               evr.LMULstr, fti.RegClass, vti.RegClass>;
+
+  }
+}
+
+
+multiclass pat_intrinsic_unary_w_f_f
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllWideFloatToIntVectors in {
+    defvar fti = GetFloatVectorTypeInfo<evr.Vti>.FVti;
+    defvar wti = evr.Wti;
+    defm : pat_intrinsic_unary<intrinsic_name#"_v", instruction_name#"_V",
+                               fti.Vector, wti.Vector, fti.Mask, fti.SEW,
+                               evr.LMULstr, fti.RegClass, wti.RegClass>;
 
   }
 }
@@ -1604,5 +1719,11 @@ defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredosum", "PseudoVFREDOSUM"
 defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredsum", "PseudoVFREDSUM">;
 defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredmax", "PseudoVFREDMAX">;
 defm "" : pat_intrinsic_float_reduction<"int_riscv_vfredmin", "PseudoVFREDMIN">;
-defm "" : pat_intrinsic_unary_int_v_fp_w<"int_riscv_vfncvt_x_f", "PseudoVFNCVT_X_F">;
-
+defm "" : pat_intrinsic_unary_n_f_v<"int_riscv_vfncvt_x_f", "PseudoVFNCVT_X_F">;
+defm "" : pat_intrinsic_unary_w_f_v<"int_riscv_vfwcvt_x_f", "PseudoVFWCVT_X_F">;
+defm "" : pat_intrinsic_unary_w_f_v<"int_riscv_vfwcvt_xu_f", "PseudoVFWCVT_XU_F">;
+defm "" : pat_intrinsic_unary_w_f_v<"int_riscv_vfwcvt_rtz_x_f", "PseudoVFWCVT_RTZ_X_F">;
+defm "" : pat_intrinsic_unary_w_f_v<"int_riscv_vfwcvt_rtz_xu_f", "PseudoVFWCVT_RTZ_XU_F">;
+defm "" : pat_intrinsic_unary_w_v_f<"int_riscv_vfwcvt_f_x", "PseudoVFWCVT_F_X">;
+defm "" : pat_intrinsic_unary_w_v_f<"int_riscv_vfwcvt_f_xu", "PseudoVFWCVT_F_XU">;
+defm "" : pat_intrinsic_unary_w_f_f<"int_riscv_vfwcvt_f_f", "PseudoVFWCVT_F_F">;
