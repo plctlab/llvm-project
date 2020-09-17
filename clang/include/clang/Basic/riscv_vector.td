@@ -64,6 +64,14 @@ class ComputeBoolType<int VectorNum> {
                      !eq(VectorNum, 64) : "b1");
 }
 
+class ComputeQuadWideLmul<string lmul> {
+  string Result = !cond(!eq(lmul, "mf8") : "mf2",
+                        !eq(lmul, "mf4") : "m1",
+                        !eq(lmul, "mf2") : "m2",
+                        !eq(lmul, "m1") : "m4",
+                        !eq(lmul, "m2") : "m8");
+}
+
 defset list<ScalarInfo> AllScalarType = {
   def i8 : ScalarInfo<"i8", "Sc">;
   def u8 : ScalarInfo<"u8", "Uc">;
@@ -177,6 +185,26 @@ defset list<WideVectorInfo> AllWideVector = {
     }
     foreach lmul = ["mf2", "m1", "m2", "m4"] in {
       def wf32#lmul : WideVectorInfo<!cast<VectorInfo>("f32"#lmul), !cast<VectorInfo>("f64"#ComputeWideLmul<lmul>.Result)>;
+    }
+  }
+}
+
+defset list<WideVectorInfo> AllQuadWideVector = {
+  defset list<WideVectorInfo> AllQuadWideIntegerVector = {
+    foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2"] in {
+      def qwi8#lmul : WideVectorInfo<!cast<VectorInfo>(i8#lmul), !cast<VectorInfo>(i32#ComputeQuadWideLmul<lmul>.Result)>;
+    }
+    foreach lmul = ["mf4", "mf2", "m1", "m2"] in {
+      def qwi16#lmul : WideVectorInfo<!cast<VectorInfo>(i16#lmul), !cast<VectorInfo>(i64#ComputeQuadWideLmul<lmul>.Result)>;
+    }
+  }
+  
+  defset list<WideVectorInfo> AllQuadWideUnsignedVector = {
+    foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2"] in {
+      def qwu8#lmul : WideVectorInfo<!cast<VectorInfo>(u8#lmul), !cast<VectorInfo>(u32#ComputeQuadWideLmul<lmul>.Result)>;
+    }
+    foreach lmul = ["mf4", "mf2", "m1", "m2"] in {
+      def qwu16#lmul : WideVectorInfo<!cast<VectorInfo>(u16#lmul), !cast<VectorInfo>(u64#ComputeQuadWideLmul<lmul>.Result)>;
     }
   }
 }
@@ -747,6 +775,36 @@ multiclass float_ternary_v_vs {
   }
 }
 
+multiclass int_ternary_qw_vvx_vvv {
+  foreach evr = AllQuadWideIntegerVector in {
+    defm NAME : ternary<NAME, evr.WideVector.Str, evr.WideVector.Str,
+                        evr.OriginVector.Str, evr.OriginVector.Str,
+                        "_vv", evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1], [-1, 0, 2]>;
+    defm NAME : ternary<NAME, evr.WideVector.Str, evr.WideVector.Str,
+                        evr.OriginVector.ScalarType.Str, evr.OriginVector.Str, "_vx",
+                        evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1, 2], [-1, 0, 2, 3]>;
+  }
+}
+
+multiclass unsigned_ternary_qw_vvx_vvv {
+  foreach evr = AllQuadWideUnsignedVector in {
+    defm NAME : ternary<NAME, evr.WideVector.Str, evr.WideVector.Str,
+                        evr.OriginVector.Str, evr.OriginVector.Str,
+                        "_vv", evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1], [-1, 0, 2]>;
+    defm NAME : ternary<NAME, evr.WideVector.Str, evr.WideVector.Str,
+                        evr.OriginVector.ScalarType.Str, evr.OriginVector.Str, "_vx",
+                        evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1, 2], [-1, 0, 2, 3]>;
+  }
+}
+
+multiclass int_ternary_qw_vvx {
+  foreach evr = AllQuadWideIntegerVector in {
+    defm NAME : ternary<NAME, evr.WideVector.Str, evr.WideVector.Str,
+                        evr.OriginVector.ScalarType.Str, evr.OriginVector.Str, "_vx",
+                        evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1, 2], [-1, 0, 2, 3]>;
+  }
+}
+
 multiclass int_ternary_w_vvx_vvv {
   foreach evr = AllWideIntegerVector in {
     defm NAME : ternary<NAME, evr.WideVector.Str, evr.WideVector.Str, 
@@ -814,20 +872,20 @@ multiclass float_binary_w_vv_vf_wv_wf {
 multiclass int_binary_v_wv_wx {
   foreach evr = AllWideIntegerVector in {
     defm NAME : binary<NAME, evr.OriginVector.Str, evr.WideVector.Str, evr.OriginVector.Str, 
-                "_wv", evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+                "_wv", evr.OriginVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
             
     defm NAME : binary<NAME, evr.OriginVector.Str, evr.WideVector.Str, evr.OriginVector.ScalarType.Str, 
-                "_wx", evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 0, 1], [-1, 0, 2, 3]>;
+                "_wx", evr.OriginVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 0, 1], [-1, 0, 2, 3]>;
   }
 }
 
 multiclass unsigned_binary_v_wv_wx {
   foreach evr = AllWideUnsignedVector in {
     defm NAME : binary<NAME, evr.OriginVector.Str, evr.WideVector.Str, evr.OriginVector.Str, 
-                "_wv", evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
+                "_wv", evr.OriginVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
             
     defm NAME : binary<NAME, evr.OriginVector.Str, evr.WideVector.Str, evr.OriginVector.ScalarType.Str, 
-                "_wx", evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
+                "_wx", evr.OriginVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
   }
 }
 
@@ -988,6 +1046,9 @@ defm vrem : signed_binary_v_vv_vx;
 defm vremu : unsigned_binary_v_vv_vx;
 
 // 12.12. Vector Widening Integer Multiply Instructions
+defm vwmul : int_binary_w_vv_vx;
+defm vwmulu : unsigned_binary_w_vv_vx;
+defm vwmulsu : int_binary_w_vv_vx;
 
 // 12.13. Vector Single-Width Integer Multiply-Add Instructions
 defm vmacc : ternary_v_vvx_vvv;
@@ -1002,6 +1063,10 @@ defm vwmaccsu : int_ternary_w_vvx_vvv;
 defm vwmaccus : int_ternary_w_vvx;
 
 // 12.15. Vector Quad-Widening Integer Multiply-Add Instructions (Extension Zvqmac)
+defm vqmacc : int_ternary_qw_vvx_vvv;
+defm vqmaccu : unsigned_ternary_qw_vvx_vvv;
+defm vqmaccsu : int_ternary_qw_vvx_vvv;
+defm vqmaccus : int_ternary_qw_vvx;
 
 // 12.16. Vector Integer Merge Instructions
 defm vmerge : int_vmerge_vvm_vxm;

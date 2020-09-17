@@ -488,11 +488,18 @@ defm vwmaccu : Ternary_int_wide;
 defm vwmaccsu : Ternary_int_wide;
 defm vwmaccus : Ternary_int_wide_w_vx;
 
+// Vector Quad-Widening Integer Multiply-Add Functions
+defm vqmacc : Ternary_int_wide;
+defm vqmaccu : Ternary_int_wide;
+defm vqmaccsu : Ternary_int_wide;
+defm vqmaccus : Ternary_int_wide_w_vx;
+
+// Vector Integer Merge Functions
 multiclass Merge {
   def "int_riscv_" # NAME # "_vvm" : V_MVV;
   def "int_riscv_" # NAME # "_vxm" : V_MVX;
 }
-// Vector Integer Merge Functions
+
 defm vmerge : Merge;
 
 // Vector Integer Move Functions
