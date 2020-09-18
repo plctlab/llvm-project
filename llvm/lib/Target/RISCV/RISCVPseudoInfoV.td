@@ -1616,6 +1616,7 @@ multiclass pat_intrinsic_vload_store {
 }
 
 defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vadd", "PseudoVADD">;
+defm "" : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsub", "PseudoVSUB">;
 defm "" : pat_intrinsic_int_binary_w_vv_vx_wv_wx<"int_riscv_vwadd", "PseudoVWADD">;
 defm "" : pat_intrinsic_int_binary_v_vvm_vxm<"int_riscv_vadc", "PseudoVADC">;
 defm "" : pat_intrinsic_int_binary_m_vvm_vxm<"int_riscv_vmadc", "PseudoVMADC">;
