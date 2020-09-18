@@ -1104,3 +1104,11 @@ let Predicates = [HasStdExtZvamo, HasStdExtA, IsRV64] in {
   defm VAMOMINUEI64 : VAMO<AMOOPVamoMinu, LSWidth64, "vamominuei64.v">;
   defm VAMOMAXUEI64 : VAMO<AMOOPVamoMaxu, LSWidth64, "vamomaxuei64.v">;
 } // Predicates = [HasStdExtZvamo, HasStdExtA, IsRV64]
+
+// Vector Quad-Widening Integer Multiply-Add Instructions (Extension Zvqmac)
+let Predicates = [HasStdExtZvqmac], Constraints = "@earlyclobber $vd", RVVConstraint = WidenV in {
+defm VQMACCU_V : VALUr_IV_V_X<"vqmaccu", 0b111100>;
+defm VQMACC_V : VALUr_IV_V_X<"vqmacc", 0b111101>;
+defm VQMACCSU_V : VALUr_IV_V_X<"vqmaccsu", 0b111111>;
+defm VQMACCUS_V : VALUr_IV_X<"vqmaccus", 0b111110>;
+} // Predicates = [HasStdExtZvqmac], Constraints = "@earlyclobber $vd", RVVConstraint = WidenV

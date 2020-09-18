@@ -169,6 +169,13 @@ def FeatureExtZvamo
 def HasStdExtZvamo : Predicate<"Subtarget->hasStdExtZvamo()">,
                               AssemblerPredicate<(all_of FeatureExtZvamo),
                               "'Zvamo'(Vector AMO Operations)">;
+def FeatureExtZvqmac
+    : SubtargetFeature<"experimental-zvqmac", "HasStdExtZvqmac", "true",
+                       "'Zvqmac' (Vector Quad-Widening Integer Multiply-Add Instructions)",
+                       [FeatureStdExtV]>;
+def HasStdExtZvqmac : Predicate<"Subtarget->hasStdExtZvqmac()">,
+                                AssemblerPredicate<(all_of FeatureExtZvqmac),
+                                "'Zvqmac' (Vector Quad-Widening Integer Multiply-Add Instructions)">;
 
 def Feature64Bit
     : SubtargetFeature<"64bit", "HasRV64", "true", "Implements RV64">;
