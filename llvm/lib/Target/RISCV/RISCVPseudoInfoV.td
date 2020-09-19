@@ -191,6 +191,19 @@ defset list<WideVectorInfo> AllWideIntegerVectors = {
   def Widev8xi32 : WideVectorInfo<Vtypev8xi32, nxv8i64, VRM8, "8">;
 }
 
+defset list<WideVectorInfo> AllQuadWideIntegerVectors = {
+  def QWidev1xi8 : WideVectorInfo<Vtypev1xi8, nxv1i32, VR, "F2_8_MF8">; //vint32mf2_t, vint8mf8_t
+  def QWidev2xi8 : WideVectorInfo<Vtypev2xi8, nxv2i32, VR, "1_8_MF4">; //vint32m1_t, vint8mf4_t
+  def QWidev4xi8 : WideVectorInfo<Vtypev4xi8, nxv4i32, VRM2, "2_8_MF2">;  //vint32m2_t, vint8mf2_t
+  def QWidev8xi8 : WideVectorInfo<Vtypev8xi8, nxv8i32, VRM4, "4_8_M1">; //vint32m4_t, vint8m1_t
+  def QWidev16xi8 : WideVectorInfo<Vtypev16xi8, nxv16i32, VRM8, "8_8_M2">; //vint32m8_t, vint8m2_t
+
+  def QWidev1xi16 : WideVectorInfo<Vtypev1xi16, nxv1i64, VR, "1_16_MF4">; //vint64m1_t, vint16mf4_t
+  def QWidev2xi16 : WideVectorInfo<Vtypev2xi16, nxv2i64, VRM2, "2_16_MF2">;  //vint64m2_t, vint16mf2_t 
+  def QWidev4xi16 : WideVectorInfo<Vtypev4xi16, nxv4i64, VRM4, "4_16_M1">; //vint64m4_t, vint16m1_t
+  def QWidev8xi16 : WideVectorInfo<Vtypev8xi16, nxv8i64, VRM8, "8_16_M2">; //vint64m8_t, vint16m2_t op1
+}
+
 class VectorTypeInfoToNarrow<VectorTypeInfo vti, VectorTypeInfo wti>
 {
    VectorTypeInfo Vti = vti;
@@ -738,6 +751,17 @@ multiclass pseudo_ternary_w_wvv_wvx<string constraints = ""> {
   }
 }
 
+multiclass pseudo_ternary_qw_wvv_wvx<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in
+  foreach evr = AllQuadWideIntegerVectors in {
+    let VLMul = evr.OriginVector.LMUL in {
+      defm _VV : pseudo_ternary<evr.WidenRegClass, evr.OriginVector.RegClass, evr.OriginVector.RegClass, evr.WidenLMULstr, constraints>;
+      defm _VX : pseudo_ternary<evr.WidenRegClass,  GPR, evr.OriginVector.RegClass, evr.WidenLMULstr, constraints>;
+    }
+  }
+}
+
+
 multiclass pseudo_ternary_w_wvv_wvf<string constraints = ""> {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
   foreach evr = AllWideVlmuls in {
@@ -756,6 +780,16 @@ multiclass pseudo_ternary_w_wvx<string constraints = ""> {
     let VLMul = evr.Widelmul in {
       defm _VX : pseudo_ternary<evr.WideRegClass,
       GPR, evr.OriginRegClass, evr.Lmulstr, constraints>;
+    }
+  }
+}
+
+multiclass pseudo_ternary_qw_wvx<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in
+  foreach evr = AllQuadWideIntegerVectors in {
+    let VLMul = evr.OriginVector.LMUL in {
+      defm _VX : pseudo_ternary<evr.WidenRegClass, GPR, 
+      evr.OriginVector.RegClass, evr.WidenLMULstr, constraints>;
     }
   }
 }
@@ -838,6 +872,10 @@ defm PseudoVWMACCSU : pseudo_ternary_w_wvv_wvx;
 defm PseudoVWMACCUS : pseudo_ternary_w_wvx;
 
 // 12.15. Vector Quad-Widening Integer Multiply-Add Instructions (Extension Zvqmac)
+defm PseudoVQMACC : pseudo_ternary_qw_wvv_wvx;
+defm PseudoVQMACCU : pseudo_ternary_qw_wvv_wvx;
+defm PseudoVQMACCSU : pseudo_ternary_qw_wvv_wvx;
+defm PseudoVQMACCUS : pseudo_ternary_qw_wvx;
 
 // 12.16. Vector Integer Merge Instructions
 defm PseudoVMERGE : pseudo_binary_v_vvm_vxm;
@@ -1534,6 +1572,20 @@ multiclass pat_intrinsic_int_ternary_v_vvx
   }
 }
 
+multiclass pat_intrinsic_int_ternary_qw_wvv_wvx
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllQuadWideIntegerVectors in {
+    defm : pat_intrinsic_ternary<intrinsic_name#"_vv", instruction_name#"_VV",
+                                 evr.WidenVector, evr.OriginVector.Vector, evr.OriginVector.Vector,
+                                 evr.OriginVector.Mask, evr.OriginVector.SEW, evr.WidenLMULstr, evr.WidenRegClass,
+                                 evr.OriginVector.RegClass, evr.OriginVector.RegClass>;
+    defm : pat_intrinsic_ternary<intrinsic_name#"_vx", instruction_name#"_VX",
+                                 evr.WidenVector, XLenVT, evr.OriginVector.Vector, evr.OriginVector.Mask,
+                                 evr.OriginVector.SEW, evr.WidenLMULstr, evr.WidenRegClass,
+                                 GPR, evr.OriginVector.RegClass>;
+  }
+}
+
 multiclass pat_intrinsic_int_ternary_w_wvv_wvx
     <string intrinsic_name, string instruction_name> {
   foreach evr = AllWideIntegerVectors in {
@@ -1569,6 +1621,16 @@ multiclass pat_intrinsic_int_ternary_w_wvx
                                  evr.WidenVector, XLenVT, evr.OriginVector.Vector, evr.OriginVector.Mask,
                                  evr.OriginVector.SEW, evr.WidenLMULstr, evr.WidenRegClass,
                                  GPR, evr.OriginVector.RegClass>; 
+  }
+}
+
+multiclass pat_intrinsic_int_ternary_qw_wvx
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllQuadWideIntegerVectors in {
+    defm : pat_intrinsic_ternary<intrinsic_name#"_vx", instruction_name#"_VX",
+                                 evr.WidenVector, XLenVT, evr.OriginVector.Vector,  evr.OriginVector.Mask,
+                                 evr.OriginVector.SEW, evr.WidenLMULstr, evr.WidenRegClass,
+                                 GPR, evr.OriginVector.RegClass>;
   }
 }
 
@@ -1662,6 +1724,10 @@ defm : pat_intrinsic_int_ternary_w_wvv_wvx<"int_riscv_vwmacc", "PseudoVWMACC">;
 defm : pat_intrinsic_int_ternary_w_wvv_wvx<"int_riscv_vwmaccu", "PseudoVWMACCU">;
 defm : pat_intrinsic_int_ternary_w_wvv_wvx<"int_riscv_vwmaccsu", "PseudoVWMACCSU">;
 defm : pat_intrinsic_int_ternary_w_wvx<"int_riscv_vwmaccus", "PseudoVWMACCUS">;
+defm : pat_intrinsic_int_ternary_qw_wvv_wvx<"int_riscv_vqmacc", "PseudoVQMACC">;
+defm : pat_intrinsic_int_ternary_qw_wvv_wvx<"int_riscv_vqmaccu", "PseudoVQMACCU">;
+defm : pat_intrinsic_int_ternary_qw_wvv_wvx<"int_riscv_vqmaccsu", "PseudoVQMACCSU">;
+defm : pat_intrinsic_int_ternary_qw_wvx<"int_riscv_vqmaccus", "PseudoVQMACCUS">;
 defm : pat_intrinsic_vmerge<"int_riscv_vmerge", "PseudoVMERGE">;
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsadd", "PseudoVSADD">;
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsaddu", "PseudoVSADDU">;

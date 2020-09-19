@@ -984,8 +984,6 @@ foreach nf = [1, 2, 4, 8] in {
 // // pat vsetvl
 def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
 
-include "RISCVPseudoInfoV.td"
-
 let Predicates = [HasStdExtZvlsseg] in {
   foreach nf=2-8 in {
     def VLSEG#nf#E8_V : VUnitStrideSegmentLoad<!add(nf, -1), LUMOPUnitStride, LSWidth8, "vlseg"#nf#"e8.v">;
@@ -1112,3 +1110,6 @@ defm VQMACC_V : VALUr_IV_V_X<"vqmacc", 0b111101>;
 defm VQMACCSU_V : VALUr_IV_V_X<"vqmaccsu", 0b111111>;
 defm VQMACCUS_V : VALUr_IV_X<"vqmaccus", 0b111110>;
 } // Predicates = [HasStdExtZvqmac], Constraints = "@earlyclobber $vd", RVVConstraint = WidenV
+
+
+include "RISCVPseudoInfoV.td"
