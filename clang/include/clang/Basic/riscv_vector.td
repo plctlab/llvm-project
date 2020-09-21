@@ -1024,8 +1024,22 @@ defm vmsle : signed_binary_m_vv_vx;
 defm vmsleu : unsigned_binary_m_vv_vx;
 defm vmsgt : signed_binary_m_vv_vx;
 defm vmsgtu : unsigned_binary_m_vv_vx;
-defm vmsge : signed_binary_m_vv_vx;
-defm vmsgeu : unsigned_binary_m_vv_vx;
+//defm vmsge : signed_binary_m_vv_vx;
+// defm vmsgeu : unsigned_binary_m_vv_vx;
+let ShouldEmitBuiltin = 0 in {
+  foreach evr = AllSignedVectorType in {
+    def "vmsge_vv"#evr.TypeSuffix#"_"#evr.BoolType : Inst<"vmsge",
+           [evr.MaskStr, evr.Str, evr.Str], "_vv",
+           evr.TypeSuffix#"_"#evr.BoolType, 0, [-1],
+           "vmsle_vv_"#evr.TypeSuffix#"_"#evr.BoolType#"(ARG1, ARG0)">;
+  }
+  foreach evr = AllUnsignedVectorType in {
+    def "vmsgeu_vv"#evr.TypeSuffix#"_"#evr.BoolType : Inst<"vmsgeu",
+           [evr.MaskStr, evr.Str, evr.Str], "_vv",
+           evr.TypeSuffix#"_"#evr.BoolType, 0, [-1],
+           "vmsleu_vv_"#evr.TypeSuffix#"_"#evr.BoolType#"(ARG1, ARG0)">;
+  }
+}
 
 // 12.9. Vector Integer Min/Max Instructions
 defm vmin : signed_binary_v_vv_vx;
