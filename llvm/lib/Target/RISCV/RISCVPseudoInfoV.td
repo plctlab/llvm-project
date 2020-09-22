@@ -966,6 +966,13 @@ defm PseudoVFCLASS : pseudo_unary_v_v;
 defm PseudoVFMV : pseudo_vfmv;
 
 // 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
+defm PseudoVFCVT_X_F : pseudo_unary_v_v;
+defm PseudoVFCVT_XU_F : pseudo_unary_v_v;
+defm PseudoVFCVT_RTZ_X_F : pseudo_unary_v_v;
+defm PseudoVFCVT_RTZ_XU_F : pseudo_unary_v_v;
+defm PseudoVFCVT_F_X : pseudo_unary_v_v;
+defm PseudoVFCVT_F_XU : pseudo_unary_v_v;
+
 // 14.16. Widening Floating-Point/Integer Type-Convert Instructions
 defm PseudoVFWCVT_X_F : pseudo_unary_v_w<"@earlyclobber $rd">;
 defm PseudoVFWCVT_XU_F : pseudo_unary_v_w<"@earlyclobber $rd">;
@@ -1539,6 +1546,29 @@ multiclass pat_intrinsic_unary_w_f_f
   }
 }
 
+multiclass pat_intrinsic_unary_f_v
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllFloatVectors in {
+    defvar vti = GetIntVectorTypeInfo<evr>.Vti;
+    defm : pat_intrinsic_unary<intrinsic_name, instruction_name#"_V",
+                               vti.Vector, evr.Vector, vti.Mask, vti.SEW,
+                               evr.LMULstr, vti.RegClass, evr.RegClass>;
+
+  }
+}
+
+multiclass pat_intrinsic_unary_v_f
+    <string intrinsic_name, string instruction_name> {
+  foreach evr = AllFloatVectors in {
+    defvar vti = GetIntVectorTypeInfo<evr>.Vti;
+    defm : pat_intrinsic_unary<intrinsic_name, instruction_name#"_V",
+                               evr.Vector, vti.Vector, vti.Mask, vti.SEW,
+                               evr.LMULstr, evr.RegClass, vti.RegClass>;
+
+  }
+}
+
+
 multiclass pat_intrinsic_float_ternary_v_vvv_vvf 
     <string intrinsic_name, string instruction_name> {
   foreach evr = AllFloatVectors in {
@@ -1565,7 +1595,7 @@ multiclass pat_intrinsic_int_ternary_v_vvv_vvx
 
 multiclass pat_intrinsic_int_ternary_v_vvx 
     <string intrinsic_name, string instruction_name> {
-  foreach evr = AllIntegerVectors in {
+  foreach evr = AllVectors in {
     defm : pat_intrinsic_ternary<intrinsic_name#"_vx", instruction_name#"_VX",
                                  evr.Vector, evr.Vector, XLenVT, evr.Mask,
                                  evr.SEW, evr.LMULstr, evr.RegClass, evr.RegClass, GPR>;
@@ -1688,6 +1718,12 @@ defm : pat_intrinsic_int_unary_nomask_v_v_v_x<"int_riscv_vmv_v", "PseudoVMV_V">;
 defm : pat_intrinsic_int_binary_nomask_s_x<"int_riscv_vmv", "PseudoVMV">;
 defm : pat_intrinsic_int_unary_nomask_x_s<"int_riscv_vmv", "PseudoVMV">;
 defm : pat_intrinsic_vfmv<"int_riscv_vfmv", "PseudoVFMV">;
+defm : pat_intrinsic_unary_f_v<"int_riscv_vfcvt_x_f_v", "PseudoVFCVT_X_F">;
+defm : pat_intrinsic_unary_f_v<"int_riscv_vfcvt_xu_f_v", "PseudoVFCVT_XU_F">;
+defm : pat_intrinsic_unary_f_v<"int_riscv_vfcvt_rtz_x_f_v", "PseudoVFCVT_RTZ_X_F">;
+defm : pat_intrinsic_unary_f_v<"int_riscv_vfcvt_rtz_xu_f_v", "PseudoVFCVT_RTZ_XU_F">;
+defm : pat_intrinsic_unary_v_f<"int_riscv_vfcvt_f_x_v", "PseudoVFCVT_F_X">;
+defm : pat_intrinsic_unary_v_f<"int_riscv_vfcvt_f_xu_v", "PseudoVFCVT_F_XU">;
 defm : pat_intrinsic_int_binary_n_wn_wx<"int_riscv_vnsrl", "PseudoVNSRL">;
 defm : pat_intrinsic_int_binary_n_wn_wx<"int_riscv_vnsra", "PseudoVNSRA">;
 defm : pat_intrinsic_int_binary_m_vv_vx<"int_riscv_vmseq", "PseudoVMSEQ">;
