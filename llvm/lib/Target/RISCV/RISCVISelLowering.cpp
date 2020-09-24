@@ -948,6 +948,11 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
   }
     break;
   }
+  case Intrinsic::riscv_vsll_vx:
+  case Intrinsic::riscv_vsrl_vx:
+  case Intrinsic::riscv_vsra_vx:
+  case Intrinsic::riscv_vand_vx:
+  case Intrinsic::riscv_vor_vx:
   case Intrinsic::riscv_vxor_vx: {
     SDValue Scalar = Op.getOperand(2);
     if (Scalar.getSimpleValueType() == MVT::i8 ||
