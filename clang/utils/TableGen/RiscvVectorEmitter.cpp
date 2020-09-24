@@ -431,6 +431,15 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "#define vzero_f64m2() vfmv_v_f_f64m2(0)\n";
   OS << "#define vzero_f64m4() vfmv_v_f_f64m4(0)\n";
   OS << "#define vzero_f64m8() vfmv_v_f_f64m8(0)\n";
+  OS << "#undef _e8\n";
+  OS << "#undef _e16\n";
+  OS << "#undef _e32\n";
+  OS << "#undef _e64\n";
+  OS << "#undef _m1\n";
+  OS << "#undef _m2\n";
+  OS << "#undef _m4\n";
+  OS << "#undef _m8\n";
+  OS << "#undef _mf2\n";
   OS << "#endif";
 }
 
