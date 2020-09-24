@@ -37,12 +37,12 @@ vbool64_t __attribute__((noinline)) testmseq64_u(vuint64m1_t value1, vuint64m1_t
   return vmsgtu_vv_u64m1_b64(value1, value2);
 }
 
-//CHECK:   %{{.*}} = call <vscale x 8 x i1> @llvm.riscv.vmsgt.vv.nxv8i1.nxv8i8(<vscale x 8 x i8> %{{.*}}, <vscale x 8 x i8> %{{.*}}) 
-//CHECK:   %{{.*}} = call <vscale x 4 x i1> @llvm.riscv.vmsgt.vv.nxv4i1.nxv4i16(<vscale x 4 x i16> %{{.*}}, <vscale x 4 x i16> %{{.*}}) 
-//CHECK:   %{{.*}} = call <vscale x 2 x i1> @llvm.riscv.vmsgt.vv.nxv2i1.nxv2i32(<vscale x 2 x i32> %{{.*}}, <vscale x 2 x i32> %{{.*}}) 
-//CHECK:   %{{.*}} = call <vscale x 1 x i1> @llvm.riscv.vmsgt.vv.nxv1i1.nxv1i64(<vscale x 1 x i64> %{{.*}}, <vscale x 1 x i64> %{{.*}}) 
-//CHECK:   %{{.*}} = call <vscale x 8 x i1> @llvm.riscv.vmsgtu.vv.nxv8i1.nxv8i8(<vscale x 8 x i8> %{{.*}}, <vscale x 8 x i8> %{{.*}}) 
-//CHECK:   %{{.*}} = call <vscale x 4 x i1> @llvm.riscv.vmsgtu.vv.nxv4i1.nxv4i16(<vscale x 4 x i16> %{{.*}}, <vscale x 4 x i16> %{{.*}}) 
-//CHECK:   %{{.*}} = call <vscale x 2 x i1> @llvm.riscv.vmsgtu.vv.nxv2i1.nxv2i32(<vscale x 2 x i32> %{{.*}}, <vscale x 2 x i32> %{{.*}}) 
-//CHECK:   %{{.*}} = call <vscale x 1 x i1> @llvm.riscv.vmsgtu.vv.nxv1i1.nxv1i64(<vscale x 1 x i64> %{{.*}}, <vscale x 1 x i64> %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 8 x i1> @llvm.riscv.vmslt.vv.nxv8i1.nxv8i8(<vscale x 8 x i8> %{{.*}}, <vscale x 8 x i8> %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 4 x i1> @llvm.riscv.vmslt.vv.nxv4i1.nxv4i16(<vscale x 4 x i16> %{{.*}}, <vscale x 4 x i16> %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 2 x i1> @llvm.riscv.vmslt.vv.nxv2i1.nxv2i32(<vscale x 2 x i32> %{{.*}}, <vscale x 2 x i32> %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 1 x i1> @llvm.riscv.vmslt.vv.nxv1i1.nxv1i64(<vscale x 1 x i64> %{{.*}}, <vscale x 1 x i64> %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 8 x i1> @llvm.riscv.vmsltu.vv.nxv8i1.nxv8i8(<vscale x 8 x i8> %{{.*}}, <vscale x 8 x i8> %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 4 x i1> @llvm.riscv.vmsltu.vv.nxv4i1.nxv4i16(<vscale x 4 x i16> %{{.*}}, <vscale x 4 x i16> %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 2 x i1> @llvm.riscv.vmsltu.vv.nxv2i1.nxv2i32(<vscale x 2 x i32> %{{.*}}, <vscale x 2 x i32> %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 1 x i1> @llvm.riscv.vmsltu.vv.nxv1i1.nxv1i64(<vscale x 1 x i64> %{{.*}}, <vscale x 1 x i64> %{{.*}}) 
 

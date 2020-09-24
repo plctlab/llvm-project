@@ -667,6 +667,20 @@ multiclass binary_m_vv_vx {
   }
 }
 
+multiclass signed_binary_m_vx {
+  foreach evr = AllSignedVectorType in {
+    defm NAME : binary<NAME, evr.MaskStr, evr.Str, evr.Str, "_vx",
+                          evr.TypeSuffix#"_"#evr.BoolType, evr.MaskStr, [-1, 0, 1], [-1, 2, 3]>;
+  }
+}
+
+multiclass unsigned_binary_m_vx {
+  foreach evr = AllUnsignedVectorType in {
+    defm NAME : binary<NAME, evr.MaskStr, evr.Str, evr.Str, "_vx",
+                          evr.TypeSuffix#"_"#evr.BoolType, evr.MaskStr, [-1, 0, 1], [-1, 2, 3]>;
+  }
+}
+
 multiclass signed_binary_m_vv_vx {
   foreach evr = AllSignedVectorType in {
     defm NAME : binary<NAME, evr.MaskStr, evr.Str, evr.Str, "_vv",
@@ -1022,8 +1036,8 @@ defm vmslt : signed_binary_m_vv_vx;
 defm vmsltu : unsigned_binary_m_vv_vx;
 defm vmsle : signed_binary_m_vv_vx;
 defm vmsleu : unsigned_binary_m_vv_vx;
-defm vmsgt : signed_binary_m_vv_vx;
-defm vmsgtu : unsigned_binary_m_vv_vx;
+defm vmsgt : signed_binary_m_vx;
+defm vmsgtu : unsigned_binary_m_vx;
 //defm vmsge : signed_binary_m_vv_vx;
 // defm vmsgeu : unsigned_binary_m_vv_vx;
 let ShouldEmitBuiltin = 0 in {
@@ -1032,12 +1046,22 @@ let ShouldEmitBuiltin = 0 in {
            [evr.MaskStr, evr.Str, evr.Str], "_vv",
            evr.TypeSuffix#"_"#evr.BoolType, 0, [-1],
            "vmsle_vv_"#evr.TypeSuffix#"_"#evr.BoolType#"(ARG1, ARG0)">;
+
+    def "vmsgt_vv"#evr.TypeSuffix#"_"#evr.BoolType : Inst<"vmsgt",
+           [evr.MaskStr, evr.Str, evr.Str], "_vv",
+           evr.TypeSuffix#"_"#evr.BoolType, 0, [-1],
+           "vmslt_vv_"#evr.TypeSuffix#"_"#evr.BoolType#"(ARG1, ARG0)">;
   }
   foreach evr = AllUnsignedVectorType in {
     def "vmsgeu_vv"#evr.TypeSuffix#"_"#evr.BoolType : Inst<"vmsgeu",
            [evr.MaskStr, evr.Str, evr.Str], "_vv",
            evr.TypeSuffix#"_"#evr.BoolType, 0, [-1],
            "vmsleu_vv_"#evr.TypeSuffix#"_"#evr.BoolType#"(ARG1, ARG0)">;
+
+    def "vmsgtu_vv"#evr.TypeSuffix#"_"#evr.BoolType : Inst<"vmsgtu",
+           [evr.MaskStr, evr.Str, evr.Str], "_vv",
+           evr.TypeSuffix#"_"#evr.BoolType, 0, [-1],
+           "vmsltu_vv_"#evr.TypeSuffix#"_"#evr.BoolType#"(ARG1, ARG0)">;
   }
 }
 
