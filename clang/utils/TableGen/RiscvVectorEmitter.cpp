@@ -232,10 +232,10 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "#include <stdbool.h>\n";
   OS << "#include <stddef.h>\n";
   OS << "#include <stdint.h>\n";
-  OS << "#define float32_t float\n";
-  OS << "#define float64_t double\n";
-  //Todo: build opencv error, need to check it and reopen
-  //OS << "#define float16_t _Float16\n";
+  OS << "// TODO: float16_t should be implemented based on RISC-V Zfh extension.\n";
+  OS << "// See https://github.com/riscv/riscv-v-spec/issues/349.\n";
+  OS << "typedef float float32_t;\n";
+  OS << "typedef double float64_t;\n";
   OS << "#define _e8 0\n";
   OS << "#define _e16 4\n";
   OS << "#define _e32 8\n";
