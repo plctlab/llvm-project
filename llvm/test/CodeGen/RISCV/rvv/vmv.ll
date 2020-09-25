@@ -1,4 +1,4 @@
-; RUN: llc -mtriple=riscv64 -mattr=+experimental-v < %s \
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-v -mattr=+m,+f,+d,+a,+c < %s \
 ; RUN:   | FileCheck -check-prefix=CHECK %s
 
 declare i8 @llvm.riscv.vmv.x.s(<vscale x 64 x i8>);
@@ -31,3 +31,14 @@ entry:
 %a =  tail call <vscale x 8 x float> @llvm.riscv.vfmv.s.f(<vscale x 8 x float> %0, float %1)
 ret <vscale x 8 x float> %a
 }
+
+declare <vscale x 8 x double> @llvm.riscv.vfmv.v.f.f64m8(double);
+define <vscale x 8 x double> @vfmv_v_f_f64m8(double %0) {
+entry:
+; CHECK-LABEL: vfmv_v_f_f64m8
+; CHECK: fmv.d.x ft0, a0
+; CHECK: vfmv.v.f        v16, ft0
+%a =  tail call <vscale x 8 x double> @llvm.riscv.vfmv.v.f.f64m8(double %0)
+ret <vscale x 8 x double> %a
+}
+

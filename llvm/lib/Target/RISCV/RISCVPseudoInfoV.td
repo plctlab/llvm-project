@@ -26,6 +26,7 @@ class Join<list<string> strings, string seperator> {
 class ToScalarOp<ValueType type, DAGOperand operand, string name> {
   dag Result = !cond(!eq(!cast<string>(operand), !cast<string>(GPR)) : !dag(type, [GPR], [name]),
                      !eq(!cast<string>(operand), !cast<string>(FPR32)) : !dag(type, [FPR32], [name]),
+                     !eq(!cast<string>(operand), !cast<string>(FPR64)): (EXTRACT_SUBREG !dag(type, [FPR64], [name]), sub_32),
                      1 : !dag(type, [operand], [name]));
 }
 
@@ -652,6 +653,15 @@ multiclass pseudo_binary_n_wn_wx<string constraints = ""> {
 //   }
 // }
 
+multiclass pseudo_binary_v_vfm<string constraints = ""> {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in
+  foreach evr = AllVlmuls in {
+    let VLMul = evr.Vlmul in {
+      defm _VFM : pseudo_binary_carryin<evr.RegClass, evr.RegClass, FPR32, evr.Lmulstr, constraints>;
+    }
+  }
+}
+
 multiclass pseudo_binary_v_vvm_vxm<string constraints = ""> {
   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
   foreach evr = AllVlmuls in {
@@ -960,6 +970,7 @@ defm PseudoVMFGE : pseudo_binary_m_vf;
 defm PseudoVFCLASS : pseudo_unary_v_v;
 
 // 14.13. Vector Floating-Point Merge Instruction
+defm PseudoVFMERGE : pseudo_binary_v_vfm;
 
 // 14.14. Vector Floating-Point Move Instruction
 // 17.2. Floating-Point Scalar Move Instructions
@@ -1401,6 +1412,21 @@ multiclass pat_intrinsic_vmerge
     }
 }
 
+multiclass pat_intrinsic_vfmerge
+  <string intrinsic_name, string instruction_name> {
+    foreach evr = AllFloatVectors in {
+      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vfm", instruction_name#"_VFM",
+      evr.Vector, evr.Mask, evr.Vector, f32, evr.SEW, evr.LMULstr,
+      evr.RegClass, VMV0, evr.RegClass, FPR32>;
+    }
+    foreach evr = AllFloatVectors in {
+      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vfm", instruction_name#"_VFM",
+      evr.Vector, evr.Mask, evr.Vector, f64, evr.SEW, evr.LMULstr,
+      evr.RegClass, VMV0, evr.RegClass, FPR64>;
+    }
+}
+
+
 multiclass pat_intrinsic_int_binary_m_vvm_vxm
     <string intrinsic_name, string instruction_name> {
   foreach evr = AllIntegerVectors in {
@@ -1488,6 +1514,9 @@ multiclass pat_intrinsic_vfmv
     defm : pat_intrinsic_unary_nomask<intrinsic_name#"_v_f", instruction_name#"_V_F",
                                 evr.Vector, f32, evr.SEW,
                                 evr.LMULstr, evr.RegClass, FPR32>;
+    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_v_f", instruction_name#"_V_F",
+                                evr.Vector, f64, evr.SEW,
+                                evr.LMULstr, evr.RegClass, FPR64>;
     def : Pat<(evr.Vector (!cast<Intrinsic>(intrinsic_name#"_s_f") 
                            (evr.Vector evr.RegClass:$merge),
                            (f32 FPR32:$rs1))),
@@ -1768,6 +1797,7 @@ defm : pat_intrinsic_int_ternary_qw_wvv_wvx<"int_riscv_vqmaccu", "PseudoVQMACCU"
 defm : pat_intrinsic_int_ternary_qw_wvv_wvx<"int_riscv_vqmaccsu", "PseudoVQMACCSU">;
 defm : pat_intrinsic_int_ternary_qw_wvx<"int_riscv_vqmaccus", "PseudoVQMACCUS">;
 defm : pat_intrinsic_vmerge<"int_riscv_vmerge", "PseudoVMERGE">;
+defm : pat_intrinsic_vfmerge<"int_riscv_vfmerge", "PseudoVFMERGE">;
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsadd", "PseudoVSADD">;
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsaddu", "PseudoVSADDU">;
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vaadd", "PseudoVAADD">;
