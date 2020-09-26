@@ -963,6 +963,7 @@ defm PseudoVFSGNJX : pseudo_binary_v_vv_vf;
 defm PseudoVMFEQ : pseudo_binary_m_vv_vf;
 defm PseudoVMFNE : pseudo_binary_m_vv_vf;
 defm PseudoVMFLT : pseudo_binary_m_vv_vf;
+defm PseudoVMFLE : pseudo_binary_m_vv_vf;
 defm PseudoVMFGT : pseudo_binary_m_vf;
 defm PseudoVMFGE : pseudo_binary_m_vf;
 
@@ -1838,6 +1839,7 @@ defm : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfsgnjx", "PseudoVFSGNJX">;
 defm : pat_intrinsic_float_binary_m_vv_vf<"int_riscv_vmfeq", "PseudoVMFEQ">;
 defm : pat_intrinsic_float_binary_m_vv_vf<"int_riscv_vmfne", "PseudoVMFNE">;
 defm : pat_intrinsic_float_binary_m_vv_vf<"int_riscv_vmflt", "PseudoVMFLT">;
+defm : pat_intrinsic_float_binary_m_vv_vf<"int_riscv_vmfle", "PseudoVMFLE">;
 defm : pat_intrinsic_float_binary_m_vf<"int_riscv_vmfgt", "PseudoVMFGT">;
 defm : pat_intrinsic_float_binary_m_vf<"int_riscv_vmfge", "PseudoVMFGE">;
 defm : pat_intrinsic_float_unary_v_v<"int_riscv_vfclass", "PseudoVFCLASS">;
