@@ -699,6 +699,13 @@ multiclass unsigned_binary_m_vv_vx {
   }
 }
 
+multiclass float_binary_m_vf {
+  foreach evr = AllFloatVectorType in {
+    defm NAME : binary<NAME, evr.MaskStr, evr.Str, evr.Str, "_vf",
+                          evr.TypeSuffix#"_"#evr.BoolType, evr.MaskStr, [-1, 0, 1], [-1, 2, 3]>;
+  }
+}
+
 multiclass float_binary_m_vv_vx {
   foreach evr = AllFloatVectorType in {
     defm NAME : binary<NAME, evr.MaskStr, evr.Str, evr.Str, "_vv",
@@ -1184,8 +1191,21 @@ defm vmfeq : float_binary_m_vv_vx;
 defm vmfne : float_binary_m_vv_vx;
 defm vmflt : float_binary_m_vv_vx;
 defm vmfle : float_binary_m_vv_vx;
-defm vmfgt : float_binary_m_vv_vx;
-defm vmfge : float_binary_m_vv_vx;
+defm vmfgt : float_binary_m_vf;
+defm vmfge : float_binary_m_vf;
+let ShouldEmitBuiltin = 0 in {
+  foreach evr = AllFloatVectorType in {
+    def "vmfge_vv"#evr.TypeSuffix#"_"#evr.BoolType : Inst<"vmfge",
+           [evr.MaskStr, evr.Str, evr.Str], "_vv",
+           evr.TypeSuffix#"_"#evr.BoolType, 0, [-1],
+           "vmfle_vv_"#evr.TypeSuffix#"_"#evr.BoolType#"(ARG1, ARG0)">;
+
+    def "vmfgt_vv"#evr.TypeSuffix#"_"#evr.BoolType : Inst<"vmfgt",
+           [evr.MaskStr, evr.Str, evr.Str], "_vv",
+           evr.TypeSuffix#"_"#evr.BoolType, 0, [-1],
+           "vmflt_vv_"#evr.TypeSuffix#"_"#evr.BoolType#"(ARG1, ARG0)">;
+  }
+}
 
 // 14.12. Vector Floating-Point Classify Instruction
 
