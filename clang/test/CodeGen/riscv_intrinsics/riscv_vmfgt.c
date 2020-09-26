@@ -17,7 +17,7 @@ vbool64_t __attribute__((noinline)) testfadd64(vfloat64m1_t value1, vfloat64m1_t
 }
 
 
-//HECK:   %{{.*}} = call <vscale x 16 x i1> @llvm.riscv.vmfgt.vv.nxv16i1.nxv4f16.nxv4f16(<vscale x 4 x half> %{{.*}}, <vscale x 4 x half> %{{.*}}) 
-//CHECK:   %{{.*}} = call <vscale x 2 x i1> @llvm.riscv.vmfgt.vv.nxv2i1.nxv2f32(<vscale x 2 x float> %{{.*}}, <vscale x 2 x float> %{{.*}}) 
-//CHECK:   %{{.*}} = call <vscale x 1 x i1> @llvm.riscv.vmfgt.vv.nxv1i1.nxv1f64(<vscale x 1 x double> %{{.*}}, <vscale x 1 x double> %{{.*}}) 
+//HECK:   %{{.*}} = call <vscale x 16 x i1> @llvm.riscv.vmflt.vv.nxv16i1.nxv4f16.nxv4f16(<vscale x 4 x half> %{{.*}}, <vscale x 4 x half> %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 2 x i1> @llvm.riscv.vmflt.vv.nxv2i1.nxv2f32(<vscale x 2 x float> %{{.*}}, <vscale x 2 x float> %{{.*}}) 
+//CHECK:   %{{.*}} = call <vscale x 1 x i1> @llvm.riscv.vmflt.vv.nxv1i1.nxv1f64(<vscale x 1 x double> %{{.*}}, <vscale x 1 x double> %{{.*}}) 
 
