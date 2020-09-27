@@ -145,7 +145,8 @@ void RISCVFrameLowering::determineFrameLayout(MachineFunction &MF) const {
 
   for (int ID = MFI.getObjectIndexBegin(), EID = MFI.getObjectIndexEnd();
        ID < EID; ID++) {
-    if (MFI.getStackID(ID) == TargetStackID::RISCVVector) {
+    if (MFI.getStackID(ID) == TargetStackID::RISCVVector &&
+        !MFI.isDeadObjectIndex(ID)) {
       FrameSize =
           alignTo(FrameSize, TRI->getSpillAlignment(RISCV::GPRRegClass));
       FrameSize += TRI->getSpillSize(RISCV::GPRRegClass);
@@ -412,7 +413,8 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
   
   for (int ID = MFI.getObjectIndexBegin(), EID = MFI.getObjectIndexEnd();
         ID < EID; ID++) {
-    if (MFI.getStackID(ID) == TargetStackID::RISCVVector) {
+    if (MFI.getStackID(ID) == TargetStackID::RISCVVector &&
+        !MFI.isDeadObjectIndex(ID)) {
       unsigned Opcode = TRI->getRegSizeInBits(RISCV::GPRRegClass) == 32 ?
             RISCV::SW : RISCV::SD;
       
@@ -638,7 +640,8 @@ void RISCVFrameLowering::processFunctionBeforeFrameFinalized(
   // Go through all Stackslots coming from an alloca and make them VR_SPILL.
   for (int FI = MFI.getObjectIndexBegin(), EFI = MFI.getObjectIndexEnd();
        FI < EFI; FI++) {
-    if (MFI.getStackID(FI) == TargetStackID::RISCVVector)
+    if (MFI.getStackID(FI) == TargetStackID::RISCVVector &&
+        !MFI.isDeadObjectIndex(FI))
       RVFI->setHasSpillVRs();
   }
   // estimateStackSize has been observed to under-estimate the final stack
