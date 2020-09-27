@@ -161,7 +161,10 @@ void RISCVInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
     Opcode = RISCV::FSW;
   else if (RISCV::FPR64RegClass.hasSubClassEq(RC))
     Opcode = RISCV::FSD;
-  else if (RISCV::VRRegClass.hasSubClassEq(RC)) {
+  else if (RISCV::VRRegClass.hasSubClassEq(RC) || 
+           RISCV::VRM2RegClass.hasSubClassEq(RC) ||
+           RISCV::VRM4RegClass.hasSubClassEq(RC) ||
+           RISCV::VRM8RegClass.hasSubClassEq(RC)) {
     RVFI->setHasSpillVRs();
     MFI.setStackID(FI, TargetStackID::RISCVVector);
     BuildMI(MBB, I, DL, get(RISCV::VS1R_V))
@@ -200,7 +203,10 @@ void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
     Opcode = RISCV::FLW;
   else if (RISCV::FPR64RegClass.hasSubClassEq(RC))
     Opcode = RISCV::FLD;
-  else if (RISCV::VRRegClass.hasSubClassEq(RC)) {
+  else if (RISCV::VRRegClass.hasSubClassEq(RC) ||
+           RISCV::VRM2RegClass.hasSubClassEq(RC) ||
+           RISCV::VRM4RegClass.hasSubClassEq(RC) ||
+           RISCV::VRM8RegClass.hasSubClassEq(RC)) {
     RVFI->setHasSpillVRs();
     MFI.setStackID(FI, TargetStackID::RISCVVector);
     BuildMI(MBB, I, DL, get(RISCV::VL1R_V), DstReg)
