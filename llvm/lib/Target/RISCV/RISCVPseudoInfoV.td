@@ -1512,6 +1512,9 @@ multiclass pat_intrinsic_vfmv
     defm : pat_intrinsic_unary_nomask<intrinsic_name#"_f_s", instruction_name#"_F_S",
                                 f32, evr.Vector, evr.SEW, 
                                 evr.LMULstr, FPR32, evr.RegClass>;
+    def : Pat<(f64 (!cast<Intrinsic>(intrinsic_name#"_f_s") (evr.Vector evr.RegClass:$rs1))),
+            (SUBREG_TO_REG (i32 -1), (!cast<Instruction>(instruction_name#"_F_S_M"#evr.LMULstr)  (f32 zero_reg), evr.RegClass:$rs1, evr.SEW), sub_32)>;
+
     defm : pat_intrinsic_unary_nomask<intrinsic_name#"_v_f", instruction_name#"_V_F",
                                 evr.Vector, f32, evr.SEW,
                                 evr.LMULstr, evr.RegClass, FPR32>;

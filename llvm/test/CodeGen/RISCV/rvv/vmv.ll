@@ -42,3 +42,13 @@ entry:
 ret <vscale x 8 x double> %a
 }
 
+declare double @llvm.riscv.vfmv.f.s.f64m8(<vscale x 8 x double>);
+define double @vfmv_f_s_f64m8(<vscale x 8 x double> %0) {
+entry:
+; CHECK-LABEL: vfmv_f_s_f64m8
+; CHECK: vfmv.f.s        ft0, v16
+; CHECK: fmv.x.d a0, ft0
+%a =  tail call double @llvm.riscv.vfmv.f.s.f64m8(<vscale x 8 x double> %0)
+ret double %a
+}
+
