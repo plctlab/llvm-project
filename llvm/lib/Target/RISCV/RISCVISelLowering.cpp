@@ -1577,16 +1577,16 @@ RISCVTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
     unsigned vtypei = 0;
     switch (Sew) {
       case 8:
-        vtypei |= 0;
+        vtypei |= RISCVVectorSEW::SEW8;
         break;
       case 16:
-        vtypei |= 4;
+        vtypei |= RISCVVectorSEW::SEW16;
         break;
       case 32:
-        vtypei |= 8;
+        vtypei |= RISCVVectorSEW::SEW32;
         break;
       case 64:
-        vtypei |= 16;
+        vtypei |= RISCVVectorSEW::SEW64;
         break;
       default:
         llvm_unreachable("unknown sew value");
@@ -1594,32 +1594,34 @@ RISCVTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
 
     switch (Vlmul) {
       case 1:
-        vtypei |= 0;
+        vtypei |= RISCVVectorLMUL::M1;
         break;
       case 2:
-        vtypei |= 1;
+        vtypei |= RISCVVectorLMUL::M2;
         break;
       case 4:
-        vtypei |= 2;
+        vtypei |= RISCVVectorLMUL::M4;
         break;
       case 8:
-        vtypei |= 3;
+        vtypei |= RISCVVectorLMUL::M8;
         break;
       case 9:
-        vtypei |= 35;
+        vtypei |= RISCVVectorLMUL::MF2;
         break;
       case 10:
-        vtypei |= 34;
+        vtypei |= RISCVVectorLMUL::MF4;
         break;
       case 11:
-        vtypei |= 33;
+        vtypei |= RISCVVectorLMUL::MF8;
         break;
       default:
         llvm_unreachable("unknown vlmul value!");
     }
-    Register Rd = MRI.createVirtualRegister(&RISCV::GPRRegClass);
-    BuildMI(*BB, MI, MI.getDebugLoc(), TII->get(RISCV::VSETVLI), Rd)
-        .addReg(RISCV::X0) /* When rs1=x0 but rd!=x0, the maximum unsigned integer value (~0) is used as the AVL */
+    // When rs1=x0 and rd=x0, the current vector length in vl is used as the AVL, 
+    // and the resulting value is only written to vl. 
+    // See riscv-v-spec-0.9.pdf page 29
+    BuildMI(*BB, MI, MI.getDebugLoc(), TII->get(RISCV::VSETVLI), RISCV::X0)
+        .addReg(RISCV::X0)
         .addImm(vtypei);
     return BB;
   }

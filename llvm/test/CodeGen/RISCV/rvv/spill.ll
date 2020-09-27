@@ -17,7 +17,7 @@ define dso_local void @test(float* %input) local_unnamed_addr #0 {
 ;RV64I: sd	sp, -24(s0)
 ;RV64I: sub	sp, sp, a1
 ;RV64I: sd	sp, -32(s0)
-;RV64I: vsetvli	a1, zero, e32,mf2,tu,mu
+;RV64I: vsetvli	zero, zero, e32,mf2,tu,mu
 ;RV64I: vle32.v	v25, (a0)
 ;RV64I: vfadd.vv	v26, v25, v25
 ;RV64I: ld	a1, -24(s0)
@@ -92,7 +92,7 @@ define dso_local void @test(float* %input) local_unnamed_addr #0 {
 ;RV64I: vfadd.vv	v25, v25, v6
 ;RV64I: vfadd.vv	v25, v25, v7
 ;RV64I: vfadd.vv	v25, v25, v26
-;RV64I: vsetvli	a1, zero, e32,mf2,tu,mu
+;RV64I: vsetvli	zero, zero, e32,mf2,tu,mu
 ;RV64I: vse32.v	v25, (a0)
 ;RV64I: addi	sp, s0, -32
 ;RV64I: ld	s0, 16(sp)

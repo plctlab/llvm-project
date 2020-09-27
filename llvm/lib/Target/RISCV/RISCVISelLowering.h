@@ -55,6 +55,27 @@ enum NodeType : unsigned {
 };
 }
 
+namespace RISCVVectorLMUL {
+enum Lmul {
+  M1 = 0,
+  M2 = 1,
+  M4 = 2,
+  M8 = 3,
+  MF2 = 35,
+  MF4 = 34,
+  MF8 = 33
+};
+}
+
+namespace RISCVVectorSEW {
+enum Sew {
+  SEW8 = 0,
+  SEW16 = 4,
+  SEW32 = 8,
+  SEW64 = 16
+};
+}
+
 class RISCVTargetLowering : public TargetLowering {
   const RISCVSubtarget &Subtarget;
 
