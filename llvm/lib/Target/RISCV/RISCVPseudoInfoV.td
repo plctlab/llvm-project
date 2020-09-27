@@ -386,7 +386,7 @@ multiclass pseudo_ternary<RegisterClass result_reg_class,
 }
 
 multiclass pseudo_ternary_reduction {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
     foreach evr = AllVlmuls in {
       let VLMul = evr.Vlmul in {
         defm _VS : pseudo_ternary<VR, evr.RegClass, VR, evr.Lmulstr>; 
@@ -396,7 +396,7 @@ multiclass pseudo_ternary_reduction {
 }
 
 multiclass pseudo_unary_v_n {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
     foreach evr = AllNarrowIntToFloatVectors in {
       defvar vti = evr.Vti;
       defvar wti = evr.Wti;
@@ -433,7 +433,7 @@ class GetFloatVectorTypeInfo<VectorTypeInfo vti>
 
 
 multiclass pseudo_unary_v_w<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
     foreach evr = AllWideFloatToIntVectors in {
       defvar vti = evr.Vti;
       defvar wti = evr.Wti;
@@ -445,7 +445,7 @@ multiclass pseudo_unary_v_w<string constraints = ""> {
 }
 
 multiclass pseudo_unary_f_w<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
     foreach evr = AllWideFloatToIntVectors in {
       defvar fti = GetFloatVectorTypeInfo<evr.Vti>.FVti;
       defvar vti = GetIntVectorTypeInfo<evr.Wti>.Vti;
@@ -457,7 +457,7 @@ multiclass pseudo_unary_f_w<string constraints = ""> {
 }
 
 multiclass pseudo_unary_f_f<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
     foreach evr = AllWideFloatToIntVectors in {
       defvar fti = GetFloatVectorTypeInfo<evr.Vti>.FVti;
       defvar wti = evr.Wti;
@@ -469,7 +469,7 @@ multiclass pseudo_unary_f_f<string constraints = ""> {
 }
 
 multiclass pseudo_unary_v_v {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
     foreach evr = AllVlmuls in {
       let VLMul = evr.Vlmul in {
       defm _V : pseudo_unary<evr.RegClass, evr.RegClass, evr.Lmulstr>;
@@ -479,7 +479,7 @@ multiclass pseudo_unary_v_v {
 }
 
 multiclass pseudo_unary_nomask_v_x_v_v {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
     foreach evr = AllVlmuls in {
       let VLMul = evr.Vlmul in {
       defm _V : pseudo_unary_nomask<evr.RegClass, evr.RegClass, evr.Lmulstr>;
@@ -490,7 +490,7 @@ multiclass pseudo_unary_nomask_v_x_v_v {
 }
 
 multiclass pseudo_unary_nomask_x_s_s_x {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
     foreach evr = AllVlmuls in {
       let VLMul = evr.Vlmul in {
         defm _X_S : pseudo_unary_nomask<GPR, evr.RegClass, evr.Lmulstr>;
@@ -501,7 +501,7 @@ multiclass pseudo_unary_nomask_x_s_s_x {
 }
 
 multiclass pseudo_vfmv {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
     foreach evr = AllVlmuls in {
       let VLMul = evr.Vlmul in {
         defm _F_S : pseudo_unary_nomask<FPR32, evr.RegClass, evr.Lmulstr>;
@@ -515,7 +515,7 @@ multiclass pseudo_vfmv {
 
 // TODO: vzext
 // multiclass pseudo_unary_vf {
-//   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in {
+//   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
 //     defm _VF
 //   }
 // }
@@ -548,7 +548,7 @@ multiclass pseudo_binary_v_vx {
 // }
 
 multiclass pseudo_binary_v_vv_vx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VV : pseudo_binary<evr.RegClass, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
@@ -558,7 +558,7 @@ multiclass pseudo_binary_v_vv_vx<string constraints = ""> {
 }
 
 multiclass pseudo_binary_v_vv_vf<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
     defm _VV : pseudo_binary<evr.RegClass, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
@@ -568,7 +568,7 @@ multiclass pseudo_binary_v_vv_vf<string constraints = ""> {
 }
 
 multiclass pseudo_binary_v_vf<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
     defm _VF : pseudo_binary<evr.RegClass, evr.RegClass, FPR32, evr.Lmulstr, constraints>;
@@ -577,7 +577,7 @@ multiclass pseudo_binary_v_vf<string constraints = ""> {
 }
 
 multiclass pseudo_binary_w_vv_vx_wx_wv<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllWideVlmuls in {
     let VLMul = evr.Widelmul in {
       defm _VV : pseudo_binary<evr.WideRegClass, evr.OriginRegClass, 
@@ -593,7 +593,7 @@ multiclass pseudo_binary_w_vv_vx_wx_wv<string constraints = ""> {
 }
 
 multiclass pseudo_binary_w_vv_vf_wf_wv<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllWideVlmuls in {
     let VLMul = evr.Widelmul in {
       defm _VV : pseudo_binary<evr.WideRegClass, evr.OriginRegClass, 
@@ -609,7 +609,7 @@ multiclass pseudo_binary_w_vv_vf_wf_wv<string constraints = ""> {
 }
 
 multiclass pseudo_binary_w_vv_vx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllWideVlmuls in {
     let VLMul = evr.Widelmul in {
       defm _VV : pseudo_binary<evr.WideRegClass, evr.OriginRegClass,
@@ -621,7 +621,7 @@ multiclass pseudo_binary_w_vv_vx<string constraints = ""> {
 }
 
 multiclass pseudo_binary_w_vv_vf<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllWideVlmuls in {
     let VLMul = evr.Widelmul in {
       defm _VV : pseudo_binary<evr.WideRegClass, evr.OriginRegClass,
@@ -633,7 +633,7 @@ multiclass pseudo_binary_w_vv_vf<string constraints = ""> {
 }
 
 multiclass pseudo_binary_n_wn_wx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllWideVlmuls in {
     let VLMul = evr.Widelmul in {
       defm _WV : pseudo_binary<evr.OriginRegClass, evr.WideRegClass, evr.OriginRegClass,
@@ -645,7 +645,7 @@ multiclass pseudo_binary_n_wn_wx<string constraints = ""> {
 }
 
 // multiclass pseudo_binary_nomask_s_x<string constraints = ""> {
-//   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in
+//   let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in
 //   foreach evr = AllVlmuls in {
 //     let VLMul = evr.Vlmul in {
 //       defm _S_X : pseudo_binary_nomask<evr.RegClass, evr.RegClass, GPR, evr.Lmulstr, constraints>;
@@ -654,7 +654,7 @@ multiclass pseudo_binary_n_wn_wx<string constraints = ""> {
 // }
 
 multiclass pseudo_binary_v_vfm<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VFM : pseudo_binary_carryin<evr.RegClass, evr.RegClass, FPR32, evr.Lmulstr, constraints>;
@@ -663,7 +663,7 @@ multiclass pseudo_binary_v_vfm<string constraints = ""> {
 }
 
 multiclass pseudo_binary_v_vvm_vxm<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VVM : pseudo_binary_carryin<evr.RegClass, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
@@ -673,7 +673,7 @@ multiclass pseudo_binary_v_vvm_vxm<string constraints = ""> {
 }
 
 multiclass pseudo_binary_m_vvm_vxm<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VVM : pseudo_binary_carryin<VM, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
@@ -683,7 +683,7 @@ multiclass pseudo_binary_m_vvm_vxm<string constraints = ""> {
 }
 
 multiclass pseudo_binary_m_vv_vx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VV : pseudo_binary<VM, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
@@ -693,7 +693,7 @@ multiclass pseudo_binary_m_vv_vx<string constraints = ""> {
 }
 
 multiclass pseudo_binary_m_vv_vf<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VV : pseudo_binary<VM, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
@@ -703,7 +703,7 @@ multiclass pseudo_binary_m_vv_vf<string constraints = ""> {
 }
 
 multiclass pseudo_binary_m_vx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VX : pseudo_binary<VM, evr.RegClass, GPR, evr.Lmulstr, constraints>;
@@ -712,7 +712,7 @@ multiclass pseudo_binary_m_vx<string constraints = ""> {
 }
 
 multiclass pseudo_binary_m_vf<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VF : pseudo_binary<VM, evr.RegClass, FPR32, evr.Lmulstr, constraints>;
@@ -721,7 +721,7 @@ multiclass pseudo_binary_m_vf<string constraints = ""> {
 }
 
 multiclass pseudo_ternary_v_vvv_vvf<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VV : pseudo_ternary<evr.RegClass, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
@@ -731,7 +731,7 @@ multiclass pseudo_ternary_v_vvv_vvf<string constraints = ""> {
 }
 
 multiclass pseudo_ternary_v_vvv_vvx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VV : pseudo_ternary<evr.RegClass, evr.RegClass, evr.RegClass, evr.Lmulstr, constraints>;
@@ -741,7 +741,7 @@ multiclass pseudo_ternary_v_vvv_vvx<string constraints = ""> {
 }
 
 multiclass pseudo_ternary_v_vvx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllVlmuls in {
     let VLMul = evr.Vlmul in {
       defm _VX : pseudo_ternary<evr.RegClass, evr.RegClass, GPR, evr.Lmulstr, constraints>;
@@ -750,7 +750,7 @@ multiclass pseudo_ternary_v_vvx<string constraints = ""> {
 }
 
 multiclass pseudo_ternary_w_wvv_wvx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllWideVlmuls in {
     let VLMul = evr.Widelmul in {
       defm _VV : pseudo_ternary<evr.WideRegClass, 
@@ -762,7 +762,7 @@ multiclass pseudo_ternary_w_wvv_wvx<string constraints = ""> {
 }
 
 multiclass pseudo_ternary_qw_wvv_wvx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in
   foreach evr = AllQuadWideIntegerVectors in {
     let VLMul = evr.OriginVector.LMUL in {
       defm _VV : pseudo_ternary<evr.WidenRegClass, evr.OriginVector.RegClass, evr.OriginVector.RegClass, evr.WidenLMULstr, constraints>;
@@ -773,7 +773,7 @@ multiclass pseudo_ternary_qw_wvv_wvx<string constraints = ""> {
 
 
 multiclass pseudo_ternary_w_wvv_wvf<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllWideVlmuls in {
     let VLMul = evr.Widelmul in {
       defm _VV : pseudo_ternary<evr.WideRegClass, 
@@ -785,7 +785,7 @@ multiclass pseudo_ternary_w_wvv_wvf<string constraints = ""> {
 }
 
 multiclass pseudo_ternary_w_wvx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in 
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in 
   foreach evr = AllWideVlmuls in {
     let VLMul = evr.Widelmul in {
       defm _VX : pseudo_ternary<evr.WideRegClass,
@@ -795,7 +795,7 @@ multiclass pseudo_ternary_w_wvx<string constraints = ""> {
 }
 
 multiclass pseudo_ternary_qw_wvx<string constraints = ""> {
-  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0 in
+  let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in
   foreach evr = AllQuadWideIntegerVectors in {
     let VLMul = evr.OriginVector.LMUL in {
       defm _VX : pseudo_ternary<evr.WidenRegClass, GPR, 

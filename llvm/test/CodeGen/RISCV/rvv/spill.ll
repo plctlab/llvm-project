@@ -4,101 +4,166 @@
 ; Function Attrs: nounwind
 define dso_local void @test(float* %input) local_unnamed_addr #0 {
 ;RV64I: # %bb.0:                                # %entry
-;RV64I: addi	sp, sp, -32
-;RV64I: .cfi_def_cfa_offset 32
-;RV64I: sd	ra, 24(sp)
-;RV64I: sd	s0, 16(sp)
-;RV64I: .cfi_offset ra, -8
-;RV64I: .cfi_offset s0, -16
-;RV64I: addi	s0, sp, 32
-;RV64I: .cfi_def_cfa s0, 0
-;RV64I: csrr	a1, vlenb
-;RV64I: sub	sp, sp, a1
-;RV64I: sd	sp, -24(s0)
-;RV64I: sub	sp, sp, a1
-;RV64I: sd	sp, -32(s0)
-;RV64I: vsetvli	zero, zero, e32,mf2,tu,mu
-;RV64I: vle32.v	v25, (a0)
-;RV64I: vfadd.vv	v26, v25, v25
-;RV64I: ld	a1, -24(s0)
-;RV64I: vs1r.v	v26, (a1)
-;RV64I: vfadd.vv	v26, v26, v26
-;RV64I: ld	a1, -32(s0)
-;RV64I: vs1r.v	v26, (a1)
-;RV64I: vfadd.vv	v28, v26, v26
-;RV64I: vfadd.vv	v29, v28, v28
-;RV64I: vfadd.vv	v30, v29, v29
-;RV64I: vfadd.vv	v31, v30, v30
-;RV64I: vfadd.vv	v8, v31, v31
-;RV64I: vfadd.vv	v9, v8, v8
-;RV64I: vfadd.vv	v10, v9, v9
-;RV64I: vfadd.vv	v11, v10, v10
-;RV64I: vfadd.vv	v12, v11, v11
-;RV64I: vfadd.vv	v13, v12, v12
-;RV64I: vfadd.vv	v14, v13, v13
-;RV64I: vfadd.vv	v15, v14, v14
-;RV64I: vfadd.vv	v16, v15, v15
-;RV64I: vfadd.vv	v17, v16, v16
-;RV64I: vfadd.vv	v18, v17, v17
-;RV64I: vfadd.vv	v19, v18, v18
-;RV64I: vfadd.vv	v20, v19, v19
-;RV64I: vfadd.vv	v21, v20, v20
-;RV64I: vfadd.vv	v22, v21, v21
-;RV64I: vfadd.vv	v23, v22, v22
-;RV64I: vfadd.vv	v24, v23, v23
-;RV64I: vfadd.vv	v0, v24, v24
-;RV64I: vfadd.vv	v1, v0, v0
-;RV64I: vfadd.vv	v2, v1, v1
-;RV64I: vfadd.vv	v3, v2, v2
-;RV64I: vfadd.vv	v4, v3, v3
-;RV64I: vfadd.vv	v5, v4, v4
-;RV64I: vfadd.vv	v6, v5, v5
-;RV64I: vfadd.vv	v7, v6, v6
-;RV64I: vfadd.vv	v26, v7, v7
-;RV64I: vfadd.vv	v25, v26, v25
-;RV64I: ld	a1, -24(s0)
-;RV64I: vl1r.v	v27, (a1)
-;RV64I: vfadd.vv	v25, v25, v27
-;RV64I: ld	a1, -32(s0)
-;RV64I: vl1r.v	v27, (a1)
-;RV64I: vfadd.vv	v25, v25, v27
-;RV64I: vfadd.vv	v25, v25, v28
-;RV64I: vfadd.vv	v25, v25, v29
-;RV64I: vfadd.vv	v25, v25, v30
-;RV64I: vfadd.vv	v25, v25, v31
-;RV64I: vfadd.vv	v25, v25, v8
-;RV64I: vfadd.vv	v25, v25, v9
-;RV64I: vfadd.vv	v25, v25, v10
-;RV64I: vfadd.vv	v25, v25, v11
-;RV64I: vfadd.vv	v25, v25, v12
-;RV64I: vfadd.vv	v25, v25, v13
-;RV64I: vfadd.vv	v25, v25, v14
-;RV64I: vfadd.vv	v25, v25, v15
-;RV64I: vfadd.vv	v25, v25, v16
-;RV64I: vfadd.vv	v25, v25, v17
-;RV64I: vfadd.vv	v25, v25, v18
-;RV64I: vfadd.vv	v25, v25, v19
-;RV64I: vfadd.vv	v25, v25, v20
-;RV64I: vfadd.vv	v25, v25, v21
-;RV64I: vfadd.vv	v25, v25, v22
-;RV64I: vfadd.vv	v25, v25, v23
-;RV64I: vfadd.vv	v25, v25, v24
-;RV64I: vfadd.vv	v25, v25, v0
-;RV64I: vfadd.vv	v25, v25, v1
-;RV64I: vfadd.vv	v25, v25, v2
-;RV64I: vfadd.vv	v25, v25, v3
-;RV64I: vfadd.vv	v25, v25, v4
-;RV64I: vfadd.vv	v25, v25, v5
-;RV64I: vfadd.vv	v25, v25, v6
-;RV64I: vfadd.vv	v25, v25, v7
-;RV64I: vfadd.vv	v25, v25, v26
-;RV64I: vsetvli	zero, zero, e32,mf2,tu,mu
-;RV64I: vse32.v	v25, (a0)
-;RV64I: addi	sp, s0, -32
-;RV64I: ld	s0, 16(sp)
-;RV64I: ld	ra, 24(sp)
-;RV64I: addi	sp, sp, 32
-;RV64I: ret
+;RV64I:	addi	sp, sp, -32
+;RV64I:	.cfi_def_cfa_offset 32
+;RV64I:	sd	ra, 24(sp)
+;RV64I:	sd	s0, 16(sp)
+;RV64I:	.cfi_offset ra, -8
+;RV64I:	.cfi_offset s0, -16
+;RV64I:	addi	s0, sp, 32
+;RV64I:	.cfi_def_cfa s0, 0
+;RV64I:	csrr	a1, vlenb
+;RV64I:	sub	sp, sp, a1
+;RV64I:	sd	sp, -24(s0)
+;RV64I:	sub	sp, sp, a1
+;RV64I:	sd	sp, -32(s0)
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vle32.v	v26, (a0)
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v26, v26
+;RV64I:	ld	a1, -32(s0)
+;RV64I:	vs1r.v	v25, (a1)
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v27, v25, v25
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v28, v27, v27
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v29, v28, v28
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v30, v29, v29
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v31, v30, v30
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v8, v31, v31
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v9, v8, v8
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v10, v9, v9
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v11, v10, v10
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v12, v11, v11
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v13, v12, v12
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v14, v13, v13
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v15, v14, v14
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v16, v15, v15
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v17, v16, v16
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v18, v17, v17
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v19, v18, v18
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v20, v19, v19
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v21, v20, v20
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v22, v21, v21
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v23, v22, v22
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v24, v23, v23
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v0, v24, v24
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v1, v0, v0
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v2, v1, v1
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v3, v2, v2
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v4, v3, v3
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v5, v4, v4
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v6, v5, v5
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v7, v6, v6
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v7, v7
+;RV64I:	ld	a1, -24(s0)
+;RV64I:	vs1r.v	v25, (a1)
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v26, v25, v26
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	ld	a1, -32(s0)
+;RV64I:	vl1r.v	v25, (a1)
+;RV64I:	vfadd.vv	v25, v26, v25
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v27
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v28
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v29
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v30
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v31
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v8
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v9
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v10
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v11
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v12
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v13
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v14
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v15
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v16
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v17
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v18
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v19
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v20
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v21
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v22
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v23
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v24
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v0
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v1
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v2
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v3
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v4
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v5
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v6
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vfadd.vv	v25, v25, v7
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	ld	a1, -24(s0)
+;RV64I:	vl1r.v	v26, (a1)
+;RV64I:	vfadd.vv	v25, v25, v26
+;RV64I:	vsetvli	zero, zero, e32,mf2,tu,mu
+;RV64I:	vse32.v	v25, (a0)
+;RV64I:	addi	sp, s0, -32
+;RV64I:	ld	s0, 16(sp)
+;RV64I:	ld	ra, 24(sp)
+;RV64I:	addi	sp, sp, 32
+;RV64I:	ret
 entry:
   %0 = tail call i64 @llvm.riscv.vsetvl(i64 1, i64 8) #3
   %1 = tail call <vscale x 1 x float> @llvm.riscv.vload(float* %input) #3
