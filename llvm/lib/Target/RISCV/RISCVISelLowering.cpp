@@ -948,6 +948,8 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
   }
     break;
   }
+  case Intrinsic::riscv_vnsrl_wx:
+  case Intrinsic::riscv_vnsra_wx:
   case Intrinsic::riscv_vsll_vx:
   case Intrinsic::riscv_vsrl_vx:
   case Intrinsic::riscv_vsra_vx:
