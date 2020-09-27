@@ -906,7 +906,7 @@ multiclass unsigned_binary_v_wv_wx {
                 "_wv", evr.OriginVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
             
     defm NAME : binary<NAME, evr.OriginVector.Str, evr.WideVector.Str, evr.OriginVector.ScalarType.Str, 
-                "_wx", evr.OriginVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
+                "_wx", evr.OriginVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 0, 1], [-1, 0, 2, 3]>;
   }
 }
 
