@@ -883,7 +883,9 @@ void PEI::calculateFrameObjectOffsets(MachineFunction &MF) {
   const TargetRegisterInfo *RegInfo = MF.getSubtarget().getRegisterInfo();
   bool EarlyScavengingSlots = (TFI.hasFP(MF) &&
                                TFI.isFPCloseToIncomingSP() &&
-                               RegInfo->useFPForScavengingIndex(MF));
+                               RegInfo->useFPForScavengingIndex(MF) &&
+                               !RegInfo->needsStackRealignment(MF));
+  // bool EarlyScavengingSlots = false;
   if (RS && EarlyScavengingSlots) {
     SmallVector<int, 2> SFIs;
     RS->getScavengingFrameIndices(SFIs);

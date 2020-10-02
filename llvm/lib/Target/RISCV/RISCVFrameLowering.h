@@ -68,8 +68,6 @@ public:
     return TargetStackID::RISCVVector;
   }
 
-  bool isFPCloseToIncomingSP() const override { return true; }
-
 protected:
   const RISCVSubtarget &STI;
 

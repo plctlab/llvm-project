@@ -533,6 +533,7 @@ int RISCVFrameLowering::getFrameIndexReference(const MachineFunction &MF,
   const MachineFrameInfo &MFI = MF.getFrameInfo();
   const TargetRegisterInfo *RI = MF.getSubtarget().getRegisterInfo();
   const auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
+  bool isRISCVVector = MFI.getStackID(FI) == TargetStackID::RISCVVector;
 
   // Callee-saved registers should be referenced relative to the stack
   // pointer (positive offset), otherwise use the frame pointer (negative
@@ -559,7 +560,7 @@ int RISCVFrameLowering::getFrameIndexReference(const MachineFunction &MF,
     else
       Offset += MFI.getStackSize();
   } else if (RI->needsStackRealignment(MF) && !MFI.isFixedObjectIndex(FI)
-    && !RVFI->hasSpillVRs()) {
+      && !isRISCVVector) {
     // If the stack was realigned, the frame pointer is set in order to allow
     // SP to be restored, so we need another base register to record the stack
     // after realignment.
