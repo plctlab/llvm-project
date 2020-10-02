@@ -885,7 +885,6 @@ void PEI::calculateFrameObjectOffsets(MachineFunction &MF) {
                                TFI.isFPCloseToIncomingSP() &&
                                RegInfo->useFPForScavengingIndex(MF) &&
                                !RegInfo->needsStackRealignment(MF));
-  // bool EarlyScavengingSlots = false;
   if (RS && EarlyScavengingSlots) {
     SmallVector<int, 2> SFIs;
     RS->getScavengingFrameIndices(SFIs);
