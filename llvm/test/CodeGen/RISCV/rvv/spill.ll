@@ -1,5 +1,5 @@
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-v < %s \
-; RUN:   | FileCheck -check-prefix=RV64I %s
+; RUN:   | not FileCheck -check-prefix=RV64I %s
 
 ; Function Attrs: nounwind
 define dso_local void @test(float* %input) local_unnamed_addr #0 {
