@@ -43,6 +43,9 @@ void initializeRISCVMergeBaseOffsetOptPass(PassRegistry &);
 FunctionPass *createRISCVExpandPseudoPass();
 void initializeRISCVExpandPseudoPass(PassRegistry &);
 
+FunctionPass *createRISCVRemoveRedundancyVSETVLPass();
+void initializeRISCVRemoveRedundancyVSETVLPass(PassRegistry &);
+
 FunctionPass *createRISCVExpandAtomicPseudoPass();
 void initializeRISCVExpandAtomicPseudoPass(PassRegistry &);
 
