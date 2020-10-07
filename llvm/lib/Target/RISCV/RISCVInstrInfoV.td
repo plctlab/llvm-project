@@ -981,9 +981,6 @@ foreach nf = [1, 2, 4, 8] in {
 } // hasSideEffects = 0, mayLoad = 0, mayStore = 0
 } // Predicates = [HasStdExtV]
 
-// // pat vsetvl
-def : Pat<(int_riscv_vsetvl GPR:$rs1, GPR:$rs2), (VSETVL GPR:$rs1, GPR:$rs2)>;
-
 let Predicates = [HasStdExtZvlsseg] in {
   foreach nf=2-8 in {
     def VLSEG#nf#E8_V : VUnitStrideSegmentLoad<!add(nf, -1), LUMOPUnitStride, LSWidth8, "vlseg"#nf#"e8.v">;
