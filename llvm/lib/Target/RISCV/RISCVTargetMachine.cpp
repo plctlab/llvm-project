@@ -183,5 +183,6 @@ void RISCVPassConfig::addPreEmitPass2() {
 
 void RISCVPassConfig::addPreRegAlloc() {
   addPass(createRISCVMergeBaseOffsetOptPass());
-  addPass(createRISCVRemoveRedundancyVSETVLPass());
+  if (getOptLevel() > CodeGenOpt::None)
+    addPass(createRISCVRemoveRedundancyVSETVLPass());
 }
