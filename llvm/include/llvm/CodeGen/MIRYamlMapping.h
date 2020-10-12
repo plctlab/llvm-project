@@ -332,6 +332,7 @@ struct ScalarEnumerationTraits<TargetStackID::Value> {
     IO.enumCase(ID, "default", TargetStackID::Default);
     IO.enumCase(ID, "sgpr-spill", TargetStackID::SGPRSpill);
     IO.enumCase(ID, "sve-vec", TargetStackID::SVEVector);
+    IO.enumCase(ID, "riscv-vec", TargetStackID::RISCVVector);
     IO.enumCase(ID, "noalloc", TargetStackID::NoAlloc);
   }
 };

@@ -68,6 +68,17 @@ public:
     return TargetStackID::RISCVVector;
   }
 
+  bool isSupportedStackID(TargetStackID::Value ID) const override { 
+    switch (ID) {
+    default:
+      return false;
+    case TargetStackID::Default:
+    case TargetStackID::RISCVVector:
+    case TargetStackID::NoAlloc:
+      return true;
+    }
+  }
+
 protected:
   const RISCVSubtarget &STI;
 

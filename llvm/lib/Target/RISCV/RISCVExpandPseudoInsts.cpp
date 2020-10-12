@@ -63,6 +63,8 @@ private:
                          MachineBasicBlock::iterator MBBI,
                          MachineBasicBlock::iterator &NextMBBI, unsigned BaseInstr, 
                          int MergeOpIndex, int SEWIndex, int VLMul);
+  bool expandReadCSRs(MachineBasicBlock &MBB,
+                      MachineBasicBlock::iterator MBBI, int Address);
 };
 
 char RISCVExpandPseudo::ID = 0;
@@ -109,6 +111,10 @@ bool RISCVExpandPseudo::expandMI(MachineBasicBlock &MBB,
     return expandLoadTLSIEAddress(MBB, MBBI, NextMBBI);
   case RISCV::PseudoLA_TLS_GD:
     return expandLoadTLSGDAddress(MBB, MBBI, NextMBBI);
+  case RISCV::PseudoReadVTYPE:
+    return expandReadCSRs(MBB, MBBI, 0xC21 /* VTYPE reg address */);
+  case RISCV::PseudoReadVL:
+    return expandReadCSRs(MBB, MBBI, 0xC20 /* VL reg address */);
   }
   return false;
 }
@@ -246,6 +252,16 @@ bool RISCVExpandPseudo::expandRISCVVector(MachineBasicBlock &MBB,
   }
 
   MI.eraseFromParent(); // The pseudo instruction is gone now.
+  return true;
+}
+
+bool RISCVExpandPseudo::expandReadCSRs(MachineBasicBlock &MBB,
+    MachineBasicBlock::iterator MBBI, int Address /* the address of the CSR register */) {
+  BuildMI(MBB, MBBI, MBBI->getDebugLoc(), 
+    TII->get(RISCV::CSRRS), MBBI->getOperand(0).getReg())
+    .addImm(Address)
+    .addReg(RISCV::X0);
+  MBBI->eraseFromParent();
   return true;
 }
 

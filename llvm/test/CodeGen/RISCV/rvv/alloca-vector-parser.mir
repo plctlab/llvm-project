@@ -1,0 +1,41 @@
+# RUN: llc -o - -mtriple=riscv64-unknown-linux-gnu -mattr=+experimental-v \
+# RUN:     -start-after=prologepilog -verify-machineinstrs %s | FileCheck %s
+name:            test
+stack:
+  - { id: 0, name: '', type: default, offset: -16, size: 8,
+      alignment: 8, stack-id: riscv-vec, callee-saved-register: '', callee-saved-restored: true,
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+  - { id: 1, name: '', type: default, offset: -8, size: 8, alignment: 8,
+      stack-id: default, callee-saved-register: '', callee-saved-restored: true,
+      debug-info-variable: '', debug-info-expression: '', debug-info-location: '' }
+body:             |
+  bb.0.entry:
+    $x2 = frame-setup ADDI $x2, -16
+    $x8 = frame-setup ADDI $x2, 16
+    $x12 = PseudoReadVTYPE implicit $vtype
+    $x11 = PseudoReadVL implicit $vl
+    $x10 = VSETVLI $x0, 12, implicit-def $vl, implicit-def $vtype
+    $x0 = VSETVL killed $x11, killed $x12, implicit-def $vl, implicit-def $vtype
+    $x10 = SLLI $x10, 3
+    $x2 = SUB $x2, killed $x10
+    $x2 = frame-setup ANDI $x2, -16
+    SD $x2, $x8, -16
+    $x2 = frame-destroy ADDI $x8, -16
+    $x2 = frame-destroy ADDI $x2, 16
+    PseudoRET
+
+...
+
+#CHECK: addi sp, sp, -16
+#CHECK-NEXT: addi s0, sp, 16
+#CHECK-NEXT: csrr	a2, vtype
+#CHECK-NEXT: csrr	a1, vl
+#CHECK-NEXT: vsetvli	a0, zero, e64,m1,tu,mu
+#CHECK-NEXT: vsetvl zero, a1, a2
+#CHECK-NEXT: slli a0, a0, 3
+#CHECK-NEXT: sub sp, sp, a0
+#CHECK-NEXT: andi sp, sp, -16
+#CHECK-NEXT: sd sp, -16(s0)
+#CHECK-NEXT: addi sp, s0, -16
+#CHECK-NEXT: addi sp, sp, 16
+#CHECK-NEXT: ret

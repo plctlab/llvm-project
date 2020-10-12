@@ -804,6 +804,21 @@ multiclass pseudo_ternary_qw_wvx<string constraints = ""> {
   }
 }
 
+// pseudo instructions for read CSR register
+let mayLoad = 0, mayStore = 0, hasSideEffects = 0 in {
+  def PseudoReadVTYPE : Pseudo<(outs GPR:$v0), 
+                              (ins ), []> {
+    let Uses = [VTYPE];
+  }
+}
+let mayLoad = 0, mayStore = 0, hasSideEffects = 0 in {
+  def PseudoReadVL : Pseudo<(outs GPR:$v0),
+                            (ins ), []> {
+    let Uses = [VL];
+  }
+}
+
+
 // 12.1. Vector Single-Width Integer Add and Subtract
 defm PseudoVADD : pseudo_binary_v_vv_vx;
 defm PseudoVSUB : pseudo_binary_v_vv_vx;
