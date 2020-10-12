@@ -59,6 +59,11 @@ public:
   // in every machine basic block and record the 
   // head meaningful vsetvli and tail meaningful vsetvli
   void collectRedundancyVSETVLIInMBB(MachineBasicBlock &MBB); 
+
+  // use a BFS to collect the redundancy vsetvli instruction between MBB,
+  // Because of the CFG is not acyclic, so it is not definitly find the 
+  // redundancy 
+  void collectRedundancyVSETVLIBetweenMBB(MachineFunction &MF);
 };
 }
 
@@ -80,14 +85,10 @@ bool RISCVRemoveRedundancyVSETVL::removeRedundancy() {
 }
 
 void RISCVRemoveRedundancyVSETVL::
-  collectRedundancyVSETVLIInMF(MachineFunction &MF) {
-  for (auto &MBB : MF) {
-    collectRedundancyVSETVLIInMBB(MBB);
-  }
+  collectRedundancyVSETVLIBetweenMBB(MachineFunction &MF) {
 
-  // use a BFS to collect the redundancy vsetvli instruction between MBB,
-  // Because of the CFG is not acyclic, so it is not definitly find the 
-  // redundancy 
+  MachineBasicBlock &MBB = *(MF.begin());
+
   std::map<MachineBasicBlock *, MachineInstr *> lastVSETVLIOfMBB;
   std::vector<std::vector<MachineBasicBlock *>> toIterate{{&(*(MF.begin()))}};
 
@@ -129,6 +130,14 @@ void RISCVRemoveRedundancyVSETVL::
       }
     }
   }
+}
+
+void RISCVRemoveRedundancyVSETVL::
+  collectRedundancyVSETVLIInMF(MachineFunction &MF) {
+  for (auto &MBB : MF) {
+    collectRedundancyVSETVLIInMBB(MBB);
+  }
+  collectRedundancyVSETVLIBetweenMBB(MF);
 }
 
 void RISCVRemoveRedundancyVSETVL::
