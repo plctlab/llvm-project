@@ -430,6 +430,40 @@ multiclass vfwcvt {
   }
 }
 
+multiclass vfncvt {
+  foreach evr = WideSignedToFloat in {
+    defm NAME : unary<NAME, evr.OriginVector.Str, evr.WideVector.Str, "_x_f_w", evr.OriginVector.TypeSuffix,
+                      evr.OriginVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+    defm NAME : unary<NAME, evr.OriginVector.Str, evr.WideVector.Str, "_rtz_x_f_w", evr.OriginVector.TypeSuffix,
+                      evr.OriginVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+  foreach evr = WideUnsignedToFloat in {
+    defm NAME : unary<NAME, evr.OriginVector.Str, evr.WideVector.Str, "_xu_f_w", evr.OriginVector.TypeSuffix,
+                      evr.OriginVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+    defm NAME : unary<NAME, evr.OriginVector.Str, evr.WideVector.Str, "_rtz_xu_f_w", evr.OriginVector.TypeSuffix,
+                      evr.OriginVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+
+  foreach evr = WideFloatToSigned in {
+    defm NAME : unary<NAME, evr.OriginVector.Str, evr.WideVector.Str, "_f_x_w", evr.OriginVector.TypeSuffix,
+                      evr.OriginVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+
+  foreach evr = WideFloatToUnsigned in {
+    defm NAME : unary<NAME, evr.OriginVector.Str, evr.WideVector.Str, "_f_xu_w", evr.OriginVector.TypeSuffix,
+                      evr.OriginVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+
+  foreach evr = WideFloatToFloat in {
+    defm NAME : unary<NAME, evr.OriginVector.Str, evr.WideVector.Str, "_f_f_w", evr.OriginVector.TypeSuffix,
+                      evr.OriginVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+    defm NAME : unary<NAME, evr.OriginVector.Str, evr.WideVector.Str, "_rod_f_f_w", evr.OriginVector.TypeSuffix,
+                      evr.OriginVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+  
+}
+
+
 multiclass vwcvt {
   foreach evr = AllWideIntegerVector in {
     defm NAME : unary<NAME, evr.WideVector.Str, evr.OriginVector.Str, "_x_x_v", 
@@ -1238,6 +1272,7 @@ defm vwcvt : vwcvt;
 defm vwcvtu : vwcvtu;
 
 // 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
+defm vfncvt : vfncvt;
 
 // 15.1. Vector Single-Width Integer Reduction Instructions
 defm vredsum : int_ternary_v_vs;

@@ -677,6 +677,8 @@ defm vfcvt_f_x : Unary_V_V1;
 defm vfcvt_f_xu : Unary_V_V1;
 defm vwcvt_x_x : Unary_V_V1;
 defm vwcvtu_x_x : Unary_V_V1;
+
+// Widening Floating-Point/Integer Type-Convert Instructions
 defm vfwcvt_x_f : Unary_V_V1;
 defm vfwcvt_f_x : Unary_V_V1;
 defm vfwcvt_rtz_x_f : Unary_V_V1;
@@ -684,6 +686,21 @@ defm vfwcvt_rtz_xu_f : Unary_V_V1;
 defm vfwcvt_f_xu : Unary_V_V1;
 defm vfwcvt_f_f : Unary_V_V1;
 defm vfwcvt_xu_f : Unary_V_V1;
+
+// Narrowing Floating-Point/Integer Type-Convert Instructions
+multiclass Unary_n_V_V1 {
+  def "int_riscv_" # NAME # "_w" : V_V1;
+  def "int_riscv_" # NAME # "_w_mask" : V_V1_mask;
+}
+
+defm vfncvt_x_f : Unary_n_V_V1;
+defm vfncvt_f_x : Unary_n_V_V1;
+defm vfncvt_rtz_x_f : Unary_n_V_V1;
+defm vfncvt_rtz_xu_f : Unary_n_V_V1;
+defm vfncvt_f_xu : Unary_n_V_V1;
+defm vfncvt_f_f : Unary_n_V_V1;
+defm vfncvt_xu_f : Unary_n_V_V1;
+defm vfncvt_rod_f_f : Unary_n_V_V1;
 
 // Vector Single-Width Integer Reduction Functions
 multiclass Reduction_v_vrv {
@@ -787,15 +804,6 @@ defm vrgather : Binary_int_vv_vx;
 def int_riscv_vcompress_vm : Intrinsic< [ llvm_anyvector_ty ],
                            [ llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0> ],
                            [ IntrNoMem ]>;
-
-// Narrowing Floating-Point/Integer Type-Convert Functions
-multiclass Unary_V_V1_w {
-  def "int_riscv_" # NAME # "_w" : V_V1;
-  def "int_riscv_" # NAME # "_w_mask" : V_V1_mask;
-}
-
-defm vfncvt_x_f : Unary_V_V1_w;
-
 
 // Loads
 multiclass Vload {
