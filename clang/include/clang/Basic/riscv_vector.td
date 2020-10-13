@@ -430,6 +430,19 @@ multiclass vfwcvt {
   }
 }
 
+multiclass vwcvt {
+  foreach evr = AllWideIntegerVector in {
+    defm NAME : unary<NAME, evr.WideVector.Str, evr.OriginVector.Str, "_x_x_v", 
+                    evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+}
+
+multiclass vwcvtu {
+  foreach evr = AllWideUnsignedVector in {
+    defm NAME : unary<NAME,  evr.WideVector.Str, evr.OriginVector.Str, "_x_x_v",
+                    evr.WideVector.TypeSuffix, evr.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+  }
+}
 
 multiclass vslide {
   foreach evr = AllVector in {
@@ -1221,6 +1234,9 @@ defm vfcvt : vfcvt;
 
 // 14.16. Widening Floating-Point/Integer Type-Convert Instructions
 defm vfwcvt : vfwcvt;
+defm vwcvt : vwcvt;
+defm vwcvtu : vwcvtu;
+
 // 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
 
 // 15.1. Vector Single-Width Integer Reduction Instructions

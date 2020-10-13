@@ -74,4 +74,21 @@ entry:
 ret <vscale x 4 x double> %a
 }
 
+declare <vscale x 4 x i32> @llvm.riscv.vwcvt.x.x.v.i32m2(<vscale x 4 x i16>);
+define <vscale x 4 x i32> @vwcvt_x_x_v_i32m2(<vscale x 4 x i16> %0) {
+entry:
+; CHECK: vwadd.vx        v26, v16, zero
+; CHECK: vmv2r.v v16, v26
+%a =  tail call <vscale x 4 x i32> @llvm.riscv.vwcvt.x.x.v.i32m2(<vscale x 4 x i16> %0)
+ret <vscale x 4 x i32> %a
+}
+
+
+declare <vscale x 4 x i32> @llvm.riscv.vwcvt.x.x.v.mask.nxv4i32.nxv4i1.nxv4i16(<vscale x 4 x i1>, <vscale x 4 x i32>, <vscale x 4 x i16>);
+define <vscale x 4 x i32> @vwcvt_x_x_v_i32m2_mask(<vscale x 4 x i1> %0, <vscale x 4 x i32> %1, <vscale x 4 x i16> %2) {
+entry:
+; CHECK: vwadd.vx        v16, v18, zero, v0.t
+%a =  tail call <vscale x 4 x i32> @llvm.riscv.vwcvt.x.x.v.mask.nxv4i32.nxv4i1.nxv4i16(<vscale x 4 x i1> %0, <vscale x 4 x i32> %1, <vscale x 4 x i16> %2)
+ret <vscale x 4 x i32> %a
+}
 

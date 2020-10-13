@@ -1310,6 +1310,24 @@ multiclass pat_intrinsic_int_binary_w_vv_vx_wv_wx
     }
 }
 
+multiclass pat_intrinsic_int_binary_w_vX0
+    <string intrinsic_name, string instruction_name> {
+   foreach evr = AllWideIntegerVectors in {
+     defvar instruction = !cast<Instruction>(instruction_name#"_M"#evr.WidenLMULstr);
+     def : Pat<(evr.WidenVector (!cast<Intrinsic>(intrinsic_name)
+                          (evr.OriginVector.Vector evr.OriginVector.RegClass:$rs1))),
+              (instruction (evr.WidenVector zero_reg), evr.OriginVector.RegClass:$rs1, X0,
+              (evr.OriginVector.Mask zero_reg), evr.WidenSEW)>;
+
+     def : Pat<(evr.WidenVector (!cast<Intrinsic>(intrinsic_name#"_mask")
+                          (evr.OriginVector.Mask V0),
+                          (evr.WidenVector evr.WidenRegClass:$merge),
+                          (evr.OriginVector.Vector evr.OriginVector.RegClass:$rs1))),
+              (instruction (evr.WidenVector evr.WidenRegClass:$merge),
+                            evr.OriginVector.RegClass:$rs1, X0, (evr.OriginVector.Mask V0), evr.WidenSEW)>; 
+   }
+}
+
 multiclass pat_intrinsic_float_binary_w_vv_vf_wv_wf
     <string intrinsic_name, string instruction_name> {
   foreach evr = AllWideFloatVectors in {
@@ -1758,6 +1776,9 @@ multiclass pat_intrinsic_vload_store {
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vadd", "PseudoVADD">;
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsub", "PseudoVSUB">;
 defm : pat_intrinsic_int_binary_w_vv_vx_wv_wx<"int_riscv_vwadd", "PseudoVWADD">;
+defm : pat_intrinsic_int_binary_w_vv_vx_wv_wx<"int_riscv_vwaddu", "PseudoVWADDU">;
+defm : pat_intrinsic_int_binary_w_vX0<"int_riscv_vwcvt_x_x_v", "PseudoVWADD_VX">;
+defm : pat_intrinsic_int_binary_w_vX0<"int_riscv_vwcvtu_x_x_v", "PseudoVWADDU_VX">;
 defm : pat_intrinsic_int_binary_v_vvm_vxm<"int_riscv_vadc", "PseudoVADC">;
 defm : pat_intrinsic_int_binary_m_vvm_vxm<"int_riscv_vmadc", "PseudoVMADC">;
 defm : pat_intrinsic_vload_store;
