@@ -642,6 +642,19 @@ multiclass reinterpret {
     defm NAME : unary_nomask<NAME, evr.Str, i32m8.Str, "_v", i32m8.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
   }
 
+  foreach evr = [i8m1, i16m1, i32m1] in {
+    defm NAME : unary_nomask<NAME, evr.Str, i64m1.Str, "_v", i64m1.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m2, i16m2, i32m2] in {
+    defm NAME : unary_nomask<NAME, evr.Str, i64m2.Str, "_v", i64m2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m4, i16m4, i32m4] in {
+    defm NAME : unary_nomask<NAME, evr.Str, i64m4.Str, "_v", i64m4.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [i8m8, i16m8, i32m8] in {
+    defm NAME : unary_nomask<NAME, evr.Str, i64m8.Str, "_v", i64m8.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  
   defm NAME : unary_nomask<NAME, u16mf4.Str, u8mf4.Str, "_v", "u8mf4"#"_"#!cast<VectorInfo>("u16mf4").TypeSuffix,
                           "", [-1, 0], []>;
   foreach evr = [u16mf2, u32mf2] in {
@@ -690,6 +703,19 @@ multiclass reinterpret {
   }
   foreach evr = [u8m8, u16m8, u64m8] in {
     defm NAME : unary_nomask<NAME, evr.Str, u32m8.Str, "_v", u32m8.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+
+  foreach evr = [u8m1, u16m1, u32m1] in {
+    defm NAME : unary_nomask<NAME, evr.Str, u64m1.Str, "_v", u64m1.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m2, u16m2, u32m2] in {
+    defm NAME : unary_nomask<NAME, evr.Str, u64m2.Str, "_v", u64m2.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m4, u16m4, u32m4] in {
+    defm NAME : unary_nomask<NAME, evr.Str, u64m4.Str, "_v", u64m4.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
+  }
+  foreach evr = [u8m8, u16m8, u32m8] in {
+    defm NAME : unary_nomask<NAME, evr.Str, u64m8.Str, "_v", u64m8.TypeSuffix#"_"#evr.TypeSuffix, "", [-1, 0], []>;
   }
 }
 

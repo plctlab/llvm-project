@@ -953,6 +953,7 @@ defm PseudoVSSRA : pseudo_binary_v_vv_vx;
 
 // 13.5. Vector Narrowing Fixed-Point Clip Instructions
 defm PseudoVNCLIP : pseudo_binary_n_wn_wx;
+defm PseudoVNCLIPU : pseudo_binary_n_wn_wx;
 
 // 14.2. Vector Single-Width Floating-Point Add/Subtract Instructions
 defm PseudoVFADD : pseudo_binary_v_vv_vf;
@@ -1906,6 +1907,7 @@ defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsmul", "PseudoVSMUL">;
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssrl", "PseudoVSSRL">;
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssra", "PseudoVSSRA">;
 defm : pat_intrinsic_int_binary_n_wn_wx<"int_riscv_vnclip", "PseudoVNCLIP">;
+defm : pat_intrinsic_int_binary_n_wn_wx<"int_riscv_vnclipu", "PseudoVNCLIPU">;
 defm : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfadd", "PseudoVFADD">;
 defm : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfsub", "PseudoVFSUB">;
 defm : pat_intrinsic_float_binary_v_vf<"int_riscv_vfrsub", "PseudoVFRSUB">;
