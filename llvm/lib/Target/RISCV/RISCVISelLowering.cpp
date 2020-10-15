@@ -939,6 +939,15 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
     EVT PtrVT = getPointerTy(DAG.getDataLayout());
     return DAG.getRegister(RISCV::X4, PtrVT);
   }
+  case Intrinsic::riscv_vfmacc_vf: {
+    SDValue scalar = Op.getOperand(2);
+    if (scalar.getSimpleValueType() == MVT::f16) {
+      SDValue Promote = DAG.getNode(ISD::FP_EXTEND, DL, MVT::f32, scalar);
+      return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), 
+          {Op.getOperand(0), Op.getOperand(1), Promote, Op.getOperand(3)});
+    }
+    break;
+  }
   case Intrinsic::riscv_vmv_v_x:
   case Intrinsic::riscv_vmv_s_x: {
     SDValue Op1 = Op.getOperand(1);
@@ -1999,6 +2008,10 @@ static SDValue convertLocVTToValVT(SelectionDAG &DAG, SDValue Val,
       Val = DAG.getNode(RISCVISD::FMV_H_X_RV32, DL, MVT::f16, Val);
       break;
     }
+    if (VA.getLocVT() == MVT::i64 && VA.getValVT() == MVT::f16) {
+      Val = DAG.getNode(RISCVISD::FMV_H_X_RV64, DL, MVT::f16, Val);
+      break;
+    }
     Val = DAG.getNode(ISD::BITCAST, DL, VA.getValVT(), Val);
     break;
   }
@@ -2023,8 +2036,10 @@ static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
     case MVT::i64:
       RC = &RISCV::GPRRegClass;
       break;
-    case MVT::f32:
     case MVT::f16:
+      RC = &RISCV::FPR16RegClass;
+      break;
+    case MVT::f32:
       RC = &RISCV::FPR32RegClass;
       break;
     case MVT::f64:
@@ -2076,6 +2091,10 @@ static SDValue convertValVTToLocVT(SelectionDAG &DAG, SDValue Val,
     }
     if (VA.getLocVT() == MVT::i32 && VA.getValVT() == MVT::f16) {
       Val = DAG.getNode(RISCVISD::FMV_X_ANYEXTH_RV32, DL, MVT::i32, Val);
+      break;
+    }
+    if (VA.getLocVT() == MVT::i64 && VA.getValVT() == MVT::f16) {
+      Val = DAG.getNode(RISCVISD::FMV_X_ANYEXTH_RV64, DL, MVT::i64, Val);
       break;
     }
     Val = DAG.getNode(ISD::BITCAST, DL, LocVT, Val);
@@ -2872,8 +2891,12 @@ const char *RISCVTargetLowering::getTargetNodeName(unsigned Opcode) const {
     return "RISCVISD::FMV_W_X_RV64";
   case RISCVISD::FMV_H_X_RV32:
     return "RISCVISD::FMV_H_X_RV32";
+  case RISCVISD::FMV_H_X_RV64:
+    return "RISCVISD::FMV_H_X_RV64";
   case RISCVISD::FMV_X_ANYEXTW_RV64:
     return "RISCVISD::FMV_X_ANYEXTW_RV64";
+  case RISCVISD::FMV_X_ANYEXTH_RV64:
+    return "RISCVISD::FMV_X_ANYEXTH_RV64";
   case RISCVISD::FMV_X_ANYEXTH_RV32:
     return "RISCVISD::FMV_X_ANYEXTH_RV32";
   case RISCVISD::READ_CYCLE_WIDE:

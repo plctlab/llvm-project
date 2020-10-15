@@ -1,4 +1,4 @@
-; RUN: llc -mtriple=riscv64 -mattr=+experimental-v < %s \
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-v,+f,+experimental-zfh < %s \
 ; RUN:   | FileCheck -check-prefix=CHECK %s
 
 declare <vscale x 8 x i8> @llvm.riscv.vmv.v.x(i8);

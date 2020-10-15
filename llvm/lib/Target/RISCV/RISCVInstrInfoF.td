@@ -23,6 +23,10 @@ def SDT_RISCVFMV_H_X_RV32
     : SDTypeProfile<1, 1, [SDTCisVT<0, f16>, SDTCisVT<1, i32>]>;
 def SDT_RISCVFMV_X_ANYEXTH_RV32
     : SDTypeProfile<1, 1, [SDTCisVT<0, i32>, SDTCisVT<1, f16>]>;
+def SDT_RISCVFMV_H_X_RV64
+    : SDTypeProfile<1, 1, [SDTCisVT<0, f16>, SDTCisVT<1, i64>]>;
+def SDT_RISCVFMV_X_ANYEXTH_RV64
+    : SDTypeProfile<1, 1, [SDTCisVT<0, i64>, SDTCisVT<1, f16>]>;
 
 def riscv_fmv_w_x_rv64
     : SDNode<"RISCVISD::FMV_W_X_RV64", SDT_RISCVFMV_W_X_RV64>;
@@ -32,6 +36,10 @@ def riscv_fmv_h_x_rv32
     : SDNode<"RISCVISD::FMV_H_X_RV32", SDT_RISCVFMV_H_X_RV32>;
 def riscv_fmv_x_anyexth_rv32
     : SDNode<"RISCVISD::FMV_X_ANYEXTH_RV32", SDT_RISCVFMV_X_ANYEXTH_RV32>;
+def riscv_fmv_h_x_rv64
+    : SDNode<"RISCVISD::FMV_H_X_RV64", SDT_RISCVFMV_H_X_RV64>;
+def riscv_fmv_x_anyexth_rv64
+    : SDNode<"RISCVISD::FMV_X_ANYEXTH_RV64", SDT_RISCVFMV_X_ANYEXTH_RV64>;
 
 //===----------------------------------------------------------------------===//
 // Operand and SDNode transformation definitions.
@@ -543,16 +551,16 @@ def : Pat<(riscv_fmv_x_anyexth_rv32 FPR16:$rs1), (FMV_X_H FPR16:$rs1)>;
 } // Predicates = [HasStdExtZfh]
 
 let Predicates = [HasStdExtF, HasStdExtF] in {
-def FCVT_H_S : FPUnaryOp_r_frm<0b0100010, FPR16, GPR, "fcvt.h.s">,
-               Sched<[]> {
-  let rs2 = 0b00010;
-}
-def          : FPUnaryOpDynFrmAlias<FCVT_H_S, "fcvt.h.s", FPR16, GPR>;
-def FCVT_S_H : FPUnaryOp_r_frm<0b0100000, GPR, FPR16, "fcvt.s.h">,
+def FCVT_H_S : FPUnaryOp_r_frm<0b0100010, FPR16, FPR32, "fcvt.h.s">,
                Sched<[]> {
   let rs2 = 0b00000;
 }
-def          : FPUnaryOpDynFrmAlias<FCVT_W_H, "fcvt.s.h", GPR, FPR16>;
+def          : FPUnaryOpDynFrmAlias<FCVT_H_S, "fcvt.h.s", FPR16, FPR32>;
+def FCVT_S_H : FPUnaryOp_r<0b0100000, 0b000, FPR32, FPR16, "fcvt.s.h">,
+               Sched<[]> {
+  let rs2 = 0b00010;
+}
+def : Pat<(fpextend FPR16:$rs1), (FCVT_S_H FPR16:$rs1)>;
 } // Predicates = [HasStdExtF, HasStdExtF]
 
 let Predicates = [HasStdExtZfh, IsRV64] in {
@@ -560,12 +568,12 @@ def FCVT_H_L : FPUnaryOp_r_frm<0b1101010, FPR16, GPR, "fcvt.h.s">,
                Sched<[]> {
   let rs2 = 0b00010;
 }
-def          : FPUnaryOpDynFrmAlias<FCVT_H_S, "fcvt.h.s", FPR16, GPR>;
+def          : FPUnaryOpDynFrmAlias<FCVT_H_L, "fcvt.h.s", FPR16, GPR>;
 def FCVT_L_H : FPUnaryOp_r_frm<0b1100010, GPR, FPR16, "fcvt.s.h">,
                Sched<[]> {
   let rs2 = 0b00010;
 }
-def          : FPUnaryOpDynFrmAlias<FCVT_W_H, "fcvt.s.h", GPR, FPR16>;
+def          : FPUnaryOpDynFrmAlias<FCVT_L_H, "fcvt.s.h", GPR, FPR16>;
 
 def FCVT_LU_H : FPUnaryOp_r_frm<0b1100010, GPR, FPR16, "fcvt.lu.h">,
                 Sched<[WriteFCvtF32ToI32, ReadFCvtF32ToI32]> {
@@ -578,4 +586,7 @@ def FCVT_H_LU : FPUnaryOp_r_frm<0b1101010, FPR16, GPR, "fcvt.h.lu">,
   let rs2 = 0b00011;
 }
 def           : FPUnaryOpDynFrmAlias<FCVT_S_WU, "fcvt.h.lu", FPR32, GPR>;
+
+def : Pat<(riscv_fmv_h_x_rv64 GPR:$rs1), (FMV_H_X GPR:$rs1)>;
+def : Pat<(riscv_fmv_x_anyexth_rv64 FPR16:$rs1), (FMV_X_H FPR16:$rs1)>;
 } // Predicates = [HasStdExtZfh, IsRV64]

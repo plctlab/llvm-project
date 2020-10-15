@@ -49,9 +49,12 @@ enum NodeType : unsigned {
   // unnecessary GPR->FPR->GPR moves.
   FMV_W_X_RV64,
   FMV_X_ANYEXTW_RV64,
-  // FPR16<->GPR transfer operantions for RV32.
+  // FPR16<->GPR transfer operations for RV32.
   FMV_H_X_RV32,
   FMV_X_ANYEXTH_RV32,
+  // FPR16<->GPR transfer operations for RV64.
+  FMV_H_X_RV64,
+  FMV_X_ANYEXTH_RV64,
   // READ_CYCLE_WIDE - A read of the 64-bit cycle CSR on a 32-bit target
   // (returns (Lo, Hi)). It takes a chain operand.
   READ_CYCLE_WIDE
