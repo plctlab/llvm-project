@@ -33,6 +33,13 @@ def HasStdExtF : Predicate<"Subtarget->hasStdExtF()">,
                            AssemblerPredicate<(all_of FeatureStdExtF),
                            "'F' (Single-Precision Floating-Point)">;
 
+def FeatureStdExtZfh
+    : SubtargetFeature<"experimental-zfh", "HasStdExtZfh", "true",
+                       "'Zfh' (Half-Precition Floating-Point">;
+def HasStdExtZfh : Predicate<"Subtarget->hasStdExtZfh()">,
+                             AssemblerPredicate<(all_of FeatureStdExtZfh),
+                             "'Zfh' (Half-Precision Float-Point)">;
+
 def FeatureStdExtD
     : SubtargetFeature<"d", "HasStdExtD", "true",
                        "'D' (Double-Precision Floating-Point)",

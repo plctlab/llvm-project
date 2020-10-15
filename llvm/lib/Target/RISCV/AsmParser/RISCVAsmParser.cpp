@@ -1003,7 +1003,7 @@ unsigned RISCVAsmParser::validateTargetOperandClass(MCParsedAsmOperand &AsmOp,
 
   // As the parser couldn't differentiate an FPR32 from an FPR64, coerce the
   // register from FPR64 to FPR32 or FPR64C to FPR32C if necessary.
-  if ((IsRegFPR64 && Kind == MCK_FPR32) ||
+  if ((IsRegFPR64 && Kind == MCK_FPR16 /* MCK_FPR16 is the same as MCK_FPR32 */) ||
       (IsRegFPR64C && Kind == MCK_FPR32C)) {
     Op.Reg.RegNum = convertFPR64ToFPR32(Reg);
     return Match_Success;

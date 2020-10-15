@@ -137,7 +137,7 @@ void RISCVRemoveRedundancyVSETVL::
   for (auto &MBB : MF) {
     collectRedundancyVSETVLIInMBB(MBB);
   }
-  collectRedundancyVSETVLIBetweenMBB(MF);
+  // collectRedundancyVSETVLIBetweenMBB(MF);
 }
 
 void RISCVRemoveRedundancyVSETVL::

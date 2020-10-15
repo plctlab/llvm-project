@@ -84,6 +84,8 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
 
   if (Subtarget.hasStdExtF())
     addRegisterClass(MVT::f32, &RISCV::FPR32RegClass);
+  if (Subtarget.hasStdExtZfh())
+    addRegisterClass(MVT::f16, &RISCV::FPR16RegClass);
   if (Subtarget.hasStdExtD())
     addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
   if (Subtarget.hasStdExtV()) {
@@ -1681,6 +1683,7 @@ static const MCPhysReg ArgFPR32s[] = {
   RISCV::F10_F, RISCV::F11_F, RISCV::F12_F, RISCV::F13_F,
   RISCV::F14_F, RISCV::F15_F, RISCV::F16_F, RISCV::F17_F
 };
+static const MCPhysReg (&ArgFPR16s)[8] = ArgFPR32s;
 static const MCPhysReg ArgFPR64s[] = {
   RISCV::F10_D, RISCV::F11_D, RISCV::F12_D, RISCV::F13_D,
   RISCV::F14_D, RISCV::F15_D, RISCV::F16_D, RISCV::F17_D
@@ -1777,10 +1780,14 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
   if (State.getFirstUnallocated(ArgFPR64s) == array_lengthof(ArgFPR64s))
     UseGPRForF64 = true;
 
+  // the FPR16 and FPR32 has the same register set, So when
+  // we need a GPR for F32, the F16 also need a GPR
+  bool UseGPRForF16 = UseGPRForF32;
+
   // From this point on, rely on UseGPRForF32, UseGPRForF64 and similar local
   // variables rather than directly checking against the target ABI.
 
-  if (UseGPRForF32 && ValVT == MVT::f32) {
+  if ((UseGPRForF32 && ValVT == MVT::f32) || (UseGPRForF16 && ValVT == MVT::f16)) {
     LocVT = XLenVT;
     LocInfo = CCValAssign::BCvt;
   } else if (UseGPRForF64 && XLen == 64 && ValVT == MVT::f64) {
@@ -1865,6 +1872,8 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
   Register Reg;
   if (ValVT == MVT::f32 && !UseGPRForF32)
     Reg = State.AllocateReg(ArgFPR32s, ArgFPR64s);
+  else if (ValVT == MVT::f16 && !UseGPRForF16)
+    Reg = State.AllocateReg(ArgFPR16s, ArgFPR64s);
   else if (ValVT == MVT::f64 && !UseGPRForF64)
     Reg = State.AllocateReg(ArgFPR64s, ArgFPR32s);
   else if (ValVT.isScalableVector()) {
@@ -1986,6 +1995,10 @@ static SDValue convertLocVTToValVT(SelectionDAG &DAG, SDValue Val,
       Val = DAG.getNode(RISCVISD::FMV_W_X_RV64, DL, MVT::f32, Val);
       break;
     }
+    if (VA.getLocVT() == MVT::i32 && VA.getValVT() == MVT::f16) {
+      Val = DAG.getNode(RISCVISD::FMV_H_X_RV32, DL, MVT::f16, Val);
+      break;
+    }
     Val = DAG.getNode(ISD::BITCAST, DL, VA.getValVT(), Val);
     break;
   }
@@ -2011,6 +2024,7 @@ static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
       RC = &RISCV::GPRRegClass;
       break;
     case MVT::f32:
+    case MVT::f16:
       RC = &RISCV::FPR32RegClass;
       break;
     case MVT::f64:
@@ -2058,6 +2072,10 @@ static SDValue convertValVTToLocVT(SelectionDAG &DAG, SDValue Val,
   case CCValAssign::BCvt:
     if (VA.getLocVT() == MVT::i64 && VA.getValVT() == MVT::f32) {
       Val = DAG.getNode(RISCVISD::FMV_X_ANYEXTW_RV64, DL, MVT::i64, Val);
+      break;
+    }
+    if (VA.getLocVT() == MVT::i32 && VA.getValVT() == MVT::f16) {
+      Val = DAG.getNode(RISCVISD::FMV_X_ANYEXTH_RV32, DL, MVT::i32, Val);
       break;
     }
     Val = DAG.getNode(ISD::BITCAST, DL, LocVT, Val);
@@ -2852,8 +2870,12 @@ const char *RISCVTargetLowering::getTargetNodeName(unsigned Opcode) const {
     return "RISCVISD::REMUW";
   case RISCVISD::FMV_W_X_RV64:
     return "RISCVISD::FMV_W_X_RV64";
+  case RISCVISD::FMV_H_X_RV32:
+    return "RISCVISD::FMV_H_X_RV32";
   case RISCVISD::FMV_X_ANYEXTW_RV64:
     return "RISCVISD::FMV_X_ANYEXTW_RV64";
+  case RISCVISD::FMV_X_ANYEXTH_RV32:
+    return "RISCVISD::FMV_X_ANYEXTH_RV32";
   case RISCVISD::READ_CYCLE_WIDE:
     return "RISCVISD::READ_CYCLE_WIDE";
   }
