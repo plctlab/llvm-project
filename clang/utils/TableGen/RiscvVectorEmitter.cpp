@@ -309,7 +309,6 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "typedef __attribute__((riscv_vector_type(32, 2, 0))) float vfloat32m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 4, 0))) float vfloat32m4_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(32, 8, 0))) float vfloat32m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 2, 1))) float vfloat32mf2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(64, 1, 0))) float vfloat64m1_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(64, 2, 0))) float vfloat64m2_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(64, 4, 0))) float vfloat64m4_t;\n";
