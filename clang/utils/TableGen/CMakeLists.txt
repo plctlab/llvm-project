@@ -17,8 +17,8 @@ add_tablegen(clang-tblgen CLANG
   ClangTypeNodesEmitter.cpp
   MveEmitter.cpp
   NeonEmitter.cpp
+  RISCVVectorEmitter.cpp
   SveEmitter.cpp
-  RiscvVectorEmitter.cpp
   TableGen.cpp
   )
 set_target_properties(clang-tblgen PROPERTIES FOLDER "Clang tablegenning")

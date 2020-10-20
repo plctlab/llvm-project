@@ -236,15 +236,17 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "// See https://github.com/riscv/riscv-v-spec/issues/349.\n";
   OS << "typedef float float32_t;\n";
   OS << "typedef double float64_t;\n";
-  OS << "#define _e8 0\n";
-  OS << "#define _e16 4\n";
-  OS << "#define _e32 8\n";
-  OS << "#define _e64 12\n";
-  OS << "#define _m1 0\n";
-  OS << "#define _m2 1\n";
-  OS << "#define _m4 2\n";
-  OS << "#define _m8 3\n";
-  OS << "#define _mf2 35\n";
+  OS << "#define _e8  0  // 0b000000\n";
+  OS << "#define _e16 4  // 0b000100\n";
+  OS << "#define _e32 8  // 0b001000\n";
+  OS << "#define _e64 12 // 0b001100\n";
+  OS << "#define _mf8 33 // 0b100001\n";
+  OS << "#define _mf4 34 // 0b100010\n";
+  OS << "#define _mf2 35 // 0b100011\n";
+  OS << "#define _m1  0  // 0b000000\n";
+  OS << "#define _m2  1  // 0b000001\n";
+  OS << "#define _m4  2  // 0b000010\n";
+  OS << "#define _m8  3  // 0b000011\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 8, 1))) int vint8mf8_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 4, 1))) int vint8mf4_t;\n";
   OS << "typedef __attribute__((riscv_vector_type(8, 2, 1))) int vint8mf2_t;\n";
@@ -328,18 +330,16 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   }
 
   for (auto def : Defs) {
-    if (def->isVsetvl()) {
-      OS << "static __attribute__((always_inline))\n";
-      OS << def->getTypes()[0]->parseTypeName() << " ";
-      OS << def->getName() << "_" << def->getSuffix();
-      OS << "(size_t avl) {\n";
-      OS << "return __builtin_riscv_vsetvl(avl, ";
+    if (!def->getCustomDef().empty()) {
+      CustomDefs.push_back(def);
+    } else if (def->isVsetvl()) {
+      OS << "#define ";
+      OS << def->getName() << "_" << def->getSuffix() << "(avl) ";
+      OS << "__builtin_riscv_vsetvl(avl, ";
       size_t MPosition = def->getSuffix().find('m');
       std::string Sew = def->getSuffix().substr(0, MPosition);
       std::string Lmul = def->getSuffix().substr(MPosition, def->getSuffix().size());
-      OS << "_" << Sew << " | " << "_" << Lmul << ");\n}\n";
-    } else if (!def->getCustomDef().empty()) {
-      CustomDefs.push_back(def);
+      OS << "_" << Sew << " | " << "_" << Lmul << ")\n";
     } else {
       OS << "#define ";
       OS << def->getName() << def->getInfix() << "_" << def->getSuffix();
@@ -434,11 +434,13 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "#undef _e16\n";
   OS << "#undef _e32\n";
   OS << "#undef _e64\n";
+  OS << "#undef _mf8\n";
+  OS << "#undef _mf4\n";
+  OS << "#undef _mf2\n";
   OS << "#undef _m1\n";
   OS << "#undef _m2\n";
   OS << "#undef _m4\n";
   OS << "#undef _m8\n";
-  OS << "#undef _mf2\n";
   OS << "#endif";
 }
 
