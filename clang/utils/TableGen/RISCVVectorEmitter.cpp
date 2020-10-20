@@ -340,6 +340,10 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
       std::string Sew = def->getSuffix().substr(0, MPosition);
       std::string Lmul = def->getSuffix().substr(MPosition, def->getSuffix().size());
       OS << "_" << Sew << " | " << "_" << Lmul << ")\n";
+      // vsetvlmax
+      OS << "#define ";
+      OS << def->getName() << "max_" << def->getSuffix() << "() ";
+      OS << def->getName() << "_" << def->getSuffix() << "(-1)\n";
     } else {
       OS << "#define ";
       OS << def->getName() << def->getInfix() << "_" << def->getSuffix();
