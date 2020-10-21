@@ -223,3 +223,35 @@ vbool64_t test_vbool64_t() {
 //CHECK: %call = call <vscale x 2 x i1> bitcast (<vscale x 2 x i1> (...)* @generate_vbool32_t to <vscale x 2 x i1> ()*)()
 //CHECK: %call = call <vscale x 1 x i1> bitcast (<vscale x 1 x i1> (...)* @generate_vbool64_t to <vscale x 1 x i1> ()*)()
 
+vint8mf8x2_t generate_vint8mf8x2_t();
+void consume_vint8mf8x2_t(vint8mf8x2_t x);
+
+vint8mf8x2_t test_vuint8mf8x2_t() {
+  //CHECK: %x = alloca <vscale x 2 x i8>, align 2
+  //CHECK: %call = call <vscale x 2 x i8> bitcast (<vscale x 2 x i8> (...)* @generate_vint8mf8x2_t to <vscale x 2 x i8> ()*)()
+  //CHECK: store <vscale x 2 x i8> %call, <vscale x 2 x i8>* %x, align 2
+  //CHECK: %0 = load <vscale x 2 x i8>, <vscale x 2 x i8>* %x, align 2
+  //CHECK: call void @consume_vint8mf8x2_t(<vscale x 2 x i8> %0)
+  //CHECK: %1 = load <vscale x 2 x i8>, <vscale x 2 x i8>* %x, align 2
+  //CHECK: ret <vscale x 2 x i8> %1
+  vint8mf8x2_t x = generate_vint8mf8x2_t();
+  consume_vint8mf8x2_t(x);
+  return x;
+}
+
+vint8m1x7_t generate_vuint8m1x7_t();
+void consume_vuint8m1x7_t(vint8m1x7_t x);
+
+vint8m1x7_t test_vuint8m1x7_t() {
+  //CHECK: %x = alloca <vscale x 56 x i8>, align 64
+  //CHECK: %call = call <vscale x 56 x i8> bitcast (<vscale x 56 x i8> (...)* @generate_vuint8m1x7_t to <vscale x 56 x i8> ()*)()
+  //CHECK: store <vscale x 56 x i8> %call, <vscale x 56 x i8>* %x, align 64
+  //CHECK: %0 = load <vscale x 56 x i8>, <vscale x 56 x i8>* %x, align 64
+  //CHECK: call void @consume_vuint8m1x7_t(<vscale x 56 x i8> %0)
+  //CHECK: %1 = load <vscale x 56 x i8>, <vscale x 56 x i8>* %x, align 64
+  //CHECK: ret <vscale x 56 x i8> %1
+  vint8m1x7_t x = generate_vuint8m1x7_t();
+  consume_vuint8m1x7_t(x);
+  return x;
+}
+

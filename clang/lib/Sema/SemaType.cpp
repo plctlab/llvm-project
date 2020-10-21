@@ -7834,9 +7834,9 @@ static void HandleArmMveStrictPolymorphismAttr(TypeProcessingState &State,
 
 static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
                                       Sema &S) {
-  if (Attr.getNumArgs() != 3) {
+  if (Attr.getNumArgs() != 4) {
     S.Diag(Attr.getLoc(), diag::err_attribute_wrong_number_arguments)
-           << Attr << 3;
+           << Attr << 4;
     Attr.setInvalid();
     return;
   }
@@ -7943,11 +7943,39 @@ static void HandleRISCVVectorTypeAttr(QualType &CurType, const ParsedAttr &Attr,
     return;
   }
 
-  if (IsFract) {
-    CurType = S.Context.getVectorType(CurType, 64 / (ELEN * LMUL),
-     VectorType::RISCVVector);
+  Expr* NFExpr = static_cast<Expr*>(Attr.getArgAsExpr(3));
+
+  if (!NFExpr->isIntegerConstantExpr(S.Context)) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
+        << Attr << AANT_ArgumentIntegerConstant << NFExpr->getSourceRange();
+    Attr.setInvalid();
+  }
+
+  unsigned NF = cast<IntegerLiteral>(NFExpr)->getValue().getZExtValue();
+
+  if (NF == 1) {
+    // Date types
+    if (IsFract) {
+      CurType = S.Context.getVectorType(CurType, 64 / (ELEN * LMUL),
+       VectorType::RISCVVector);
+    } else {
+      CurType = S.Context.getVectorType(CurType, (LMUL << 6) / ELEN, VectorType::RISCVVector);
+    }
   } else {
-    CurType = S.Context.getVectorType(CurType, (LMUL << 6)/ELEN, VectorType::RISCVVector);
+    // Types for Segment Load/Store
+    if (IsFract) {
+      if (1 / LMUL * NF <= 8)
+        CurType = S.Context.getVectorType(CurType, 64 / (ELEN * LMUL) * NF , VectorType::RISCVVector);
+      else 
+        S.Diag(Attr.getLoc(), diag::err_riscv_Segment_LoadStore_constraint)
+            << Attr << NFExpr->getSourceRange();
+    } else {
+      if (LMUL * NF <= 8)
+        CurType = S.Context.getVectorType(CurType, (LMUL << 6) / ELEN * NF , VectorType::RISCVVector);
+      else 
+        S.Diag(Attr.getLoc(), diag::err_riscv_Segment_LoadStore_constraint)
+            << Attr << NFExpr->getSourceRange();
+    }
   }
 }
 

@@ -2485,7 +2485,8 @@ def RISCVVectorType : TypeAttr {
   let Spellings = [GNU<"riscv_vector_type">];
   let Args = [IntArgument<"ELEN">,
               IntArgument<"LMUL">,
-              IntArgument<"IsLMULFractional">/*1 for true and 0 for false*/];
+              IntArgument<"IsLMULFractional">,/*1 for true and 0 for false*/
+              IntArgument<"NF"> /*specifies the number of fields in each segment, for segment load/stores*/];
   let Documentation = [Undocumented];
   let ASTNode = 0;
 }
