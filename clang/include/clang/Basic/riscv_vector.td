@@ -1613,3 +1613,16 @@ defm vreinterpret : reinterpret;
 defm : load_store;
 defm : vsetvl;
 
+let ShouldEmitBuiltin = 0 in {
+  foreach I = AllIntegerVectorType in {
+    def "vzero_"#I.TypeSuffix : Inst<"vzero", [""], "",
+                                     I.TypeSuffix, 0, [-1],
+                                     "vmv_v_x_"#I.TypeSuffix#"(0)">;
+  }
+  
+  foreach I = AllFloatVectorType in {
+    def "vzero_"#I.TypeSuffix : Inst<"vzero", [""], "",
+                                     I.TypeSuffix, 0, [-1],
+                                     "vmv_v_f_"#I.TypeSuffix#"(0)">;
+  }
+}
