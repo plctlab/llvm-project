@@ -352,6 +352,85 @@ defset list<WideVectorInfo> WideFloatToFloat = {
   }
 }
 
+class VType<string Name, int Elen, string Lmul, int Nf> {
+  string VTypeName = Name;
+  int ELEN = Elen;
+  string LMUL = Lmul;
+  int NF = Nf;
+} 
+
+//8bit
+foreach I = ["mf8", "mf4", "mf2", "m1"]  in {
+  foreach NF = [2, 3, 4, 5, 6, 7, 8] in {
+    def "vint8"#I#"x"#NF#"_t" : VType<"vint8"#I#"x"#NF#"_t", 8, I, NF>;
+    def "vuint8"#I#"x"#NF#"_t" : VType<"vuint8"#I#"x"#NF#"_t", 8, I, NF>;
+  }
+}
+
+foreach I = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
+  def "vint8"#I#"_t" : VType<"vint8"#I#"_t", 8, I, 1>;
+  def "vuint8"#I#"_t" : VType<"vuint8"#I#"_t", 8, I, 1>;
+}
+
+//16bit
+foreach I = ["mf4", "mf2", "m1"]  in {
+  foreach NF = [2, 3, 4, 5, 6, 7, 8] in {
+    def "vint16"#I#"x"#NF#"_t" : VType<"vint16"#I#"x"#NF#"_t", 16, I, NF>;
+    def "vuint16"#I#"x"#NF#"_t" : VType<"vuint16"#I#"x"#NF#"_t", 16, I, NF>;
+    def "vfloat16"#I#"x"#NF#"_t" : VType<"vfloat16"#I#"x"#NF#"_t", 16, I, NF>;
+  }
+}
+
+foreach I = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
+  def "vint16"#I#"_t" : VType<"vint16"#I#"_t", 16, I, 1>;
+  def "vuint16"#I#"_t" : VType<"vuint16"#I#"_t", 16, I, 1>;
+  def "vfloat16"#I#"_t" : VType<"vfloat16"#I#"_t", 16, I, 1>;
+}
+
+//32bit
+foreach I = ["mf2", "m1"]  in {
+  foreach NF = [2, 3, 4, 5, 6, 7, 8] in {
+    def "vint32"#I#"x"#NF#"_t" : VType<"vint32"#I#"x"#NF#"_t", 32, I, NF>;
+    def "vuint32"#I#"x"#NF#"_t" : VType<"vuint32"#I#"x"#NF#"_t", 32, I, NF>;
+    def "vfloat32"#I#"x"#NF#"_t" : VType<"vfloat32"#I#"x"#NF#"_t", 32, I, NF>;
+  }
+}
+
+foreach I = ["mf2", "m1", "m2", "m4", "m8"] in {
+  def "vint32"#I#"_t" : VType<"vint32"#I#"_t", 32, I, 1>;
+  def "vuint32"#I#"_t" : VType<"vuint32"#I#"_t", 32, I, 1>;
+  def "vfloat32"#I#"_t" : VType<"vfloat32"#I#"_t", 32, I, 1>;
+}
+
+//64bit
+foreach I = ["m1"]  in {
+  foreach NF = [2, 3, 4, 5, 6, 7, 8] in {
+    def "vint64"#I#"x"#NF#"_t" : VType<"vint64"#I#"x"#NF#"_t", 64, I, NF>;
+    def "vuint64"#I#"x"#NF#"_t" : VType<"vuint64"#I#"x"#NF#"_t", 64, I, NF>;
+    def "vfloat64"#I#"x"#NF#"_t" : VType<"vfloat64"#I#"x"#NF#"_t", 64, I, NF>;
+  }
+}
+
+foreach I = ["m1", "m2", "m4", "m8"] in {
+  def "vint64"#I#"_t" : VType<"vint64"#I#"_t", 64, I, 1>;
+  def "vuint64"#I#"_t" : VType<"vuint64"#I#"_t", 64, I, 1>;
+  def "vfloat64"#I#"_t" : VType<"vfloat64"#I#"_t", 64, I, 1>;
+}
+
+
+foreach I = [8, 16, 32, 64]  in {
+  //segment load/store type of m2
+  foreach NF = [2, 3, 4] in {
+    def "vint"#I#"m2"#"x"#NF#"_t" : VType<"vint"#I#"m2"#"x"#NF#"_t", I, "m2", NF>;
+    def "vuint"#I#"m2"#"x"#NF#"_t" : VType<"vuint"#I#"m2"#"x"#NF#"_t", I, "m2", NF>;
+  }
+  //segment load/store type of m4
+  def "vint"#I#"m4"#"x2_t" : VType<"vint"#I#"m4"#"x2_t", I, "m4", 2>;
+  def "vuint"#I#"m4"#"x2_t" : VType<"vuint"#I#"m4"#"x2_t", I, "m4", 2>;
+}
+
+
+
 class Inst<string Name, list<string> Types, string Inf, string Suf,
            int isMask, list<int> TypeOperands, code Def = ""> {
   string IntrinsicName = Name;

@@ -8,6 +8,7 @@ using namespace llvm;
 
 class Intrinsic;
 class RISCVVectorType;
+class BaseVectorType;
 
 class RISCVVectorEmitter {
 private:
@@ -22,13 +23,34 @@ public:
 
   void createBuiltins(raw_ostream &OS);
 
+  void createVectorType(Record *R, std::vector<std::shared_ptr<BaseVectorType>>& Out);
+
   void createIntrinsic(Record *R, std::vector<std::shared_ptr<Intrinsic>>& Out);
 
 };
 
+class BaseVectorType {
+private:  
+  std::string Name;
+  int64_t ELEN;
+  std::string LMUL;
+  bool IsLMULFractional;
+  int64_t NF;
+
+public:
+  BaseVectorType(StringRef Name, int64_t ELEN, StringRef LMUL, bool IsLMULFractional, int64_t NF)
+      : Name(Name.str()), ELEN(ELEN), LMUL(LMUL.str()), IsLMULFractional(IsLMULFractional), NF(NF) {}
+
+  std::string getName() { return Name; }
+  int64_t getELEN() { return ELEN; }
+  std::string getLMUL() { return LMUL; }
+  bool isLMULFractional() { return IsLMULFractional; }
+  int64_t getNF()  { return NF; }
+};
+
 class Intrinsic {
 private:
-  // The name fo the intrinsic
+  // The name of the intrinsic
   std::string Name;
   
   // The type string of the intrinsic
@@ -247,65 +269,6 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "#define _m2  1  // 0b000001\n";
   OS << "#define _m4  2  // 0b000010\n";
   OS << "#define _m8  3  // 0b000011\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1, 1))) int vint8mf8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1, 1))) int vint8mf4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 2, 1, 1))) int vint8mf2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 1, 0, 1))) int vint8m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 2, 0, 1))) int vint8m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 0, 1))) int vint8m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 0, 1))) int vint8m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 4, 1, 1))) int vint16mf4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 2, 1, 1))) int vint16mf2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 1, 0, 1))) int vint16m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 2, 0, 1))) int vint16m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 4, 0, 1))) int vint16m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 8, 0, 1))) int vint16m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 2, 1, 1))) int vint32mf2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 1, 0, 1))) int vint32m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 2, 0, 1))) int vint32m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 4, 0, 1))) int vint32m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 8, 0, 1))) int vint32m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 1, 0, 1))) int vint64m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 2, 0, 1))) int vint64m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 4, 0, 1))) int vint64m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 8, 0, 1))) int vint64m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1, 1))) unsigned vuint8mf8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1, 1))) unsigned vuint8mf4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 2, 1, 1))) unsigned vuint8mf2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 1, 0, 1))) unsigned vuint8m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 2, 0, 1))) unsigned vuint8m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 0, 1))) unsigned vuint8m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 0, 1))) unsigned vuint8m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 4, 1, 1))) unsigned vuint16mf4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 2, 1, 1))) unsigned vuint16mf2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 1, 0, 1))) unsigned vuint16m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 2, 0, 1))) unsigned vuint16m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 4, 0, 1))) unsigned vuint16m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 8, 0, 1))) unsigned vuint16m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 2, 1, 1))) unsigned vuint32mf2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 1, 0, 1))) unsigned vuint32m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 2, 0, 1))) unsigned vuint32m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 4, 0, 1))) unsigned vuint32m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 8, 0, 1))) unsigned vuint32m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 1, 0, 1))) unsigned vuint64m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 2, 0, 1))) unsigned vuint64m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 4, 0, 1))) unsigned vuint64m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 8, 0, 1))) unsigned vuint64m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 4, 1, 1))) float vfloat16mf4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 2, 1, 1))) float vfloat16mf2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 1, 0, 1))) float vfloat16m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 2, 0, 1))) float vfloat16m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 4, 0, 1))) float vfloat16m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(16, 8, 0, 1))) float vfloat16m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 2, 1, 1))) float vfloat32mf2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 1, 0, 1))) float vfloat32m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 2, 0, 1))) float vfloat32m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 4, 0, 1))) float vfloat32m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(32, 8, 0, 1))) float vfloat32m8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 1, 0, 1))) float vfloat64m1_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 2, 0, 1))) float vfloat64m2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 4, 0, 1))) float vfloat64m4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(64, 8, 0, 1))) float vfloat64m8_t;\n";
   OS << "typedef __attribute__((riscv_mask_type(1))) bool vbool1_t;\n";
   OS << "typedef __attribute__((riscv_mask_type(2))) bool vbool2_t;\n";
   OS << "typedef __attribute__((riscv_mask_type(4))) bool vbool4_t;\n";
@@ -313,31 +276,21 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "typedef __attribute__((riscv_mask_type(16))) bool vbool16_t;\n";
   OS << "typedef __attribute__((riscv_mask_type(32))) bool vbool32_t;\n";
   OS << "typedef __attribute__((riscv_mask_type(64))) bool vbool64_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1, 2))) int vint8mf8x2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1, 3))) int vint8mf8x3_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1, 4))) int vint8mf8x4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1, 5))) int vint8mf8x5_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1, 6))) int vint8mf8x6_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1, 7))) int vint8mf8x7_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 8, 1, 8))) int vint8mf8x8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1, 2))) int vint8mf4x2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1, 3))) int vint8mf4x3_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1, 4))) int vint8mf4x4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1, 5))) int vint8mf4x5_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1, 6))) int vint8mf4x6_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1, 7))) int vint8mf4x7_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 1, 8))) int vint8mf4x8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 1, 0, 2))) int vint8m1x2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 1, 0, 3))) int vint8m1x3_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 1, 0, 4))) int vint8m1x4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 1, 0, 5))) int vint8m1x5_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 1, 0, 6))) int vint8m1x6_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 1, 0, 7))) int vint8m1x7_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 1, 0, 8))) int vint8m1x8_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 2, 0, 2))) int vint8m2x2_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 2, 0, 3))) int vint8m2x3_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 2, 0, 4))) int vint8m2x4_t;\n";
-  OS << "typedef __attribute__((riscv_vector_type(8, 4, 0, 2))) int vint8m4x2_t;\n";
+  std::vector<Record *> RVT = Records.getAllDerivedDefinitions("VType");
+  std::vector<std::shared_ptr<BaseVectorType>> VTypes;
+  for (auto R : RVT) {
+    createVectorType(R, VTypes);
+  }
+  for (auto type : VTypes) {
+    OS << "typedef __attribute__((riscv_vector_type(";
+    std::string::const_iterator it = type->getLMUL().end();
+    OS << type->getELEN() << ", " << *(--it) << ", ";
+    OS << type->isLMULFractional() << ", " << type->getNF() <<"))) ";
+    if (type->getName().find("float") != std::string::npos)
+      OS << " float ";
+    OS << type->getName() <<";\n";
+  }
+
   std::vector<Record *> RV = Records.getAllDerivedDefinitions("Inst");
   std::vector<std::shared_ptr<Intrinsic>> Defs;
   std::vector<std::shared_ptr<Intrinsic>> CustomDefs;
@@ -404,6 +357,16 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "#undef _m8\n";
   OS << "#endif";
 }
+
+void RISCVVectorEmitter::createVectorType(Record *R, std::vector<std::shared_ptr<BaseVectorType>>& Out) {
+  StringRef Name = R->getValueAsString("VTypeName");
+  int64_t ELEN = R->getValueAsInt("ELEN");
+  StringRef LMUL = R->getValueAsString("LMUL"); 
+  bool IsLMULFractional = Name.find("mf") != std::string::npos;
+  int64_t NF = R->getValueAsInt("NF");
+  Out.push_back(std::make_shared<BaseVectorType>(Name, ELEN, LMUL, IsLMULFractional, NF));
+}
+
 
 void RISCVVectorEmitter::createIntrinsic(Record *R, std::vector<std::shared_ptr<Intrinsic>>& Out) {
   StringRef Name = R->getValueAsString("IntrinsicName");
