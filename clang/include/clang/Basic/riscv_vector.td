@@ -1,16 +1,30 @@
+//==--- riscv_vector.td - RISC-V Vector Definitions -----------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+//
+// This file defines the TableGen definitions from which the RISC-V vector
+// header file will be generated. It is also used to generate clang CodeGen
+// snippet.
+//
+//===----------------------------------------------------------------------===//
+
 class ScalarInfo<string TypeName, string TypeStr> {
   string Type = TypeName;
   string Str = TypeStr;
 }
 
 class VectorInfo<string TypeStr, string MStr, ScalarInfo Sca, string Suf,
-                 int Sew, string BType, string M1Type> {
+                 int Sew, string MType, string M1Type> {
   string Str = TypeStr;
   string TypeSuffix = Suf;
   string MaskStr = MStr;
   int SEW = Sew;
   ScalarInfo ScalarType = Sca;
-  string BoolType = BType;
+  string MaskType = MType;
   string Lmul1Type = M1Type;
 }
 
@@ -20,18 +34,38 @@ class MaskInfo<string TypeStr, string Suf> {
 }
 
 class WideVectorInfo<VectorInfo Origin, VectorInfo Wide> {
-  VectorInfo WideVector = Wide;
   VectorInfo OriginVector = Origin;
+  VectorInfo WideVector = Wide;
 }
 
-class IntToFloat<VectorInfo integer, VectorInfo float> {
+class IntFloatPair<VectorInfo integer, VectorInfo float> {
   VectorInfo Integer = integer;
   VectorInfo Float = float;
 }
 
+// Helper class to get the corresponding unsigned integer vector type string.
 class IntToUnsigned<VectorInfo Integer> {
   string Result =
     !cast<VectorInfo>(!subst("i", "u", !cast<string>(Integer))).Str;
+}
+
+// Helper class to compute the double-width LMUL.
+class ComputeWideLmul<string lmul> {
+  string Result = !cond(!eq(lmul, "mf8") : "mf4",
+                        !eq(lmul, "mf4") : "mf2",
+                        !eq(lmul, "mf2") : "m1",
+                        !eq(lmul, "m1") : "m2",
+                        !eq(lmul, "m2") : "m4",
+                        !eq(lmul, "m4") : "m8");
+}
+
+// Helper class to compute the quad-width LMUL.
+class ComputeQuadWideLmul<string lmul> {
+  string Result = !cond(!eq(lmul, "mf8") : "mf2",
+                        !eq(lmul, "mf4") : "m1",
+                        !eq(lmul, "mf2") : "m2",
+                        !eq(lmul, "m1") : "m4",
+                        !eq(lmul, "m2") : "m8");
 }
 
 class ComputeVectorNum<int shift_size, string lmul> {
@@ -45,16 +79,8 @@ class ComputeVectorNum<int shift_size, string lmul> {
   int Result = !sra(VectorLength, shift_size);
 }
 
-class ComputeWideLmul<string lmul> {
-  string Result = !cond(!eq(lmul, "mf8") : "mf4",
-                        !eq(lmul, "mf4") : "mf2",
-                        !eq(lmul, "mf2") : "m1",
-                        !eq(lmul, "m1") : "m2",
-                        !eq(lmul, "m2") : "m4",
-                        !eq(lmul, "m4") : "m8");
-}
-
-class ComputeBoolType<int VectorNum> {
+// Helper class to compute mask type.
+class ComputeMaskType<int VectorNum> {
   string Result = !cond(!eq(VectorNum, 1) : "b64",
                      !eq(VectorNum, 2) : "b32",
                      !eq(VectorNum, 4) : "b16",
@@ -64,13 +90,9 @@ class ComputeBoolType<int VectorNum> {
                      !eq(VectorNum, 64) : "b1");
 }
 
-class ComputeQuadWideLmul<string lmul> {
-  string Result = !cond(!eq(lmul, "mf8") : "mf2",
-                        !eq(lmul, "mf4") : "m1",
-                        !eq(lmul, "mf2") : "m2",
-                        !eq(lmul, "m1") : "m4",
-                        !eq(lmul, "m2") : "m8");
-}
+//===----------------------------------------------------------------------===//
+// Define record sets used for iteration.
+//===----------------------------------------------------------------------===//
 
 defset list<ScalarInfo> AllScalarType = {
   def i8 : ScalarInfo<"i8", "Sc">;
@@ -101,53 +123,53 @@ defset list<VectorInfo> AllVector = {
     defset list<VectorInfo> AllSignedVectorType = {
       foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         defvar VectorNum = ComputeVectorNum<3, lmul>.Result;
-        defvar BoolType = ComputeBoolType<VectorNum>.Result;
+        defvar MaskType = ComputeMaskType<VectorNum>.Result;
         def i8#lmul : VectorInfo<"q"#VectorNum#"c", "q"#VectorNum#"b", i8,
-                                 "i8"#lmul, 8, BoolType, "i8m1">;
+                                 "i8"#lmul, 8, MaskType, "i8m1">;
       }
       foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         defvar VectorNum = ComputeVectorNum<4, lmul>.Result;
-        defvar BoolType = ComputeBoolType<VectorNum>.Result;
+        defvar MaskType = ComputeMaskType<VectorNum>.Result;
         def i16#lmul : VectorInfo<"q"#VectorNum#"s", "q"#VectorNum#"b", i16,
-                                  "i16"#lmul, 16, BoolType, "i16m1">;
+                                  "i16"#lmul, 16, MaskType, "i16m1">;
       }
       foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
         defvar VectorNum = ComputeVectorNum<5, lmul>.Result;
-        defvar BoolType = ComputeBoolType<VectorNum>.Result;
+        defvar MaskType = ComputeMaskType<VectorNum>.Result;
         def i32#lmul : VectorInfo<"q"#VectorNum#"i", "q"#VectorNum#"b", i32,
-                                  "i32"#lmul, 32, BoolType, "i32m1">;
+                                  "i32"#lmul, 32, MaskType, "i32m1">;
       }
       foreach lmul = ["m1", "m2", "m4", "m8"] in {
         defvar VectorNum = ComputeVectorNum<6, lmul>.Result;
-        defvar BoolType = ComputeBoolType<VectorNum>.Result;
+        defvar MaskType = ComputeMaskType<VectorNum>.Result;
         def i64#lmul : VectorInfo<"q"#VectorNum#"Wi", "q"#VectorNum#"b", i64,
-                                  "i64"#lmul, 64, BoolType, "i64m1">;
+                                  "i64"#lmul, 64, MaskType, "i64m1">;
       }
     } // defset list<VectorInfo> AllSignedVectorType
     defset list<VectorInfo> AllUnsignedVectorType = {
       foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         defvar VectorNum = ComputeVectorNum<3, lmul>.Result;
-        defvar BoolType = ComputeBoolType<VectorNum>.Result;
+        defvar MaskType = ComputeMaskType<VectorNum>.Result;
         def u8#lmul : VectorInfo<"q"#VectorNum#"Uc", "q"#VectorNum#"b", u8,
-                                 "u8"#lmul, 8, BoolType, "u8m1">;
+                                 "u8"#lmul, 8, MaskType, "u8m1">;
       }
       foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
         defvar VectorNum = ComputeVectorNum<4, lmul>.Result;
-        defvar BoolType = ComputeBoolType<VectorNum>.Result;
+        defvar MaskType = ComputeMaskType<VectorNum>.Result;
         def u16#lmul : VectorInfo<"q"#VectorNum#"Us", "q"#VectorNum#"b", u16,
-                                  "u16"#lmul, 16, BoolType, "u16m1">;
+                                  "u16"#lmul, 16, MaskType, "u16m1">;
       }
       foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
         defvar VectorNum = ComputeVectorNum<5, lmul>.Result;
-        defvar BoolType = ComputeBoolType<VectorNum>.Result;
+        defvar MaskType = ComputeMaskType<VectorNum>.Result;
         def u32#lmul : VectorInfo<"q"#VectorNum#"Ui", "q"#VectorNum#"b", u32,
-                                  "u32"#lmul, 32, BoolType, "u32m1">;
+                                  "u32"#lmul, 32, MaskType, "u32m1">;
       }
       foreach lmul = ["m1", "m2", "m4", "m8"] in {
         defvar VectorNum = ComputeVectorNum<6, lmul>.Result;
-        defvar BoolType = ComputeBoolType<VectorNum>.Result;
+        defvar MaskType = ComputeMaskType<VectorNum>.Result;
         def u64#lmul : VectorInfo<"q"#VectorNum#"UWi", "q"#VectorNum#"b", u64,
-                                  "u64"#lmul, 64, BoolType, "u64m1">;
+                                  "u64"#lmul, 64, MaskType, "u64m1">;
       }
     } // defset list<VectorInfo> AllUnsignedVectorType
   } // defset list<VectorInfo> AllIntegerVectorType
@@ -155,27 +177,27 @@ defset list<VectorInfo> AllVector = {
   defset list<VectorInfo> AllFloatVectorType = {
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
       defvar VectorNum = ComputeVectorNum<4, lmul>.Result;
-      defvar BoolType = ComputeBoolType<VectorNum>.Result;
+      defvar MaskType = ComputeMaskType<VectorNum>.Result;
       def f16#lmul : VectorInfo<"q"#VectorNum#"h", "q"#VectorNum#"b", f16,
-                                "f16"#lmul, 16, BoolType, "f16m1">;
+                                "f16"#lmul, 16, MaskType, "f16m1">;
     }
     foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
       defvar VectorNum = ComputeVectorNum<5, lmul>.Result;
-      defvar BoolType = ComputeBoolType<VectorNum>.Result;
+      defvar MaskType = ComputeMaskType<VectorNum>.Result;
       def f32#lmul : VectorInfo<"q"#VectorNum#"f", "q"#VectorNum#"b", f32,
-                                "f32"#lmul, 32, BoolType, "f32m1">;
+                                "f32"#lmul, 32, MaskType, "f32m1">;
     }
     foreach lmul = ["m1", "m2", "m4", "m8"] in {
       defvar VectorNum = ComputeVectorNum<6, lmul>.Result;
-      defvar BoolType = ComputeBoolType<VectorNum>.Result;
+      defvar MaskType = ComputeMaskType<VectorNum>.Result;
       def f64#lmul : VectorInfo<"q"#VectorNum#"d", "q"#VectorNum#"b", f64,
-                                "f64"#lmul, 64, BoolType, "f64m1">;
+                                "f64"#lmul, 64, MaskType, "f64m1">;
     }
   } // defset list<VectorInfo> AllFloatVectorType
 } // defset list<VectorInfo> AllVector
 
 defset list<WideVectorInfo> AllWideVector = {
-  defset list<WideVectorInfo> AllWideIntegerVector = {
+  defset list<WideVectorInfo> AllWideSignedVector = {
     foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4"] in {
       defvar WideLmul = ComputeWideLmul<lmul>.Result;
       def wi8#lmul : WideVectorInfo<!cast<VectorInfo>(i8#lmul),
@@ -226,7 +248,7 @@ defset list<WideVectorInfo> AllWideVector = {
 }
 
 defset list<WideVectorInfo> AllQuadWideVector = {
-  defset list<WideVectorInfo> AllQuadWideIntegerVector = {
+  defset list<WideVectorInfo> AllQuadWideSignedVector = {
     foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2"] in {
       defvar QuadWideLmul = ComputeQuadWideLmul<lmul>.Result;
       def qwi8#lmul : WideVectorInfo<!cast<VectorInfo>(i8#lmul),
@@ -253,38 +275,38 @@ defset list<WideVectorInfo> AllQuadWideVector = {
   }
 } // defset list<WideVectorInfo> AllQuadWideVector
 
-defset list<IntToFloat> AllIntToFloat = {
-  defset list<IntToFloat> SignedToFloat = {
+defset list<IntFloatPair> AllIntFloatPair = {
+  defset list<IntFloatPair> SignedFloatPair = {
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
-      def 16b#lmul : IntToFloat<!cast<VectorInfo>("i16"#lmul),
+      def 16b#lmul : IntFloatPair<!cast<VectorInfo>("i16"#lmul),
                                 !cast<VectorInfo>("f16"#lmul)>;
     }
     foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
-      def 32b#lmul : IntToFloat<!cast<VectorInfo>("i32"#lmul),
+      def 32b#lmul : IntFloatPair<!cast<VectorInfo>("i32"#lmul),
                                 !cast<VectorInfo>("f32"#lmul)>;
     }
     foreach lmul = ["m1", "m2", "m4", "m8"] in {
-      def 64b#lmul : IntToFloat<!cast<VectorInfo>("i64"#lmul),
+      def 64b#lmul : IntFloatPair<!cast<VectorInfo>("i64"#lmul),
                                 !cast<VectorInfo>("f64"#lmul)>;
     }
   }
-  defset list<IntToFloat> UnsignedToFloat = {
+  defset list<IntFloatPair> UnsignedFloatPair = {
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
-      def u16b#lmul : IntToFloat<!cast<VectorInfo>("u16"#lmul),
+      def u16b#lmul : IntFloatPair<!cast<VectorInfo>("u16"#lmul),
                                  !cast<VectorInfo>("f16"#lmul)>;
     }
     foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
-      def u32b#lmul : IntToFloat<!cast<VectorInfo>("u32"#lmul),
+      def u32b#lmul : IntFloatPair<!cast<VectorInfo>("u32"#lmul),
                                  !cast<VectorInfo>("f32"#lmul)>;
     }
     foreach lmul = ["m1", "m2", "m4", "m8"] in {
-      def u64b#lmul : IntToFloat<!cast<VectorInfo>("u64"#lmul),
+      def u64b#lmul : IntFloatPair<!cast<VectorInfo>("u64"#lmul),
                                  !cast<VectorInfo>("f64"#lmul)>;
     }
   }
-} // defset list<IntToFloat> AllIntToFloat
+} // defset list<IntFloatPair> AllIntFloatPair
 
-defset list<WideVectorInfo> AllWideIntToFloat = {
+defset list<WideVectorInfo> AllWideIntFloatPair = {
   defset list<WideVectorInfo> WideSignedToFloat = {
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
       defvar WideLmul = ComputeWideLmul<lmul>.Result;
@@ -310,7 +332,7 @@ defset list<WideVectorInfo> AllWideIntToFloat = {
                                       !cast<VectorInfo>(u64#WideLmul)>;
     }
   }
-} // defset list<WideVectorInfo> AllWideIntToFloat
+} // defset list<WideVectorInfo> AllWideIntFloatPair
 
 defset list<WideVectorInfo> AllWideFloatToInt = {
   defset list<WideVectorInfo> WideFloatToSigned = {
@@ -352,6 +374,10 @@ defset list<WideVectorInfo> WideFloatToFloat = {
   }
 }
 
+//===----------------------------------------------------------------------===//
+// Types
+//===----------------------------------------------------------------------===//
+
 class VType<string Name, int Elen, string Lmul, int Nf> {
   string VTypeName = Name;
   int ELEN = Elen;
@@ -359,7 +385,7 @@ class VType<string Name, int Elen, string Lmul, int Nf> {
   int NF = Nf;
 } 
 
-//8bit
+// 8-bits
 foreach I = ["mf8", "mf4", "mf2", "m1"]  in {
   foreach NF = [2, 3, 4, 5, 6, 7, 8] in {
     def "vint8"#I#"x"#NF#"_t" : VType<"vint8"#I#"x"#NF#"_t", 8, I, NF>;
@@ -372,7 +398,7 @@ foreach I = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
   def "vuint8"#I#"_t" : VType<"vuint8"#I#"_t", 8, I, 1>;
 }
 
-//16bit
+// 16-bits
 foreach I = ["mf4", "mf2", "m1"]  in {
   foreach NF = [2, 3, 4, 5, 6, 7, 8] in {
     def "vint16"#I#"x"#NF#"_t" : VType<"vint16"#I#"x"#NF#"_t", 16, I, NF>;
@@ -387,7 +413,7 @@ foreach I = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
   def "vfloat16"#I#"_t" : VType<"vfloat16"#I#"_t", 16, I, 1>;
 }
 
-//32bit
+// 32-bits
 foreach I = ["mf2", "m1"]  in {
   foreach NF = [2, 3, 4, 5, 6, 7, 8] in {
     def "vint32"#I#"x"#NF#"_t" : VType<"vint32"#I#"x"#NF#"_t", 32, I, NF>;
@@ -402,7 +428,7 @@ foreach I = ["mf2", "m1", "m2", "m4", "m8"] in {
   def "vfloat32"#I#"_t" : VType<"vfloat32"#I#"_t", 32, I, 1>;
 }
 
-//64bit
+// 64-bits
 foreach I = ["m1"]  in {
   foreach NF = [2, 3, 4, 5, 6, 7, 8] in {
     def "vint64"#I#"x"#NF#"_t" : VType<"vint64"#I#"x"#NF#"_t", 64, I, NF>;
@@ -419,17 +445,20 @@ foreach I = ["m1", "m2", "m4", "m8"] in {
 
 
 foreach I = [8, 16, 32, 64]  in {
-  //segment load/store type of m2
+  // segment load/store type of m2
   foreach NF = [2, 3, 4] in {
     def "vint"#I#"m2"#"x"#NF#"_t" : VType<"vint"#I#"m2"#"x"#NF#"_t", I, "m2", NF>;
     def "vuint"#I#"m2"#"x"#NF#"_t" : VType<"vuint"#I#"m2"#"x"#NF#"_t", I, "m2", NF>;
   }
-  //segment load/store type of m4
+  // segment load/store type of m4
   def "vint"#I#"m4"#"x2_t" : VType<"vint"#I#"m4"#"x2_t", I, "m4", 2>;
   def "vuint"#I#"m4"#"x2_t" : VType<"vuint"#I#"m4"#"x2_t", I, "m4", 2>;
 }
 
 
+//===----------------------------------------------------------------------===//
+// Instructions
+//===----------------------------------------------------------------------===//
 
 class Inst<string Name, list<string> Types, string Inf, string Suf,
            int isMask, list<int> TypeOperands, code Def = ""> {
@@ -437,6 +466,16 @@ class Inst<string Name, list<string> Types, string Inf, string Suf,
   list<string> BuiltinStr = Types;
   string Infix = Inf;
   string Suffix = Suf;
+  // The list of indexes for the overload type. Use '-1' to refer to result
+  // type, '0' to refer to the first argument type and so on. This is used
+  // to generate clang builtin codegen snippet. The given indexes must be
+  // consisted with llvm/include/llvm/IR/IntrinsicsRISCV.td. For an example,
+  // the index list of
+  //   class V_VX : Intrinsic<[ llvm_anyvector_ty ],
+  //                          [ LLVMMatchType<0>, llvm_anyint_ty ],
+  //                          [ IntrNoMem ]>;
+  // should be:
+  //   [-1, 1]
   list<int> AnyTypeOperands = TypeOperands;
   int Mask = isMask;
   // If not empty, the emitter will use it to define the intrinsic function.
@@ -447,14 +486,42 @@ class Inst<string Name, list<string> Types, string Inf, string Suf,
   bit ShouldEmitBuiltin = 1;
 } 
 
+// Unary operation.
+multiclass unary<string name, string result_str, string arg1_str,
+                 string infix, string suffix, string mask_str,
+                 list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
+  def NAME#infix#suffix : Inst<name, [result_str, arg1_str], infix, suffix, 0,
+                               AnyTypeOperands>;
+  def NAME#infix#suffix#"_mask" : Inst<name, [result_str, mask_str, result_str,
+                                       arg1_str], infix, suffix, 1,
+                                       MaskAnyTypeOperands>;
+}
+
+multiclass unary_m<string name, string result_str, string arg1_str,
+                   string infix, string suffix, string mask_str,
+                   list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
+  def NAME#infix#suffix : Inst<name, [result_str, arg1_str], infix, suffix, 0,
+                               AnyTypeOperands>;
+  def NAME#infix#suffix#"_mask" : Inst<name, [result_str, mask_str, arg1_str],
+                                       infix, suffix, 1, MaskAnyTypeOperands>;
+}
+
+multiclass unary_nomask<string name, string result_str, string arg1_str,
+                 string infix, string suffix, string mask_str,
+                 list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
+  def NAME#infix#suffix : Inst<name, [result_str, arg1_str], infix, suffix, 0,
+                               AnyTypeOperands>;
+}
+
+// Binary operation.
 multiclass binary<string name, string result_str, string arg1_str, 
                   string arg2_str, string infix, string suffix, string mask_str,
                   list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
+  def NAME#infix#suffix : Inst<name, [result_str, arg1_str, arg2_str], infix, 
+                               suffix, 0, AnyTypeOperands>;
   def NAME#infix#suffix#"_mask" : Inst<name, [result_str, mask_str, result_str,
                                        arg1_str, arg2_str], infix, suffix, 1,
                                        MaskAnyTypeOperands>;
-  def NAME#infix#suffix : Inst<name, [result_str, arg1_str, arg2_str], infix, 
-                               suffix, 0, AnyTypeOperands>;
 }
 
 multiclass binary_nomask<string name, string result_str, string arg1_str, 
@@ -465,41 +532,16 @@ multiclass binary_nomask<string name, string result_str, string arg1_str,
                                suffix, 0, AnyTypeOperands>;
 }
 
+// Ternary operation.
 multiclass ternary<string name, string result_str, string arg1_str,
                    string arg2_str, string arg3_str, string infix,
                    string suffix, string mask_str, list<int> AnyTypeOperands,
                    list<int> MaskAnyTypeOperands> {
+  def NAME#infix#suffix : Inst<name, [result_str, arg1_str, arg2_str, arg3_str],
+                               infix, suffix, 0, AnyTypeOperands>;
   def NAME#infix#suffix#"_mask" : Inst<name, [result_str, mask_str, arg1_str,
                                        arg2_str, arg3_str],
                                        infix, suffix, 1, MaskAnyTypeOperands>;
-  def NAME#infix#suffix : Inst<name, [result_str, arg1_str, arg2_str, arg3_str],
-                               infix, suffix, 0, AnyTypeOperands>;
-}
-
-multiclass unary<string name, string result_str, string arg1_str,
-                 string infix, string suffix, string mask_str,
-                 list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
-  def NAME#infix#suffix#"_mask" : Inst<name, [result_str, mask_str, result_str,
-                                       arg1_str], infix, suffix, 1,
-                                       MaskAnyTypeOperands>;
-  def NAME#infix#suffix : Inst<name, [result_str, arg1_str], infix, suffix, 0,
-                               AnyTypeOperands>;
-}
-
-multiclass unary_m<string name, string result_str, string arg1_str,
-                   string infix, string suffix, string mask_str,
-                   list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
-  def NAME#infix#suffix#"_mask" : Inst<name, [result_str, mask_str, arg1_str],
-                                       infix, suffix, 1, MaskAnyTypeOperands>;
-  def NAME#infix#suffix : Inst<name, [result_str, arg1_str], infix, suffix, 0,
-                               AnyTypeOperands>;
-}
-
-multiclass unary_nomask<string name, string result_str, string arg1_str,
-                 string infix, string suffix, string mask_str,
-                 list<int> AnyTypeOperands, list<int> MaskAnyTypeOperands> {
-  def NAME#infix#suffix : Inst<name, [result_str, arg1_str], infix, suffix, 0,
-                               AnyTypeOperands>;
 }
 
 multiclass ternary_nomask<string name, string result_str, string arg1_str,
@@ -511,36 +553,844 @@ multiclass ternary_nomask<string name, string result_str, string arg1_str,
                                infix, suffix, 0, AnyTypeOperands>;
 }
 
-multiclass unary_pop {
-  foreach I = AllMaskType in {
-    defm NAME : unary_m<NAME, "ULi", I.Str, "_m", I.TypeSuffix, I.Str,
-                        [0], [0, 1]>;
+// vint*m*_t vop_v_v_i*m* (vint*m*_t src)
+// vint*m*_t vop_v_x_i*m* (int*_t src)
+multiclass int_unary_v_v_v_x {
+  foreach I = AllIntegerVectorType in {
+    defm NAME : unary_nomask<NAME, I.Str, I.Str, "_v_v", I.TypeSuffix, "",
+                             [-1], []>;
+    defm NAME : unary_nomask<NAME, I.Str, I.ScalarType.Str, "_v_x",
+                             I.TypeSuffix, "", [-1, 0], []>;
   }
 }
 
-multiclass unary_vfirst {
-  foreach I = AllMaskType in {
-    defm NAME : unary_m<NAME, "Li", I.Str, "_m", I.TypeSuffix, I.Str,
-                        [0], [0, 1]>;
+// vint*m*_t vop_vx_i*m* (vint*m*_t op1, int*m*_t op2);
+// vuint*m*_t vop_vx_i*m* (vuint*m*_t op1, uint*_t op2);
+// vint*m*_t vop_vx_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                           vint*m*_t op1, int*m*_t op2);
+// vuint*m*_t vop_vx_i*m*_m (vbool*_t mask, vuint*m*_t maskedoff,
+//                           vuint*m*_t op1, uint*m*_t op2);
+multiclass int_binary_v_vx {
+  foreach I = AllIntegerVectorType in {
+      defm NAME : binary<NAME, I.Str, I.Str, I.ScalarType.Str, "_vx",
+                         I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 3]>;
   }
 }
 
-multiclass binary_vmsbf_vmsif_vmsof {
-  foreach I = AllMaskType in {
-    defm NAME : unary<NAME, I.Str, I.Str, "_m", I.TypeSuffix, I.Str,
-                      [-1], [-1]>;
+// vint*m*_t vop_vv_i*m* (vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vx_i*m* (vint*m*_t op1, int*_t op2);
+// vint*m*_t vop_vv_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                          vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vx_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                          vint*m*_t op1, int*_t op2);
+multiclass signed_binary_v_vv_vx {
+  foreach I = AllSignedVectorType in {
+    defm NAME : binary<NAME, I.Str, I.Str, I.Str, "_vv", I.TypeSuffix,
+                       I.MaskStr, [-1], [-1, 0]>;
+    defm NAME : binary<NAME, I.Str, I.Str, I.ScalarType.Str, "_vx",
+                       I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 3]>;
   }
 }
 
-multiclass binary_viota {
+// vuint*m*_t vop_vv_i*m* (vuint*m*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_vx_i*m* (vuint*m*_t op1, uint*_t op2);
+// vuint*m*_t vop_vv_i*m*_m (vbool*_t mask, vuint*m*_t maskedoff,
+//                           vuint*m*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_vx_i*m*_m (vbool*_t mask, vuint*m*_t maskedoff,
+//                           vuint*m*_t op1, uint*_t op2);
+multiclass unsigned_binary_v_vv_vx {
   foreach I = AllUnsignedVectorType in {
-    defm NAME : unary<NAME, I.Str, I.MaskStr, "_m", I.TypeSuffix, I.MaskStr,
-                      [-1, 0], [-1, 0, 2]>;
+    defm NAME : binary<NAME, I.Str, I.Str, I.Str, "_vv", I.TypeSuffix,
+                       I.MaskStr, [-1], [-1, 0]>;
+    defm NAME : binary<NAME, I.Str, I.Str, I.ScalarType.Str, "_vx",
+                       I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 3]>;
   }
 }
 
+// Both signed and unsigned types.
+multiclass int_binary_v_vv_vx : signed_binary_v_vv_vx, unsigned_binary_v_vv_vx;
+
+// vint*m*_t vop_vv_i*m* (vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vx_i*m* (vint*m*_t op1, uint8_t op2);
+// vint*m*_t vop_vv_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                          vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vx_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                          vint*m*_t op1, uint8_t op2);
+multiclass signed_binary_v_vv_vx_u8 {
+  foreach I = AllSignedVectorType in {
+    defm NAME : binary<NAME, I.Str, I.Str, IntToUnsigned<I>.Result, "_vv", 
+                       I.TypeSuffix, I.MaskStr, [-1], [-1, 0]>;
+    defm NAME : binary<NAME, I.Str, I.Str, "Uc", "_vx", I.TypeSuffix,
+                       I.MaskStr, [-1, 1], [-1, 0, 3]>;
+  }
+}
+
+// vuint*m*_t vop_vv_i*m* (vuint*m*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_vx_i*m* (vuint*m*_t op1, uint8_t op2);
+// vuint*m*_t vop_vv_i*m*_m (vbool*_t mask, vuint*m*_t maskedoff,
+//                           vuint*m*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_vx_i*m*_m (vbool*_t mask, vuint*m*_t maskedoff,
+//                           vuint*m*_t op1, uint8_t op2);
+multiclass unsigned_binary_v_vv_vx_u8 {
+  foreach I = AllUnsignedVectorType in {
+    defm NAME : binary<NAME, I.Str, I.Str, I.Str, "_vv", I.TypeSuffix,
+                       I.MaskStr, [-1], [-1, 0]>;
+    defm NAME : binary<NAME, I.Str, I.Str, "Uc", "_vx", I.TypeSuffix,
+                       I.MaskStr, [-1, 1], [-1, 0, 3]>;
+  }
+}
+
+// Both signed and unsigned types.
+multiclass int_binary_v_vv_vx_u8 :
+  signed_binary_v_vv_vx_u8, unsigned_binary_v_vv_vx_u8;
+
+// vbool*_t vop_vx_i*m*_b* (vint*m*_t op1, int*_t op2);
+// vbool*_t vop_vx_i*m*_b*_m (vbool*_t mask, vbool*_t maskedoff,
+//                            vint*m*_t op1, int*_t op2);
+multiclass signed_binary_m_vx {
+  foreach I = AllSignedVectorType in {
+    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vx",
+                       I.TypeSuffix#"_"#I.MaskType, I.MaskStr,
+                       [-1, 0, 1], [-1, 2, 3]>;
+  }
+}
+
+// vbool*_t vop_vx_u*m*_b* (vuint*m*_t op1, uint*_t op2);
+// vbool*_t vop_vx_u*m*_b*_m (vbool*_t mask, vbool*_t maskedoff,
+//                            vuint*m*_t op1, uint*_t op2);
+multiclass unsigned_binary_m_vx {
+  foreach I = AllUnsignedVectorType in {
+    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vx",
+                       I.TypeSuffix#"_"#I.MaskType, I.MaskStr,
+                       [-1, 0, 1], [-1, 2, 3]>;
+  }
+}
+
+// vbool*_t vop_vv_i*m*_b* (vint*m*_t op1, vint*m*_t op2);
+// vbool*_t vop_vx_i*m*_b* (vint*m*_t op1, int*_t op2);
+// vbool*_t vop_vv_i*m*_b*_m (vbool*_t mask, vbool*_t maskedoff,
+//                            vint*m*_t op1, vint*m*_t op2);
+// vbool*_t vop_vx_i*m*_b*_m (vbool*_t mask, vbool*_t maskedoff,
+//                            vint*m*_t op1, int*_t op2);
+multiclass signed_binary_m_vv_vx {
+  foreach I = AllSignedVectorType in {
+    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vv",
+                       I.TypeSuffix#"_"#I.MaskType, I.MaskStr,
+                       [-1, 0], [-1, 2, 3]>;
+    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vx",
+                       I.TypeSuffix#"_"#I.MaskType, I.MaskStr,
+                       [-1, 0, 1], [-1, 2, 3]>;
+  }
+}
+
+// vbool*_t vop_vv_u*m*_b* (vuint*m*_t op1, vuint*m*_t op2);
+// vbool*_t vop_vx_u*m*_b* (vuint*m*_t op1, uint*_t op2);
+// vbool*_t vop_vv_u*m*_b*_m (vbool*_t mask, vbool*_t maskedoff,
+//                            vuint*m*_t op1, vuint*m*_t op2);
+// vbool*_t vop_vx_u*m*_b*_m (vbool*_t mask, vbool*_t maskedoff,
+//                            vuint*m*_t op1, uint*_t op2);
+multiclass unsigned_binary_m_vv_vx {
+  foreach I = AllUnsignedVectorType in {
+    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vv",
+                       I.TypeSuffix#"_"#I.MaskType, I.MaskStr,
+                       [-1, 0], [-1, 2, 3]>;
+    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vx",
+                       I.TypeSuffix#"_"#I.MaskType, I.MaskStr,
+                       [-1, 0, 1], [-1, 2, 3]>;
+  }
+}
+
+// Both signed and unsigned types.
+multiclass int_binary_m_vv_vx : signed_binary_m_vv_vx, unsigned_binary_m_vv_vx;
+
+// vint*m*_t vop_wv_i*m* (vint*m*_t op1, vuint*m*_t op2)
+// vint*m*_t vop_wx_i*m* (vint*m*_t op1, uint8_t op2)
+// vint*m*_t vop_wv_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                          vint*m*_t op1, vuint*m*_t op2)
+// vint*m*_t vop_wx_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                          vint*m*_t op1, uint8_t op2)
+multiclass signed_binary_v_wv_wx{
+  foreach I = AllWideSignedVector in {
+    defm NAME : binary<NAME, I.OriginVector.Str, I.WideVector.Str,
+                       I.OriginVector.Str, "_wv", I.OriginVector.TypeSuffix,
+                       I.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+            
+    defm NAME : binary<NAME, I.OriginVector.Str, I.WideVector.Str,
+                       "Uc", "_wx",
+                       I.OriginVector.TypeSuffix, I.WideVector.MaskStr,
+                       [-1, 0, 1], [-1, 0, 2, 3]>;
+  }
+}
+
+// vuint*m*_t vop_wv_u*m* (vuint*m*_t op1, vuint*m*_t op2)
+// vuint*m*_t vop_wx_u*m* (vuint*m*_t op1, uint8_t op2)
+// vuint*m*_t vop_wv_u*m*_m (vbool*_t mask, vuint*m*_t maskedoff,
+//                           vuint*m*_t op1, vuint*m*_t op2)
+// vuint*m*_t vop_wx_u*m*_m (vbool*_t mask, vuint*m*_t maskedoff,
+//                           vuint*m*_t op1, uint8_t op2)
+multiclass unsigned_binary_v_wv_wx{
+  foreach I = AllWideUnsignedVector in {
+    defm NAME : binary<NAME, I.OriginVector.Str, I.WideVector.Str,
+                       I.OriginVector.Str, "_wv", I.OriginVector.TypeSuffix,
+                       I.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
+            
+    defm NAME : binary<NAME, I.OriginVector.Str, I.WideVector.Str,
+                       "Uc", "_wx",
+                       I.OriginVector.TypeSuffix, I.WideVector.MaskStr,
+                       [-1, 0, 1], [-1, 0, 2, 3]>;
+  }
+}
+
+// vint*m*_t vop_vv_i*m* (vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vx_i*m* (vint*m*_t op1, int*_t op2);
+// vint*m*_t vop_vv_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                          vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vx_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                          vint*m*_t op1, int*_t op2);
+multiclass signed_binary_w_vv_vx {
+  foreach I = AllWideSignedVector in {
+    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
+                       I.OriginVector.Str, "_vv", I.WideVector.TypeSuffix, 
+                       I.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+
+    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str,
+                       I.OriginVector.ScalarType.Str, "_vx",
+                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                       [-1, 0, 1], [-1, 0, 2, 3]>;
+  }
+}
+
+// vint*m*_t vop_wv_i*m* (vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_wx_i*m* (vint*m*_t op1, int*_t op2);
+// vint*m*_t vop_wv_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                          vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_wx_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                          vint*m*_t op1, int*_t op2);
+multiclass signed_binary_w_wv_wx {
+  foreach I = AllWideSignedVector in {
+    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
+                       I.OriginVector.Str, "_wv", I.WideVector.TypeSuffix,
+                       I.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
+            
+    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
+                       I.OriginVector.ScalarType.Str, "_wx",
+                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                       [-1, 1], [-1, 0, 3]>;
+  }
+}
+
+multiclass signed_binary_w_vv_vx_wv_wx :
+  signed_binary_w_vv_vx, signed_binary_w_wv_wx;
+
+// vuint*m*_t vop_vv_u*m* (vuint*m*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_vx_u*m* (vuint*m*_t op1, uint*_t op2);
+// vuint*m*_t vop_vv_u*m*_m (vbool*_t mask, vuint*m*_t maskedoff,
+//                           vuint*m*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_vx_u*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                           vuint*m*_t op1, uint*_t op2);
+multiclass unsigned_binary_w_vv_vx {
+  foreach I = AllWideUnsignedVector in {
+    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
+                       I.OriginVector.Str, "_vv", I.WideVector.TypeSuffix,
+                       I.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
+                       I.OriginVector.ScalarType.Str, "_vx",
+                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                       [-1, 0, 1], [-1, 0, 2, 3]>;
+  }
+}
+
+// vuint*m*_t vop_wv_u*m* (vuint*m*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_wx_u*m* (vuint*m*_t op1, uint*_t op2);
+// vuint*m*_t vop_wv_u*m*_m (vbool*_t mask, vuint*m*_t maskedoff,
+//                           vuint*m*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_wx_u*m*_m (vbool*_t mask, vint*m*_t maskedoff,
+//                           vuint*m*_t op1, uint*_t op2);
+multiclass unsigned_binary_w_wv_wx {
+  foreach I = AllWideUnsignedVector in {
+    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
+                       I.OriginVector.Str, "_wv", I.WideVector.TypeSuffix,
+                       I.WideVector.TypeSuffix, [-1, 1], [-1, 0, 3]>;
+            
+    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
+                       I.OriginVector.ScalarType.Str, "_wx",
+                       I.WideVector.TypeSuffix, I.WideVector.TypeSuffix,
+                       [-1, 1], [-1, 0, 3]>;
+  }    
+}
+
+multiclass unsigned_binary_w_vv_vx_wv_wx :
+  unsigned_binary_w_vv_vx, unsigned_binary_w_wv_wx;
+
+// vint*m*_t vop_vvm_i*m* (vint*m*_t op1, vint*m*_t op2, vbool*_t carryin);
+// vint*m*_t vop_vxm_i*m* (vint*m*_t op1, int*_t op2, vbool*_t carryin);
+multiclass int_ternary_v_vvm_vxm {
+  foreach I = AllIntegerVectorType in {
+    defm NAME : ternary_nomask<NAME, I.Str, I.Str, I.Str, I.MaskStr, "_vvm",
+                               I.TypeSuffix, "", [-1, 2], []>;
+    defm NAME : ternary_nomask<NAME, I.Str, I.Str, I.ScalarType.Str, I.Str, "_vxm",
+                               I.TypeSuffix, "", [-1, 1, 2], []>;
+  }
+}
+
+// vint*m*_t vop_vv_i*m* (vint*m*_t acc, vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vx_i*m* (vint*m*_t acc, int*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vv_i*m*_m (vbool*_t, vint*m*_t acc, vint*m*_t op1,
+//                          vint*m*_t op2);
+// vint*m*_t vop_vx_i*m*_m (vbool*_t, vint*m*_t acc, int*_t op1, vint*m*_t op2);
+multiclass int_ternary_v_vx_vv {
+  foreach I = AllIntegerVectorType in {
+    defm NAME : ternary<NAME, I.Str, I.Str, I.Str, I.Str, "_vv", I.TypeSuffix,
+                        I.MaskStr, [-1], [-1, 0]>;
+    defm NAME : ternary<NAME, I.Str, I.Str, I.ScalarType.Str, I.Str, "_vx",
+                        I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 2]>;
+  }
+}
+
+// vint*m*_t vop_vs_i*m*_i*m* (vint*m*_t dst, vint*m*_t vector,
+//                             vint*m*_t scalar);
+// vint*m*_t vop_vs_i*m*_i*m*_m (vbool*_t mask, vint*m*_t dst,
+//                               vint*m*_t vector, vint*m*_t scalar);
+multiclass int_ternary_v_vs {
+  foreach I = AllIntegerVectorType in {
+    defvar Lmul1Type = !cast<VectorInfo>(I.Lmul1Type);
+    defm NAME : ternary<NAME, Lmul1Type.Str, Lmul1Type.Str, I.Str,
+                        Lmul1Type.Str, "_vs",
+                        I.TypeSuffix#"_"#Lmul1Type.TypeSuffix,
+                        I.MaskStr, [-1, 1], [-1, 0, 2]>;
+  }
+}
+
+// vint*m*_t vop_vv_i*m* (vint*m*_t acc, vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vv_i*m*_m (vbool*_t mask, vint*m*_t acc, vint*m*_t op1,
+//                          vint*m*_t op2);
+multiclass signed_ternary_w_vv {
+  foreach I = AllWideSignedVector in {
+    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str, 
+                        I.OriginVector.Str, I.OriginVector.Str, "_vv",
+                        I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                        [-1, 1], [-1, 0, 2]>;
+  }
+}
+
+// vint*m*_t vop_vx_i*m* (vint*m*_t acc, uint*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vx_i*m*_m (vbool*_t mask, vint*m*_t acc, uint*_t op1,
+//                          vint*m*_t op2);
+multiclass signed_ternary_w_vx {
+  foreach I = AllWideSignedVector in {
+    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str, 
+                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
+                        "_vx", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                        [-1, 1, 2], [-1, 0, 2, 3]>;
+  }
+}
+
+multiclass signed_ternary_w_vv_vx : signed_ternary_w_vv, signed_ternary_w_vx;
+
+// vuint*m*_t vop_vv_u*m* (vuint*m*_t acc, vuint*m*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_vx_u*m* (vuint*m*_t acc, uint*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_vv_u*m*_m (vbool*_t mask, vuint*m*_t acc, vuint*m*_t op1,
+//                           vuint*m*_t op2);
+// vuint*m*_t vop_vx_u*m*_m (vbool*_t mask, vuint*m*_t acc, uint*_t op1,
+//                           vuint*m*_t op2);
+multiclass unsigned_ternary_w_vv_vx {
+  foreach I = AllWideUnsignedVector in {
+    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str, 
+                        I.OriginVector.Str, I.OriginVector.Str, "_vv",
+                        I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                        [-1, 1], [-1, 0, 2]>;
+    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str, 
+                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
+                        "_vx", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                        [-1, 1, 2], [-1, 0, 2, 3]>;
+  }
+}
+
+// vint*m*_t vop_vv_i*m* (vint*m*_t acc, vint*m*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vv_i*m*_m (vbool*_t mask, vint*m*_t acc, vint*m*_t op1,
+//                          vint*m*_t op2);
+multiclass signed_ternary_qw_vv {
+  foreach I = AllQuadWideSignedVector in {
+    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
+                        I.OriginVector.Str, I.OriginVector.Str, "_vv",
+                        I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                        [-1, 1], [-1, 0, 2]>;
+  }
+}
+
+// vint*m*_t vop_vx_i*m* (vint*m*_t acc, uint*_t op1, vint*m*_t op2);
+// vint*m*_t vop_vx_i*m*_m (vbool*_t mask, vint*m*_t acc, uint*_t op1,
+//                          vint*m*_t op2);
+multiclass signed_ternary_qw_vx {
+  foreach I = AllQuadWideSignedVector in {
+    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
+                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
+                        "_vx", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                        [-1, 1, 2], [-1, 0, 2, 3]>;
+  }
+}
+
+multiclass signed_ternary_qw_vv_vx : signed_ternary_qw_vv, signed_ternary_qw_vx;
+
+// vuint*m*_t vop_vv_u*m* (vuint*m*_t acc, vuint*m*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_vx_u*m* (vuint*m*_t acc, uint*_t op1, vuint*m*_t op2);
+// vuint*m*_t vop_vv_u*m*_m (vbool*_t mask, vuint*m*_t acc, vuint*m*_t op1,
+//                           vuint*m*_t op2);
+// vuint*m*_t vop_vx_u*m*_m (vbool*_t mask, vuint*m*_t acc, uint*_t op1,
+//                           vuint*m*_t op2);
+multiclass unsigned_ternary_qw_vv_vx {
+  foreach I = AllQuadWideUnsignedVector in {
+    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
+                        I.OriginVector.Str, I.OriginVector.Str, "_vv",
+                        I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                        [-1, 1], [-1, 0, 2]>;
+    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
+                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
+                        "_vx", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                        [-1, 1, 2], [-1, 0, 2, 3]>;
+  }
+}
+
+// vfloat*m*_t vop_v_f*m* (vfloat*m*_t op1);
+// vfloat*m*_t vop_v_f*m*_m (vbool*_t mask, vfloat*m*_t maskedoff,
+//                           vfloat*m*_t op1);
+multiclass float_unary_v_v {
+  foreach I = AllFloatVectorType in {
+    defm NAME : unary<NAME, I.Str, I.Str, "_v", I.TypeSuffix, I.MaskStr,
+                      [-1], [-1, 0]>;
+  }
+}
+
+// vfloat*m*_t vop_v_f_f*m* (float*_t src);
+multiclass float_unary_v_f {
+  foreach I = AllFloatVectorType in {
+    defm NAME : unary_nomask<NAME, I.Str, I.ScalarType.Str, "_v_f",
+                             I.TypeSuffix, "", [-1, 0], []>;
+  }
+}
+
+// vfloat*m*_t vop_vv_f*m* (vfloat*m*_t op1, vfloat*m*_t op2);
+// vfloat*m*_t vop_vv_f*m*_m (vbool*_t mask, vfloat*m*_t maskedoff,
+//                            vfloat*m*_t op1, vfloat*m*_t op2);
+multiclass float_binary_v_vv {
+  foreach I = AllFloatVectorType in {
+    defm NAME : binary<NAME, I.Str, I.Str, I.Str, "_vv",
+                       I.TypeSuffix, I.MaskStr, [-1], [-1, 0]>;
+  }
+}
+
+// vfloat*m*_t vop_vf_f*m* (vfloat*m*_t op1, float*_t op2);
+// vfloat*m*_t vop_vf_f*m*_m (vbool*_t mask, vfloat*m*_t maskedoff,
+//                            vfloat*m*_t op1, float*_t op2);
+multiclass float_binary_v_vf {
+  foreach I = AllFloatVectorType in {
+    defm NAME : binary<NAME, I.Str, I.Str, I.ScalarType.Str, "_vf",
+                       I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 3]>;
+  }
+}
+
+multiclass float_binary_v_vv_vf : float_binary_v_vv, float_binary_v_vf;
+
+// vbool*_t vop_vv_f*m*_b* (vfloat*m*_t op1, vfloat*m*_t op2);
+// vbool*_t vop_vv_f*m*_b*_m (vbool*_t mask, vbool*_t maskedoff,
+//                            vfloat*m*_t op1, vfloat*m*_t op2);
+multiclass float_binary_m_vv {
+  foreach I = AllFloatVectorType in {
+    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vv",
+                       I.TypeSuffix#"_"#I.MaskType, I.MaskStr,
+                       [-1, 0], [-1, 2, 3]>;
+  }
+}
+
+// vbool*_t vop_vf_f*m*_b* (vfloat*m*_t op1, float*_t op2);
+// vbool*_t vop_vf_f*m*_b*_m (vbool*_t mask, vbool*_t maskedoff,
+//                            vfloat*m*_t op1, float*_t op2);
+multiclass float_binary_m_vf {
+  foreach I = AllFloatVectorType in {
+    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vf",
+                       I.TypeSuffix#"_"#I.MaskType, I.MaskStr,
+                       [-1, 0, 1], [-1, 2, 3]>;
+  }
+}
+
+multiclass float_binary_m_vv_vf : float_binary_m_vv, float_binary_m_vf;
+
+// vfloat*m*_t vop_vv_f*m* (vfloat*m*_t op1, vfloat*m*_t op2);
+// vfloat*m*_t vop_vf_f*m* (vfloat*m*_t op1, float*_t op2);
+// vfloat*m*_t vop_vv_f*m*_m (vbool*_t mask, vload*m*_t maskedoff,
+//                            vfloat*m*_t op1, vfloat*m*_t op2);
+// vfloat*m*_t vop_vf_f*m*_m (vbool*_t mask, vload*m*_t maskedoff,
+//                            vfloat*m*_t op1, float*_t op2);
+multiclass float_binary_w_vv_vf {
+  foreach I = AllWideFloatVector in {
+    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
+                       I.OriginVector.Str, "_vv", I.WideVector.TypeSuffix, 
+                       I.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
+
+    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str,
+                       I.OriginVector.ScalarType.Str, "_vf",
+                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                       [-1, 0, 1], [-1, 0, 2, 3]>;
+  }
+}
+
+// vfloat*m*_t vop_wv_f*m* (vfloat*m*_t op1, vfloat*m*_t op2);
+// vfloat*m*_t vop_wf_f*m* (vfloat*m*_t op1, float*_t op2);
+// vfloat*m*_t vop_wv_f*m*_m (vbool*_t mask, vload*m*_t maskedoff,
+//                            vfloat*m*_t op1, vfloat*m*_t op2);
+// vfloat*m*_t vop_wf_f*m*_m (vbool*_t mask, vload*m*_t maskedoff,
+//                            vfloat*m*_t op1, float*_t op2);
+multiclass float_binary_w_wv_wf {
+  foreach I = AllWideFloatVector in {
+    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
+                       I.OriginVector.Str, "_wv", I.WideVector.TypeSuffix,
+                       I.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
+            
+    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
+                       I.OriginVector.ScalarType.Str, "_wf",
+                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                       [-1, 1], [-1, 0, 3]>;
+  }
+}
+
+multiclass float_binary_w_vv_vf_wv_wf :
+  float_binary_w_vv_vf, float_binary_w_wv_wf;
+
+// vfloat*m*_t vop_vs_f*m*_f*m* (vfloat*m*_t dst, vfloat*m*_t vector,
+//                               vfloat*m*_t scalar);
+// vfloat*m*_t vop_vs_f*m*_f*m*_m (vbool*_t mask, vfloat*m*_t dst,
+//                                 vfloat*m*_t vector, vfloat*m*_t scalar);
+multiclass float_ternary_v_vs {
+  foreach I = AllFloatVectorType in {
+    defvar Lmul1Type = !cast<VectorInfo>(I.Lmul1Type);
+    defm NAME : ternary<NAME, Lmul1Type.Str, Lmul1Type.Str, I.Str,
+                        Lmul1Type.Str, "_vs",
+                        I.TypeSuffix#"_"#Lmul1Type.TypeSuffix, I.MaskStr,
+                        [-1, 1], [-1, 0, 2]>;
+  }
+}
+
+// vfloat*m*_t vop_vv_f*m* (vfloat*m*_t acc, vfloat*m*_t op1, vfloat*m*_t op2);
+// vfloat*m*_t vop_vf_f*m* (vfloat*m*_t acc, float*_t op1, vfloat*m*_t op2);
+// vfloat*m*_t vop_vv_f*m*_m (vbool*_t mask, vfloat*m*_t acc,
+//                            vfloat*m*_t op1, vfloat*m*_t op2);
+// vfloat*m*_t vop_vf_f*m*_m (vbool*_t mask, vfloat*m*_t acc, float*_t op1,
+//                            vfloat*m*_t op2);
+multiclass float_ternary_v_vv_vf {
+  foreach I = AllFloatVectorType in {
+    defm NAME : ternary<NAME, I.Str, I.Str, I.Str, I.Str, "_vv", I.TypeSuffix,
+                        I.MaskStr, [-1], [-1, 0]>;
+    defm NAME : ternary<NAME, I.Str, I.Str, I.ScalarType.Str, I.Str, "_vf",
+                        I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 2]>;
+  }
+}
+
+// vfloat*m*_t vop_vv_f*m* (vfloat*m*_t acc, vfloat*m*_t op1, vfloat*m*_t op2);
+// vfloat*m*_t vop_vf_f*m* (vfloat*m*_t acc, float*_t op1, vfloat*m*_t op2);
+// vfloat*m*_t vop_vv_f*m*_m (vbool*_t mask, vfloat*m*_t acc, vfloat*m*_t op1,
+//                            vfloat*m*_t op2);
+// vfloat*m*_t vop_vf_f*m*_m (vbool*_t mask, vfloat*m*_t acc, float*_t op1,
+//                            vfloat*m*_t op2);
+multiclass float_ternary_w_vv_vf {
+  foreach I = AllWideFloatVector in {
+    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
+                        I.OriginVector.Str, I.OriginVector.Str, "_vv",
+                        I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                        [-1, 1], [-1, 0, 2]>;
+    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
+                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
+                        "_vf", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                        [-1, 1, 2], [-1, 0, 2, 3]>;
+  }
+}
+
+// 6. Configuration-Setting Instructions
+multiclass vsetvl {
+  foreach suffix = ["e8mf8", "e8mf4", "e8mf2", "e8m1", "e8m2", "e8m4", "e8m8",
+                    "e16mf4", "e16mf2", "e16m1", "e16m2", "e16m4", "e16m8",
+                    "e32mf2", "e32m1", "e32m2", "e32m4", "e32m8",
+                    "e64m1", "e64m2", "e64m4", "e64m8"] in {
+    def NAME#suffix : Inst<"vsetvl", ["z", "z", "z"], "", suffix, 0, [-1]>;
+  }
+}
+defm : vsetvl;
+
+// 7. Vector Loads and Stores
+multiclass load_store {
+  foreach I = AllVector in {
+    def "vle"#I.SEW#"_v"#I.TypeSuffix : Inst<"vle"#I.SEW, 
+      [I.Str, I.ScalarType.Str#"C*"], "_v", I.TypeSuffix, 0, [-1, 0]>;
+    def "vle"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vle"#I.SEW, 
+      [I.Str, I.MaskStr, I.Str, I.ScalarType.Str#"C*"], "_v", I.TypeSuffix, 1, [-1, 0, 2]>;
+    def "vse"#I.SEW#"_v"#I.TypeSuffix : Inst<"vse"#I.SEW, 
+      ["v", I.ScalarType.Str#"*", I.Str], "_v", I.TypeSuffix, 0, [0, 1]>;
+    def "vse"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vse"#I.SEW,
+      ["v", I.MaskStr, I.Str, I.ScalarType.Str#"C*"], "_v", I.TypeSuffix, 1, [0, 1, 2]>;
+    def "vlse"#I.SEW#"_v"#I.TypeSuffix : Inst<"vlse"#I.SEW,
+      [I.Str, I.ScalarType.Str#"C*", "Y"], "_v", I.TypeSuffix, 0, [-1, 0]>;
+    def "vlse"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vlse"#I.SEW,
+      [I.Str, I.MaskStr, I.Str, I.ScalarType.Str#"C*", "Y"], "_v", I.TypeSuffix, 1, [-1, 0, 2]>;
+    def "vsse"#I.SEW#"_v"#I.TypeSuffix : Inst<"vsse"#I.SEW, 
+      ["v", I.ScalarType.Str#"*", "Y", I.Str], "_v", I.TypeSuffix, 0, [0, 2]>;
+    def "vsse"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vsse"#I.SEW,
+      ["v", I.MaskStr, I.ScalarType.Str#"*", "Y", I.Str], "_v", I.TypeSuffix, 1, [0, 1, 2]>;
+    // def "vlxei"#I.SEW#"_v"#I.TypeSuffix : Inst<"vlxei"#I.SEW,
+    //   [I.Str, I.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(I))).Str],
+    //    "_v", I.TypeSuffix, 0, [-1, 0, 1]>;
+    // def "vlxei"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vlxei"#I.SEW, 
+    //   [I.Str, I.MaskStr, I.Str, I.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(I))).Str],
+    //    "_v", I.TypeSuffix, 1, [-1, 0, 2, 3]>;
+    // def "vsxei"#I.SEW#"_v"#I.TypeSuffix : Inst<"vsxei"#I.SEW,
+    //   ["v", I.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(I))).Str, I.Str],
+    //   "_v", I.TypeSuffix, 0, [0, 2, 3]>;
+    // def "vsxei"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vsxei"#I.SEW,
+    //   ["v", I.MaskStr, I.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(I))).Str, 
+    //   I.Str], "_v", I.TypeSuffix, 1, [0, 1, 2, 3]>;
+  }
+}
+defm : load_store;
+
+// 12.1. Vector Single-Width Integer Add and Subtract
+defm vadd : int_binary_v_vv_vx;
+defm vsub : int_binary_v_vv_vx;
+defm vrsub : int_binary_v_vx;
+
+// 12.2. Vector Widening Integer Add/Subtract
+defm vwadd : signed_binary_w_vv_vx_wv_wx;
+defm vwsub : signed_binary_w_vv_vx_wv_wx;
+defm vwaddu : unsigned_binary_w_vv_vx_wv_wx;
+defm vwsubu : unsigned_binary_w_vv_vx_wv_wx;
+
+// 12.3. Vector Integer Extension
+
+// 12.4. Vector Integer Add-with-Carry/Subtract-with-Borrow Instructions
+defm vadc : int_ternary_v_vvm_vxm;
+defm vsbc : int_ternary_v_vvm_vxm;
+
+// 12.5. Vector Bitwise Logical Instructions
+defm vand : int_binary_v_vv_vx;
+defm vxor : int_binary_v_vv_vx;
+defm vor : int_binary_v_vv_vx;
+let ShouldEmitBuiltin = 0 in {
+  foreach I = AllIntegerVectorType in {
+    def "vnot_v"#I.TypeSuffix : Inst<"vnot", [I.Str, I.Str], "_v",
+                                     I.TypeSuffix, 0, [-1],
+                                     "vxor_vx_"#I.TypeSuffix#"(ARG0, -1)">;
+  }
+}
+
+// 12.6. Vector Single-Width Bit Shift Instructions
+defm vsll : int_binary_v_vv_vx_u8;
+defm vsrl : unsigned_binary_v_vv_vx_u8;
+defm vsra : signed_binary_v_vv_vx_u8;
+
+// 12.7. Vector Narrowing Integer Right Shift Instructions
+defm vnsrl : unsigned_binary_v_wv_wx;
+defm vnsra : signed_binary_v_wv_wx;
+
+// 12.8. Vector Integer Comparison Instructions
+defm vmseq : int_binary_m_vv_vx;
+defm vmsne : int_binary_m_vv_vx;
+defm vmslt : signed_binary_m_vv_vx;
+defm vmsltu : unsigned_binary_m_vv_vx;
+defm vmsle : signed_binary_m_vv_vx;
+defm vmsleu : unsigned_binary_m_vv_vx;
+defm vmsgt : signed_binary_m_vx;
+defm vmsgtu : unsigned_binary_m_vx;
+//defm vmsge : signed_binary_m_vv_vx;
+// defm vmsgeu : unsigned_binary_m_vv_vx;
+let ShouldEmitBuiltin = 0 in {
+  foreach I = AllSignedVectorType in {
+    def "vmsge_vv"#I.TypeSuffix#"_"#I.MaskType : Inst<"vmsge",
+           [I.MaskStr, I.Str, I.Str], "_vv",
+           I.TypeSuffix#"_"#I.MaskType, 0, [-1],
+           "vmsle_vv_"#I.TypeSuffix#"_"#I.MaskType#"(ARG1, ARG0)">;
+
+    def "vmsgt_vv"#I.TypeSuffix#"_"#I.MaskType : Inst<"vmsgt",
+           [I.MaskStr, I.Str, I.Str], "_vv",
+           I.TypeSuffix#"_"#I.MaskType, 0, [-1],
+           "vmslt_vv_"#I.TypeSuffix#"_"#I.MaskType#"(ARG1, ARG0)">;
+  }
+  foreach I = AllUnsignedVectorType in {
+    def "vmsgeu_vv"#I.TypeSuffix#"_"#I.MaskType : Inst<"vmsgeu",
+           [I.MaskStr, I.Str, I.Str], "_vv",
+           I.TypeSuffix#"_"#I.MaskType, 0, [-1],
+           "vmsleu_vv_"#I.TypeSuffix#"_"#I.MaskType#"(ARG1, ARG0)">;
+
+    def "vmsgtu_vv"#I.TypeSuffix#"_"#I.MaskType : Inst<"vmsgtu",
+           [I.MaskStr, I.Str, I.Str], "_vv",
+           I.TypeSuffix#"_"#I.MaskType, 0, [-1],
+           "vmsltu_vv_"#I.TypeSuffix#"_"#I.MaskType#"(ARG1, ARG0)">;
+  }
+}
+
+// 12.9. Vector Integer Min/Max Instructions
+defm vmin : signed_binary_v_vv_vx;
+defm vminu : unsigned_binary_v_vv_vx;
+defm vmax : signed_binary_v_vv_vx;
+defm vmaxu : unsigned_binary_v_vv_vx;
+
+// 12.10. Vector Single-Width Integer Multiply Instructions
+defm vmul : int_binary_v_vv_vx;
+defm vmulh : signed_binary_v_vv_vx;
+defm vmulhu : unsigned_binary_v_vv_vx;
+defm vmulhsu : signed_binary_v_vv_vx;
+
+// 12.11. Vector Integer Divide Instructions
+defm vdiv : signed_binary_v_vv_vx;
+defm vdivu : unsigned_binary_v_vv_vx;
+defm vrem : signed_binary_v_vv_vx;
+defm vremu : unsigned_binary_v_vv_vx;
+
+// 12.12. Vector Widening Integer Multiply Instructions
+defm vwmul : signed_binary_w_vv_vx;
+defm vwmulu : unsigned_binary_w_vv_vx;
+defm vwmulsu : signed_binary_w_vv_vx;
+
+// 12.13. Vector Single-Width Integer Multiply-Add Instructions
+defm vmacc : int_ternary_v_vx_vv;
+defm vnmsac : int_ternary_v_vx_vv;
+defm vmadd : int_ternary_v_vx_vv;
+defm vnmsub : int_ternary_v_vx_vv;
+
+// 12.14. Vector Widening Integer Multiply-Add Instructions
+defm vwmacc : signed_ternary_w_vv_vx;
+defm vwmaccu : unsigned_ternary_w_vv_vx;
+defm vwmaccsu : signed_ternary_w_vv_vx;
+defm vwmaccus : signed_ternary_w_vx;
+
+// 12.15. Vector Quad-Widening Integer Multiply-Add Instructions (Extension Zvqmac)
+defm vqmacc : signed_ternary_qw_vv_vx;
+defm vqmaccu : unsigned_ternary_qw_vv_vx;
+defm vqmaccsu : signed_ternary_qw_vv_vx;
+defm vqmaccus : signed_ternary_qw_vx;
+
+// 12.16. Vector Integer Merge Instructions
+multiclass int_vmerge_vvm_vxm {
+  foreach I = AllIntegerVectorType in {
+    defm NAME : ternary_nomask<NAME, I.Str, I.MaskStr, I.Str, I.Str, "_vvm",
+                               I.TypeSuffix, "", [-1, 0], []>;
+    defm NAME : ternary_nomask<NAME, I.Str, I.MaskStr, I.Str, I.ScalarType.Str,
+                               "_vxm", I.TypeSuffix, "", [-1, 0, 2], []>; 
+  }
+}
+defm vmerge : int_vmerge_vvm_vxm;
+
+// 12.17. Vector Integer Move Instructions
+defm vmv : int_unary_v_v_v_x;
+
+// 13.1. Vector Single-Width Saturating Add and Subtract
+defm vsadd : signed_binary_v_vv_vx;
+defm vsaddu : unsigned_binary_v_vv_vx;
+defm vssub : signed_binary_v_vv_vx;
+defm vssubu : unsigned_binary_v_vv_vx;
+
+// 13.2. Vector Single-Width Averaging Add and Subtract
+defm vaadd : signed_binary_v_vv_vx;
+defm vaaddu : unsigned_binary_v_vv_vx;
+defm vasub : signed_binary_v_vv_vx;
+defm vasubu : unsigned_binary_v_vv_vx; 
+
+// 13.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
+defm vsmul : signed_binary_v_vv_vx;
+
+// 13.4. Vector Single-Width Scaling Shift Instructions
+defm vssrl : unsigned_binary_v_vv_vx;
+defm vssra : signed_binary_v_vv_vx;
+
+// 13.5. Vector Narrowing Fixed-Point Clip Instructions
+defm vnclip : signed_binary_v_wv_wx;
+defm vnclipu : unsigned_binary_v_wv_wx;
+
+// 14.2. Vector Single-Width Floating-Point Add/Subtract Instructions
+defm vfadd : float_binary_v_vv_vf;
+defm vfsub : float_binary_v_vv_vf;
+defm vfrsub : float_binary_v_vf;
+
+// 14.3. Vector Widening Floating-Point Add/Subtract Instructions
+defm vfwadd : float_binary_w_vv_vf_wv_wf;
+defm vfwsub : float_binary_w_vv_vf_wv_wf;
+
+// 14.4. Vector Single-Width Floating-Point Multiply/Divide Instructions
+defm vfmul : float_binary_v_vv_vf;
+defm vfdiv : float_binary_v_vv_vf;
+defm vfrdiv : float_binary_v_vf;
+
+// 14.5. Vector Widening Floating-Point Multiply
+defm vfwmul : float_binary_w_vv_vf;
+
+// 14.6. Vector Single-Width Floating-Point Fused Multiply-Add Instructions
+defm vfmacc : float_ternary_v_vv_vf;
+defm vfnmacc : float_ternary_v_vv_vf;
+defm vfmsac : float_ternary_v_vv_vf;
+defm vfmadd : float_ternary_v_vv_vf;
+defm vfnmadd : float_ternary_v_vv_vf;
+defm vfmsub : float_ternary_v_vv_vf;
+defm vfnmsub : float_ternary_v_vv_vf;
+
+// 14.7. Vector Widening Floating-Point Fused MultiplyAdd Instructions
+defm vfwmacc : float_ternary_w_vv_vf;
+defm vfwnmacc : float_ternary_w_vv_vf;
+defm vfwmsac : float_ternary_w_vv_vf;
+defm vfwnmsac : float_ternary_w_vv_vf;
+
+// 14.8. Vector Floating-Point Square-Root Instruction
+defm vfsqrt : float_unary_v_v;
+
+// 14.9. Vector Floating-Point MIN/MAX Instructions
+defm vfmin : float_binary_v_vv_vf;
+defm vfmax : float_binary_v_vv_vf;
+
+// 14.10. Vector Floating-Point Sign-Injection Instructions
+defm vfsgnj : float_binary_v_vv_vf;
+defm vfsgnjn : float_binary_v_vv_vf;
+defm vfsgnjx : float_binary_v_vv_vf;
+
+// 14.11. Vector Floating-Point Compare Instructions
+defm vmfeq : float_binary_m_vv_vf;
+defm vmfne : float_binary_m_vv_vf;
+defm vmflt : float_binary_m_vv_vf;
+defm vmfle : float_binary_m_vv_vf;
+defm vmfgt : float_binary_m_vf;
+defm vmfge : float_binary_m_vf;
+let ShouldEmitBuiltin = 0 in {
+  foreach I = AllFloatVectorType in {
+    def "vmfge_vv"#I.TypeSuffix#"_"#I.MaskType : Inst<"vmfge",
+           [I.MaskStr, I.Str, I.Str], "_vv",
+           I.TypeSuffix#"_"#I.MaskType, 0, [-1],
+           "vmfle_vv_"#I.TypeSuffix#"_"#I.MaskType#"(ARG1, ARG0)">;
+
+    def "vmfgt_vv"#I.TypeSuffix#"_"#I.MaskType : Inst<"vmfgt",
+           [I.MaskStr, I.Str, I.Str], "_vv",
+           I.TypeSuffix#"_"#I.MaskType, 0, [-1],
+           "vmflt_vv_"#I.TypeSuffix#"_"#I.MaskType#"(ARG1, ARG0)">;
+  }
+}
+
+// 14.12. Vector Floating-Point Classify Instruction
+
+// 14.13. Vector Floating-Point Merge Instruction
+multiclass float_vmerge_vvm {
+  foreach I = AllFloatVectorType in {
+    defm NAME : ternary_nomask<NAME, I.Str, I.MaskStr, I.Str, I.Str, "_vvm",
+                               I.TypeSuffix, "", [-1, 0], []>;
+  }
+}
+defm vmerge : float_vmerge_vvm;
+multiclass float_vmerge_vfm {
+  foreach I = AllFloatVectorType in {
+    defm NAME : ternary_nomask<NAME, I.Str, I.MaskStr, I.Str, I.ScalarType.Str,
+                               "_vfm", I.TypeSuffix, "", [-1, 0, 2], []>; 
+  }
+}
+defm vfmerge : float_vmerge_vfm;
+
+// 14.14. Vector Floating-Point Move Instruction
+defm vfmv : float_unary_v_f;
+
+// 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
 multiclass vfcvt {
-  foreach I = SignedToFloat in {
+  foreach I = SignedFloatPair in {
     defm NAME : unary<NAME, I.Integer.Str, I.Float.Str, "_x_f_v",
                       I.Integer.TypeSuffix, I.Integer.MaskStr,
                       [-1, 0], [-1, 0, 2]>;
@@ -551,7 +1401,7 @@ multiclass vfcvt {
                       I.Float.TypeSuffix, I.Integer.MaskStr,
                       [-1, 0], [-1, 0, 2]>;
   }
-  foreach I = UnsignedToFloat in {
+  foreach I = UnsignedFloatPair in {
     defm NAME : unary<NAME, I.Integer.Str, I.Float.Str, "_xu_f_v",
                       I.Integer.TypeSuffix, I.Integer.MaskStr,
                       [-1, 0], [-1, 0, 2]>;
@@ -563,7 +1413,9 @@ multiclass vfcvt {
                       [-1, 0], [-1, 0, 2]>;
   }
 }
+defm vfcvt : vfcvt;
 
+// 14.16. Widening Floating-Point/Integer Type-Convert Instructions
 multiclass vfwcvt {
   foreach I = WideSignedToFloat in {
     defm NAME : unary<NAME, I.WideVector.Str, I.OriginVector.Str, "_x_f_v",
@@ -600,7 +1452,27 @@ multiclass vfwcvt {
                       [-1, 0], [-1, 0, 2]>;
   }
 }
+defm vfwcvt : vfwcvt;
 
+multiclass vwcvt {
+  foreach I = AllWideSignedVector in {
+    defm NAME : unary<NAME, I.WideVector.Str, I.OriginVector.Str, "_x_x_v", 
+                      I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                      [-1, 0], [-1, 0, 2]>;
+  }
+}
+defm vwcvt : vwcvt;
+
+multiclass vwcvtu {
+  foreach I = AllWideUnsignedVector in {
+    defm NAME : unary<NAME,  I.WideVector.Str, I.OriginVector.Str, "_x_x_v",
+                      I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+                      [-1, 0], [-1, 0, 2]>;
+  }
+}
+defm vwcvtu : vwcvtu;
+
+// 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
 multiclass vfncvt {
   foreach I = WideSignedToFloat in {
     defm NAME : unary<NAME, I.OriginVector.Str, I.WideVector.Str, "_x_f_w",
@@ -640,47 +1512,74 @@ multiclass vfncvt {
                       [-1, 0], [-1, 0, 2]>;
   }
 }
+defm vfncvt : vfncvt;
 
+// 15.1. Vector Single-Width Integer Reduction Instructions
+defm vredsum : int_ternary_v_vs;
+defm vredmax : int_ternary_v_vs;
+defm vredmaxu : int_ternary_v_vs;
+defm vredmin : int_ternary_v_vs;
+defm vredminu : int_ternary_v_vs;
+defm vredand : int_ternary_v_vs;
+defm vredor : int_ternary_v_vs;
+defm vredxor : int_ternary_v_vs;
 
-multiclass vwcvt {
-  foreach I = AllWideIntegerVector in {
-    defm NAME : unary<NAME, I.WideVector.Str, I.OriginVector.Str, "_x_x_v", 
-                      I.WideVector.TypeSuffix, I.WideVector.MaskStr,
+// 15.2. Vector Widening Integer Reduction Instructions
+
+// 15.3. Vector Single-Width Floating-Point Reduction Instructions
+defm vfredsum : float_ternary_v_vs;
+defm vfredosum : float_ternary_v_vs;
+defm vfredmax : float_ternary_v_vs;
+defm vfredmin : float_ternary_v_vs;
+
+// 15.4. Vector Widening Floating-Point Reduction Instructions
+// 16.1. Vector Mask-Register Logical Instructions
+
+// 16.2. Vector mask population count vpopc
+multiclass unary_pop {
+  foreach I = AllMaskType in {
+    defm NAME : unary_m<NAME, "ULi", I.Str, "_m", I.TypeSuffix, I.Str,
+                        [0], [0, 1]>;
+  }
+}
+defm vpopc : unary_pop;
+
+// 16.3. vfirst find-first-set mask bit
+multiclass unary_vfirst {
+  foreach I = AllMaskType in {
+    defm NAME : unary_m<NAME, "Li", I.Str, "_m", I.TypeSuffix, I.Str,
+                        [0], [0, 1]>;
+  }
+}
+defm vfirst : unary_vfirst;
+
+// 16.4. vmsbf.m set-before-first mask bit
+multiclass binary_vmsbf_vmsif_vmsof {
+  foreach I = AllMaskType in {
+    defm NAME : unary<NAME, I.Str, I.Str, "_m", I.TypeSuffix, I.Str,
+                      [-1], [-1]>;
+  }
+}
+defm vmsbf : binary_vmsbf_vmsif_vmsof;
+
+// 16.5. vmsif.m set-including-first mask bit
+defm vmsif : binary_vmsbf_vmsif_vmsof;
+
+// 16.6. vmsof.m set-only-first mask bit
+defm vmsof : binary_vmsbf_vmsif_vmsof;
+
+// 16.8. Vector Iota Instruction
+multiclass binary_viota {
+  foreach I = AllUnsignedVectorType in {
+    defm NAME : unary<NAME, I.Str, I.MaskStr, "_m", I.TypeSuffix, I.MaskStr,
                       [-1, 0], [-1, 0, 2]>;
   }
 }
+defm viota : binary_viota;
 
-multiclass vwcvtu {
-  foreach I = AllWideUnsignedVector in {
-    defm NAME : unary<NAME,  I.WideVector.Str, I.OriginVector.Str, "_x_x_v",
-                      I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                      [-1, 0], [-1, 0, 2]>;
-  }
-}
+// 16.9. Vector Element Index Instruction
 
-multiclass vslide {
-  foreach I = AllVector in {
-    defm NAME : ternary<NAME, I.Str, I.Str, I.Str, "z", "_vx", I.TypeSuffix,
-                        I.MaskStr, [-1, 2], [-1, 0, 3]>;
-  }
-}
-
-multiclass int_unary_v_v_v_x {
-  foreach I = AllIntegerVectorType in {
-    defm NAME : unary_nomask<NAME, I.Str, I.Str, "_v_v", I.TypeSuffix, "",
-                             [-1], []>;
-    defm NAME : unary_nomask<NAME, I.Str, I.ScalarType.Str, "_v_x",
-                             I.TypeSuffix, "", [-1, 0], []>;
-  }
-}
-
-multiclass int_unary_v_v {
-  foreach I = AllIntegerVectorType in {
-    defm NAME : unary<NAME, I.Str, I.Str, "_v", I.TypeSuffix, I.MaskStr,
-                      [-1], [-1, 0]>;
-  }
-}
-
+// 17.1. Integer Scalar Move Instructions
 multiclass vmv_x_s_s_x {
   foreach I = AllIntegerVectorType in {
     defm NAME : unary_nomask<NAME, I.ScalarType.Str, I.Str, "_x_s",
@@ -691,7 +1590,9 @@ multiclass vmv_x_s_s_x {
                               [-1, 0, 1], []>;
   }
 }
+defm vmv : vmv_x_s_s_x;
 
+// 17.2. Floating-Point Scalar Move Instructions
 multiclass vfmv_f_s_s_f {
   foreach I = AllFloatVectorType in {
     defm NAME : unary_nomask<NAME, I.ScalarType.Str, I.Str, "_f_s",
@@ -702,71 +1603,35 @@ multiclass vfmv_f_s_s_f {
                               [-1, 0, 1], []>;
   }
 }
+defm vfmv : vfmv_f_s_s_f;
 
-multiclass float_unary_v_v {
-  foreach I = AllFloatVectorType in {
-    defm NAME : unary<NAME, I.Str, I.Str, "_v", I.TypeSuffix, I.MaskStr,
-                      [-1], [-1, 0]>;
+// 17.3.1. Vector Slideup Instructions
+multiclass vslide {
+  foreach I = AllVector in {
+    defm NAME : ternary<NAME, I.Str, I.Str, I.Str, "z", "_vx", I.TypeSuffix,
+                        I.MaskStr, [-1, 2], [-1, 0, 3]>;
   }
 }
+defm vslideup : vslide;
 
-multiclass float_unary_v_f {
-  foreach I = AllFloatVectorType in {
-    defm NAME : unary_nomask<NAME, I.Str, I.ScalarType.Str, "_v_f", I.TypeSuffix, "",
-                             [-1, 0], []>;
-  }
-}
+// 17.3.2. Vector Slidedown Instructions
+defm vslidedown : vslide;
 
-multiclass int_ternary_v_vvm_vxm {
-  foreach I = AllIntegerVectorType in {
-    defm NAME : ternary_nomask<NAME, I.Str, I.Str, I.Str, I.MaskStr, "_vvm",
-                               I.TypeSuffix, "", [-1, 2], []>;
-    defm NAME : ternary_nomask<NAME, I.Str, I.Str, I.ScalarType.Str, I.Str, "_vxm",
-                               I.TypeSuffix, "", [-1, 1, 2], []>;
-  }
-}
+// 17.3.3. Vector Slide1up
+defm vslide1up : int_binary_v_vx;
+defm vfslide1up : float_binary_v_vf;
 
-multiclass int_vmerge_vvm_vxm {
-  foreach I = AllIntegerVectorType in {
-    defm NAME : ternary_nomask<NAME, I.Str, I.MaskStr, I.Str, I.Str, "_vvm",
-                               I.TypeSuffix, "", [-1, 0], []>;
-    defm NAME : ternary_nomask<NAME, I.Str, I.MaskStr, I.Str, I.ScalarType.Str,
-                               "_vxm", I.TypeSuffix, "", [-1, 0, 2], []>; 
-  }
-}
+// 17.3.4. Vector Slide1down Instruction
+defm vslide1down : int_binary_v_vx;
+defm vfslide1down : float_binary_v_vf;
 
-multiclass float_vmerge_vvm {
-  foreach I = AllFloatVectorType in {
-    defm NAME : ternary_nomask<NAME, I.Str, I.MaskStr, I.Str, I.Str, "_vvm",
-                               I.TypeSuffix, "", [-1, 0], []>;
-  }
-}
+// 17.4. Vector Register Gather Instruction
+// 17.5. Vector Compress Instruction
+// 17.6. Whole Vector Register Move
+// 19.3. Vector Integer Dot-Product Instruction
+// 19.4. Vector Floating-Point Dot Product Instruction
 
-multiclass float_vmerge_vfm {
-  foreach I = AllFloatVectorType in {
-    defm NAME : ternary_nomask<NAME, I.Str, I.MaskStr, I.Str, I.ScalarType.Str,
-                               "_vfm", I.TypeSuffix, "", [-1, 0, 2], []>; 
-  }
-}
-
-multiclass signed_binary_v_vv_vx {
-  foreach I = AllSignedVectorType in {
-    defm NAME : binary<NAME, I.Str, I.Str, I.Str, "_vv", I.TypeSuffix,
-                       I.MaskStr, [-1], [-1, 0]>;
-    defm NAME : binary<NAME, I.Str, I.Str, I.ScalarType.Str, "_vx",
-                       I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 3]>;
-  }
-}
-
-multiclass signed_binary_v_vv_vi8 {
-  foreach I = AllSignedVectorType in {
-    defm NAME : binary<NAME, I.Str, I.Str, IntToUnsigned<I>.Result, "_vv", 
-                       I.TypeSuffix, I.MaskStr, [-1], [-1, 0]>;
-    defm NAME : binary<NAME, I.Str, I.Str, "Uc", "_vx", I.TypeSuffix,
-                       I.MaskStr, [-1, 1], [-1, 0, 3]>;
-  }
-}
-
+// Reinterpret Cast Conversion Functions
 multiclass reinterpret {
   foreach I = AllSignedVectorType in {
     defm NAME : unary_nomask<NAME, I.Str, IntToUnsigned<I>.Result, "_v",
@@ -776,7 +1641,7 @@ multiclass reinterpret {
                              !subst("i", "u", I.TypeSuffix)#"_"#I.TypeSuffix,
                              "", [-1, 0], []>; 
   }
-  foreach I = AllIntToFloat in {
+  foreach I = AllIntFloatPair in {
     defm NAME : unary_nomask<NAME, I.Integer.Str, I.Float.Str, "_v",
                              I.Integer.TypeSuffix#"_"#I.Float.TypeSuffix, "",
                              [-1, 0], []>;
@@ -983,715 +1848,9 @@ multiclass reinterpret {
                              [-1, 0], []>;
   }
 }
-
-multiclass unsigned_binary_v_vv_vi8 {
-  foreach I = AllUnsignedVectorType in {
-    defm NAME : binary<NAME, I.Str, I.Str, I.Str, "_vv", I.TypeSuffix,
-                       I.MaskStr, [-1], [-1, 0]>;
-    defm NAME : binary<NAME, I.Str, I.Str, "Uc", "_vx", I.TypeSuffix,
-                       I.MaskStr, [-1, 1], [-1, 0, 3]>;
-  }
-}
-
-multiclass int_binary_v_vv_vi8 :
-  signed_binary_v_vv_vi8, unsigned_binary_v_vv_vi8;
-
-multiclass binary_m_vv_vx {
-  foreach I = AllIntegerVectorType in {
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vv",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0], [-1, 2, 3]>;
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vx",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0, 1], [-1, 2, 3]>;
-  }
-}
-
-multiclass signed_binary_m_vx {
-  foreach I = AllSignedVectorType in {
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vx",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0, 1], [-1, 2, 3]>;
-  }
-}
-
-multiclass unsigned_binary_m_vx {
-  foreach I = AllUnsignedVectorType in {
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vx",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0, 1], [-1, 2, 3]>;
-  }
-}
-
-multiclass signed_binary_m_vv_vx {
-  foreach I = AllSignedVectorType in {
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vv",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0], [-1, 2, 3]>;
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vx",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0, 1], [-1, 2, 3]>;
-  }
-}
-
-multiclass unsigned_binary_m_vv_vx {
-  foreach I = AllUnsignedVectorType in {
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vv",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0], [-1, 2, 3]>;
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vx",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0, 1], [-1, 2, 3]>;
-  }
-}
-
-multiclass float_binary_m_vf {
-  foreach I = AllFloatVectorType in {
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vf",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0, 1], [-1, 2, 3]>;
-  }
-}
-
-multiclass float_binary_m_vv_vx {
-  foreach I = AllFloatVectorType in {
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vv",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0], [-1, 2, 3]>;
-    defm NAME : binary<NAME, I.MaskStr, I.Str, I.Str, "_vf",
-                       I.TypeSuffix#"_"#I.BoolType, I.MaskStr,
-                       [-1, 0, 1], [-1, 2, 3]>;
-  }
-}
-
-multiclass float_binary_v_vv_vf {
-  foreach I = AllFloatVectorType in {
-    defm NAME : binary<NAME, I.Str, I.Str, I.Str, "_vv",
-                       I.TypeSuffix, I.MaskStr, [-1], [-1, 0]>;
-    defm NAME : binary<NAME, I.Str, I.Str, I.ScalarType.Str, "_vf",
-                       I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 3]>;
-  }
-}
-
-multiclass float_binary_v_vf {
-  foreach I = AllFloatVectorType in {
-    defm NAME : binary<NAME, I.Str, I.Str, I.ScalarType.Str, "_vf",
-                       I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 3]>;
-  }
-}
-
-multiclass unsigned_binary_v_vv_vx {
-  foreach I = AllUnsignedVectorType in {
-    defm NAME : binary<NAME, I.Str, I.Str, I.Str, "_vv", I.TypeSuffix,
-                       I.MaskStr, [-1], [-1, 0]>;
-    defm NAME : binary<NAME, I.Str, I.Str, I.ScalarType.Str, "_vx",
-                       I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 3]>;
-  }
-}
-
-multiclass int_binary_v_vv_vx :
-  signed_binary_v_vv_vx, unsigned_binary_v_vv_vx;
-
-multiclass binary_v_vx {
-  foreach I = AllIntegerVectorType in {
-      defm NAME : binary<NAME, I.Str, I.Str, I.ScalarType.Str, "_vx",
-                         I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 3]>;
-  }
-}
-
-multiclass float_ternary_v_vvf_vvv {
-  foreach I = AllFloatVectorType in {
-    defm NAME : ternary<NAME, I.Str, I.Str, I.Str, I.Str, "_vv", I.TypeSuffix,
-                        I.MaskStr, [-1], [-1, 0]>;
-    defm NAME : ternary<NAME, I.Str, I.Str, I.ScalarType.Str, I.Str, "_vf",
-                        I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 2]>;
-  }
-}
-
-multiclass float_ternary_w_wvv_wvf {
-  foreach I = AllWideFloatVector in {
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
-                        I.OriginVector.Str, I.OriginVector.Str, "_vv",
-                        I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1], [-1, 0, 2]>;
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
-                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
-                        "_vf", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1, 2], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass ternary_v_vvx_vvv {
-  foreach I = AllIntegerVectorType in {
-    defm NAME : ternary<NAME, I.Str, I.Str, I.Str, I.Str, "_vv", I.TypeSuffix,
-                        I.MaskStr, [-1], [-1, 0]>;
-    defm NAME : ternary<NAME, I.Str, I.Str, I.ScalarType.Str, I.Str, "_vx",
-                        I.TypeSuffix, I.MaskStr, [-1, 1], [-1, 0, 2]>;
-  }
-}
-
-multiclass int_ternary_v_vs {
-  foreach I = AllIntegerVectorType in {
-    defvar Lmul1Type = !cast<VectorInfo>(I.Lmul1Type);
-    defm NAME : ternary<NAME, Lmul1Type.Str, Lmul1Type.Str, I.Str,
-                        Lmul1Type.Str, "_vs",
-                        I.TypeSuffix#"_"#Lmul1Type.TypeSuffix,
-                        I.MaskStr, [-1, 1], [-1, 0, 2]>;
-  }
-}
-
-multiclass float_ternary_v_vs {
-  foreach I = AllFloatVectorType in {
-    defvar Lmul1Type = !cast<VectorInfo>(I.Lmul1Type);
-    defm NAME : ternary<NAME, Lmul1Type.Str, Lmul1Type.Str, I.Str,
-                        Lmul1Type.Str, "_vs",
-                        I.TypeSuffix#"_"#Lmul1Type.TypeSuffix, I.MaskStr,
-                        [-1, 1], [-1, 0, 2]>;
-  }
-}
-
-multiclass int_ternary_qw_vvx_vvv {
-  foreach I = AllQuadWideIntegerVector in {
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
-                        I.OriginVector.Str, I.OriginVector.Str, "_vv",
-                        I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1], [-1, 0, 2]>;
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
-                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
-                        "_vx", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1, 2], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass unsigned_ternary_qw_vvx_vvv {
-  foreach I = AllQuadWideUnsignedVector in {
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
-                        I.OriginVector.Str, I.OriginVector.Str, "_vv",
-                        I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1], [-1, 0, 2]>;
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
-                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
-                        "_vx", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1, 2], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass int_ternary_qw_vvx {
-  foreach I = AllQuadWideIntegerVector in {
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str,
-                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
-                        "_vx", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1, 2], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass int_ternary_w_vvx_vvv {
-  foreach I = AllWideIntegerVector in {
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str, 
-                        I.OriginVector.Str, I.OriginVector.Str, "_vv",
-                        I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1], [-1, 0, 2]>;
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str, 
-                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
-                        "_vx", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1, 2], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass unsigned_ternary_w_vvx_vvv {
-  foreach I = AllWideUnsignedVector in {
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str, 
-                        I.OriginVector.Str, I.OriginVector.Str, "_vv",
-                        I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1], [-1, 0, 2]>;
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str, 
-                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
-                        "_vx", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1, 2], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass int_ternary_w_vvx {
-  foreach I = AllWideIntegerVector in {
-    defm NAME : ternary<NAME, I.WideVector.Str, I.WideVector.Str, 
-                        I.OriginVector.ScalarType.Str, I.OriginVector.Str,
-                        "_vx", I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                        [-1, 1, 2], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass int_binary_w_vv_vx_wv_wx {
-  foreach I = AllWideIntegerVector in {
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
-                       I.OriginVector.Str, "_vv", I.WideVector.TypeSuffix, 
-                       I.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
-
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str,
-                       I.OriginVector.ScalarType.Str, "_vx",
-                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                       [-1, 0, 1], [-1, 0, 2, 3]>;
-
-    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
-                       I.OriginVector.Str, "_wv", I.WideVector.TypeSuffix,
-                       I.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
-            
-    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
-                       I.OriginVector.ScalarType.Str, "_wx",
-                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                       [-1, 1], [-1, 0, 3]>;
-  }
-}
-
-multiclass float_binary_w_vv_vf_wv_wf {
-  foreach I = AllWideFloatVector in {
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
-                       I.OriginVector.Str, "_vv", I.WideVector.TypeSuffix, 
-                       I.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
-
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str,
-                       I.OriginVector.ScalarType.Str, "_vf",
-                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                       [-1, 0, 1], [-1, 0, 2, 3]>;
-
-    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
-                       I.OriginVector.Str, "_wv", I.WideVector.TypeSuffix,
-                       I.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
-            
-    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
-                       I.OriginVector.ScalarType.Str, "_wf",
-                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                       [-1, 1], [-1, 0, 3]>;
-  }
-}
-
-multiclass int_binary_v_wv_wx {
-  foreach I = AllWideIntegerVector in {
-    defm NAME : binary<NAME, I.OriginVector.Str, I.WideVector.Str,
-                       I.OriginVector.Str, "_wv", I.OriginVector.TypeSuffix,
-                       I.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
-            
-    defm NAME : binary<NAME, I.OriginVector.Str, I.WideVector.Str,
-                       I.OriginVector.ScalarType.Str, "_wx",
-                       I.OriginVector.TypeSuffix, I.WideVector.MaskStr,
-                       [-1, 0, 1], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass unsigned_binary_v_wv_wx {
-  foreach I = AllWideUnsignedVector in {
-    defm NAME : binary<NAME, I.OriginVector.Str, I.WideVector.Str,
-                       I.OriginVector.Str, "_wv", I.OriginVector.TypeSuffix,
-                       I.WideVector.MaskStr, [-1, 1], [-1, 0, 3]>;
-            
-    defm NAME : binary<NAME, I.OriginVector.Str, I.WideVector.Str,
-                       I.OriginVector.ScalarType.Str, "_wx",
-                       I.OriginVector.TypeSuffix, I.WideVector.MaskStr,
-                       [-1, 0, 1], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass int_binary_w_vv_vx {
-  foreach I = AllWideIntegerVector in {
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
-                       I.OriginVector.Str, "_vv", I.WideVector.TypeSuffix, 
-                       I.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
-
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str,
-                       I.OriginVector.ScalarType.Str, "_vx",
-                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                       [-1, 0, 1], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass float_binary_w_vv_vf {
-  foreach I = AllWideFloatVector in {
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
-                       I.OriginVector.Str, "_vv", I.WideVector.TypeSuffix, 
-                       I.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
-
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str,
-                       I.OriginVector.ScalarType.Str, "_vf",
-                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                       [-1, 0, 1], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass unsigned_binary_w_vv_vx {
-  foreach I = AllWideUnsignedVector in {
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
-                       I.OriginVector.Str, "_vv", I.WideVector.TypeSuffix,
-                       I.WideVector.MaskStr, [-1, 0], [-1, 0, 2]>;
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
-                       I.OriginVector.ScalarType.Str, "_vx",
-                       I.WideVector.TypeSuffix, I.WideVector.MaskStr,
-                       [-1, 0, 1], [-1, 0, 2, 3]>;
-  }
-}
-
-multiclass unsigned_binary_w_vv_vx_wv_wx {
-  foreach I = AllWideUnsignedVector in {
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str, 
-                       I.OriginVector.Str, "_vv", I.WideVector.TypeSuffix,
-                       I.WideVector.TypeSuffix, [-1, 0], [-1, 0, 2]>;
-
-    defm NAME : binary<NAME, I.WideVector.Str, I.OriginVector.Str,
-                       I.OriginVector.ScalarType.Str, "_vx",
-                       I.WideVector.TypeSuffix, I.WideVector.TypeSuffix,
-                       [-1, 0, 1], [-1, 0, 2, 3]>;
-
-    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
-                       I.OriginVector.Str, "_wv", I.WideVector.TypeSuffix,
-                       I.WideVector.TypeSuffix, [-1, 1], [-1, 0, 3]>;
-            
-    defm NAME : binary<NAME, I.WideVector.Str, I.WideVector.Str,
-                       I.OriginVector.ScalarType.Str, "_wx",
-                       I.WideVector.TypeSuffix, I.WideVector.TypeSuffix,
-                       [-1, 1], [-1, 0, 3]>;
-  }    
-}
-
-multiclass vsetvl {
-  foreach suffix = ["e8mf8", "e8mf4", "e8mf2", "e8m1", "e8m2", "e8m4", "e8m8",
-                    "e16mf4", "e16mf2", "e16m1", "e16m2", "e16m4", "e16m8",
-                    "e32mf2", "e32m1", "e32m2", "e32m4", "e32m8",
-                    "e64m1", "e64m2", "e64m4", "e64m8"] in {
-    def NAME#suffix : Inst<"vsetvl", ["z", "z", "z"], "", suffix, 0, [-1]>;
-  }
-}
-
-multiclass load_store {
-  foreach I = AllVector in {
-    def "vle"#I.SEW#"_v"#I.TypeSuffix : Inst<"vle"#I.SEW, 
-      [I.Str, I.ScalarType.Str#"C*"], "_v", I.TypeSuffix, 0, [-1, 0]>;
-    def "vle"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vle"#I.SEW, 
-      [I.Str, I.MaskStr, I.Str, I.ScalarType.Str#"C*"], "_v", I.TypeSuffix, 1, [-1, 0, 2]>;
-    def "vse"#I.SEW#"_v"#I.TypeSuffix : Inst<"vse"#I.SEW, 
-      ["v", I.ScalarType.Str#"*", I.Str], "_v", I.TypeSuffix, 0, [0, 1]>;
-    def "vse"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vse"#I.SEW,
-      ["v", I.MaskStr, I.Str, I.ScalarType.Str#"C*"], "_v", I.TypeSuffix, 1, [0, 1, 2]>;
-    def "vlse"#I.SEW#"_v"#I.TypeSuffix : Inst<"vlse"#I.SEW,
-      [I.Str, I.ScalarType.Str#"C*", "Y"], "_v", I.TypeSuffix, 0, [-1, 0]>;
-    def "vlse"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vlse"#I.SEW,
-      [I.Str, I.MaskStr, I.Str, I.ScalarType.Str#"C*", "Y"], "_v", I.TypeSuffix, 1, [-1, 0, 2]>;
-    def "vsse"#I.SEW#"_v"#I.TypeSuffix : Inst<"vsse"#I.SEW, 
-      ["v", I.ScalarType.Str#"*", "Y", I.Str], "_v", I.TypeSuffix, 0, [0, 2]>;
-    def "vsse"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vsse"#I.SEW,
-      ["v", I.MaskStr, I.ScalarType.Str#"*", "Y", I.Str], "_v", I.TypeSuffix, 1, [0, 1, 2]>;
-    // def "vlxei"#I.SEW#"_v"#I.TypeSuffix : Inst<"vlxei"#I.SEW,
-    //   [I.Str, I.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(I))).Str],
-    //    "_v", I.TypeSuffix, 0, [-1, 0, 1]>;
-    // def "vlxei"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vlxei"#I.SEW, 
-    //   [I.Str, I.MaskStr, I.Str, I.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(I))).Str],
-    //    "_v", I.TypeSuffix, 1, [-1, 0, 2, 3]>;
-    // def "vsxei"#I.SEW#"_v"#I.TypeSuffix : Inst<"vsxei"#I.SEW,
-    //   ["v", I.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(I))).Str, I.Str],
-    //   "_v", I.TypeSuffix, 0, [0, 2, 3]>;
-    // def "vsxei"#I.SEW#"_v"#I.TypeSuffix#"_mask" : Inst<"vsxei"#I.SEW,
-    //   ["v", I.MaskStr, I.ScalarType.Str#"C*", !cast<VectorInfo>(!subst("i", "u", !cast<string>(I))).Str, 
-    //   I.Str], "_v", I.TypeSuffix, 1, [0, 1, 2, 3]>;
-  }
-}
-
-// 12.1. Vector Single-Width Integer Add and Subtract
-defm vadd : int_binary_v_vv_vx;
-defm vsub : int_binary_v_vv_vx;
-defm vrsub : binary_v_vx;
-
-// 12.2. Vector Widening Integer Add/Subtract
-defm vwadd : int_binary_w_vv_vx_wv_wx;
-defm vwsub : int_binary_w_vv_vx_wv_wx;
-defm vwaddu : unsigned_binary_w_vv_vx_wv_wx;
-defm vwsubu : unsigned_binary_w_vv_vx_wv_wx;
-
-// 12.3. Vector Integer Extension
-
-// 12.4. Vector Integer Add-with-Carry/Subtract-with-Borrow Instructions
-defm vadc : int_ternary_v_vvm_vxm;
-defm vsbc : int_ternary_v_vvm_vxm;
-
-// 12.5. Vector Bitwise Logical Instructions
-defm vand : int_binary_v_vv_vx;
-defm vxor : int_binary_v_vv_vx;
-defm vor : int_binary_v_vv_vx;
-let ShouldEmitBuiltin = 0 in {
-  foreach I = AllIntegerVectorType in {
-    def "vnot_v"#I.TypeSuffix : Inst<"vnot", [I.Str, I.Str], "_v",
-                                     I.TypeSuffix, 0, [-1],
-                                     "vxor_vx_"#I.TypeSuffix#"(ARG0, -1)">;
-  }
-}
-
-// 12.6. Vector Single-Width Bit Shift Instructions
-defm vsll : int_binary_v_vv_vi8;
-defm vsrl : int_binary_v_vv_vi8;
-defm vsra : signed_binary_v_vv_vi8;
-
-// 12.7. Vector Narrowing Integer Right Shift Instructions
-defm vnsrl : unsigned_binary_v_wv_wx;
-defm vnsra : int_binary_v_wv_wx;
-
-// 12.8. Vector Integer Comparison Instructions
-defm vmseq : binary_m_vv_vx;
-defm vmsne : binary_m_vv_vx;
-defm vmslt : signed_binary_m_vv_vx;
-defm vmsltu : unsigned_binary_m_vv_vx;
-defm vmsle : signed_binary_m_vv_vx;
-defm vmsleu : unsigned_binary_m_vv_vx;
-defm vmsgt : signed_binary_m_vx;
-defm vmsgtu : unsigned_binary_m_vx;
-//defm vmsge : signed_binary_m_vv_vx;
-// defm vmsgeu : unsigned_binary_m_vv_vx;
-let ShouldEmitBuiltin = 0 in {
-  foreach I = AllSignedVectorType in {
-    def "vmsge_vv"#I.TypeSuffix#"_"#I.BoolType : Inst<"vmsge",
-           [I.MaskStr, I.Str, I.Str], "_vv",
-           I.TypeSuffix#"_"#I.BoolType, 0, [-1],
-           "vmsle_vv_"#I.TypeSuffix#"_"#I.BoolType#"(ARG1, ARG0)">;
-
-    def "vmsgt_vv"#I.TypeSuffix#"_"#I.BoolType : Inst<"vmsgt",
-           [I.MaskStr, I.Str, I.Str], "_vv",
-           I.TypeSuffix#"_"#I.BoolType, 0, [-1],
-           "vmslt_vv_"#I.TypeSuffix#"_"#I.BoolType#"(ARG1, ARG0)">;
-  }
-  foreach I = AllUnsignedVectorType in {
-    def "vmsgeu_vv"#I.TypeSuffix#"_"#I.BoolType : Inst<"vmsgeu",
-           [I.MaskStr, I.Str, I.Str], "_vv",
-           I.TypeSuffix#"_"#I.BoolType, 0, [-1],
-           "vmsleu_vv_"#I.TypeSuffix#"_"#I.BoolType#"(ARG1, ARG0)">;
-
-    def "vmsgtu_vv"#I.TypeSuffix#"_"#I.BoolType : Inst<"vmsgtu",
-           [I.MaskStr, I.Str, I.Str], "_vv",
-           I.TypeSuffix#"_"#I.BoolType, 0, [-1],
-           "vmsltu_vv_"#I.TypeSuffix#"_"#I.BoolType#"(ARG1, ARG0)">;
-  }
-}
-
-// 12.9. Vector Integer Min/Max Instructions
-defm vmin : signed_binary_v_vv_vx;
-defm vminu : unsigned_binary_v_vv_vx;
-defm vmax : signed_binary_v_vv_vx;
-defm vmaxu : unsigned_binary_v_vv_vx;
-
-// 12.10. Vector Single-Width Integer Multiply Instructions
-defm vmul : int_binary_v_vv_vx;
-defm vmulh : signed_binary_v_vv_vx;
-defm vmulhu : unsigned_binary_v_vv_vx;
-defm vmulhsu : signed_binary_v_vv_vx;
-
-// 12.11. Vector Integer Divide Instructions
-defm vdiv : signed_binary_v_vv_vx;
-defm vdivu : unsigned_binary_v_vv_vx;
-defm vrem : signed_binary_v_vv_vx;
-defm vremu : unsigned_binary_v_vv_vx;
-
-// 12.12. Vector Widening Integer Multiply Instructions
-defm vwmul : int_binary_w_vv_vx;
-defm vwmulu : unsigned_binary_w_vv_vx;
-defm vwmulsu : int_binary_w_vv_vx;
-
-// 12.13. Vector Single-Width Integer Multiply-Add Instructions
-defm vmacc : ternary_v_vvx_vvv;
-defm vnmsac : ternary_v_vvx_vvv;
-defm vmadd : ternary_v_vvx_vvv;
-defm vnmsub : ternary_v_vvx_vvv;
-
-// 12.14. Vector Widening Integer Multiply-Add Instructions
-defm vwmacc : int_ternary_w_vvx_vvv;
-defm vwmaccu : unsigned_ternary_w_vvx_vvv;
-defm vwmaccsu : int_ternary_w_vvx_vvv;
-defm vwmaccus : int_ternary_w_vvx;
-
-// 12.15. Vector Quad-Widening Integer Multiply-Add Instructions (Extension Zvqmac)
-defm vqmacc : int_ternary_qw_vvx_vvv;
-defm vqmaccu : unsigned_ternary_qw_vvx_vvv;
-defm vqmaccsu : int_ternary_qw_vvx_vvv;
-defm vqmaccus : int_ternary_qw_vvx;
-
-// 12.16. Vector Integer Merge Instructions
-defm vmerge : int_vmerge_vvm_vxm;
-
-// 12.17. Vector Integer Move Instructions
-defm vmv : int_unary_v_v_v_x;
-
-// 13.1. Vector Single-Width Saturating Add and Subtract
-defm vsadd : signed_binary_v_vv_vx;
-defm vsaddu : unsigned_binary_v_vv_vx;
-defm vssub : signed_binary_v_vv_vx;
-defm vssubu : unsigned_binary_v_vv_vx;
-
-// 13.2. Vector Single-Width Averaging Add and Subtract
-defm vaadd : signed_binary_v_vv_vx;
-defm vaaddu : unsigned_binary_v_vv_vx;
-defm vasub : signed_binary_v_vv_vx;
-defm vasubu : unsigned_binary_v_vv_vx; 
-
-// 13.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
-defm vsmul : signed_binary_v_vv_vx;
-
-// 13.4. Vector Single-Width Scaling Shift Instructions
-defm vssrl : unsigned_binary_v_vv_vx;
-defm vssra : signed_binary_v_vv_vx;
-
-// 13.5. Vector Narrowing Fixed-Point Clip Instructions
-defm vnclip : int_binary_v_wv_wx;
-defm vnclipu : unsigned_binary_v_wv_wx;
-
-// 14.2. Vector Single-Width Floating-Point Add/Subtract Instructions
-defm vfadd : float_binary_v_vv_vf;
-defm vfsub : float_binary_v_vv_vf;
-defm vfrsub : float_binary_v_vf;
-
-// 14.3. Vector Widening Floating-Point Add/Subtract Instructions
-defm vfwadd : float_binary_w_vv_vf_wv_wf;
-defm vfwsub : float_binary_w_vv_vf_wv_wf;
-
-// 14.4. Vector Single-Width Floating-Point Multiply/Divide Instructions
-defm vfmul : float_binary_v_vv_vf;
-defm vfdiv : float_binary_v_vv_vf;
-defm vfrdiv : float_binary_v_vf;
-
-// 14.5. Vector Widening Floating-Point Multiply
-defm vfwmul : float_binary_w_vv_vf;
-
-// 14.6. Vector Single-Width Floating-Point Fused Multiply-Add Instructions
-defm vfmacc : float_ternary_v_vvf_vvv;
-defm vfnmacc : float_ternary_v_vvf_vvv;
-defm vfmsac : float_ternary_v_vvf_vvv;
-defm vfmadd : float_ternary_v_vvf_vvv;
-defm vfnmadd : float_ternary_v_vvf_vvv;
-defm vfmsub : float_ternary_v_vvf_vvv;
-defm vfnmsub : float_ternary_v_vvf_vvv;
-
-// 14.7. Vector Widening Floating-Point Fused MultiplyAdd Instructions
-defm vfwmacc : float_ternary_w_wvv_wvf;
-defm vfwnmacc : float_ternary_w_wvv_wvf;
-defm vfwmsac : float_ternary_w_wvv_wvf;
-defm vfwnmsac : float_ternary_w_wvv_wvf;
-
-// 14.8. Vector Floating-Point Square-Root Instruction
-defm vfsqrt : float_unary_v_v;
-
-// 14.9. Vector Floating-Point MIN/MAX Instructions
-defm vfmin : float_binary_v_vv_vf;
-defm vfmax : float_binary_v_vv_vf;
-
-// 14.10. Vector Floating-Point Sign-Injection Instructions
-defm vfsgnj : float_binary_v_vv_vf;
-defm vfsgnjn : float_binary_v_vv_vf;
-defm vfsgnjx : float_binary_v_vv_vf;
-
-// 14.11. Vector Floating-Point Compare Instructions
-defm vmfeq : float_binary_m_vv_vx;
-defm vmfne : float_binary_m_vv_vx;
-defm vmflt : float_binary_m_vv_vx;
-defm vmfle : float_binary_m_vv_vx;
-defm vmfgt : float_binary_m_vf;
-defm vmfge : float_binary_m_vf;
-let ShouldEmitBuiltin = 0 in {
-  foreach I = AllFloatVectorType in {
-    def "vmfge_vv"#I.TypeSuffix#"_"#I.BoolType : Inst<"vmfge",
-           [I.MaskStr, I.Str, I.Str], "_vv",
-           I.TypeSuffix#"_"#I.BoolType, 0, [-1],
-           "vmfle_vv_"#I.TypeSuffix#"_"#I.BoolType#"(ARG1, ARG0)">;
-
-    def "vmfgt_vv"#I.TypeSuffix#"_"#I.BoolType : Inst<"vmfgt",
-           [I.MaskStr, I.Str, I.Str], "_vv",
-           I.TypeSuffix#"_"#I.BoolType, 0, [-1],
-           "vmflt_vv_"#I.TypeSuffix#"_"#I.BoolType#"(ARG1, ARG0)">;
-  }
-}
-
-// 14.12. Vector Floating-Point Classify Instruction
-
-// 14.13. Vector Floating-Point Merge Instruction
-defm vmerge : float_vmerge_vvm;
-defm vfmerge : float_vmerge_vfm;
-
-// 14.14. Vector Floating-Point Move Instruction
-defm vfmv : float_unary_v_f;
-
-// 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
-defm vfcvt : vfcvt;
-
-// 14.16. Widening Floating-Point/Integer Type-Convert Instructions
-defm vfwcvt : vfwcvt;
-defm vwcvt : vwcvt;
-defm vwcvtu : vwcvtu;
-
-// 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
-defm vfncvt : vfncvt;
-
-// 15.1. Vector Single-Width Integer Reduction Instructions
-defm vredsum : int_ternary_v_vs;
-defm vredmax : int_ternary_v_vs;
-defm vredmaxu : int_ternary_v_vs;
-defm vredmin : int_ternary_v_vs;
-defm vredminu : int_ternary_v_vs;
-defm vredand : int_ternary_v_vs;
-defm vredor : int_ternary_v_vs;
-defm vredxor : int_ternary_v_vs;
-
-// 15.2. Vector Widening Integer Reduction Instructions
-
-// 15.3. Vector Single-Width Floating-Point Reduction Instructions
-defm vfredsum : float_ternary_v_vs;
-defm vfredosum : float_ternary_v_vs;
-defm vfredmax : float_ternary_v_vs;
-defm vfredmin : float_ternary_v_vs;
-
-// 15.4. Vector Widening Floating-Point Reduction Instructions
-// 16.1. Vector Mask-Register Logical Instructions
-// 16.2. Vector mask population count vpopc
-defm vpopc : unary_pop;
-
-// 16.3. vfirst find-first-set mask bit
-defm vfirst : unary_vfirst;
-
-// 16.4. vmsbf.m set-before-first mask bit
-defm vmsbf : binary_vmsbf_vmsif_vmsof;
-
-// 16.5. vmsif.m set-including-first mask bit
-defm vmsif : binary_vmsbf_vmsif_vmsof;
-
-// 16.6. vmsof.m set-only-first mask bit
-defm vmsof : binary_vmsbf_vmsif_vmsof;
-
-// 16.8. Vector Iota Instruction
-defm viota : binary_viota;
-
-// 16.9. Vector Element Index Instruction
-
-// 17.1. Integer Scalar Move Instructions
-defm vmv : vmv_x_s_s_x;
-
-// 17.2. Floating-Point Scalar Move Instructions
-defm vfmv : vfmv_f_s_s_f;
-
-// 17.3.1. Vector Slideup Instructions
-defm vslideup : vslide;
-
-// 17.3.2. Vector Slidedown Instructions
-defm vslidedown : vslide;
-
-// 17.3.3. Vector Slide1up
-defm vslide1up : binary_v_vx;
-defm vfslide1up : float_binary_v_vf;
-
-// 17.3.4. Vector Slide1down Instruction
-defm vslide1down : binary_v_vx;
-defm vfslide1down : float_binary_v_vf;
-
-// 17.4. Vector Register Gather Instruction
-// 17.5. Vector Compress Instruction
-// 17.6. Whole Vector Register Move
-// 19.3. Vector Integer Dot-Product Instruction
-// 19.4. Vector Floating-Point Dot Product Instruction
-
 defm vreinterpret : reinterpret;
 
-defm : load_store;
-defm : vsetvl;
-
+// Vector Initialization Functions
 let ShouldEmitBuiltin = 0 in {
   foreach I = AllIntegerVectorType in {
     def "vzero_"#I.TypeSuffix : Inst<"vzero", [""], "",
