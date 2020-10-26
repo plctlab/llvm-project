@@ -1368,6 +1368,7 @@ let ShouldEmitBuiltin = 0 in {
 }
 
 // 14.12. Vector Floating-Point Classify Instruction
+defm vfclass : float_unary_v_v;
 
 // 14.13. Vector Floating-Point Merge Instruction
 multiclass float_vmerge_vvm {
