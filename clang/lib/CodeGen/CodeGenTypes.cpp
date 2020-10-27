@@ -711,6 +711,11 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
   case Type::ExtVector:
   case Type::Vector: {
     const VectorType *VT = cast<VectorType>(Ty);
+    if (cast<BuiltinType>(VT->getElementType())->getKind() == BuiltinType::Half) {
+      bool IsScalable = VT->getVectorKind() == VectorType::RISCVVector;
+      ResultType = llvm::VectorType::get(llvm::Type::getHalfTy(getLLVMContext()), VT->getNumElements(), IsScalable);
+      break;
+    }
     llvm::Type* Ty = ConvertType(VT->getElementType());
     bool IsScalable = VT->getVectorKind() == VectorType::RISCVVector;
     ResultType = llvm::VectorType::get(Ty, VT->getNumElements(), IsScalable);

@@ -14895,8 +14895,16 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
 
   SmallVector<Value*, 4> Ops;
   llvm::Type* ResultType = ConvertType(E->getType());
-  for (unsigned i = 0, e = E->getNumArgs(); i != e; i++)
+  for (unsigned i = 0, e = E->getNumArgs(); i != e; i++) {
+    // Handle fp16
+    if (const BuiltinType *BTy = dyn_cast<BuiltinType>(E->getArg(i)->getType())) {
+      if (BTy->getKind() == BuiltinType::Half) {
+        Ops.push_back(EmitScalarExpr(E->getArg(i)->IgnoreImplicit()));
+        continue;
+      }
+    }
     Ops.push_back(EmitScalarExpr(E->getArg(i)));
+  }
 
   if (BuiltinID >= RISCV::BI__builtin_riscv_vreinterpret_v_f16m1_i16m1 && 
       BuiltinID <= RISCV::BI__builtin_riscv_vreinterpret_v_u8mf8_i8mf8) {

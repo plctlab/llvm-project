@@ -1,12 +1,12 @@
-// RUN: %clang_cc1 -triple riscv64-unknown-linux-elf -S -emit-llvm  %s -o - |  FileCheck %s
+// RUN: %clang_cc1 -triple riscv64-unknown-linux-gnu  -target-feature +experimental-v  -S -emit-llvm  %s -o - |  FileCheck %s
 
 #include <riscv_vector.h>
 
-//vfloat16m1_t test_vfadd_vv_f16m1(vfloat16m1_t value1, vfloat16m1_t value2) {
-//  // cHECK-LABEL: test_vfadd_vv_f16m1
-//  // cHECK: %{{.*}} = call <vscale x 4 x half> @llvm.riscv.vfadd.vv.nxv4f16(<vscale x 4 x half> %{{.*}}, <vscale x 4 x half> %{{.*}}) 
-//  return vfadd_vv_f16m1(value1, value2);
-//}
+vfloat16m1_t test_vfadd_vv_f16m1(vfloat16m1_t value1, vfloat16m1_t value2) {
+  // CHECK-LABEL: test_vfadd_vv_f16m1
+  // cHECK: %{{.*}} = call <vscale x 4 x half> @llvm.riscv.vfadd.vv.nxv4f16(<vscale x 4 x half> %{{.*}}, <vscale x 4 x half> %{{.*}}) 
+  return vfadd_vv_f16m1(value1, value2);
+}
 
 vfloat32m1_t test_vfadd_vv_f32m1(vfloat32m1_t value1, vfloat32m1_t value2) {
   // CHECK-LABEL: test_vfadd_vv_f32m1
@@ -20,3 +20,8 @@ vfloat64m1_t test_vfadd_vv_f64m1(vfloat64m1_t value1, vfloat64m1_t value2) {
   return vfadd_vv_f64m1(value1, value2);
 }
 
+vfloat16m1_t test_vfadd_vf_f16m1 (vfloat16m1_t op1, float16_t op2) {
+  // CHECK-LABEL: test_vfadd_vf_f16m1
+  // CHECK: %{{.*}} = call <vscale x 4 x half> @llvm.riscv.vfadd.vf.nxv4f16.f16(<vscale x 4 x half> %{{.*}}, half %{{.*}})
+  return vfadd_vf_f16m1 (op1, op2);
+}

@@ -44,6 +44,8 @@ public:
     SuitableAlign = 128;
     WCharType = SignedInt;
     WIntType = UnsignedInt;
+    HasLegalHalfType = false;
+    HasFloat16 = false;
   }
 
   bool setCPU(const std::string &Name) override {

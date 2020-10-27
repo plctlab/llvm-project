@@ -181,6 +181,8 @@ bool RISCVTargetInfo::handleTargetFeatures(std::vector<std::string> &Features,
       HasB = true;
     else if (Feature == "+experimental-v")
       HasV = true;
+      HasLegalHalfType = true;
+      HasFloat16 = true;
   }
 
   return true;
