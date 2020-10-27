@@ -2317,6 +2317,9 @@ def mcmodel_EQ_medlow : Flag<["-"], "mcmodel=medlow">, Group<m_riscv_Features_Gr
 def mcmodel_EQ_medany : Flag<["-"], "mcmodel=medany">, Group<m_riscv_Features_Group>,
   Flags<[CC1Option]>, Alias<mcmodel_EQ>, AliasArgs<["medium"]>,
   HelpText<"Equivalent to -mcmodel=medium, compatible with RISC-V gcc.">;
+def mriscv_vector_bits_EQ : Joined<["-"], "mriscv-vector-bits=">, Group<m_riscv_Features_Group>,
+  Flags<[DriverOption, CC1Option]>, HelpText<"Set the size of the fixed riscv vector in bits.">,
+  Values<"128, 256, 512, 1024, 2048">;
 def menable_experimental_extensions : Flag<["-"], "menable-experimental-extensions">, Group<m_Group>,
   HelpText<"Enable use of experimental RISC-V extensions.">;
 

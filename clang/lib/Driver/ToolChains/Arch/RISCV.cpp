@@ -287,7 +287,7 @@ static bool getArchFeatures(const Driver &D, StringRef MArch,
   // The canonical order specified in ISA manual.
   // Ref: Table 22.1 in RISC-V User-Level ISA V2.2
   StringRef StdExts = "mafdqlcbjtpvn";
-  bool HasF = false, HasD = false;
+  bool HasF = false, HasD = false, HasV = false;
   char Baseline = MArch[4];
 
   // First letter should be 'e', 'i' or 'g'.
@@ -414,6 +414,7 @@ static bool getArchFeatures(const Driver &D, StringRef MArch,
     case 'v':
       Features.push_back("+experimental-v");
       Features.push_back("+experimental-zfh");
+      HasV = true;
       break;
     }
 
@@ -436,6 +437,9 @@ static bool getArchFeatures(const Driver &D, StringRef MArch,
         << MArch << "d requires f extension to also be specified";
     return false;
   }
+
+  if (!HasV && Args.getLastArg(options::OPT_mriscv_vector_bits_EQ))
+    D.Diag(diag::err_drv_invalid_riscv_vector_bits);
 
   // Additional dependency checks.
   // TODO: The 'q' extension requires rv64.

@@ -383,7 +383,7 @@ LANGOPT(RelativeCXXABIVTables, 1, 0,
         "Use an ABI-incompatible v-table layout that uses relative references")
 
 LANGOPT(ArmSveVectorBits, 32, 0, "SVE vector size in bits")
-
+LANGOPT(RISCVVectorBits, 32, 0, "RISCV vector size in bits")
 #undef LANGOPT
 #undef COMPATIBLE_LANGOPT
 #undef BENIGN_LANGOPT

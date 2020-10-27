@@ -3222,7 +3222,10 @@ public:
     NeonPolyVector,
 
     /// is RISCV Vector
-    RISCVVector
+    RISCVVector,
+
+    /// is RISCV fixed length vector
+    RISCVFiexedLengthVector
   };
 
 protected:

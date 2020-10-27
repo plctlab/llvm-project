@@ -2498,6 +2498,13 @@ def RISCVMaskType : TypeAttr {
   let ASTNode = 0;
 }
 
+def RISCVVectorBits : TypeAttr {
+  let Spellings = [GNU<"riscv_vector_bits">];
+  let Subjects = SubjectList<[TypedefName], ErrorDiag>;
+  let Args = [IntArgument<"NumBits">];
+  let Documentation = [Undocumented];
+}
+
 def VecTypeHint : InheritableAttr {
   // Does not have a [[]] spelling because it is an OpenCL-related attribute.
   let Spellings = [GNU<"vec_type_hint">];

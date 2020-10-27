@@ -8001,6 +8001,23 @@ static void HandleRISCVMaskTypeAttr(QualType &CurType, const ParsedAttr &Attr,
   CurType = S.Context.getVectorType(S.Context.BoolTy, 64 / MLEN, VectorType::RISCVVector);
 }
 
+static void HandleRISCVVectorBitsAttr(QualType &CurType, ParsedAttr &Attr,
+                                           Sema &S) {
+
+  llvm::APSInt RISCVVectorSizeInBits(32);
+  if (!verifyValidIntegerConstantExpr(S, Attr, RISCVVectorSizeInBits))
+    return;
+  unsigned VecSize = static_cast<unsigned>(RISCVVectorSizeInBits.getZExtValue());
+
+  const VectorType * Vector = CurType.getTypePtr()->getAs<const VectorType>();
+
+  QualType EltType = Vector->getElementType();
+  unsigned TypeSize = S.Context.getTypeSize(EltType);
+  VecSize = VecSize / TypeSize;
+
+  CurType = S.Context.getVectorType(EltType, VecSize, VectorType::RISCVFiexedLengthVector);
+}
+
 /// Handle OpenCL Access Qualifier Attribute.
 static void HandleOpenCLAccessAttr(QualType &CurType, const ParsedAttr &Attr,
                                    Sema &S) {
@@ -8266,6 +8283,10 @@ static void processTypeAttrs(TypeProcessingState &state, QualType &type,
       break;
     case ParsedAttr::AT_RISCVMaskType:
       HandleRISCVMaskTypeAttr(type, attr, state.getSema());
+      attr.setUsedAsTypeAttr();
+      break;
+    case ParsedAttr::AT_RISCVVectorBits:
+      HandleRISCVVectorBitsAttr(type, attr, state.getSema());
       attr.setUsedAsTypeAttr();
       break;
     case ParsedAttr::AT_OpenCLAccess:
