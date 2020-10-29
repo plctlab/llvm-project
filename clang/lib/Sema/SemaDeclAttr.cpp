@@ -5046,8 +5046,8 @@ static void handleArmBuiltinAliasAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
 
 static void handleRiscvVectorBuiltinAliasAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   IdentifierInfo *Ident = AL.getArgAsIdent(0)->Ident;
-  unsigned BuiltinID = Ident->getBuiltinID();
-  StringRef AliasName = cast<FunctionDecl>(D)->getIdentifier()->getName();
+  //unsigned BuiltinID = Ident->getBuiltinID();
+  //StringRef AliasName = cast<FunctionDecl>(D)->getIdentifier()->getName();
 
   D->addAttr(::new (S.Context) RiscvVectorBuiltinAliasAttr(S.Context, AL, Ident));
 }
