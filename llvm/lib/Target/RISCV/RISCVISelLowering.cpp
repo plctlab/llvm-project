@@ -1902,6 +1902,11 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
         else 
           Reg = State.AllocateReg(ArgVRs);
     }
+    if (!Reg) {
+      LocInfo = CCValAssign::Indirect;
+      Reg = State.AllocateReg(ArgGPRs);
+      LocVT = XLenVT;
+    }
   }
   else
     Reg = State.AllocateReg(ArgGPRs);
