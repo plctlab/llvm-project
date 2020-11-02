@@ -78,7 +78,7 @@ enum Sew {
   SEW8 = 0,
   SEW16 = 4,
   SEW32 = 8,
-  SEW64 = 16
+  SEW64 = 12
 };
 }
 
