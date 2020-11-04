@@ -303,27 +303,29 @@ class RegisterTypes<list<ValueType> reg_types> {
 
 // The order of registers represents the preferred allocation sequence,
 // meaning caller-save regs are listed before callee-save.
-def VR : RegisterClass<"RISCV", [nxv1i8, nxv2i8, nxv4i8, nxv1i16, nxv2i16, nxv1i32,
-                                nxv1f16, nxv2f16, nxv1f32,
-                                nxv8i8, nxv4i16, nxv2i32, nxv1i64, nxv4f16, nxv2f32, nxv1f64],
-                         64, (add
-    (sequence "V%u", 25, 31),
-    (sequence "V%u", 8, 24),
-    (sequence "V%u", 0, 7)
-  )> {
+def VR : RegisterClass<"RISCV", [nxv1i8, nxv2i8, nxv4i8, nxv1i16, nxv2i16,
+                                 nxv1i32,
+                                 nxv1f16, nxv2f16, nxv1f32,
+                                 nxv8i8, nxv4i16, nxv2i32, nxv1i64,
+                                 nxv4f16, nxv2f32, nxv1f64], 64,
+                       (add (sequence "V%u", 25, 31),
+                            (sequence "V%u", 8, 24),
+                            (sequence "V%u", 0, 7))> {
   let Size = 64;
 }
 
-def VRM2 : RegisterClass<"RISCV", [nxv16i8, nxv8i16, nxv4i32, nxv2i64, nxv8f16, nxv4f32, 
-                                    nxv2f64], 64,
-                         (add V26M2, V28M2, V30M2, V8M2, V10M2, V12M2, V14M2, V16M2,
-                              V18M2, V20M2, V22M2, V24M2, V0M2, V2M2, V4M2, V6M2)> {
+def VRM2 : RegisterClass<"RISCV", [nxv16i8, nxv8i16, nxv4i32, nxv2i64,
+                                   nxv8f16, nxv4f32, nxv2f64], 64,
+                         (add (sequence "V%uM2", 26, 30, 2),
+                              (sequence "V%uM2", 8, 24, 2),
+                              (sequence "V%uM2", 0, 6, 2))> {
   let Size = 128;
 }
 
 def VRM4 : RegisterClass<"RISCV", [nxv32i8, nxv16i16, nxv8i32, nxv4i64,
                                    nxv16f16, nxv8f32, nxv4f64], 64,
-                         (add V28M4, V8M4, V12M4, V16M4, V20M4, V24M4, V0M4, V4M4)> {
+                         (add V28M4, V8M4, V12M4, V16M4, V20M4, V24M4,
+                              V0M4, V4M4)> {
   let Size = 256;
 }
 

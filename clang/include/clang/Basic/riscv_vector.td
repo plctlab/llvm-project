@@ -1744,8 +1744,8 @@ defm vredor : int_ternary_v_vs;
 defm vredxor : int_ternary_v_vs;
 
 // 15.2. Vector Widening Integer Reduction Instructions
-// defm vwredsum : signed_ternary_w_vs;
-// defm vwredsumu : unsigned_ternary_w_vs;
+defm vwredsum : signed_ternary_w_vs;
+defm vwredsumu : unsigned_ternary_w_vs;
 
 // 15.3. Vector Single-Width Floating-Point Reduction Instructions
 defm vfredsum : float_ternary_v_vs;
@@ -1754,8 +1754,8 @@ defm vfredmax : float_ternary_v_vs;
 defm vfredmin : float_ternary_v_vs;
 
 // 15.4. Vector Widening Floating-Point Reduction Instructions
-// defm vfwredosum : signed_ternary_w_vs;
-// defm vfwredsum : signed_ternary_w_vs;
+defm vfwredosum : signed_ternary_w_vs;
+defm vfwredsum : signed_ternary_w_vs;
 
 // 16.1. Vector Mask-Register Logical Instructions
 // defm vmand : bool_binary_m_mm;

@@ -752,6 +752,8 @@ defm vredor : Reduction_v_vrv;
 defm vredxor : Reduction_v_vrv;
 
 // 15.2. Vector Widening Integer Reduction Instructions
+defm vwredsum : Reduction_v_vrv;
+defm vwredsumu : Reduction_v_vrv;
 
 // 15.3. Vector Single-Width Floating-Point Reduction Instructions
 defm vfredosum : Reduction_v_vrv;
@@ -760,6 +762,8 @@ defm vfredmax : Reduction_v_vrv;
 defm vfredmin : Reduction_v_vrv;
 
 // 15.4. Vector Widening Floating-Point Reduction Instructions
+defm vfwredosum : Reduction_v_vrv;
+defm vfwredsum : Reduction_v_vrv;
 
 // 16.1. Vector Mask-Register Logical Instructions
 def int_riscv_vmand_mm : V_VV;

@@ -1586,7 +1586,7 @@ RISCVTargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
   const TargetInstrInfo *TII = BB->getParent()->getSubtarget().getInstrInfo();
   MachineRegisterInfo &MRI = BB->getParent()->getRegInfo();
   if (const RISCVVectorPseudosTable::RISCVVectorPseudoInfo* pseudo = 
-        RISCVVectorPseudosTable::getRISCVVectorPseudoInfo(MI.getOpcode())) {
+      RISCVVectorPseudosTable::getRISCVVectorPseudoInfo(MI.getOpcode())) {
     int Sew = MI.getOperand(pseudo->SEWIndex).getImm();
     int Vlmul = pseudo->VLMul;
     unsigned vtypei = 0;

@@ -15,7 +15,6 @@
 #include "RISCV.h"
 #include "RISCVInstrInfo.h"
 #include "RISCVTargetMachine.h"
-
 #include "llvm/CodeGen/LivePhysRegs.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
@@ -67,22 +66,23 @@ private:
                       MachineBasicBlock::iterator MBBI, int Address);
 };
 
+} // end of anonymous namespace
+
 char RISCVExpandPseudo::ID = 0;
 
 bool RISCVExpandPseudo::runOnMachineFunction(MachineFunction &MF) {
   TII = static_cast<const RISCVInstrInfo *>(MF.getSubtarget().getInstrInfo());
   bool Modified = false;
+
   for (auto &MBB : MF)
     Modified |= expandMBB(MBB);
   return Modified;
 }
 
-
-
 bool RISCVExpandPseudo::expandMBB(MachineBasicBlock &MBB) {
   bool Modified = false;
-
   MachineBasicBlock::iterator MBBI = MBB.begin(), E = MBB.end();
+
   while (MBBI != E) {
     MachineBasicBlock::iterator NMBBI = std::next(MBBI);
     Modified |= expandMI(MBB, MBBI, NMBBI);
@@ -98,9 +98,10 @@ bool RISCVExpandPseudo::expandMI(MachineBasicBlock &MBB,
   // instructions for each pseudo, and must be updated when adding new pseudos
   // or changing existing ones.
   if (const RISCVVectorPseudosTable::RISCVVectorPseudoInfo* pseudo = 
-        RISCVVectorPseudosTable::getRISCVVectorPseudoInfo(MBBI->getOpcode())) {
+      RISCVVectorPseudosTable::getRISCVVectorPseudoInfo(MBBI->getOpcode())) {
     return expandRISCVVector(MBB, MBBI, NextMBBI, pseudo->BaseInstr, 
-                             pseudo->getMergeOpIndex(), pseudo->getSEWIndex(), pseudo->VLMul);
+                             pseudo->getMergeOpIndex(), pseudo->getSEWIndex(),
+                             pseudo->VLMul);
   }
   switch (MBBI->getOpcode()) {
   case RISCV::PseudoLLA:
@@ -203,19 +204,15 @@ bool RISCVExpandPseudo::expandLoadTLSGDAddress(
                              RISCV::ADDI);
 }
 
-} // end of anonymous namespace
-
 bool RISCVExpandPseudo::expandRISCVVector(MachineBasicBlock &MBB, 
-                      MachineBasicBlock::iterator MBBI,
-                      MachineBasicBlock::iterator &NextMBBI,
-                      unsigned BaseInstr, int MergeOpIndex,
-                      int SEWIndex, int VLMul) {
-  // MachineFunction *MF = MBB.getParent();
+                                          MachineBasicBlock::iterator MBBI,
+                                          MachineBasicBlock::iterator &NextMBBI,
+                                          unsigned BaseInstr, int MergeOpIndex,
+                                          int SEWIndex, int VLMul) {
   MachineInstr &MI = *MBBI;
   DebugLoc DL = MI.getDebugLoc();
 
   MachineInstrBuilder MIB = BuildMI(MBB, MI, DL, TII->get(BaseInstr));
-  // MachineInstr *NewMI = MIB.getInstr();
 
     // Remove implicit operands
   // for (MachineInstr::const_mop_iterator Op = NewMI->operands_end();
@@ -228,7 +225,7 @@ bool RISCVExpandPseudo::expandRISCVVector(MachineBasicBlock &MBB,
   // }
 
   for (MachineInstr::const_mop_iterator Op = MI.operands_begin();
-    Op != MI.operands_end(); Op++) {
+       Op != MI.operands_end(); Op++) {
     int Op_num = (int)MI.getOperandNo(Op);
     if (Op_num == MergeOpIndex || Op_num == SEWIndex)
       continue;
@@ -255,10 +252,12 @@ bool RISCVExpandPseudo::expandRISCVVector(MachineBasicBlock &MBB,
   return true;
 }
 
+// The parameter 'Address' is the address of the CSR register.
 bool RISCVExpandPseudo::expandReadCSRs(MachineBasicBlock &MBB,
-    MachineBasicBlock::iterator MBBI, int Address /* the address of the CSR register */) {
-  BuildMI(MBB, MBBI, MBBI->getDebugLoc(), 
-    TII->get(RISCV::CSRRS), MBBI->getOperand(0).getReg())
+                                       MachineBasicBlock::iterator MBBI,
+                                       int Address) {
+  BuildMI(MBB, MBBI, MBBI->getDebugLoc(), TII->get(RISCV::CSRRS),
+          MBBI->getOperand(0).getReg())
     .addImm(Address)
     .addReg(RISCV::X0);
   MBBI->eraseFromParent();
@@ -267,6 +266,7 @@ bool RISCVExpandPseudo::expandReadCSRs(MachineBasicBlock &MBB,
 
 INITIALIZE_PASS(RISCVExpandPseudo, "riscv-expand-pseudo",
                 RISCV_EXPAND_PSEUDO_NAME, false, false)
+
 namespace llvm {
 
 FunctionPass *createRISCVExpandPseudoPass() { return new RISCVExpandPseudo(); }
