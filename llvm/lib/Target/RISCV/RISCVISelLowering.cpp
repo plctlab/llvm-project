@@ -2117,7 +2117,7 @@ static SDValue unpackFromMemLoc(SelectionDAG &DAG, SDValue Chain,
   EVT LocVT = VA.getLocVT();
   EVT ValVT = VA.getValVT();
   EVT PtrVT = MVT::getIntegerVT(DAG.getDataLayout().getPointerSizeInBits(0));
-  int FI = MFI.CreateFixedObject(ValVT.getSizeInBits() / 8,
+  int FI = MFI.CreateFixedObject(ValVT.getSizeInBits().getKnownMinSize() / 8,
                                  VA.getLocMemOffset(), /*Immutable=*/true);
   SDValue FIN = DAG.getFrameIndex(FI, PtrVT);
   SDValue Val;
@@ -2128,6 +2128,10 @@ static SDValue unpackFromMemLoc(SelectionDAG &DAG, SDValue Chain,
     llvm_unreachable("Unexpected CCValAssign::LocInfo");
   case CCValAssign::Full:
   case CCValAssign::Indirect:
+    if (ValVT.isScalableVector()) {
+      return DAG.getLoad(LocVT, DL, Chain, FIN, 
+        MachinePointerInfo::getFixedStack(DAG.getMachineFunction(), FI));
+    }
   case CCValAssign::BCvt:
     ExtType = ISD::NON_EXTLOAD;
     break;
@@ -2560,27 +2564,46 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
     // Promote the value if needed.
     // For now, only handle fully promoted and indirect arguments.
     if (VA.getLocInfo() == CCValAssign::Indirect) {
-      // Store the argument in a stack slot and pass its address.
-      SDValue SpillSlot = DAG.CreateStackTemporary(Outs[i].ArgVT);
-      int FI = cast<FrameIndexSDNode>(SpillSlot)->getIndex();
-      MemOpChains.push_back(
-          DAG.getStore(Chain, DL, ArgValue, SpillSlot,
-                       MachinePointerInfo::getFixedStack(MF, FI)));
-      // If the original argument was split (e.g. i128), we need
-      // to store all parts of it here (and pass just one address).
-      unsigned ArgIndex = Outs[i].OrigArgIndex;
-      assert(Outs[i].PartOffset == 0);
-      while (i + 1 != e && Outs[i + 1].OrigArgIndex == ArgIndex) {
-        SDValue PartValue = OutVals[i + 1];
-        unsigned PartOffset = Outs[i + 1].PartOffset;
-        SDValue Address = DAG.getNode(ISD::ADD, DL, PtrVT, SpillSlot,
-                                      DAG.getIntPtrConstant(PartOffset, DL));
+      if (VA.getValVT().isScalableVector()) {
+        SDValue SpillSlot = DAG.CreateStackTemporary(Outs[i].ArgVT);
+        int FI = cast<FrameIndexSDNode>(SpillSlot)->getIndex();
+
+        RISCVMachineFunctionInfo *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
+
+        RVFI->setHasSpillVRs();
+
+        MF.getFrameInfo().setStackID(FI, TargetStackID::RISCVVector);
+
+        SDValue Ptr = DAG.getLoad(XLenVT, DL, Chain, SpillSlot, 
+          MachinePointerInfo::getFixedStack(MF, FI));
+
         MemOpChains.push_back(
-            DAG.getStore(Chain, DL, PartValue, Address,
-                         MachinePointerInfo::getFixedStack(MF, FI)));
-        ++i;
+            DAG.getStore(Chain, DL, ArgValue, Ptr, MachinePointerInfo()));
+
+        ArgValue = Ptr;
+      } else {
+        // Store the argument in a stack slot and pass its address.
+        SDValue SpillSlot = DAG.CreateStackTemporary(Outs[i].ArgVT);
+        int FI = cast<FrameIndexSDNode>(SpillSlot)->getIndex();
+        MemOpChains.push_back(
+            DAG.getStore(Chain, DL, ArgValue, SpillSlot,
+                        MachinePointerInfo::getFixedStack(MF, FI)));
+        // If the original argument was split (e.g. i128), we need
+        // to store all parts of it here (and pass just one address).
+        unsigned ArgIndex = Outs[i].OrigArgIndex;
+        assert(Outs[i].PartOffset == 0);
+        while (i + 1 != e && Outs[i + 1].OrigArgIndex == ArgIndex) {
+          SDValue PartValue = OutVals[i + 1];
+          unsigned PartOffset = Outs[i + 1].PartOffset;
+          SDValue Address = DAG.getNode(ISD::ADD, DL, PtrVT, SpillSlot,
+                                        DAG.getIntPtrConstant(PartOffset, DL));
+          MemOpChains.push_back(
+              DAG.getStore(Chain, DL, PartValue, Address,
+                          MachinePointerInfo::getFixedStack(MF, FI)));
+          ++i;
+        }
+        ArgValue = SpillSlot;
       }
-      ArgValue = SpillSlot;
     } else {
       ArgValue = convertValVTToLocVT(DAG, ArgValue, VA, DL);
     }
