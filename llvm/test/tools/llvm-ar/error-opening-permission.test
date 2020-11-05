@@ -3,7 +3,7 @@
 # UNSUPPORTED: system-windows
 
 # RUN: rm -rf %t && mkdir -p %t
-# RUN: echo file1 > %t/1.txt
+# RUN: echo "file1" > %t/1.txt
 
 ## No Permission:
 # RUN: llvm-ar rc %t/permission.b %t/1.txt
