@@ -259,17 +259,6 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "typedef _Float16 float16_t;\n";
   OS << "typedef float float32_t;\n";
   OS << "typedef double float64_t;\n";
-  OS << "#define _e8  0  // 0b000000\n";
-  OS << "#define _e16 4  // 0b000100\n";
-  OS << "#define _e32 8  // 0b001000\n";
-  OS << "#define _e64 12 // 0b001100\n";
-  OS << "#define _mf8 33 // 0b100001\n";
-  OS << "#define _mf4 34 // 0b100010\n";
-  OS << "#define _mf2 35 // 0b100011\n";
-  OS << "#define _m1  0  // 0b000000\n";
-  OS << "#define _m2  1  // 0b000001\n";
-  OS << "#define _m4  2  // 0b000010\n";
-  OS << "#define _m8  3  // 0b000011\n";
   OS << "typedef __attribute__((riscv_mask_type(1))) bool vbool1_t;\n";
   OS << "typedef __attribute__((riscv_mask_type(2))) bool vbool2_t;\n";
   OS << "typedef __attribute__((riscv_mask_type(4))) bool vbool4_t;\n";
@@ -299,6 +288,24 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
     createIntrinsic(R, Defs);
   }
 
+  std::map<std::string, int> LMUL = {
+    {"m1", 0}, /* 0b000000 */
+    {"m2", 1}, /* 0b000001 */
+    {"m4", 2}, /* 0b000010 */ 
+    {"m8", 3}, /* 0b000011 */
+    {"mf2", 35}, /* 0b100011 */
+    {"mf4", 34}, /* 0b100010 */
+    {"mf8", 33} /* 0b100001 */
+  };
+  std::map<std::string, int>::iterator miter;
+  std::map<std::string, int> SEW = {
+    {"e8", 0}, /* 0b000000 */
+    {"e16", 4},  /* 0b000100 */
+    {"e32", 8}, /* 0b001000 */
+    {"e64", 12} /* 0b001100 */
+  };
+  std::map<std::string, int>::iterator eiter;
+   
   for (auto def : Defs) {
     if (!def->getCustomDef().empty()) {
       CustomDefs.push_back(def);
@@ -308,8 +315,12 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
       OS << "__builtin_riscv_vsetvl(avl, ";
       size_t MPosition = def->getSuffix().find('m');
       std::string Sew = def->getSuffix().substr(0, MPosition);
-      std::string Lmul = def->getSuffix().substr(MPosition, def->getSuffix().size());
-      OS << "_" << Sew << " | " << "_" << Lmul << ")\n";
+      std::string Lmul = def->getSuffix().substr(MPosition, def->getSuffix().size()); 
+      eiter = SEW.find(Sew);
+      miter = LMUL.find(Lmul);
+      if (eiter != SEW.end() && miter != LMUL.end())
+        OS << eiter->second << "/*" << eiter->first << "*/ | " << miter->second << "/*" <<miter->first<< "*/)\n";
+
       // vsetvlmax
       OS << "#define ";
       OS << def->getName() << "max_" << def->getSuffix() << "() ";
@@ -345,17 +356,6 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
     OS << "\n";
   }
 
-  OS << "#undef _e8\n";
-  OS << "#undef _e16\n";
-  OS << "#undef _e32\n";
-  OS << "#undef _e64\n";
-  OS << "#undef _mf8\n";
-  OS << "#undef _mf4\n";
-  OS << "#undef _mf2\n";
-  OS << "#undef _m1\n";
-  OS << "#undef _m2\n";
-  OS << "#undef _m4\n";
-  OS << "#undef _m8\n";
   OS << "#endif";
 }
 
