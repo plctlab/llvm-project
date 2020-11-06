@@ -1758,14 +1758,14 @@ defm vfwredosum : signed_ternary_w_vs;
 defm vfwredsum : signed_ternary_w_vs;
 
 // 16.1. Vector Mask-Register Logical Instructions
-// defm vmand : bool_binary_m_mm;
-// defm vmnand : bool_binary_m_mm;
-// defm vmandnot : bool_binary_m_mm;
-// defm vmxor : bool_binary_m_mm;
-// defm vmor : bool_binary_m_mm;
-// defm vmnor : bool_binary_m_mm;
-// defm vmornot : bool_binary_m_mm;
-// defm vmxnot : bool_binary_m_mm;
+defm vmand : bool_binary_m_mm;
+defm vmnand : bool_binary_m_mm;
+defm vmandnot : bool_binary_m_mm;
+defm vmxor : bool_binary_m_mm;
+defm vmor : bool_binary_m_mm;
+defm vmnor : bool_binary_m_mm;
+defm vmornot : bool_binary_m_mm;
+defm vmxnor : bool_binary_m_mm;
 
 // vmmv.m vd, vs => vmand.mm vd, vs, vs
 // defm vmmv : ;

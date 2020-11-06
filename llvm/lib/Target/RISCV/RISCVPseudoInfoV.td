@@ -303,91 +303,26 @@ foreach I = AllLMULs in {
 
 let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
 
-multiclass pseudo_binary<RegisterClass result_reg_class,
-                         RegisterClass arg1_reg_class,
-                         RegisterClass arg2_reg_class,
-                         string lmul, string constraints = ""> {
-  let Constraints = Join<[constraints, "$rd = $merge"], ",">.Result,
-      Uses = [VL, VTYPE], SEWIndex = 5, MergeOpIndex = 1,
-      BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in 
-    def "_M" # lmul
-      : Pseudo<(outs result_reg_class:$rd), (ins result_reg_class:$merge,
-               arg1_reg_class:$rs1, arg2_reg_class:$rs2, VMaskOp:$vm,
-               ixlenimm:$sew), []>,
-        RISCVVectorPseudo;
-}
-
-multiclass pseudo_binary_carryin<RegisterClass result_reg_class,
-                                 RegisterClass arg1_reg_class,
-                                 RegisterClass arg2_reg_class,
-                                 string lmul, string constraints = ""> {
-  let Constraints = Join<[constraints, ""], ",">.Result,
-      Uses = [VL, VTYPE], SEWIndex = 5, MergeOpIndex = 1,
-      BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in 
-    def "_M" # lmul
-      : Pseudo<(outs result_reg_class:$rd), (ins result_reg_class:$merge,
-               arg1_reg_class:$rs1, arg2_reg_class:$rs2, VMV0:$maskop,
-               ixlenimm:$sew), []>,
-        RISCVVectorPseudo;
-}
-
-multiclass pseudo_binary_nomask<RegisterClass result_reg_class,
-                                RegisterClass arg1_reg_class,
-                                RegisterClass arg2_reg_class,
-                                string lmul, string constraints = ""> {
-  let Constraints = Join<[constraints, ""], ",">.Result,
-      Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 1,
-      BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in   
-    def "_M" # lmul
-      : Pseudo<(outs result_reg_class:$rd), (ins result_reg_class:$merge,
-               arg1_reg_class:$rs1, arg2_reg_class:$rs2, ixlenimm:$sew), []>,
-        RISCVVectorPseudo;
-}
-
-multiclass pseudo_unary<RegisterClass result_reg_class,
-                        RegisterClass arg1_reg_class,
+multiclass pseudo_unary<RegisterClass result, RegisterClass arg1,
                         string lmul, string constraints = ""> {
   let Constraints = Join<[constraints, "$rd = $merge"], ",">.Result,
       Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 1,
       BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in
     def "_M" # lmul
-      : Pseudo<(outs result_reg_class:$rd), (ins result_reg_class:$merge,
-               arg1_reg_class:$rs1, VMaskOp:$vm, ixlenimm:$sew), []>,
+      : Pseudo<(outs result:$rd), (ins result:$merge, arg1:$rs1, VMaskOp:$vm,
+               ixlenimm:$sew), []>,
         RISCVVectorPseudo;
 }
 
-multiclass pseudo_unary_nomask<RegisterClass result_reg_class,
-                               RegisterClass arg1_reg_class,
+multiclass pseudo_unary_nomask<RegisterClass result, RegisterClass arg1,
                                string lmul, string constraints = ""> {
   let Constraints = Join<[constraints, ""], ",">.Result,
       Uses = [VL, VTYPE], SEWIndex = 3, MergeOpIndex = 1,
       BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in
     def "_M" # lmul
-      : Pseudo<(outs result_reg_class:$rd), (ins result_reg_class:$merge,
-               arg1_reg_class:$rs1, ixlenimm:$sew), []>,
-        RISCVVectorPseudo;
-}
-
-multiclass pseudo_ternary<RegisterClass result_reg_class,
-                          RegisterClass arg1_reg_class,
-                          RegisterClass arg2_reg_class,
-                          string lmul, string constraints = ""> {
-  let Constraints = Join<[constraints, "$rd = $merge"], ",">.Result,
-      Uses = [VL, VTYPE], SEWIndex = 5, MergeOpIndex = 1,
-      BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in
-    def "_M" # lmul
-      : Pseudo<(outs result_reg_class:$rd), (ins result_reg_class:$merge,
-               arg1_reg_class:$rs1, arg2_reg_class:$rs2, VMaskOp:$vm,
+      : Pseudo<(outs result:$rd), (ins result:$merge, arg1:$rs1,
                ixlenimm:$sew), []>,
         RISCVVectorPseudo;
-}
-
-multiclass pseudo_ternary_reduction {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
-      defm _VS : pseudo_ternary<VR, I.RegClass, VR, I.LMULstr>;
-    }
-  }
 }
 
 multiclass pseudo_unary_v_w<string constraints = ""> {
@@ -500,53 +435,62 @@ multiclass pseudo_vfmv {
   }
 }
 
-// TODO: vzext
-
-// multiclass pseudo_binary_v_vv {
-//   foreach I = AllLMULs in {
-//     let LMUL = I.LMUL in {
-//       defm _VV : pseudo_binary<I.RegClass, I.RegClass, I.RegClass, I.lmulstr>;
-//     }
-//   }
-// }
-
-multiclass pseudo_binary_v_vx {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
-      defm _VV : pseudo_binary<I.RegClass, I.RegClass, GPR, I.LMULstr>;
-    }
-  }
+multiclass pseudo_binary<RegisterClass result, RegisterClass arg1,
+                         RegisterClass arg2, string lmul,
+                         string constraints = ""> {
+  let Constraints = Join<[constraints, "$rd = $merge"], ",">.Result,
+      Uses = [VL, VTYPE], SEWIndex = 5, MergeOpIndex = 1,
+      BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in
+    def "_M" # lmul
+      : Pseudo<(outs result:$rd), (ins result:$merge, arg1:$rs1, arg2:$rs2,
+               VMaskOp:$vm, ixlenimm:$sew), []>,
+        RISCVVectorPseudo;
 }
 
-// multiclass pseudo_binary_v_vf {
-//   foreach I = AllLMULs in {
-//     let LMUL = I.LMUL in {
-//       defm _VV : pseudo_binary<I.RegClass, I.RegClass, FPR32, I.lmulstr>;
-//     }
-//   }
-// }
+multiclass pseudo_binary_nomask<RegisterClass result, RegisterClass arg1,
+                                RegisterClass arg2, string lmul,
+                                string constraints = ""> {
+  let Constraints = Join<[constraints, ""], ",">.Result,
+      Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 1,
+      BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in
+    def "_M" # lmul
+      : Pseudo<(outs result:$rd), (ins result:$merge, arg1:$rs1, arg2:$rs2,
+               ixlenimm:$sew), []>,
+        RISCVVectorPseudo;
+}
 
-multiclass pseudo_binary_v_vv_vx<string constraints = ""> {
+multiclass pseudo_binary_carryin<RegisterClass result, RegisterClass arg1,
+                                 RegisterClass arg2, string lmul,
+                                 string constraints = ""> {
+  let Constraints = Join<[constraints, ""], ",">.Result,
+      Uses = [VL, VTYPE], SEWIndex = 5, MergeOpIndex = 1,
+      BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in
+    def "_M" # lmul
+      : Pseudo<(outs result:$rd), (ins result:$merge, arg1:$rs1, arg2:$rs2,
+               VMV0:$maskop, ixlenimm:$sew), []>,
+        RISCVVectorPseudo;
+}
+
+multiclass pseudo_binary_v_vv<string constraints = ""> {
   foreach I = AllLMULs in {
     let LMUL = I.LMUL in {
       defm _VV : pseudo_binary<I.RegClass, I.RegClass, I.RegClass, I.LMULstr,
                                constraints>;
+    }
+  }
+}
+
+multiclass pseudo_binary_v_vx<string constraints = ""> {
+  foreach I = AllLMULs in {
+    let LMUL = I.LMUL in {
       defm _VX : pseudo_binary<I.RegClass, I.RegClass, GPR, I.LMULstr,
                                constraints>;
     }
   }
 }
 
-multiclass pseudo_binary_v_vv_vf<string constraints = ""> {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
-      defm _VV : pseudo_binary<I.RegClass, I.RegClass, I.RegClass, I.LMULstr,
-                               constraints>;
-      defm _VF : pseudo_binary<I.RegClass, I.RegClass, FPR32, I.LMULstr,
-                               constraints>;
-    }
-  }
-}
+multiclass pseudo_binary_v_vv_vx<string constraints = "">
+  : pseudo_binary_v_vv<constraints>, pseudo_binary_v_vx<constraints>;
 
 multiclass pseudo_binary_v_vf<string constraints = ""> {
   foreach I = AllLMULs in {
@@ -556,6 +500,9 @@ multiclass pseudo_binary_v_vf<string constraints = ""> {
     }
   }
 }
+
+multiclass pseudo_binary_v_vv_vf<string constraints = "">
+  : pseudo_binary_v_vv<constraints>, pseudo_binary_v_vf<constraints>;
 
 multiclass pseudo_binary_w_vv_vx_wx_wv<string constraints = ""> {
   foreach I = AllWideLMULs in {
@@ -695,6 +642,26 @@ multiclass pseudo_binary_m_vf<string constraints = ""> {
   }
 }
 
+multiclass pseudo_ternary<RegisterClass result, RegisterClass arg1,
+                          RegisterClass arg2, string lmul,
+                          string constraints = ""> {
+  let Constraints = Join<[constraints, "$rd = $merge"], ",">.Result,
+      Uses = [VL, VTYPE], SEWIndex = 5, MergeOpIndex = 1,
+      BaseInstr = !cast<Instruction>(!subst("Pseudo", "", NAME)) in
+    def "_M" # lmul
+      : Pseudo<(outs result:$rd), (ins result:$merge, arg1:$rs1, arg2:$rs2,
+               VMaskOp:$vm, ixlenimm:$sew), []>,
+        RISCVVectorPseudo;
+}
+
+multiclass pseudo_ternary_reduction {
+  foreach I = AllLMULs in {
+    let LMUL = I.LMUL in {
+      defm _VS : pseudo_ternary<VR, I.RegClass, VR, I.LMULstr>;
+    }
+  }
+}
+
 multiclass pseudo_ternary_v_vvv_vvf<string constraints = ""> {
   foreach I = AllLMULs in {
     let LMUL = I.LMUL in {
@@ -799,13 +766,199 @@ class swap_helper<dag Prefix, dag A, dag B, dag Suffix, bit swap> {
   dag Value = !con(Prefix, !if(swap, B, A), !if(swap, A, B), Suffix);
 }
 
+multiclass pat_intrinsic_unary<string intrinsic_name, string insn_name,
+                               ValueType result_type, ValueType arg1_type,
+                               ValueType mask_type, int sew, string lmul,
+                               RegisterClass result, RegisterClass arg1> {
+  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
+                          (arg1_type arg1:$rs1))),
+            (!cast<Instruction>(insn_name#"_M"#lmul)
+             (result_type zero_reg), arg1:$rs1, (mask_type zero_reg),
+             sew)>;
+
+  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name#"_mask")
+                         (mask_type V0),
+                         (result_type result:$merge),
+                         (arg1_type arg1:$rs1))),
+            (!cast<Instruction>(insn_name#"_M"#lmul)
+             result:$merge, arg1:$rs1, (mask_type V0), sew)>;
+}
+
+multiclass pat_intrinsic_unary_nomask<string intrinsic_name,
+                                      string insn_name,
+                                      ValueType result_type,
+                                      ValueType arg1_type,
+                                      int sew, string lmul,
+                                      RegisterClass result,
+                                      DAGOperand arg1> {
+  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
+                          (arg1_type arg1:$rs1))),
+            (!cast<Instruction>(insn_name#"_M"#lmul)
+              (result_type zero_reg),
+              ToScalarOp<arg1_type, arg1, "rs1">.Result, sew)>;
+}
+
+multiclass pat_intrinsic_int_unary_v<string intrinsic_name,
+                                     string insn_name> {
+  foreach I = AllIntegerVectors in {
+    defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
+                               I.Type, I.Type, I.Mask,
+                               I.SEW, I.LMULstr, I.RegClass, I.RegClass>;
+  }
+}
+
+multiclass pat_intrinsic_float_unary_v_v<string intrinsic_name,
+                                         string insn_name> {
+  foreach I = AllFloatVectors in {
+    defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
+                               I.Type, I.Type, I.Mask,
+                               I.SEW, I.LMULstr, I.RegClass, I.RegClass>;
+  }
+}
+
+multiclass pat_intrinsic_int_unary_nomask_v_v_v_x<string intrinsic_name,
+                                                  string insn_name> {
+  foreach I = AllIntegerVectors in {
+    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_v",
+                                      insn_name#"_V", I.Type, I.Type,
+                                      I.SEW, I.LMULstr, I.RegClass, I.RegClass>;
+    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_x",
+                                      insn_name#"_X", I.Type, XLenVT,
+                                      I.SEW, I.LMULstr, I.RegClass, GPR>;
+  }
+}
+
+multiclass pat_intrinsic_int_unary_nomask_x_s<string intrinsic_name,
+                                              string insn_name> {
+  foreach I = AllIntegerVectors in {
+    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_x_s",
+                                      insn_name#"_X_S", XLenVT, I.Type,
+                                      I.SEW, I.LMULstr, GPR, I.RegClass>;
+  }
+}
+
+multiclass pat_intrinsic_vfmv<string intrinsic_name, string insn_name> {
+  foreach I = AllFloatVectors in {
+    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_f_s",
+                                      insn_name#"_F_S", f32, I.Type,
+                                      I.SEW, I.LMULstr, FPR32, I.RegClass>;
+    def : Pat<(f64 (!cast<Intrinsic>(intrinsic_name#"_f_s")
+                   (I.Type I.RegClass:$rs1))),
+              (SUBREG_TO_REG (i32 -1),
+                  (!cast<Instruction>(insn_name#"_F_S_M"#I.LMULstr)
+                  (f32 zero_reg), I.RegClass:$rs1, I.SEW), sub_32)>;
+
+    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_v_f",
+                                      insn_name#"_V_F", I.Type, f32,
+                                      I.SEW, I.LMULstr, I.RegClass, FPR32>;
+    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_v_f",
+                                      insn_name#"_V_F", I.Type, f64,
+                                      I.SEW, I.LMULstr, I.RegClass, FPR64>;
+    def : Pat<(I.Type (!cast<Intrinsic>(intrinsic_name#"_s_f")
+                        (I.Type I.RegClass:$merge), (f32 FPR32:$rs1))),
+              (!cast<Instruction>(insn_name#"_S_F_M"#I.LMULstr)
+               I.RegClass:$merge, FPR32:$rs1, I.SEW)>;
+  }
+}
+
+multiclass pat_intrinsic_unary_w_f_v<string intrinsic_name,
+                                     string insn_name> {
+  foreach I = AllWideFloatToIntVectors in {
+    defvar vti = I.Vti;
+    defvar wti = I.Wti;
+    defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
+                               vti.Type, wti.Type, vti.Mask, vti.SEW,
+                               I.LMULstr, vti.RegClass, wti.RegClass>;
+
+  }
+}
+
+multiclass pat_intrinsic_unary_w_v_f<string intrinsic_name,
+                                     string insn_name> {
+  foreach I = AllWideFloatToIntVectors in {
+    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
+    defvar vti = GetIntVectorTypeInfo<I.Wti>.Vti;
+    defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
+                               fti.Type, vti.Type, fti.Mask, fti.SEW,
+                               I.LMULstr, fti.RegClass, vti.RegClass>;
+
+  }
+}
+
+multiclass pat_intrinsic_unary_w_f_f<string intrinsic_name,
+                                     string insn_name> {
+  foreach I = AllWideFloatToIntVectors in {
+    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
+    defvar wti = I.Wti;
+    defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
+                               fti.Type, wti.Type, fti.Mask, fti.SEW,
+                               I.LMULstr, fti.RegClass, wti.RegClass>;
+
+  }
+}
+
+multiclass pat_intrinsic_unary_n_v_f<string intrinsic_name,
+                                     string insn_name> {
+  foreach I = AllWideFloatToIntVectors in {
+    defvar vti = I.Vti;
+    defvar wti = I.Wti;
+    defm : pat_intrinsic_unary<intrinsic_name#"_w", insn_name#"_W",
+                               wti.Type, vti.Type, wti.Mask, wti.SEW,
+                               I.LMULstr, wti.RegClass, vti.RegClass>;
+  }
+}
+
+multiclass pat_intrinsic_unary_n_f_v<string intrinsic_name,
+                                     string insn_name> {
+  foreach I = AllWideFloatToIntVectors in {
+    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
+    defvar vti = GetIntVectorTypeInfo<I.Wti>.Vti;
+    defm : pat_intrinsic_unary<intrinsic_name#"_w", insn_name#"_W",
+                               vti.Type, fti.Type, vti.Mask, vti.SEW,
+                               I.LMULstr, vti.RegClass, fti.RegClass>;
+
+  }
+}
+
+
+multiclass pat_intrinsic_unary_n_f_f<string intrinsic_name,
+                                     string insn_name> {
+  foreach I = AllWideFloatToIntVectors in {
+    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
+    defvar wti = I.Wti;
+    defm : pat_intrinsic_unary<intrinsic_name#"_w", insn_name#"_W",
+                               wti.Type, fti.Type, wti.Mask, wti.SEW,
+                               I.LMULstr, wti.RegClass, fti.RegClass>;
+
+  }
+}
+
+multiclass pat_intrinsic_unary_f_v<string intrinsic_name,
+                                   string insn_name> {
+  foreach I = AllFloatVectors in {
+    defvar vti = GetIntVectorTypeInfo<I>.Vti;
+    defm : pat_intrinsic_unary<intrinsic_name, insn_name#"_V",
+                               vti.Type, I.Type, vti.Mask, vti.SEW,
+                               I.LMULstr, vti.RegClass, I.RegClass>;
+
+  }
+}
+
+multiclass pat_intrinsic_unary_v_f<string intrinsic_name, string insn_name> {
+  foreach I = AllFloatVectors in {
+    defvar vti = GetIntVectorTypeInfo<I>.Vti;
+    defm : pat_intrinsic_unary<intrinsic_name, insn_name#"_V",
+                               I.Type, vti.Type, vti.Mask, vti.SEW,
+                               I.LMULstr, I.RegClass, vti.RegClass>;
+  }
+}
+
 multiclass pat_intrinsic_binary<string intrinsic_name, string insn_name,
                                 ValueType result_type, ValueType arg1_type,
                                 ValueType arg2_type, ValueType mask_type,
-                                int sew, string lmul,
-                                RegisterClass result,
-                                RegisterClass arg1,
-                                DAGOperand arg2, bit swap = 0> {
+                                int sew, string lmul, RegisterClass result,
+                                RegisterClass arg1, DAGOperand arg2,
+                                bit swap = 0> {
   defvar insn = !cast<Instruction>(insn_name#"_M"#lmul);
   def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
                           (arg1_type arg1:$rs1),
@@ -817,13 +970,10 @@ multiclass pat_intrinsic_binary<string intrinsic_name, string insn_name,
               (insn (mask_type zero_reg), sew), swap>.Value>;
 
   def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name#"_mask")
-                          (mask_type V0),
-                          (result_type result:$merge),
-                          (arg1_type arg1:$rs1),
-                          (arg2_type arg2:$rs2))),
+                          (mask_type V0), (result_type result:$merge),
+                          (arg1_type arg1:$rs1), (arg2_type arg2:$rs2))),
             swap_helper<
-              (insn result:$merge),
-              (insn arg1:$rs1),
+              (insn result:$merge), (insn arg1:$rs1),
               (insn ToScalarOp<arg2_type, arg2, "rs2">.Result),
               (insn (mask_type V0), sew), swap>.Value>;
 }
@@ -864,72 +1014,6 @@ multiclass pat_intrinsic_binary_nomask<string intrinsic_name,
             (!cast<Instruction>(insn_name#"_M"#lmul)
              (result_type zero_reg), arg1:$rs1,
              ToScalarOp<arg2_type, arg2, "rs2">.Result, sew)>;
-}
-
-multiclass pat_intrinsic_ternary<string intrinsic_name, string insn_name,
-                                 ValueType result_type, ValueType arg1_type,
-                                 ValueType arg2_type, ValueType mask_type,
-                                 int sew, string lmul, RegisterClass result,
-                                 DAGOperand arg1, RegisterClass arg2> {
-  defvar insn = !cast<Instruction>(insn_name#"_M"#lmul);
-  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
-                          (result_type result:$merge),
-                          (arg1_type arg1:$rs1), (arg2_type arg2:$rs2))),
-            (insn result:$merge, ToScalarOp<arg1_type, arg1, "rs1">.Result,
-                  arg2:$rs2, (mask_type zero_reg), sew)>;
-}
-
-multiclass pat_intrinsic_ternary_nomask<string intrinsic_name,
-                                        string insn_name,
-                                        ValueType result_type,
-                                        ValueType arg1_type,
-                                        ValueType arg2_type,
-                                        ValueType arg3_type,
-                                        int sew, string lmul,
-                                        RegisterClass result,
-                                        RegisterClass arg1,
-                                        RegisterClass arg2,
-                                        DAGOperand arg3> {
-  defvar insn = !cast<Instruction>(insn_name#"_M"#lmul);
-  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
-                          (arg1_type V0), (arg2_type arg2:$rs2),
-                          (arg3_type arg3:$rs3))),
-            (insn (result_type zero_reg), arg2:$rs2,
-                  ToScalarOp<arg3_type, arg3, "rs3">.Result,
-                  (arg1_type V0), sew)>;
-}
-
-multiclass pat_intrinsic_unary<string intrinsic_name, string insn_name,
-                               ValueType result_type, ValueType arg1_type,
-                               ValueType mask_type, int sew, string lmul,
-                               RegisterClass result,
-                               RegisterClass arg1> {
-  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
-                          (arg1_type arg1:$rs1))),
-            (!cast<Instruction>(insn_name#"_M"#lmul)
-             (result_type zero_reg), arg1:$rs1, (mask_type zero_reg),
-             sew)>;
-
-  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name#"_mask")
-                         (mask_type V0),
-                         (result_type result:$merge),
-                         (arg1_type arg1:$rs1))),
-            (!cast<Instruction>(insn_name#"_M"#lmul)
-             result:$merge, arg1:$rs1, (mask_type V0), sew)>;
-}
-
-multiclass pat_intrinsic_unary_nomask<string intrinsic_name,
-                                      string insn_name,
-                                      ValueType result_type,
-                                      ValueType arg1_type,
-                                      int sew, string lmul,
-                                      RegisterClass result,
-                                      DAGOperand arg1> {
-  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
-                          (arg1_type arg1:$rs1))),
-            (!cast<Instruction>(insn_name#"_M"#lmul)
-              (result_type zero_reg),
-              ToScalarOp<arg1_type, arg1, "rs1">.Result, sew)>;
 }
 
 multiclass pat_intrinsic_int_binary_vv_vx<string intrinsic_name,
@@ -1137,43 +1221,6 @@ multiclass pat_intrinsic_int_binary_v_vvm_vxm<string intrinsic_name,
   }
 }
 
-multiclass pat_intrinsic_vmerge<string intrinsic_name,
-                                string insn_name> {
-    foreach I = AllVectors in {
-      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vvm",
-                                          insn_name#"_VVM",
-                                          I.Type, I.Mask, I.Type, I.Type,
-                                          I.SEW, I.LMULstr, I.RegClass, VMV0,
-                                          I.RegClass, I.RegClass>;
-    }
-    foreach I = AllIntegerVectors in {
-      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vxm",
-                                          insn_name#"_VXM",
-                                          I.Type, I.Mask, I.Type, XLenVT,
-                                          I.SEW, I.LMULstr, I.RegClass, VMV0,
-                                          I.RegClass, GPR>;
-    }
-}
-
-multiclass pat_intrinsic_vfmerge<string intrinsic_name,
-                                 string insn_name> {
-    foreach I = AllFloatVectors in {
-      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vfm",
-                                          insn_name#"_VFM",
-                                          I.Type, I.Mask, I.Type, f32,
-                                          I.SEW, I.LMULstr, I.RegClass, VMV0,
-                                          I.RegClass, FPR32>;
-    }
-    foreach I = AllFloatVectors in {
-      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vfm",
-                                          insn_name#"_VFM", I.Type,
-                                          I.Mask, I.Type, f64, I.SEW,
-                                          I.LMULstr, I.RegClass, VMV0,
-                                          I.RegClass, FPR64>;
-    }
-}
-
-
 multiclass pat_intrinsic_int_binary_m_vvm_vxm<string intrinsic_name,
                                               string insn_name> {
   foreach I = AllIntegerVectors in {
@@ -1218,159 +1265,73 @@ multiclass pat_intrinsic_int_binary_nomask_s_x<string intrinsic_name,
   }
 }
 
-multiclass pat_intrinsic_int_unary_v<string intrinsic_name,
-                                     string insn_name> {
-  foreach I = AllIntegerVectors in {
-    defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
-                               I.Type, I.Type, I.Mask,
-                               I.SEW, I.LMULstr, I.RegClass, I.RegClass>;
-  }
+multiclass pat_intrinsic_ternary<string intrinsic_name, string insn_name,
+                                 ValueType result_type, ValueType arg1_type,
+                                 ValueType arg2_type, ValueType mask_type,
+                                 int sew, string lmul, RegisterClass result,
+                                 DAGOperand arg1, RegisterClass arg2> {
+  defvar insn = !cast<Instruction>(insn_name#"_M"#lmul);
+  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
+                          (result_type result:$merge),
+                          (arg1_type arg1:$rs1), (arg2_type arg2:$rs2))),
+            (insn result:$merge, ToScalarOp<arg1_type, arg1, "rs1">.Result,
+                  arg2:$rs2, (mask_type zero_reg), sew)>;
 }
 
-multiclass pat_intrinsic_float_unary_v_v<string intrinsic_name,
-                                         string insn_name> {
-  foreach I = AllFloatVectors in {
-    defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
-                               I.Type, I.Type, I.Mask,
-                               I.SEW, I.LMULstr, I.RegClass, I.RegClass>;
-  }
+multiclass pat_intrinsic_ternary_nomask<string intrinsic_name,
+                                        string insn_name,
+                                        ValueType result_type,
+                                        ValueType arg1_type,
+                                        ValueType arg2_type,
+                                        ValueType arg3_type,
+                                        int sew, string lmul,
+                                        RegisterClass result,
+                                        RegisterClass arg1,
+                                        RegisterClass arg2,
+                                        DAGOperand arg3> {
+  defvar insn = !cast<Instruction>(insn_name#"_M"#lmul);
+  def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
+                          (arg1_type V0), (arg2_type arg2:$rs2),
+                          (arg3_type arg3:$rs3))),
+            (insn (result_type zero_reg), arg2:$rs2,
+                  ToScalarOp<arg3_type, arg3, "rs3">.Result,
+                  (arg1_type V0), sew)>;
 }
 
-multiclass pat_intrinsic_int_unary_nomask_v_v_v_x<string intrinsic_name,
-                                                  string insn_name> {
-  foreach I = AllIntegerVectors in {
-    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_v",
-                                      insn_name#"_V", I.Type, I.Type,
-                                      I.SEW, I.LMULstr, I.RegClass, I.RegClass>;
-    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_x",
-                                      insn_name#"_X", I.Type, XLenVT,
-                                      I.SEW, I.LMULstr, I.RegClass, GPR>;
-  }
+multiclass pat_intrinsic_vmerge<string intrinsic_name,
+                                string insn_name> {
+    foreach I = AllVectors in {
+      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vvm",
+                                          insn_name#"_VVM",
+                                          I.Type, I.Mask, I.Type, I.Type,
+                                          I.SEW, I.LMULstr, I.RegClass, VMV0,
+                                          I.RegClass, I.RegClass>;
+    }
+    foreach I = AllIntegerVectors in {
+      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vxm",
+                                          insn_name#"_VXM",
+                                          I.Type, I.Mask, I.Type, XLenVT,
+                                          I.SEW, I.LMULstr, I.RegClass, VMV0,
+                                          I.RegClass, GPR>;
+    }
 }
 
-multiclass pat_intrinsic_int_unary_nomask_x_s<string intrinsic_name,
-                                              string insn_name> {
-  foreach I = AllIntegerVectors in {
-    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_x_s",
-                                      insn_name#"_X_S", XLenVT, I.Type,
-                                      I.SEW, I.LMULstr, GPR, I.RegClass>;
-  }
-}
-
-multiclass pat_intrinsic_vfmv<string intrinsic_name, string insn_name> {
-  foreach I = AllFloatVectors in {
-    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_f_s",
-                                      insn_name#"_F_S", f32, I.Type,
-                                      I.SEW, I.LMULstr, FPR32, I.RegClass>;
-    def : Pat<(f64 (!cast<Intrinsic>(intrinsic_name#"_f_s")
-                   (I.Type I.RegClass:$rs1))),
-              (SUBREG_TO_REG (i32 -1),
-                  (!cast<Instruction>(insn_name#"_F_S_M"#I.LMULstr)
-                  (f32 zero_reg), I.RegClass:$rs1, I.SEW), sub_32)>;
-
-    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_v_f",
-                                      insn_name#"_V_F", I.Type, f32,
-                                      I.SEW, I.LMULstr, I.RegClass, FPR32>;
-    defm : pat_intrinsic_unary_nomask<intrinsic_name#"_v_f",
-                                      insn_name#"_V_F", I.Type, f64,
-                                      I.SEW, I.LMULstr, I.RegClass, FPR64>;
-    def : Pat<(I.Type (!cast<Intrinsic>(intrinsic_name#"_s_f")
-                        (I.Type I.RegClass:$merge), (f32 FPR32:$rs1))),
-              (!cast<Instruction>(insn_name#"_S_F_M"#I.LMULstr)
-               I.RegClass:$merge, FPR32:$rs1, I.SEW)>;
-  }
-}
-
-multiclass pat_intrinsic_unary_w_f_v<string intrinsic_name,
-                                     string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar vti = I.Vti;
-    defvar wti = I.Wti;
-    defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
-                               vti.Type, wti.Type, vti.Mask, vti.SEW,
-                               I.LMULstr, vti.RegClass, wti.RegClass>;
-
-  }
-}
-
-multiclass pat_intrinsic_unary_w_v_f<string intrinsic_name,
-                                     string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar vti = GetIntVectorTypeInfo<I.Wti>.Vti;
-    defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
-                               fti.Type, vti.Type, fti.Mask, fti.SEW,
-                               I.LMULstr, fti.RegClass, vti.RegClass>;
-
-  }
-}
-
-multiclass pat_intrinsic_unary_w_f_f<string intrinsic_name,
-                                     string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar wti = I.Wti;
-    defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
-                               fti.Type, wti.Type, fti.Mask, fti.SEW,
-                               I.LMULstr, fti.RegClass, wti.RegClass>;
-
-  }
-}
-
-multiclass pat_intrinsic_unary_n_v_f<string intrinsic_name,
-                                     string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar vti = I.Vti;
-    defvar wti = I.Wti;
-    defm : pat_intrinsic_unary<intrinsic_name#"_w", insn_name#"_W",
-                               wti.Type, vti.Type, wti.Mask, wti.SEW,
-                               I.LMULstr, wti.RegClass, vti.RegClass>;
-  }
-}
-
-multiclass pat_intrinsic_unary_n_f_v<string intrinsic_name,
-                                     string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar vti = GetIntVectorTypeInfo<I.Wti>.Vti;
-    defm : pat_intrinsic_unary<intrinsic_name#"_w", insn_name#"_W",
-                               vti.Type, fti.Type, vti.Mask, vti.SEW,
-                               I.LMULstr, vti.RegClass, fti.RegClass>;
-
-  }
-}
-
-
-multiclass pat_intrinsic_unary_n_f_f<string intrinsic_name,
-                                     string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar wti = I.Wti;
-    defm : pat_intrinsic_unary<intrinsic_name#"_w", insn_name#"_W",
-                               wti.Type, fti.Type, wti.Mask, wti.SEW,
-                               I.LMULstr, wti.RegClass, fti.RegClass>;
-
-  }
-}
-
-multiclass pat_intrinsic_unary_f_v<string intrinsic_name,
-                                   string insn_name> {
-  foreach I = AllFloatVectors in {
-    defvar vti = GetIntVectorTypeInfo<I>.Vti;
-    defm : pat_intrinsic_unary<intrinsic_name, insn_name#"_V",
-                               vti.Type, I.Type, vti.Mask, vti.SEW,
-                               I.LMULstr, vti.RegClass, I.RegClass>;
-
-  }
-}
-
-multiclass pat_intrinsic_unary_v_f<string intrinsic_name, string insn_name> {
-  foreach I = AllFloatVectors in {
-    defvar vti = GetIntVectorTypeInfo<I>.Vti;
-    defm : pat_intrinsic_unary<intrinsic_name, insn_name#"_V",
-                               I.Type, vti.Type, vti.Mask, vti.SEW,
-                               I.LMULstr, I.RegClass, vti.RegClass>;
-  }
+multiclass pat_intrinsic_vfmerge<string intrinsic_name,
+                                 string insn_name> {
+    foreach I = AllFloatVectors in {
+      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vfm",
+                                          insn_name#"_VFM",
+                                          I.Type, I.Mask, I.Type, f32,
+                                          I.SEW, I.LMULstr, I.RegClass, VMV0,
+                                          I.RegClass, FPR32>;
+    }
+    foreach I = AllFloatVectors in {
+      defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vfm",
+                                          insn_name#"_VFM", I.Type,
+                                          I.Mask, I.Type, f64, I.SEW,
+                                          I.LMULstr, I.RegClass, VMV0,
+                                          I.RegClass, FPR64>;
+    }
 }
 
 multiclass pat_intrinsic_float_ternary_v_vvv_vvf<string intrinsic_name,
@@ -1533,6 +1494,7 @@ defm : pat_intrinsic_vload_store;
 // 12.1. Vector Single-Width Integer Add and Subtract
 defm PseudoVADD : pseudo_binary_v_vv_vx;
 defm PseudoVSUB : pseudo_binary_v_vv_vx;
+defm PseudoVRSUB : pseudo_binary_v_vx;
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vadd", "PseudoVADD">;
 defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsub", "PseudoVSUB">;
 
@@ -1894,6 +1856,15 @@ defm : pat_intrinsic_float_reduction<"int_riscv_vfwredosum", "PseudoVFWREDOSUM">
 defm : pat_intrinsic_float_reduction<"int_riscv_vfwredsum", "PseudoVFWREDSUM">;
 
 // 16.1. Vector Mask-Register Logical Instructions
+// defm PseudoVMAND : ;
+// defm PseudoVMNAND : ;
+// defm PseudoVMANDNOT : ;
+// defm PseudoVMXOR : ;
+// defm PseudoVMOR : ;
+// defm PseudoVMNOR : ;
+// defm PseudoVMORNOT : ;
+// defm PseudoVMXNOR : ;
+
 // 16.2. Vector mask population count vpopc
 // 16.3. vfirst find-first-set mask bit
 // 16.4. vmsbf.m set-before-first mask bit

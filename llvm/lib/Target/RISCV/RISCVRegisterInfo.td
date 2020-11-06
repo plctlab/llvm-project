@@ -335,12 +335,13 @@ def VRM8 : RegisterClass<"RISCV", [nxv64i8, nxv32i16, nxv16i32, nxv8i64,
   let Size = 512;
 }
 
-def VMaskVT : RegisterTypes<[nxv1i1, nxv2i1, nxv4i1, nxv8i1, nxv16i1, nxv32i1, nxv64i1]>;
+def VMaskVT : RegisterTypes<[nxv1i1, nxv2i1, nxv4i1, nxv8i1, nxv16i1,
+                             nxv32i1, nxv64i1]>;
 
-def VM : RegisterClass<"RISCV", VMaskVT.types, 64, (add
-    (sequence "V%u", 25, 31),
-    (sequence "V%u", 8, 24),
-    (sequence "V%u", 0, 7))> {
+def VM : RegisterClass<"RISCV", VMaskVT.types, 64,
+                       (add (sequence "V%u", 25, 31),
+                            (sequence "V%u", 8, 24),
+                            (sequence "V%u", 0, 7))> {
   let Size = 64;
 }
 
