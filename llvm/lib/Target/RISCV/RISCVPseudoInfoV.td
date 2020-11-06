@@ -472,67 +472,31 @@ multiclass pseudo_binary_carryin<RegisterClass result, RegisterClass arg1,
 }
 
 multiclass pseudo_binary_v_vv<string constraints = ""> {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
+  foreach I = AllLMULs in
+    let LMUL = I.LMUL in
       defm _VV : pseudo_binary<I.RegClass, I.RegClass, I.RegClass, I.LMULstr,
                                constraints>;
-    }
-  }
 }
 
 multiclass pseudo_binary_v_vx<string constraints = ""> {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
+  foreach I = AllLMULs in
+    let LMUL = I.LMUL in
       defm _VX : pseudo_binary<I.RegClass, I.RegClass, GPR, I.LMULstr,
                                constraints>;
-    }
-  }
+}
+
+multiclass pseudo_binary_v_vf<string constraints = ""> {
+  foreach I = AllLMULs in
+    let LMUL = I.LMUL in
+      defm _VF : pseudo_binary<I.RegClass, I.RegClass, FPR32, I.LMULstr,
+                               constraints>;
 }
 
 multiclass pseudo_binary_v_vv_vx<string constraints = "">
   : pseudo_binary_v_vv<constraints>, pseudo_binary_v_vx<constraints>;
 
-multiclass pseudo_binary_v_vf<string constraints = ""> {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
-      defm _VF : pseudo_binary<I.RegClass, I.RegClass, FPR32, I.LMULstr,
-                               constraints>;
-    }
-  }
-}
-
 multiclass pseudo_binary_v_vv_vf<string constraints = "">
   : pseudo_binary_v_vv<constraints>, pseudo_binary_v_vf<constraints>;
-
-multiclass pseudo_binary_w_vv_vx_wx_wv<string constraints = ""> {
-  foreach I = AllWideLMULs in {
-    let LMUL = I.WideLMUL in {
-      defm _VV : pseudo_binary<I.WideRegClass, I.OriginRegClass,
-                               I.OriginRegClass, I.LMULstr, constraints>;
-      defm _VX : pseudo_binary<I.WideRegClass, I.OriginRegClass,
-                               GPR, I.LMULstr, constraints>;
-      defm _WV : pseudo_binary<I.WideRegClass, I.WideRegClass,
-                               I.OriginRegClass, I.LMULstr, constraints>;
-      defm _WX : pseudo_binary<I.WideRegClass, I.WideRegClass,
-                               GPR, I.LMULstr, constraints>;
-    }
-  }
-}
-
-multiclass pseudo_binary_w_vv_vf_wf_wv<string constraints = ""> {
-  foreach I = AllWideLMULs in {
-    let LMUL = I.WideLMUL in {
-      defm _VV : pseudo_binary<I.WideRegClass, I.OriginRegClass,
-                               I.OriginRegClass, I.LMULstr, constraints>;
-      defm _VF : pseudo_binary<I.WideRegClass, I.OriginRegClass,
-                               FPR32, I.LMULstr, constraints>;
-      defm _WV : pseudo_binary<I.WideRegClass, I.WideRegClass,
-                               I.OriginRegClass, I.LMULstr, constraints>;
-      defm _WF : pseudo_binary<I.WideRegClass, I.WideRegClass,
-                               FPR32, I.LMULstr, constraints>;
-    }
-  }
-}
 
 multiclass pseudo_binary_w_vv_vx<string constraints = ""> {
   foreach I = AllWideLMULs in {
@@ -545,6 +509,20 @@ multiclass pseudo_binary_w_vv_vx<string constraints = ""> {
   }
 }
 
+multiclass pseudo_binary_w_wv_wx<string constraints = ""> {
+  foreach I = AllWideLMULs in {
+    let LMUL = I.WideLMUL in {
+      defm _WV : pseudo_binary<I.WideRegClass, I.WideRegClass,
+                               I.OriginRegClass, I.LMULstr, constraints>;
+      defm _WX : pseudo_binary<I.WideRegClass, I.WideRegClass,
+                               GPR, I.LMULstr, constraints>;
+    }
+  }
+}
+
+multiclass pseudo_binary_w_vv_vx_wv_wx<string constraints = "">
+  : pseudo_binary_w_vv_vx<constraints>, pseudo_binary_w_wv_wx<constraints>;
+
 multiclass pseudo_binary_w_vv_vf<string constraints = ""> {
   foreach I = AllWideLMULs in {
     let LMUL = I.WideLMUL in {
@@ -555,6 +533,20 @@ multiclass pseudo_binary_w_vv_vf<string constraints = ""> {
     }
   }
 }
+
+multiclass pseudo_binary_w_wv_wf<string constraints = ""> {
+  foreach I = AllWideLMULs in {
+    let LMUL = I.WideLMUL in {
+      defm _WV : pseudo_binary<I.WideRegClass, I.WideRegClass,
+                               I.OriginRegClass, I.LMULstr, constraints>;
+      defm _WF : pseudo_binary<I.WideRegClass, I.WideRegClass,
+                               FPR32, I.LMULstr, constraints>;
+    }
+  }
+}
+
+multiclass pseudo_binary_w_vv_vf_wv_wf<string constraints = "">
+  : pseudo_binary_w_vv_vf<constraints>, pseudo_binary_w_wv_wf<constraints>;
 
 multiclass pseudo_binary_n_wn_wx<string constraints = ""> {
   foreach I = AllWideLMULs in {
@@ -567,21 +559,11 @@ multiclass pseudo_binary_n_wn_wx<string constraints = ""> {
   }
 }
 
-// multiclass pseudo_binary_nomask_s_x<string constraints = ""> {
-//   foreach I = AllLMULs in {
-//     let LMUL = I.LMUL in {
-//       defm _S_X : pseudo_binary_nomask<I.RegClass, I.RegClass, GPR, I.LMULstr, constraints>;
-//     }
-//   }
-// }
-
 multiclass pseudo_binary_v_vfm<string constraints = ""> {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
+  foreach I = AllLMULs in
+    let LMUL = I.LMUL in
       defm _VFM : pseudo_binary_carryin<I.RegClass, I.RegClass, FPR32,
                                         I.LMULstr, constraints>;
-    }
-  }
 }
 
 multiclass pseudo_binary_v_vvm_vxm<string constraints = ""> {
@@ -606,41 +588,30 @@ multiclass pseudo_binary_m_vvm_vxm<string constraints = ""> {
   }
 }
 
-multiclass pseudo_binary_m_vv_vx<string constraints = ""> {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
+multiclass pseudo_binary_m_vv<string constraints = ""> {
+  foreach I = AllLMULs in
+    let LMUL = I.LMUL in
       defm _VV : pseudo_binary<VM, I.RegClass, I.RegClass, I.LMULstr,
                                constraints>;
-      defm _VX : pseudo_binary<VM, I.RegClass, GPR, I.LMULstr, constraints>;
-    }
-  }
-}
-
-multiclass pseudo_binary_m_vv_vf<string constraints = ""> {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
-      defm _VV : pseudo_binary<VM, I.RegClass, I.RegClass, I.LMULstr,
-                               constraints>;
-      defm _VF : pseudo_binary<VM, I.RegClass, FPR32, I.LMULstr, constraints>;
-    }
-  }
 }
 
 multiclass pseudo_binary_m_vx<string constraints = ""> {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
+  foreach I = AllLMULs in
+    let LMUL = I.LMUL in
       defm _VX : pseudo_binary<VM, I.RegClass, GPR, I.LMULstr, constraints>;
-    }
-  }
 }
 
 multiclass pseudo_binary_m_vf<string constraints = ""> {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
+  foreach I = AllLMULs in
+    let LMUL = I.LMUL in
       defm _VF : pseudo_binary<VM, I.RegClass, FPR32, I.LMULstr, constraints>;
-    }
-  }
 }
+
+multiclass pseudo_binary_m_vv_vx<string constraints = "">
+  : pseudo_binary_m_vv<constraints>, pseudo_binary_m_vx<constraints>;
+
+multiclass pseudo_binary_m_vv_vf<string constraints = "">
+  : pseudo_binary_m_vv<constraints>, pseudo_binary_m_vf<constraints>;
 
 multiclass pseudo_ternary<RegisterClass result, RegisterClass arg1,
                           RegisterClass arg2, string lmul,
@@ -655,11 +626,9 @@ multiclass pseudo_ternary<RegisterClass result, RegisterClass arg1,
 }
 
 multiclass pseudo_ternary_reduction {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
+  foreach I = AllLMULs in
+    let LMUL = I.LMUL in
       defm _VS : pseudo_ternary<VR, I.RegClass, VR, I.LMULstr>;
-    }
-  }
 }
 
 multiclass pseudo_ternary_v_vvv_vvf<string constraints = ""> {
@@ -673,6 +642,13 @@ multiclass pseudo_ternary_v_vvv_vvf<string constraints = ""> {
   }
 }
 
+multiclass pseudo_ternary_v_vvx<string constraints = ""> {
+  foreach I = AllLMULs in
+    let LMUL = I.LMUL in
+      defm _VX : pseudo_ternary<I.RegClass, I.RegClass, GPR, I.LMULstr,
+                                constraints>;
+}
+
 multiclass pseudo_ternary_v_vvv_vvx<string constraints = ""> {
   foreach I = AllLMULs in {
     let LMUL = I.LMUL in {
@@ -684,66 +660,50 @@ multiclass pseudo_ternary_v_vvv_vvx<string constraints = ""> {
   }
 }
 
-multiclass pseudo_ternary_v_vvx<string constraints = ""> {
-  foreach I = AllLMULs in {
-    let LMUL = I.LMUL in {
-      defm _VX : pseudo_ternary<I.RegClass, I.RegClass, GPR, I.LMULstr,
-                                constraints>;
-    }
-  }
-}
-
-multiclass pseudo_ternary_w_wvv_wvx<string constraints = ""> {
-  foreach I = AllWideLMULs in {
-    let LMUL = I.WideLMUL in {
+multiclass pseudo_ternary_w_wvv<string constraints = ""> {
+  foreach I = AllWideLMULs in
+    let LMUL = I.WideLMUL in
       defm _VV : pseudo_ternary<I.WideRegClass, I.OriginRegClass,
                                 I.OriginRegClass, I.LMULstr, constraints>;
-      defm _VX : pseudo_ternary<I.WideRegClass, GPR, I.OriginRegClass,
-                                I.LMULstr, constraints>;
-    }
-  }
-}
-
-multiclass pseudo_ternary_qw_wvv_wvx<string constraints = ""> {
-  foreach I = AllQuadWideIntegerVectors in {
-    let LMUL = I.OriginVector.LMUL in {
-      defm _VV : pseudo_ternary<I.WidenRegClass, I.OriginVector.RegClass,
-                                I.OriginVector.RegClass, I.WidenLMULstr,
-                                constraints>;
-      defm _VX : pseudo_ternary<I.WidenRegClass, GPR, I.OriginVector.RegClass,
-                                I.WidenLMULstr, constraints>;
-    }
-  }
-}
-
-multiclass pseudo_ternary_w_wvv_wvf<string constraints = ""> {
-  foreach I = AllWideLMULs in {
-    let LMUL = I.WideLMUL in {
-      defm _VV : pseudo_ternary<I.WideRegClass, I.OriginRegClass,
-                                I.OriginRegClass, I.LMULstr, constraints>;
-      defm _VF : pseudo_ternary<I.WideRegClass, FPR32, I.OriginRegClass,
-                                I.LMULstr, constraints>;
-    }
-  }
 }
 
 multiclass pseudo_ternary_w_wvx<string constraints = ""> {
-  foreach I = AllWideLMULs in {
-    let LMUL = I.WideLMUL in {
+  foreach I = AllWideLMULs in
+    let LMUL = I.WideLMUL in
       defm _VX : pseudo_ternary<I.WideRegClass, GPR, I.OriginRegClass,
                                 I.LMULstr, constraints>;
-    }
-  }
+}
+
+multiclass pseudo_ternary_w_wvf<string constraints = ""> {
+  foreach I = AllWideLMULs in
+    let LMUL = I.WideLMUL in
+      defm _VF : pseudo_ternary<I.WideRegClass, FPR32, I.OriginRegClass,
+                                I.LMULstr, constraints>;
+}
+
+multiclass pseudo_ternary_w_wvv_wvx<string constraints = "">
+  : pseudo_ternary_w_wvv<constraints>, pseudo_ternary_w_wvx<constraints>;
+
+multiclass pseudo_ternary_w_wvv_wvf<string constraints = "">
+  : pseudo_ternary_w_wvv<constraints>, pseudo_ternary_w_wvf<constraints>;
+
+multiclass pseudo_ternary_qw_wvv<string constraints = ""> {
+  foreach I = AllQuadWideIntegerVectors in
+    let LMUL = I.OriginVector.LMUL in
+      defm _VV : pseudo_ternary<I.WidenRegClass, I.OriginVector.RegClass,
+                                I.OriginVector.RegClass, I.WidenLMULstr,
+                                constraints>;
 }
 
 multiclass pseudo_ternary_qw_wvx<string constraints = ""> {
-  foreach I = AllQuadWideIntegerVectors in {
-    let LMUL = I.OriginVector.LMUL in {
+  foreach I = AllQuadWideIntegerVectors in
+    let LMUL = I.OriginVector.LMUL in
       defm _VX : pseudo_ternary<I.WidenRegClass, GPR, I.OriginVector.RegClass,
                                 I.WidenLMULstr, constraints>;
-    }
-  }
 }
+
+multiclass pseudo_ternary_qw_wvv_wvx<string constraints = "">
+  : pseudo_ternary_qw_wvv<constraints>, pseudo_ternary_qw_wvx<constraints>;
 
 } // let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1
 
@@ -800,20 +760,18 @@ multiclass pat_intrinsic_unary_nomask<string intrinsic_name,
 
 multiclass pat_intrinsic_int_unary_v<string intrinsic_name,
                                      string insn_name> {
-  foreach I = AllIntegerVectors in {
+  foreach I = AllIntegerVectors in
     defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
-                               I.Type, I.Type, I.Mask,
-                               I.SEW, I.LMULstr, I.RegClass, I.RegClass>;
-  }
+                               I.Type, I.Type, I.Mask, I.SEW, I.LMULstr,
+                               I.RegClass, I.RegClass>;
 }
 
 multiclass pat_intrinsic_float_unary_v_v<string intrinsic_name,
                                          string insn_name> {
-  foreach I = AllFloatVectors in {
+  foreach I = AllFloatVectors in
     defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
-                               I.Type, I.Type, I.Mask,
-                               I.SEW, I.LMULstr, I.RegClass, I.RegClass>;
-  }
+                               I.Type, I.Type, I.Mask, I.SEW, I.LMULstr,
+                               I.RegClass, I.RegClass>;
 }
 
 multiclass pat_intrinsic_int_unary_nomask_v_v_v_x<string intrinsic_name,
@@ -830,11 +788,10 @@ multiclass pat_intrinsic_int_unary_nomask_v_v_v_x<string intrinsic_name,
 
 multiclass pat_intrinsic_int_unary_nomask_x_s<string intrinsic_name,
                                               string insn_name> {
-  foreach I = AllIntegerVectors in {
+  foreach I = AllIntegerVectors in
     defm : pat_intrinsic_unary_nomask<intrinsic_name#"_x_s",
                                       insn_name#"_X_S", XLenVT, I.Type,
                                       I.SEW, I.LMULstr, GPR, I.RegClass>;
-  }
 }
 
 multiclass pat_intrinsic_vfmv<string intrinsic_name, string insn_name> {
@@ -919,7 +876,6 @@ multiclass pat_intrinsic_unary_n_f_v<string intrinsic_name,
 
   }
 }
-
 
 multiclass pat_intrinsic_unary_n_f_f<string intrinsic_name,
                                      string insn_name> {
@@ -1017,55 +973,49 @@ multiclass pat_intrinsic_binary_nomask<string intrinsic_name,
 }
 
 multiclass pat_intrinsic_int_binary_v_vv<string intrinsic_name,
-                                          string insn_name> {
-  foreach I = AllIntegerVectors in {
+                                         string insn_name> {
+  foreach I = AllIntegerVectors in
     defm : pat_intrinsic_binary<intrinsic_name#"_vv", insn_name#"_VV",
-                                I.Type, I.Type, I.Type, I.Mask,
-                                I.SEW, I.LMULstr, I.RegClass, I.RegClass,
-                                I.RegClass>;
-  }
+                                I.Type, I.Type, I.Type, I.Mask, I.SEW,
+                                I.LMULstr, I.RegClass, I.RegClass, I.RegClass>;
 }
 
 multiclass pat_intrinsic_int_binary_v_vx<string intrinsic_name,
-                                          string insn_name> {
-  foreach I = AllIntegerVectors in {
+                                         string insn_name> {
+  foreach I = AllIntegerVectors in
     defm : pat_intrinsic_binary<intrinsic_name#"_vx", insn_name#"_VX",
-                                I.Type, I.Type, XLenVT, I.Mask,
-                                I.SEW, I.LMULstr, I.RegClass, I.RegClass,
-                                GPR>;
-  }
+                                I.Type, I.Type, XLenVT, I.Mask, I.SEW,
+                                I.LMULstr, I.RegClass, I.RegClass, GPR>;
 }
 
 multiclass pat_intrinsic_int_binary_v_vv_vx<string intrinsic_name,
-                                          string insn_name>
+                                            string insn_name>
   : pat_intrinsic_int_binary_v_vv<intrinsic_name, insn_name>,
     pat_intrinsic_int_binary_v_vx<intrinsic_name, insn_name>;
 
-multiclass pat_intrinsic_float_binary_v_vv_vf<string intrinsic_name,
-                                              string insn_name> {
-  foreach I = AllFloatVectors in {
+multiclass pat_intrinsic_float_binary_v_vv<string intrinsic_name,
+                                           string insn_name> {
+  foreach I = AllFloatVectors in
     defm : pat_intrinsic_binary<intrinsic_name#"_vv", insn_name#"_VV",
-                                I.Type, I.Type, I.Type, I.Mask,
-                                I.SEW, I.LMULstr, I.RegClass, I.RegClass,
-                                I.RegClass>;
-    defm : pat_intrinsic_binary<intrinsic_name#"_vf", insn_name#"_VF",
-                                I.Type, I.Type, f32, I.Mask,
-                                I.SEW, I.LMULstr, I.RegClass, I.RegClass,
-                                FPR32>;
-  }
+                                I.Type, I.Type, I.Type, I.Mask, I.SEW,
+                                I.LMULstr, I.RegClass, I.RegClass, I.RegClass>;
 }
 
 multiclass pat_intrinsic_float_binary_v_vf<string intrinsic_name,
                                            string insn_name> {
-  foreach I = AllFloatVectors in {
+  foreach I = AllFloatVectors in
     defm : pat_intrinsic_binary<intrinsic_name#"_vf", insn_name#"_VF",
                                 I.Type, I.Type, f32, I.Mask, I.SEW,
                                 I.LMULstr, I.RegClass, I.RegClass, FPR32>;
-  }
 }
 
-multiclass pat_intrinsic_int_binary_w_vv_vx_wv_wx<string intrinsic_name,
-                                                  string insn_name> {
+multiclass pat_intrinsic_float_binary_v_vv_vf<string intrinsic_name,
+                                              string insn_name>
+  : pat_intrinsic_float_binary_v_vv<intrinsic_name, insn_name>,
+    pat_intrinsic_float_binary_v_vf<intrinsic_name, insn_name>;
+
+multiclass pat_intrinsic_int_binary_w_vv_vx<string intrinsic_name,
+                                            string insn_name> {
   foreach I = AllWideIntegerVectors in {
     defm : pat_intrinsic_binary<intrinsic_name#"_vv", insn_name#"_VV",
                                 I.WidenVector, I.OriginVector.Type,
@@ -1077,6 +1027,12 @@ multiclass pat_intrinsic_int_binary_w_vv_vx_wv_wx<string intrinsic_name,
                                 I.WidenVector, I.OriginVector.Type, XLenVT,
                                 I.OriginVector.Mask, I.WidenSEW, I.WidenLMULstr,
                                 I.WidenRegClass, I.OriginVector.RegClass, GPR>;
+    }
+}
+
+multiclass pat_intrinsic_int_binary_w_wv_wx<string intrinsic_name,
+                                            string insn_name> {
+  foreach I = AllWideIntegerVectors in {
     defm : pat_intrinsic_binary<intrinsic_name#"_wv", insn_name#"_WV",
                                 I.WidenVector, I.WidenVector,
                                 I.OriginVector.Type, I.OriginVector.Mask,
@@ -1088,6 +1044,11 @@ multiclass pat_intrinsic_int_binary_w_vv_vx_wv_wx<string intrinsic_name,
                                 I.WidenRegClass, I.WidenRegClass, GPR>;
     }
 }
+
+multiclass pat_intrinsic_int_binary_w_vv_vx_wv_wx<string intrinsic_name,
+                                                  string insn_name>
+  : pat_intrinsic_int_binary_w_vv_vx<intrinsic_name, insn_name>,
+    pat_intrinsic_int_binary_w_wv_wx<intrinsic_name, insn_name>;
 
 multiclass pat_intrinsic_int_binary_w_vX0<string intrinsic_name,
                                           string insn_name> {
@@ -1108,49 +1069,6 @@ multiclass pat_intrinsic_int_binary_w_vX0<string intrinsic_name,
    }
 }
 
-multiclass pat_intrinsic_float_binary_w_vv_vf_wv_wf<string intrinsic_name,
-                                                    string insn_name> {
-  foreach I = AllWideFloatVectors in {
-    defm : pat_intrinsic_binary<intrinsic_name#"_vv", insn_name#"_VV",
-                                I.WidenVector, I.OriginVector.Type,
-                                I.OriginVector.Type, I.OriginVector.Mask,
-                                I.WidenSEW, I.WidenLMULstr, I.WidenRegClass,
-                                I.OriginVector.RegClass,
-                                I.OriginVector.RegClass>;
-    defm : pat_intrinsic_binary<intrinsic_name#"_vf", insn_name#"_VF",
-                                I.WidenVector, I.OriginVector.Type, f32,
-                                I.OriginVector.Mask, I.WidenSEW, I.WidenLMULstr,
-                                I.WidenRegClass, I.OriginVector.RegClass,
-                                FPR32>;
-    defm : pat_intrinsic_binary<intrinsic_name#"_wv", insn_name#"_WV",
-                                I.WidenVector, I.WidenVector,
-                                I.OriginVector.Type, I.OriginVector.Mask,
-                                I.WidenSEW, I.WidenLMULstr, I.WidenRegClass,
-                                I.WidenRegClass, I.OriginVector.RegClass>;
-    defm : pat_intrinsic_binary<intrinsic_name#"_wf", insn_name#"_WF",
-                                I.WidenVector, I.WidenVector, f32,
-                                I.OriginVector.Mask, I.WidenSEW,
-                                I.WidenLMULstr, I.WidenRegClass,
-                                I.WidenRegClass, FPR32>;
-    }
-}
-
-multiclass pat_intrinsic_int_binary_w_vv_vx<string intrinsic_name,
-                                            string insn_name> {
-  foreach I = AllWideIntegerVectors in {
-    defm : pat_intrinsic_binary<intrinsic_name#"_vv", insn_name#"_VV",
-                                I.WidenVector, I.OriginVector.Type,
-                                I.OriginVector.Type, I.OriginVector.Mask,
-                                I.WidenSEW, I.WidenLMULstr, I.WidenRegClass,
-                                I.OriginVector.RegClass,
-                                I.OriginVector.RegClass>;
-    defm : pat_intrinsic_binary<intrinsic_name#"_vx", insn_name#"_VX",
-                                I.WidenVector, I.OriginVector.Type, XLenVT,
-                                I.OriginVector.Mask, I.WidenSEW, I.WidenLMULstr,
-                                I.WidenRegClass, I.OriginVector.RegClass, GPR>;
-    }
-}
-
 multiclass pat_intrinsic_float_binary_w_vv_vf<string intrinsic_name,
                                               string insn_name> {
   foreach I = AllWideFloatVectors in {
@@ -1168,47 +1086,68 @@ multiclass pat_intrinsic_float_binary_w_vv_vf<string intrinsic_name,
     }
 }
 
-multiclass pat_intrinsic_int_binary_m_vv_vx<string intrinsic_name,
-                                            string insn_name> {
-  foreach I = AllIntegerVectors in {
-    defm : pat_intrinsic_binary<intrinsic_name#"_vv", insn_name#"_VV",
-                                I.Mask, I.Type, I.Type, I.Mask,
-                                I.SEW, I.LMULstr, VM, I.RegClass, I.RegClass>;
-    defm : pat_intrinsic_binary<intrinsic_name#"_vx", insn_name#"_VX",
-                                I.Mask, I.Type, XLenVT, I.Mask,
-                                I.SEW, I.LMULstr, VM, I.RegClass, GPR>;
-  }
-}
-
-multiclass pat_intrinsic_float_binary_m_vv_vf<string intrinsic_name,
+multiclass pat_intrinsic_float_binary_w_wv_wf<string intrinsic_name,
                                               string insn_name> {
-  foreach I = AllFloatVectors in {
+  foreach I = AllWideFloatVectors in {
+    defm : pat_intrinsic_binary<intrinsic_name#"_wv", insn_name#"_WV",
+                                I.WidenVector, I.WidenVector,
+                                I.OriginVector.Type, I.OriginVector.Mask,
+                                I.WidenSEW, I.WidenLMULstr, I.WidenRegClass,
+                                I.WidenRegClass, I.OriginVector.RegClass>;
+    defm : pat_intrinsic_binary<intrinsic_name#"_wf", insn_name#"_WF",
+                                I.WidenVector, I.WidenVector, f32,
+                                I.OriginVector.Mask, I.WidenSEW,
+                                I.WidenLMULstr, I.WidenRegClass,
+                                I.WidenRegClass, FPR32>;
+    }
+}
+
+multiclass pat_intrinsic_float_binary_w_vv_vf_wv_wf<string intrinsic_name,
+                                                    string insn_name>
+  : pat_intrinsic_float_binary_w_vv_vf<intrinsic_name, insn_name>,
+    pat_intrinsic_float_binary_w_wv_wf<intrinsic_name, insn_name>;
+
+multiclass pat_intrinsic_int_binary_m_vv<string intrinsic_name,
+                                         string insn_name> {
+  foreach I = AllIntegerVectors in
     defm : pat_intrinsic_binary<intrinsic_name#"_vv", insn_name#"_VV",
                                 I.Mask, I.Type, I.Type, I.Mask,
                                 I.SEW, I.LMULstr, VM, I.RegClass, I.RegClass>;
-    defm : pat_intrinsic_binary<intrinsic_name#"_vf", insn_name#"_VF",
-                                I.Mask, I.Type, f32, I.Mask,
-                                I.SEW, I.LMULstr, VM, I.RegClass, FPR32>;
-  }
-}
-
-multiclass pat_intrinsic_float_binary_m_vf<string intrinsic_name,
-                                           string insn_name> {
-  foreach I = AllFloatVectors in {
-    defm : pat_intrinsic_binary<intrinsic_name#"_vf", insn_name#"_VF",
-                                I.Mask, I.Type, f32, I.Mask,
-                                I.SEW, I.LMULstr, VM, I.RegClass, FPR32>;
-  }
 }
 
 multiclass pat_intrinsic_int_binary_m_vx<string intrinsic_name,
                                          string insn_name> {
-  foreach I = AllIntegerVectors in {
+  foreach I = AllIntegerVectors in
     defm : pat_intrinsic_binary<intrinsic_name#"_vx", insn_name#"_VX",
                                 I.Mask, I.Type, XLenVT, I.Mask,
                                 I.SEW, I.LMULstr, VM, I.RegClass, GPR>;
-  }
 }
+
+multiclass pat_intrinsic_int_binary_m_vv_vx<string intrinsic_name,
+                                            string insn_name>
+  : pat_intrinsic_int_binary_m_vv<intrinsic_name, insn_name>,
+    pat_intrinsic_int_binary_m_vx<intrinsic_name, insn_name>;
+
+multiclass pat_intrinsic_float_binary_m_vv<string intrinsic_name,
+                                           string insn_name> {
+  foreach I = AllFloatVectors in
+    defm : pat_intrinsic_binary<intrinsic_name#"_vv", insn_name#"_VV",
+                                I.Mask, I.Type, I.Type, I.Mask,
+                                I.SEW, I.LMULstr, VM, I.RegClass, I.RegClass>;
+}
+
+multiclass pat_intrinsic_float_binary_m_vf<string intrinsic_name,
+                                           string insn_name> {
+  foreach I = AllFloatVectors in
+    defm : pat_intrinsic_binary<intrinsic_name#"_vf", insn_name#"_VF",
+                                I.Mask, I.Type, f32, I.Mask,
+                                I.SEW, I.LMULstr, VM, I.RegClass, FPR32>;
+}
+
+multiclass pat_intrinsic_float_binary_m_vv_vf<string intrinsic_name,
+                                              string insn_name>
+  : pat_intrinsic_float_binary_m_vv<intrinsic_name, insn_name>,
+    pat_intrinsic_float_binary_m_vf<intrinsic_name, insn_name>;
 
 multiclass pat_intrinsic_int_binary_v_vvm_vxm<string intrinsic_name,
                                               string insn_name> {
@@ -1303,8 +1242,7 @@ multiclass pat_intrinsic_ternary_nomask<string intrinsic_name,
                   (arg1_type V0), sew)>;
 }
 
-multiclass pat_intrinsic_vmerge<string intrinsic_name,
-                                string insn_name> {
+multiclass pat_intrinsic_vmerge<string intrinsic_name, string insn_name> {
     foreach I = AllVectors in {
       defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vvm",
                                           insn_name#"_VVM",
@@ -1321,8 +1259,7 @@ multiclass pat_intrinsic_vmerge<string intrinsic_name,
     }
 }
 
-multiclass pat_intrinsic_vfmerge<string intrinsic_name,
-                                 string insn_name> {
+multiclass pat_intrinsic_vfmerge<string intrinsic_name, string insn_name> {
     foreach I = AllFloatVectors in {
       defm : pat_intrinsic_ternary_nomask<intrinsic_name#"_vfm",
                                           insn_name#"_VFM",
@@ -1339,18 +1276,6 @@ multiclass pat_intrinsic_vfmerge<string intrinsic_name,
     }
 }
 
-multiclass pat_intrinsic_float_ternary_v_vvv_vvf<string intrinsic_name,
-                                                 string insn_name> {
-  foreach I = AllFloatVectors in {
-    defm : pat_intrinsic_ternary<intrinsic_name#"_vv", insn_name#"_VV",
-                                 I.Type, I.Type, I.Type, I.Mask, I.SEW,
-                                 I.LMULstr, I.RegClass, I.RegClass, I.RegClass>;
-    defm : pat_intrinsic_ternary<intrinsic_name#"_vf", insn_name#"_VF",
-                                 I.Type, f32, I.Type, I.Mask, I.SEW,
-                                 I.LMULstr, I.RegClass, FPR32, I.RegClass>;
-  }
-}
-
 multiclass pat_intrinsic_int_ternary_v_vvv_vvx<string intrinsic_name,
                                                string insn_name> {
   foreach I = AllIntegerVectors in {
@@ -1365,46 +1290,49 @@ multiclass pat_intrinsic_int_ternary_v_vvv_vvx<string intrinsic_name,
 
 multiclass pat_intrinsic_int_ternary_v_vvx<string intrinsic_name,
                                            string insn_name> {
-  foreach I = AllVectors in {
+  foreach I = AllVectors in
     defm : pat_intrinsic_ternary<intrinsic_name#"_vx", insn_name#"_VX",
-                                 I.Type, I.Type, XLenVT, I.Mask,
-                                 I.SEW, I.LMULstr, I.RegClass, I.RegClass, GPR>;
+                                 I.Type, I.Type, XLenVT, I.Mask, I.SEW,
+                                 I.LMULstr, I.RegClass, I.RegClass, GPR>;
+}
+
+multiclass pat_intrinsic_float_ternary_v_vvv_vvf<string intrinsic_name,
+                                                 string insn_name> {
+  foreach I = AllFloatVectors in {
+    defm : pat_intrinsic_ternary<intrinsic_name#"_vv", insn_name#"_VV",
+                                 I.Type, I.Type, I.Type, I.Mask, I.SEW,
+                                 I.LMULstr, I.RegClass, I.RegClass, I.RegClass>;
+    defm : pat_intrinsic_ternary<intrinsic_name#"_vf", insn_name#"_VF",
+                                 I.Type, f32, I.Type, I.Mask, I.SEW,
+                                 I.LMULstr, I.RegClass, FPR32, I.RegClass>;
   }
 }
 
-multiclass pat_intrinsic_int_ternary_qw_wvv_wvx<string intrinsic_name,
-                                                string insn_name> {
-  foreach I = AllQuadWideIntegerVectors in {
+multiclass pat_intrinsic_int_ternary_w_wvv<string intrinsic_name,
+                                           string insn_name> {
+  foreach I = AllWideIntegerVectors in
     defm : pat_intrinsic_ternary<intrinsic_name#"_vv", insn_name#"_VV",
                                  I.WidenVector, I.OriginVector.Type,
                                  I.OriginVector.Type, I.OriginVector.Mask,
                                  I.OriginVector.SEW, I.WidenLMULstr,
                                  I.WidenRegClass, I.OriginVector.RegClass,
                                  I.OriginVector.RegClass>;
+}
+
+multiclass pat_intrinsic_int_ternary_w_wvx<string intrinsic_name,
+                                           string insn_name> {
+  foreach I = AllWideIntegerVectors in
     defm : pat_intrinsic_ternary<intrinsic_name#"_vx", insn_name#"_VX",
                                  I.WidenVector, XLenVT, I.OriginVector.Type,
                                  I.OriginVector.Mask, I.OriginVector.SEW,
                                  I.WidenLMULstr, I.WidenRegClass,
                                  GPR, I.OriginVector.RegClass>;
-  }
 }
 
 multiclass pat_intrinsic_int_ternary_w_wvv_wvx<string intrinsic_name,
-                                               string insn_name> {
-  foreach I = AllWideIntegerVectors in {
-    defm : pat_intrinsic_ternary<intrinsic_name#"_vv", insn_name#"_VV",
-                                 I.WidenVector, I.OriginVector.Type,
-                                 I.OriginVector.Type, I.OriginVector.Mask,
-                                 I.OriginVector.SEW, I.WidenLMULstr,
-                                 I.WidenRegClass, I.OriginVector.RegClass,
-                                 I.OriginVector.RegClass>;
-    defm : pat_intrinsic_ternary<intrinsic_name#"_vx", insn_name#"_VX",
-                                 I.WidenVector, XLenVT, I.OriginVector.Type,
-                                 I.OriginVector.Mask, I.OriginVector.SEW,
-                                 I.WidenLMULstr, I.WidenRegClass,
-                                 GPR, I.OriginVector.RegClass>;
-  }
-}
+                                               string insn_name>
+  : pat_intrinsic_int_ternary_w_wvv<intrinsic_name, insn_name>,
+    pat_intrinsic_int_ternary_w_wvx<intrinsic_name, insn_name>;
 
 multiclass pat_intrinsic_float_ternary_w_wvv_wvf<string intrinsic_name,
                                                  string insn_name> {
@@ -1423,27 +1351,31 @@ multiclass pat_intrinsic_float_ternary_w_wvv_wvf<string intrinsic_name,
   }
 }
 
-multiclass pat_intrinsic_int_ternary_w_wvx<string intrinsic_name,
-                                           string insn_name> {
-  foreach I = AllWideIntegerVectors in {
-    defm : pat_intrinsic_ternary<intrinsic_name#"_vx", insn_name#"_VX",
-                                 I.WidenVector, XLenVT, I.OriginVector.Type,
-                                 I.OriginVector.Mask, I.OriginVector.SEW,
-                                 I.WidenLMULstr, I.WidenRegClass,
-                                 GPR, I.OriginVector.RegClass>;
-  }
+multiclass pat_intrinsic_int_ternary_qw_wvv<string intrinsic_name,
+                                            string insn_name> {
+  foreach I = AllQuadWideIntegerVectors in
+    defm : pat_intrinsic_ternary<intrinsic_name#"_vv", insn_name#"_VV",
+                                 I.WidenVector, I.OriginVector.Type,
+                                 I.OriginVector.Type, I.OriginVector.Mask,
+                                 I.OriginVector.SEW, I.WidenLMULstr,
+                                 I.WidenRegClass, I.OriginVector.RegClass,
+                                 I.OriginVector.RegClass>;
 }
 
 multiclass pat_intrinsic_int_ternary_qw_wvx<string intrinsic_name,
                                             string insn_name> {
-  foreach I = AllQuadWideIntegerVectors in {
+  foreach I = AllQuadWideIntegerVectors in
     defm : pat_intrinsic_ternary<intrinsic_name#"_vx", insn_name#"_VX",
                                  I.WidenVector, XLenVT, I.OriginVector.Type,
                                  I.OriginVector.Mask, I.OriginVector.SEW,
                                  I.WidenLMULstr, I.WidenRegClass,
                                  GPR, I.OriginVector.RegClass>;
-  }
 }
+
+multiclass pat_intrinsic_int_ternary_qw_wvv_wvx<string intrinsic_name,
+                                                string insn_name>
+  : pat_intrinsic_int_ternary_qw_wvv<intrinsic_name, insn_name>,
+    pat_intrinsic_int_ternary_qw_wvx<intrinsic_name, insn_name>;
 
 multiclass pat_intrinsic_int_reduction<string intrinsic_name,
                                        string insn_name> {
@@ -1504,10 +1436,10 @@ defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vadd", "PseudoVADD">;
 defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vsub", "PseudoVSUB">;
 
 // 12.2. Vector Widening Integer Add/Subtract
-defm PseudoVWADD : pseudo_binary_w_vv_vx_wx_wv<"@earlyclobber $rd">;
-defm PseudoVWADDU : pseudo_binary_w_vv_vx_wx_wv<"@earlyclobber $rd">;
-defm PseudoVWSUB : pseudo_binary_w_vv_vx_wx_wv<"@earlyclobber $rd">;
-defm PseudoVWSUBU : pseudo_binary_w_vv_vx_wx_wv<"@earlyclobber $rd">;
+defm PseudoVWADD : pseudo_binary_w_vv_vx_wv_wx<"@earlyclobber $rd">;
+defm PseudoVWADDU : pseudo_binary_w_vv_vx_wv_wx<"@earlyclobber $rd">;
+defm PseudoVWSUB : pseudo_binary_w_vv_vx_wv_wx<"@earlyclobber $rd">;
+defm PseudoVWSUBU : pseudo_binary_w_vv_vx_wv_wx<"@earlyclobber $rd">;
 defm : pat_intrinsic_int_binary_w_vv_vx_wv_wx<"int_riscv_vwadd", "PseudoVWADD">;
 defm : pat_intrinsic_int_binary_w_vv_vx_wv_wx<"int_riscv_vwaddu", "PseudoVWADDU">;
 defm : pat_intrinsic_int_binary_w_vX0<"int_riscv_vwcvt_x_x_v", "PseudoVWADD_VX">;
@@ -1684,8 +1616,8 @@ defm : pat_intrinsic_float_binary_v_vv_vf<"int_riscv_vfsub", "PseudoVFSUB">;
 defm : pat_intrinsic_float_binary_v_vf<"int_riscv_vfrsub", "PseudoVFRSUB">;
 
 // 14.3. Vector Widening Floating-Point Add/Subtract Instructions
-defm PseudoVFWADD : pseudo_binary_w_vv_vf_wf_wv;
-defm PseudoVFWSUB : pseudo_binary_w_vv_vf_wf_wv;
+defm PseudoVFWADD : pseudo_binary_w_vv_vf_wv_wf;
+defm PseudoVFWSUB : pseudo_binary_w_vv_vf_wv_wf;
 defm : pat_intrinsic_float_binary_w_vv_vf_wv_wf<"int_riscv_vfwadd", "PseudoVFWADD">;
 defm : pat_intrinsic_float_binary_w_vv_vf_wv_wf<"int_riscv_vfwsub", "PseudoVFWSUB">;
 
@@ -1899,7 +1831,9 @@ defm : pat_intrinsic_float_binary_v_vf<"int_riscv_vfslide1up", "PseudoVFSLIDE1UP
 defm : pat_intrinsic_float_binary_v_vf<"int_riscv_vfslide1down", "PseudoVFSLIDE1DOWN">;
 
 // 17.4. Vector Register Gather Instruction
+
 // 17.5. Vector Compress Instruction
+
 // 17.6. Whole Vector Register Move
 // 19.3. Vector Integer Dot-Product Instruction
 // 19.4. Vector Floating-Point Dot Product Instruction
