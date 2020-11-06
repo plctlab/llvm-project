@@ -1016,25 +1016,30 @@ multiclass pat_intrinsic_binary_nomask<string intrinsic_name,
              ToScalarOp<arg2_type, arg2, "rs2">.Result, sew)>;
 }
 
-multiclass pat_intrinsic_int_binary_vv_vx<string intrinsic_name,
+multiclass pat_intrinsic_int_binary_v_vv<string intrinsic_name,
                                           string insn_name> {
   foreach I = AllIntegerVectors in {
     defm : pat_intrinsic_binary<intrinsic_name#"_vv", insn_name#"_VV",
                                 I.Type, I.Type, I.Type, I.Mask,
                                 I.SEW, I.LMULstr, I.RegClass, I.RegClass,
                                 I.RegClass>;
+  }
+}
+
+multiclass pat_intrinsic_int_binary_v_vx<string intrinsic_name,
+                                          string insn_name> {
+  foreach I = AllIntegerVectors in {
     defm : pat_intrinsic_binary<intrinsic_name#"_vx", insn_name#"_VX",
                                 I.Type, I.Type, XLenVT, I.Mask,
                                 I.SEW, I.LMULstr, I.RegClass, I.RegClass,
                                 GPR>;
   }
-  // foreach I = AllFloatVectors in {
-  //   defm : pat_intrinsic_binary<intrinsic_name#"_vf", insn_name#"_VF",
-  //                           I.Type, I.Type, f32, I.Mask,
-  //                           I.SEW, I.LMUL, I.RegClass, I.RegClass,
-  //                           FPR32>;
-  // }
 }
+
+multiclass pat_intrinsic_int_binary_v_vv_vx<string intrinsic_name,
+                                          string insn_name>
+  : pat_intrinsic_int_binary_v_vv<intrinsic_name, insn_name>,
+    pat_intrinsic_int_binary_v_vx<intrinsic_name, insn_name>;
 
 multiclass pat_intrinsic_float_binary_v_vv_vf<string intrinsic_name,
                                               string insn_name> {
@@ -1495,8 +1500,8 @@ defm : pat_intrinsic_vload_store;
 defm PseudoVADD : pseudo_binary_v_vv_vx;
 defm PseudoVSUB : pseudo_binary_v_vv_vx;
 defm PseudoVRSUB : pseudo_binary_v_vx;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vadd", "PseudoVADD">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsub", "PseudoVSUB">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vadd", "PseudoVADD">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vsub", "PseudoVSUB">;
 
 // 12.2. Vector Widening Integer Add/Subtract
 defm PseudoVWADD : pseudo_binary_w_vv_vx_wx_wv<"@earlyclobber $rd">;
@@ -1522,17 +1527,17 @@ defm : pat_intrinsic_int_binary_m_vvm_vxm<"int_riscv_vmadc", "PseudoVMADC">;
 defm PseudoVAND : pseudo_binary_v_vv_vx;
 defm PseudoVOR : pseudo_binary_v_vv_vx;
 defm PseudoVXOR : pseudo_binary_v_vv_vx;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vand", "PseudoVAND">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vor", "PseudoVOR">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vxor", "PseudoVXOR">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vand", "PseudoVAND">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vor", "PseudoVOR">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vxor", "PseudoVXOR">;
 
 // 12.6. Vector Single-Width Bit Shift Instructions
 defm PseudoVSLL : pseudo_binary_v_vv_vx;
 defm PseudoVSRL : pseudo_binary_v_vv_vx;
 defm PseudoVSRA : pseudo_binary_v_vv_vx;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsll", "PseudoVSLL">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsrl", "PseudoVSRL">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsra", "PseudoVSRA">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vsll", "PseudoVSLL">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vsrl", "PseudoVSRL">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vsra", "PseudoVSRA">;
 
 // 12.7. Vector Narrowing Integer Right Shift Instructions
 defm PseudoVNSRL : pseudo_binary_n_wn_wx;
@@ -1563,30 +1568,30 @@ defm PseudoVMIN : pseudo_binary_v_vv_vx;
 defm PseudoVMINU : pseudo_binary_v_vv_vx;
 defm PseudoVMAX : pseudo_binary_v_vv_vx;
 defm PseudoVMAXU : pseudo_binary_v_vv_vx;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vmin", "PseudoVMIN">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vmax", "PseudoVMAX">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vminu", "PseudoVMINU">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vmaxu", "PseudoVMAXU">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vmin", "PseudoVMIN">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vmax", "PseudoVMAX">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vminu", "PseudoVMINU">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vmaxu", "PseudoVMAXU">;
 
 // 12.10. Vector Single-Width Integer Multiply Instructions
 defm PseudoVMUL : pseudo_binary_v_vv_vx;
 defm PseudoVMULH : pseudo_binary_v_vv_vx;
 defm PseudoVMULHU : pseudo_binary_v_vv_vx;
 defm PseudoVMULHSU : pseudo_binary_v_vv_vx;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vmul", "PseudoVMUL">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vmulh", "PseudoVMULH">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vmulhu", "PseudoVMULHU">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vmulhsu", "PseudoVMULHSU">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vmul", "PseudoVMUL">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vmulh", "PseudoVMULH">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vmulhu", "PseudoVMULHU">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vmulhsu", "PseudoVMULHSU">;
 
 // 12.11. Vector Integer Divide Instructions
 defm PseudoVDIV : pseudo_binary_v_vv_vx;
 defm PseudoVDIVU : pseudo_binary_v_vv_vx;
 defm PseudoVREM : pseudo_binary_v_vv_vx;
 defm PseudoVREMU : pseudo_binary_v_vv_vx;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vdiv", "PseudoVDIV">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vdivu", "PseudoVDIVU">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vrem", "PseudoVREM">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vremu", "PseudoVREMU">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vdiv", "PseudoVDIV">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vdivu", "PseudoVDIVU">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vrem", "PseudoVREM">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vremu", "PseudoVREMU">;
 
 // 12.12. Vector Widening Integer Multiply Instructions
 defm PseudoVWMUL : pseudo_binary_w_vv_vx<"@earlyclobber $rd">;
@@ -1639,30 +1644,30 @@ defm PseudoVSADD : pseudo_binary_v_vv_vx;
 defm PseudoVSADDU : pseudo_binary_v_vv_vx;
 defm PseudoVSSUB : pseudo_binary_v_vv_vx;
 defm PseudoVSSUBU : pseudo_binary_v_vv_vx;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsadd", "PseudoVSADD">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsaddu", "PseudoVSADDU">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssub", "PseudoVSSUB">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssubu", "PseudoVSSUBU">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vsadd", "PseudoVSADD">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vsaddu", "PseudoVSADDU">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vssub", "PseudoVSSUB">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vssubu", "PseudoVSSUBU">;
 
 // 13.2. Vector Single-Width Averaging Add and Subtract
 defm PseudoVAADD : pseudo_binary_v_vv_vx;
 defm PseudoVAADDU : pseudo_binary_v_vv_vx;
 defm PseudoVASUB : pseudo_binary_v_vv_vx;
 defm PseudoVASUBU : pseudo_binary_v_vv_vx;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vaadd", "PseudoVAADD">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vaaddu", "PseudoVAADDU">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vasub", "PseudoVASUB">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vasubu", "PseudoVASUBU">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vaadd", "PseudoVAADD">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vaaddu", "PseudoVAADDU">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vasub", "PseudoVASUB">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vasubu", "PseudoVASUBU">;
 
 // 13.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
 defm PseudoVSMUL : pseudo_binary_v_vv_vx;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vsmul", "PseudoVSMUL">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vsmul", "PseudoVSMUL">;
 
 // 13.4. Vector Single-Width Scaling Shift Instructions
 defm PseudoVSSRL : pseudo_binary_v_vv_vx;
 defm PseudoVSSRA : pseudo_binary_v_vv_vx;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssrl", "PseudoVSSRL">;
-defm : pat_intrinsic_int_binary_vv_vx<"int_riscv_vssra", "PseudoVSSRA">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vssrl", "PseudoVSSRL">;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vssra", "PseudoVSSRA">;
 
 // 13.5. Vector Narrowing Fixed-Point Clip Instructions
 defm PseudoVNCLIP : pseudo_binary_n_wn_wx;
@@ -1878,16 +1883,21 @@ defm PseudoVMV : pseudo_unary_nomask_x_s_s_x;
 defm : pat_intrinsic_int_binary_nomask_s_x<"int_riscv_vmv", "PseudoVMV">;
 defm : pat_intrinsic_int_unary_nomask_x_s<"int_riscv_vmv", "PseudoVMV">;
 
-// 17.3.1. Vector Slideup Instructions
+// 17.3. Vector Slide Instructions
 defm PseudoVSLIDEUP : pseudo_ternary_v_vvx;
-defm : pat_intrinsic_int_ternary_v_vvx<"int_riscv_vslideup", "PseudoVSLIDEUP">;
-
-// 17.3.2. Vector Slidedown Instructions
 defm PseudoVSLIDEDOWN : pseudo_ternary_v_vvx;
+defm : pat_intrinsic_int_ternary_v_vvx<"int_riscv_vslideup", "PseudoVSLIDEUP">;
 defm : pat_intrinsic_int_ternary_v_vvx<"int_riscv_vslidedown", "PseudoVSLIDEDOWN">;
 
-// 17.3.3. Vector Slide1up
-// 17.3.4. Vector Slide1down Instruction
+defm PseudoVSLIDE1UP : pseudo_binary_v_vx;
+defm PseudoVSLIDE1DOWN : pseudo_binary_v_vx;
+defm PseudoVFSLIDE1UP : pseudo_binary_v_vf;
+defm PseudoVFSLIDE1DOWN : pseudo_binary_v_vf;
+defm : pat_intrinsic_int_binary_v_vx<"int_riscv_vslide1up", "PseudoVSLIDE1UP">;
+defm : pat_intrinsic_int_binary_v_vx<"int_riscv_vslide1down", "PseudoVSLIDE1DOWN">;
+defm : pat_intrinsic_float_binary_v_vf<"int_riscv_vfslide1up", "PseudoVFSLIDE1UP">;
+defm : pat_intrinsic_float_binary_v_vf<"int_riscv_vfslide1down", "PseudoVFSLIDE1DOWN">;
+
 // 17.4. Vector Register Gather Instruction
 // 17.5. Vector Compress Instruction
 // 17.6. Whole Vector Register Move
