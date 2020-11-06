@@ -1,6 +1,6 @@
 ## Unsupported on windows as marking files "unreadable"
 ## is non-trivial on windows.
-# UNSUPPORTED: system-windows
+# UNSUPPORTED: system-windows, x86_64-unknown-linux-gnu
 
 # RUN: rm -rf %t && mkdir -p %t
 # RUN: echo "file1" > %t/1.txt
