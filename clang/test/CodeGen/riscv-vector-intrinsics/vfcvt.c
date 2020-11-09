@@ -1,3 +1,4 @@
+// UNSUPPORTED: x86_64-unknown-linux-gnu
 // RUN: %clang_cc1 -triple riscv64-unknown-linux-gnu -target-feature +experimental-v -S -emit-llvm  %s -o - |  FileCheck %s
 
 #include <riscv_vector.h>
@@ -494,6 +495,54 @@ vuint64m8_t test_vfcvt_rtz_xu_f_v_u64m8 (vfloat64m8_t src) {
   return vfcvt_rtz_xu_f_v_u64m8(src);
 }
 
+vfloat64m1_t test_vfcvt_f_x_v_f64m1 (vint64m1_t src) {
+  // CHECK-LABEL: test_vfcvt_f_x_v_f64m1
+  // CHECK: %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vfcvt.f.x.v.nxv1f32{{.*}}(<vscale x 1 x i64> %{{.*}})
+  return vfcvt_f_x_v_f64m1(src);
+}
+
+vfloat64m2_t test_vfcvt_f_x_v_f64m2 (vint64m2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_x_v_f64m2
+  // CHECK: %{{.*}} = call <vscale x 2 x double> @llvm.riscv.vfcvt.f.x.v.nxv2f32{{.*}}(<vscale x 2 x i64> %{{.*}})
+  return vfcvt_f_x_v_f64m2(src);
+}
+
+vfloat64m4_t test_vfcvt_f_x_v_f64m4 (vint64m4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_x_v_f64m4
+  // CHECK: %{{.*}} = call <vscale x 4 x double> @llvm.riscv.vfcvt.f.x.v.nxv4f32{{.*}}(<vscale x 4 x i64> %{{.*}})
+  return vfcvt_f_x_v_f64m4(src);
+}
+
+vfloat64m8_t test_vfcvt_f_x_v_f64m8 (vint64m8_t src) {
+  // CHECK-LABEL: test_vfcvt_f_x_v_f64m8
+  // CHECK: %{{.*}} = call <vscale x 8 x double> @llvm.riscv.vfcvt.f.x.v.nxv8f32{{.*}}(<vscale x 8 x i64> %{{.*}})
+  return vfcvt_f_x_v_f64m8(src);
+}
+
+vfloat64m1_t test_vfcvt_f_xu_v_f64m1 (vuint64m1_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m1
+  // CHECK: %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vfcvt.f.xu.v.nxv1f32{{.*}}(<vscale x 1 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m1(src);
+}
+
+vfloat64m2_t test_vfcvt_f_xu_v_f64m2 (vuint64m2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m2
+  // CHECK: %{{.*}} = call <vscale x 2 x double> @llvm.riscv.vfcvt.f.xu.v.nxv2f32{{.*}}(<vscale x 2 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m2(src);
+}
+
+vfloat64m4_t test_vfcvt_f_xu_v_f64m4 (vuint64m4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m4
+  // CHECK: %{{.*}} = call <vscale x 4 x double> @llvm.riscv.vfcvt.f.xu.v.nxv4f32{{.*}}(<vscale x 4 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m4(src);
+}
+
+vfloat64m8_t test_vfcvt_f_xu_v_f64m8 (vuint64m8_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m8
+  // CHECK: %{{.*}} = call <vscale x 8 x double> @llvm.riscv.vfcvt.f.xu.v.nxv8f32{{.*}}(<vscale x 8 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m8(src);
+}
+
 vint16mf4_t test_vfcvt_x_f_v_i16mf4_m (vbool64_t mask, vint16mf4_t maskedoff, vfloat16mf4_t src) {
   // CHECK-LABEL: test_vfcvt_x_f_v_i16mf4_m
   // CHECK: %{{.*}} = call <vscale x 1 x i16> @llvm.riscv.vfcvt.x.f.v.mask.nxv1i16{{.*}}(<vscale x 1 x i1> %{{.*}}, <vscale x 1 x i16> %{{.*}}, <vscale x 1 x half> %{{.*}})
@@ -984,5 +1033,53 @@ vuint64m8_t test_vfcvt_rtz_xu_f_v_u64m8_m (vbool8_t mask, vuint64m8_t maskedoff,
   // CHECK-LABEL: test_vfcvt_rtz_xu_f_v_u64m8_m
   // CHECK: %{{.*}} = call <vscale x 8 x i64> @llvm.riscv.vfcvt.rtz.xu.f.v.mask.nxv8i64{{.*}}(<vscale x 8 x i1> %{{.*}}, <vscale x 8 x i64> %{{.*}}, <vscale x 8 x double> %{{.*}})
   return vfcvt_rtz_xu_f_v_u64m8_m(mask, maskedoff, src);
+}
+
+vfloat64m1_t test_vfcvt_f_x_v_f64m1_m (vbool64_t mask, vfloat64m1_t maskedoff, vint64m1_t src) {
+  // CHECK-LABEL: test_vfcvt_f_x_v_f64m1_m
+  // CHECK: %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vfcvt.f.x.v.mask.nxv1f32{{.*}}(<vscale x 1 x i1> %{{.*}}, <vscale x 1 x double> %{{.*}}, <vscale x 1 x i64> %{{.*}})
+  return vfcvt_f_x_v_f64m1_m(mask, maskedoff, src);
+}
+
+vfloat64m2_t test_vfcvt_f_x_v_f64m2_m (vbool32_t mask, vfloat64m2_t maskedoff, vint64m2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_x_v_f64m2_m
+  // CHECK: %{{.*}} = call <vscale x 2 x double> @llvm.riscv.vfcvt.f.x.v.mask.nxv2f32{{.*}}(<vscale x 2 x i1> %{{.*}}, <vscale x 2 x double> %{{.*}}, <vscale x 2 x i64> %{{.*}})
+  return vfcvt_f_x_v_f64m2_m(mask, maskedoff, src);
+}
+
+vfloat64m4_t test_vfcvt_f_x_v_f64m4_m (vbool16_t mask, vfloat64m4_t maskedoff, vint64m4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_x_v_f64m4_m
+  // CHECK: %{{.*}} = call <vscale x 4 x double> @llvm.riscv.vfcvt.f.x.v.mask.nxv4f32{{.*}}(<vscale x 4 x i1> %{{.*}}, <vscale x 4 x double> %{{.*}}, <vscale x 4 x i64> %{{.*}})
+  return vfcvt_f_x_v_f64m4_m(mask, maskedoff, src);
+}
+
+vfloat64m8_t test_vfcvt_f_x_v_f64m8_m (vbool8_t mask, vfloat64m8_t maskedoff, vint64m8_t src) {
+  // CHECK-LABEL: test_vfcvt_f_x_v_f64m8_m
+  // CHECK: %{{.*}} = call <vscale x 8 x double> @llvm.riscv.vfcvt.f.x.v.mask.nxv8f32{{.*}}(<vscale x 8 x i1> %{{.*}}, <vscale x 8 x double> %{{.*}}, <vscale x 8 x i64> %{{.*}})
+  return vfcvt_f_x_v_f64m8_m(mask, maskedoff, src);
+}
+
+vfloat64m1_t test_vfcvt_f_xu_v_f64m1_m (vbool64_t mask, vfloat64m1_t maskedoff, vuint64m1_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m1_m
+  // CHECK: %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vfcvt.f.xu.v.mask.nxv1f32{{.*}}(<vscale x 1 x i1> %{{.*}}, <vscale x 1 x double> %{{.*}}, <vscale x 1 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m1_m(mask, maskedoff, src);
+}
+
+vfloat64m2_t test_vfcvt_f_xu_v_f64m2_m (vbool32_t mask, vfloat64m2_t maskedoff, vuint64m2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m2_m
+  // CHECK: %{{.*}} = call <vscale x 2 x double> @llvm.riscv.vfcvt.f.xu.v.mask.nxv2f32{{.*}}(<vscale x 2 x i1> %{{.*}}, <vscale x 2 x double> %{{.*}}, <vscale x 2 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m2_m(mask, maskedoff, src);
+}
+
+vfloat64m4_t test_vfcvt_f_xu_v_f64m4_m (vbool16_t mask, vfloat64m4_t maskedoff, vuint64m4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m4_m
+  // CHECK: %{{.*}} = call <vscale x 4 x double> @llvm.riscv.vfcvt.f.xu.v.mask.nxv4f32{{.*}}(<vscale x 4 x i1> %{{.*}}, <vscale x 4 x double> %{{.*}}, <vscale x 4 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m4_m(mask, maskedoff, src);
+}
+
+vfloat64m8_t test_vfcvt_f_xu_v_f64m8_m (vbool8_t mask, vfloat64m8_t maskedoff, vuint64m8_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m8_m
+  // CHECK: %{{.*}} = call <vscale x 8 x double> @llvm.riscv.vfcvt.f.xu.v.mask.nxv8f32{{.*}}(<vscale x 8 x i1> %{{.*}}, <vscale x 8 x double> %{{.*}}, <vscale x 8 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m8_m(mask, maskedoff, src);
 }
 
