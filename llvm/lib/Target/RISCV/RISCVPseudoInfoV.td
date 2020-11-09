@@ -660,6 +660,13 @@ multiclass pseudo_ternary_v_vvv_vvx<string constraints = ""> {
   }
 }
 
+multiclass pseudo_binary_v_vm<string constraints = ""> {
+  foreach I = AllLMULs in
+    let LMUL = I.LMUL in
+      defm _VM : pseudo_binary_nomask<I.RegClass, I.RegClass, VM, I.LMULstr,
+                                      constraints>;
+}
+
 multiclass pseudo_ternary_w_wvv<string constraints = ""> {
   foreach I = AllWideLMULs in
     let LMUL = I.WideLMUL in
@@ -947,8 +954,7 @@ multiclass pat_intrinsic_binary_carryin<string intrinsic_name,
                                         bit swap = 0> {
   defvar insn = !cast<Instruction>(insn_name#"_M"#lmul);
   def : Pat<(result_type (!cast<Intrinsic>(intrinsic_name)
-                          (arg1_type arg1:$rs1),
-                          (arg2_type arg2:$rs2),
+                          (arg1_type arg1:$rs1), (arg2_type arg2:$rs2),
                           (carry_type V0))),
             (insn (result_type zero_reg), arg1:$rs1,
                   ToScalarOp<arg2_type, arg2, "rs2">.Result,
@@ -1206,6 +1212,16 @@ multiclass pat_intrinsic_int_binary_nomask_s_x<string intrinsic_name,
                         (I.Type I.RegClass:$merge), (i64 GPR:$rs1))),
               (!cast<Instruction>(insn_name#"_S_X_M"#lmul)
                I.RegClass:$merge, GPR:$rs1, I.SEW)>;
+  }
+}
+
+multiclass pat_intrinsic_int_binary_v_vm<string intrinsic_name,
+                                         string insn_name> {
+  foreach I = AllIntegerVectors in {
+    defvar insn = !cast<Instruction>(insn_name#"_VM_M"#I.LMULstr);
+    def : Pat<(I.Type (!cast<Intrinsic>(intrinsic_name#"_vm") (I.Mask VM:$vs1),
+                       (I.Type I.RegClass:$merge), (I.Type I.RegClass:$vs2))),
+              (insn I.RegClass:$merge, I.RegClass:$vs2, VM:$vs1, I.SEW)>;
   }
 }
 
@@ -1831,8 +1847,12 @@ defm : pat_intrinsic_float_binary_v_vf<"int_riscv_vfslide1up", "PseudoVFSLIDE1UP
 defm : pat_intrinsic_float_binary_v_vf<"int_riscv_vfslide1down", "PseudoVFSLIDE1DOWN">;
 
 // 17.4. Vector Register Gather Instruction
+defm PseudoVRGATHER : pseudo_binary_v_vv_vx;
+defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vrgather", "PseudoVRGATHER">;
 
 // 17.5. Vector Compress Instruction
+defm PseudoVCOMPRESS : pseudo_binary_v_vm;
+defm : pat_intrinsic_int_binary_v_vm<"int_riscv_vcompress", "PseudoVCOMPRESS">;
 
 // 17.6. Whole Vector Register Move
 // 19.3. Vector Integer Dot-Product Instruction
