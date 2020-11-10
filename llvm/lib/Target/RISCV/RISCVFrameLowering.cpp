@@ -590,6 +590,16 @@ void RISCVFrameLowering::determineCalleeSaves(MachineFunction &MF,
                                               BitVector &SavedRegs,
                                               RegScavenger *RS) const {
   TargetFrameLowering::determineCalleeSaves(MF, SavedRegs, RS);
+
+  const MachineFrameInfo &MFI = MF.getFrameInfo();
+  auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
+  for (int Id = MFI.getObjectIndexBegin(), EId = MFI.getObjectIndexEnd();
+       Id < EId; Id++) {
+    if (MFI.getStackID(Id) == TargetStackID::RISCVVector &&
+        !MFI.isDeadObjectIndex(Id)) {
+      RVFI->setHasSpillVRs();
+    }
+  }
   // Unconditionally spill RA and FP only if the function uses a frame
   // pointer.
   if (hasFP(MF)) {
@@ -603,7 +613,6 @@ void RISCVFrameLowering::determineCalleeSaves(MachineFunction &MF,
   // If interrupt is enabled and there are calls in the handler,
   // unconditionally save all Caller-saved registers and
   // all FP registers, regardless whether they are used.
-  MachineFrameInfo &MFI = MF.getFrameInfo();
 
   if (MF.getFunction().hasFnAttribute("interrupt") && MFI.hasCalls()) {
 
