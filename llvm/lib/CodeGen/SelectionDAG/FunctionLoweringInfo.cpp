@@ -178,6 +178,20 @@ void FunctionLoweringInfo::set(const Function &fn, MachineFunction &mf,
             MF->getFrameInfo().setStackID(FrameIndex,
                                           TFI->getStackIDForScalableVectors());
 
+          // If a struct type has a scalable vector field, then it should be 
+          // regarded as a scalable vector stack object
+          if (isa<StructType>(Ty)) {
+            StructType * StructTy = cast<StructType>(Ty);
+            for (StructType::element_iterator Field = StructTy->element_begin(); 
+              Field != StructTy->element_end(); Field++) {
+                if (isa<ScalableVectorType>(*Field)) {
+                  MF->getFrameInfo().setStackID(FrameIndex, 
+                                          TFI->getStackIDForScalableVectors());
+                  break;
+                }
+              }
+          }
+
           StaticAllocaMap[AI] = FrameIndex;
           // Update the catch handler information.
           if (Iter != CatchObjects.end()) {

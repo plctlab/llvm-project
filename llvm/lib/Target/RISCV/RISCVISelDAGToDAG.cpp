@@ -180,6 +180,19 @@ void RISCVDAGToDAGISel::Select(SDNode *Node) {
     }
     break;
   }
+  case ISD::VSCALE: {
+    SDValue Op0 = Node->getOperand(0);
+    SDValue Address = CurDAG->getTargetConstant(0xC22, DL, XLenVT);
+    auto * Vlenb = CurDAG->getMachineNode(RISCV::CSRRS, DL, XLenVT, Address,
+                                          CurDAG->getRegister(RISCV::X0, XLenVT));
+    auto * Scale = CurDAG->getMachineNode
+                        (RISCV::SRLI, DL, VT, SDValue(Vlenb, 0), 
+                         CurDAG->getTargetConstant(3, DL, XLenVT));
+    auto * Size = CurDAG->getMachineNode(RISCV::MUL, DL, VT, SDValue(Scale, 0),
+                                          Op0);
+    ReplaceNode(Node, Size);
+    return;
+  }
   case RISCVISD::READ_CYCLE_WIDE:
     assert(!Subtarget->is64Bit() && "READ_CYCLE_WIDE is only used on riscv32");
 

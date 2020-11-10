@@ -2873,6 +2873,7 @@ bool LLParser::ParseStructBody(SmallVectorImpl<Type*> &Body) {
 
   if (!StructType::isValidElementType(Ty))
     return Error(EltTyLoc, "invalid element type for struct");
+  bool HasScalableVectorType = isa<ScalableVectorType>(Ty);
 
   while (EatIfPresent(lltok::comma)) {
     EltTyLoc = Lex.getLoc();
@@ -2881,8 +2882,14 @@ bool LLParser::ParseStructBody(SmallVectorImpl<Type*> &Body) {
     if (!StructType::isValidElementType(Ty))
       return Error(EltTyLoc, "invalid element type for struct");
 
+    if (isa<ScalableVectorType>(Ty))
+      HasScalableVectorType = true;
+
     Body.push_back(Ty);
   }
+
+  if (HasScalableVectorType && StructType::MixTypeWithScalableVectorType(Body))
+    return Error(EltTyLoc, "invalid element type for struct");
 
   return ParseToken(lltok::rbrace, "expected '}' at end of struct");
 }

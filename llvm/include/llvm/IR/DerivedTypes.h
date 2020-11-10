@@ -312,6 +312,9 @@ public:
   /// Return true if the specified type is valid as a element type.
   static bool isValidElementType(Type *ElemTy);
 
+  /// Return true if the struct has mixed type with scalable vector type and other type
+  static bool MixTypeWithScalableVectorType(SmallVectorImpl<Type *> &Types);
+
   // Iterator access to the elements.
   using element_iterator = Type::subtype_iterator;
 

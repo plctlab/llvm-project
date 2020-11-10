@@ -3760,19 +3760,53 @@ void SelectionDAGBuilder::visitGetElementPtr(const User &I) {
        GTI != E; ++GTI) {
     const Value *Idx = GTI.getOperand();
     if (StructType *StTy = GTI.getStructTypeOrNull()) {
-      unsigned Field = cast<Constant>(Idx)->getUniqueInteger().getZExtValue();
-      if (Field) {
-        // N = N + Offset
-        uint64_t Offset = DL->getStructLayout(StTy)->getElementOffset(Field);
+      bool ScalableStructType = false;
+      for (StructType::element_iterator Iter = StTy->element_begin(); 
+        Iter != StTy->element_end(); Iter++) {
+        if (isa<ScalableVectorType>(*Iter)) {
+          ScalableStructType = true;
+          break;
+        }
+      }
 
-        // In an inbounds GEP with an offset that is nonnegative even when
-        // interpreted as signed, assume there is no unsigned overflow.
+      if (!ScalableStructType) {
+        unsigned Field = cast<Constant>(Idx)->getUniqueInteger().getZExtValue();
+        if (Field) {
+          // N = N + Offset
+          uint64_t Offset = DL->getStructLayout(StTy)->getElementOffset(Field);
+
+          // In an inbounds GEP with an offset that is nonnegative even when
+          // interpreted as signed, assume there is no unsigned overflow.
+          SDNodeFlags Flags;
+          if (int64_t(Offset) >= 0 && cast<GEPOperator>(I).isInBounds())
+            Flags.setNoUnsignedWrap(true);
+
+          N = DAG.getNode(ISD::ADD, dl, N.getValueType(), N,
+                          DAG.getConstant(Offset, dl, N.getValueType()), Flags);
+        }
+      } else {
+        unsigned Field = cast<Constant>(Idx)->getUniqueInteger().getZExtValue();
         SDNodeFlags Flags;
-        if (int64_t(Offset) >= 0 && cast<GEPOperator>(I).isInBounds())
+        if (cast<GEPOperator>(I).isInBounds())
           Flags.setNoUnsignedWrap(true);
+        
+        assert(isa<ScalableVectorType>(StTy->getElementType(Field)) && 
+            "The Scalable Struct Type's all contained types must be Scalable vector type");
+        
+        ScalableVectorType * Vector = cast<ScalableVectorType>(StTy->getElementType(Field));
 
-        N = DAG.getNode(ISD::ADD, dl, N.getValueType(), N,
-                        DAG.getConstant(Offset, dl, N.getValueType()), Flags);
+        unsigned KnownMinVectorSize = 
+          (Vector->getElementType()->getScalarSizeInBits() / 8) * Vector->getNumElements();
+      
+        if (Field) {
+          SDValue SingleOffset = DAG.getNode(ISD::VSCALE, dl, N.getValueType(),
+                                       DAG.getConstant(KnownMinVectorSize, dl, N.getValueType()));
+          SDValue Offset = DAG.getNode(ISD::MUL, dl, N.getValueType(), SingleOffset,
+                                        DAG.getConstant(Field, dl, N.getValueType()));
+
+          N = DAG.getNode(ISD::ADD, dl, N.getValueType(), N,
+                          Offset, Flags);
+        }
       }
     } else {
       // IdxSize is the width of the arithmetic according to IR semantics.

@@ -591,6 +591,7 @@ void RISCVFrameLowering::determineCalleeSaves(MachineFunction &MF,
                                               RegScavenger *RS) const {
   TargetFrameLowering::determineCalleeSaves(MF, SavedRegs, RS);
 
+  // determine if has spilled vector register
   const MachineFrameInfo &MFI = MF.getFrameInfo();
   auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
   for (int Id = MFI.getObjectIndexBegin(), EId = MFI.getObjectIndexEnd();
