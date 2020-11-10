@@ -524,7 +524,7 @@ def FMV_H_X : FPUnaryOp_r<0b1111010, 0b000, FPR16, GPR, "fmv.h.x">,
   let rs2 = 0b00000;
 }
 
-def FEQ_H : FPCmpS_rr<0b010, "feq.s", FPR16> {
+def FEQ_H : FPCmpS_rr<0b010, "feq.h", FPR16> {
   let Inst{31-25} = 0b1010010;
 }
 def FLT_H : FPCmpS_rr<0b001, "flt.h", FPR16> {
@@ -564,29 +564,42 @@ def : Pat<(fpextend FPR16:$rs1), (FCVT_S_H FPR16:$rs1)>;
 } // Predicates = [HasStdExtF, HasStdExtF]
 
 let Predicates = [HasStdExtZfh, IsRV64] in {
-def FCVT_H_L : FPUnaryOp_r_frm<0b1101010, FPR16, GPR, "fcvt.h.s">,
+def FCVT_H_L : FPUnaryOp_r_frm<0b1101010, FPR16, GPR, "fcvt.h.l">,
                Sched<[]> {
   let rs2 = 0b00010;
 }
-def          : FPUnaryOpDynFrmAlias<FCVT_H_L, "fcvt.h.s", FPR16, GPR>;
-def FCVT_L_H : FPUnaryOp_r_frm<0b1100010, GPR, FPR16, "fcvt.s.h">,
+def          : FPUnaryOpDynFrmAlias<FCVT_H_L, "fcvt.h.l", FPR16, GPR>;
+def FCVT_L_H : FPUnaryOp_r_frm<0b1100010, GPR, FPR16, "fcvt.l.h">,
                Sched<[]> {
   let rs2 = 0b00010;
 }
-def          : FPUnaryOpDynFrmAlias<FCVT_L_H, "fcvt.s.h", GPR, FPR16>;
+def          : FPUnaryOpDynFrmAlias<FCVT_L_H, "fcvt.l.h", GPR, FPR16>;
 
 def FCVT_LU_H : FPUnaryOp_r_frm<0b1100010, GPR, FPR16, "fcvt.lu.h">,
                 Sched<[WriteFCvtF32ToI32, ReadFCvtF32ToI32]> {
   let rs2 = 0b00011;
 }
-def           : FPUnaryOpDynFrmAlias<FCVT_WU_S, "fcvt.lu.h", GPR, FPR32>;
+def           : FPUnaryOpDynFrmAlias<FCVT_LU_H, "fcvt.lu.h", GPR, FPR16>;
 
 def FCVT_H_LU : FPUnaryOp_r_frm<0b1101010, FPR16, GPR, "fcvt.h.lu">,
                 Sched<[WriteFCvtI32ToF32, ReadFCvtI32ToF32]> {
   let rs2 = 0b00011;
 }
-def           : FPUnaryOpDynFrmAlias<FCVT_S_WU, "fcvt.h.lu", FPR32, GPR>;
+def           : FPUnaryOpDynFrmAlias<FCVT_H_LU, "fcvt.h.lu", FPR16, GPR>;
 
 def : Pat<(riscv_fmv_h_x_rv64 GPR:$rs1), (FMV_H_X GPR:$rs1)>;
 def : Pat<(riscv_fmv_x_anyexth_rv64 FPR16:$rs1), (FMV_X_H FPR16:$rs1)>;
 } // Predicates = [HasStdExtZfh, IsRV64]
+
+let Predicates = [HasStdExtZfh, HasStdExtD] in {
+def FCVT_H_D : FPUnaryOp_r_frm<0b0100010, FPR16, FPR64, "fcvt.h.d">,
+               Sched<[]> {
+  let rs2 = 0b00001;
+}
+def          : FPUnaryOpDynFrmAlias<FCVT_H_D, "fcvt.h.d", FPR16, FPR64>;
+
+def FCVT_D_H : FPUnaryOp_r<0b0100001, 0b000, FPR64, FPR16, "fcvt.d.h">,
+               Sched<[]> {
+  let rs2 = 0b00010;
+}
+} // Predicates = [HasStdExtZfh, HasStdExtD]
