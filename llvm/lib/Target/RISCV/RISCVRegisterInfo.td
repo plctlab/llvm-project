@@ -303,7 +303,9 @@ class RegisterTypes<list<ValueType> reg_types> {
 
 // The order of registers represents the preferred allocation sequence,
 // meaning caller-save regs are listed before callee-save.
-def VR : RegisterClass<"RISCV", [nxv1i8, nxv2i8, nxv4i8, nxv1i16, nxv2i16,
+def VR : RegisterClass<"RISCV", [nxv1i1, nxv2i1, nxv4i1, nxv8i1, nxv16i1,
+                                 nxv32i1, nxv64i1,
+                                 nxv1i8, nxv2i8, nxv4i8, nxv1i16, nxv2i16,
                                  nxv1i32,
                                  nxv1f16, nxv2f16, nxv1f32,
                                  nxv8i8, nxv4i16, nxv2i32, nxv1i64,
