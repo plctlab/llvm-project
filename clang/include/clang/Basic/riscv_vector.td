@@ -2086,6 +2086,6 @@ let ShouldEmitBuiltin = 0 in {
   }
   foreach I = AllFloatVectorType in {
     def "vzero_"#I.Name : Inst<"vzero", [""], "", I.Name, 0, [-1],
-                               "vmv_v_f_"#I.Name#"(0)">;
+                               "vfmv_v_f_"#I.Name#"(0)">;
   }
 }

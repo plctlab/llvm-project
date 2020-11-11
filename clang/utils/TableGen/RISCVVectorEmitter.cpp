@@ -277,7 +277,11 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
     OS << type->getELEN() << ", " << *(--it) << ", ";
     OS << type->isLMULFractional() << ", " << type->getNF() <<"))) ";
     if (type->getName().find("float") != std::string::npos)
-      OS << " float ";
+      OS << " float" << type->getELEN() << "_t ";
+    else if (type->getName().find("uint") != std::string::npos)
+      OS << " uint" << type->getELEN() << "_t ";
+    else 
+      OS << " int" <<type->getELEN() << "_t "; 
     OS << type->getName() <<";\n";
   }
 
