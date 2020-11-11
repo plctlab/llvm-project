@@ -807,7 +807,7 @@ multiclass int_binary_v_vv_vx_u8 :
 //                            vint*m*_t op1, int*_t op2);
 multiclass signed_binary_m_vx {
   foreach I = AllSignedVectorType in {
-    defm NAME : Binary<NAME, I.BoolValue, I.Value, I.Value, "_vx",
+    defm NAME : Binary<NAME, I.BoolValue, I.Value, I.ElemType.Value, "_vx",
                        I.Name#"_"#I.Mask, I.BoolValue,
                        [-1, 0, 1], [-1, 2, 3]>;
   }
@@ -818,7 +818,7 @@ multiclass signed_binary_m_vx {
 //                            vuint*m*_t op1, uint*_t op2);
 multiclass unsigned_binary_m_vx {
   foreach I = AllUnsignedVectorType in {
-    defm NAME : Binary<NAME, I.BoolValue, I.Value, I.Value, "_vx",
+    defm NAME : Binary<NAME, I.BoolValue, I.Value, I.ElemType.Value, "_vx",
                        I.Name#"_"#I.Mask, I.BoolValue,
                        [-1, 0, 1], [-1, 2, 3]>;
   }
@@ -835,7 +835,7 @@ multiclass signed_binary_m_vv_vx {
     defm NAME : Binary<NAME, I.BoolValue, I.Value, I.Value, "_vv",
                        I.Name#"_"#I.Mask, I.BoolValue,
                        [-1, 0], [-1, 2, 3]>;
-    defm NAME : Binary<NAME, I.BoolValue, I.Value, I.Value, "_vx",
+    defm NAME : Binary<NAME, I.BoolValue, I.Value, I.ElemType.Value, "_vx",
                        I.Name#"_"#I.Mask, I.BoolValue,
                        [-1, 0, 1], [-1, 2, 3]>;
   }
@@ -852,7 +852,7 @@ multiclass unsigned_binary_m_vv_vx {
     defm NAME : Binary<NAME, I.BoolValue, I.Value, I.Value, "_vv",
                        I.Name#"_"#I.Mask, I.BoolValue,
                        [-1, 0], [-1, 2, 3]>;
-    defm NAME : Binary<NAME, I.BoolValue, I.Value, I.Value, "_vx",
+    defm NAME : Binary<NAME, I.BoolValue, I.Value, I.ElemType.Value, "_vx",
                        I.Name#"_"#I.Mask, I.BoolValue,
                        [-1, 0, 1], [-1, 2, 3]>;
   }
@@ -1207,7 +1207,7 @@ multiclass float_binary_m_vv {
 //                            vfloat*m*_t op1, float*_t op2);
 multiclass float_binary_m_vf {
   foreach I = AllFloatVectorType in {
-    defm NAME : Binary<NAME, I.BoolValue, I.Value, I.Value, "_vf",
+    defm NAME : Binary<NAME, I.BoolValue, I.Value, I.ElemType.Value, "_vf",
                        I.Name#"_"#I.Mask, I.BoolValue,
                        [-1, 0, 1], [-1, 2, 3]>;
   }
@@ -1690,7 +1690,7 @@ defm vwcvtu : vwcvtu;
 
 // 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
 multiclass vfncvt {
-  foreach I = WideSignedToFloat in {
+  foreach I = WideFloatToSigned in {
     defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value, "_x_f_w",
                       I.OriginVector.Name, I.OriginVector.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
@@ -1699,7 +1699,7 @@ multiclass vfncvt {
                       I.OriginVector.Name, I.OriginVector.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
-  foreach I = WideUnsignedToFloat in {
+  foreach I = WideFloatToUnsigned in {
     defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value, "_xu_f_w",
                       I.OriginVector.Name, I.OriginVector.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
@@ -1709,13 +1709,13 @@ multiclass vfncvt {
                       [-1, 0], [-1, 0, 2]>;
   }
 
-  foreach I = WideFloatToSigned in {
+  foreach I = WideSignedToFloat in {
     defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value, "_f_x_w",
                       I.OriginVector.Name, I.OriginVector.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
 
-  foreach I = WideFloatToUnsigned in {
+  foreach I = WideUnsignedToFloat in {
     defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value, "_f_xu_w",
                       I.OriginVector.Name, I.OriginVector.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
