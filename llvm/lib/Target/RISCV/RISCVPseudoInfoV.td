@@ -1483,6 +1483,7 @@ defm PseudoVSUB : pseudo_binary_v_vv_vx;
 defm PseudoVRSUB : pseudo_binary_v_vx;
 defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vadd", "PseudoVADD">;
 defm : pat_intrinsic_int_binary_v_vv_vx<"int_riscv_vsub", "PseudoVSUB">;
+defm : pat_intrinsic_int_binary_v_vx<"int_riscv_vrsub", "PseudoVRSUB">;
 
 // 12.2. Vector Widening Integer Add/Subtract
 defm PseudoVWADD : pseudo_binary_w_vv_vx_wv_wx<"@earlyclobber $rd">;
@@ -1491,6 +1492,8 @@ defm PseudoVWSUB : pseudo_binary_w_vv_vx_wv_wx<"@earlyclobber $rd">;
 defm PseudoVWSUBU : pseudo_binary_w_vv_vx_wv_wx<"@earlyclobber $rd">;
 defm : pat_intrinsic_int_binary_w_vv_vx_wv_wx<"int_riscv_vwadd", "PseudoVWADD">;
 defm : pat_intrinsic_int_binary_w_vv_vx_wv_wx<"int_riscv_vwaddu", "PseudoVWADDU">;
+defm : pat_intrinsic_int_binary_w_vv_vx_wv_wx<"int_riscv_vwsub", "PseudoVWSUB">;
+defm : pat_intrinsic_int_binary_w_vv_vx_wv_wx<"int_riscv_vwsubu", "PseudoVWSUBU">;
 defm : pat_intrinsic_int_binary_w_vX0<"int_riscv_vwcvt_x_x_v", "PseudoVWADD_VX">;
 defm : pat_intrinsic_int_binary_w_vX0<"int_riscv_vwcvtu_x_x_v", "PseudoVWADDU_VX">;
 
