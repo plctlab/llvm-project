@@ -89,12 +89,6 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
   if (Subtarget.hasStdExtD())
     addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
   if (Subtarget.hasStdExtV()) {
-    // addRegisterClass(MVT::nxv1i1, &RISCV::VRRegClass);
-    // addRegisterClass(MVT::nxv2i1, &RISCV::VRRegClass);
-    // addRegisterClass(MVT::nxv4i1, &RISCV::VRRegClass);
-    // addRegisterClass(MVT::nxv8i1, &RISCV::VRRegClass);
-    // addRegisterClass(MVT::nxv16i1, &RISCV::VRRegClass);
-    // addRegisterClass(MVT::nxv32i1, &RISCV::VRRegClass);
     addRegisterClass(MVT::nxv1i1, &RISCV::VMRegClass);
     addRegisterClass(MVT::nxv2i1, &RISCV::VMRegClass);
     addRegisterClass(MVT::nxv4i1, &RISCV::VMRegClass);
@@ -144,7 +138,6 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
     addRegisterClass(MVT::nxv32f16, &RISCV::VRM8RegClass);
     addRegisterClass(MVT::nxv16f32, &RISCV::VRM8RegClass);
     addRegisterClass(MVT::nxv8f64, &RISCV::VRM8RegClass);
-
   }
 
   // Compute derived properties from the register classes.
@@ -934,11 +927,12 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
   SDLoc DL(Op);
   switch (IntNo) {
   default:
-    return SDValue();    // Don't custom lower most intrinsics.
+    break;    // Don't custom lower most intrinsics.
   case Intrinsic::thread_pointer: {
     EVT PtrVT = getPointerTy(DAG.getDataLayout());
     return DAG.getRegister(RISCV::X4, PtrVT);
   }
+  #if 0
   case Intrinsic::riscv_vfmacc_vf: {
     SDValue scalar = Op.getOperand(2);
     if (scalar.getSimpleValueType() == MVT::f16) {
@@ -1000,7 +994,28 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
             {Op.getOperand(0), Op.getOperand(1), Op.getOperand(2), Promote});
     }
     break;
+  #endif
   }
+
+  // Derived from EPI's implementation.
+  // Some RVV intrinsics may claim that they want an integer operand to be
+  // extended.
+  if (const RVVIntrinsicsTable::RVVIntrinsicInfo *EII =
+          RVVIntrinsicsTable::getRVVIntrinsicInfo(IntNo)) {
+    if (EII->ExtendedOperand) {
+      assert(EII->ExtendedOperand < Op.getNumOperands());
+      std::vector<SDValue> Operands(Op->op_begin(), Op->op_end());
+      SDValue &ScalarOp = Operands[EII->ExtendedOperand];
+      if (ScalarOp.getValueType() == MVT::i32 ||
+          ScalarOp.getValueType() == MVT::i16 ||
+          ScalarOp.getValueType() == MVT::i8) {
+        ScalarOp = DAG.getNode(ISD::ANY_EXTEND, DL, MVT::i64, ScalarOp);
+        return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(),
+                           Operands);
+      }
+    }
+  }
+
   return SDValue();
 }
 

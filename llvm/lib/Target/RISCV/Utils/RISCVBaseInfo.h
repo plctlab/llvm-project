@@ -218,6 +218,20 @@ void validate(const Triple &TT, const FeatureBitset &FeatureBits);
 
 } // namespace RISCVFeatures
 
+// Derived from EPI's implementation.
+namespace RVVIntrinsicsTable {
+
+struct RVVIntrinsicInfo {
+  unsigned int IntrinsicID;
+  unsigned int ExtendedOperand;
+};
+
+#define GET_RVVIntrinsicsTable_DECL
+using namespace RISCV;
+#include "RISCVGenSearchableTables.inc"
+
+} // end namespace RVVIntrinsicsTable
+
 namespace RISCVVectorPseudosTable {
 
 struct RISCVVectorPseudoInfo {

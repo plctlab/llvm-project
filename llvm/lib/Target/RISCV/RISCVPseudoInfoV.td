@@ -263,6 +263,14 @@ defset list<VectorTypeInfoToNarrowOrWide> AllWideFloatToIntVectors = {
   def : VectorTypeInfoToNarrowOrWide<Vtypev8xi64, Vtypev8xf32, "4_32_M8">;
 }
 
+def RVVIntrinsicsTable : GenericTable {
+  let FilterClass = "RVVIntrinsic";
+  let CppTypeName = "RVVIntrinsicInfo";
+  let Fields = ["IntrinsicID", "ExtendOperand"];
+  let PrimaryKey = ["IntrinsicID"];
+  let PrimaryKeyName = "getRVVIntrinsicInfo";
+}
+
 class RISCVVectorPseudo {
   Pseudo Pseudo = !cast<Pseudo>(NAME);
   Instruction BaseInstr;
@@ -1170,10 +1178,14 @@ multiclass pat_intrinsic_float_binary_m_vv<string intrinsic_name,
 
 multiclass pat_intrinsic_float_binary_m_vf<string intrinsic_name,
                                            string insn_name> {
-  foreach I = AllFloatVectors in
+  foreach I = AllFloatVectors in {
     defm : pat_intrinsic_binary<intrinsic_name#"_vf", insn_name#"_VF",
                                 I.Mask, I.Type, f32, I.Mask,
                                 I.SEW, I.LMULstr, VM, I.RegClass, FPR32>;
+    defm : pat_intrinsic_binary<intrinsic_name#"_vf", insn_name#"_VF",
+                                I.Mask, I.Type, f64, I.Mask,
+                                I.SEW, I.LMULstr, VM, I.RegClass, FPR64>;
+  }
 }
 
 multiclass pat_intrinsic_float_binary_m_vv_vf<string intrinsic_name,

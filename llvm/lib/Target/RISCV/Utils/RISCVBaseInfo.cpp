@@ -1,6 +1,7 @@
 #include "RISCVBaseInfo.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/Triple.h"
+#include "llvm/IR/IntrinsicsRISCV.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace llvm {
@@ -77,6 +78,12 @@ void validate(const Triple &TT, const FeatureBitset &FeatureBits) {
 }
 
 } // namespace RISCVFeatures
+
+// Derived from EPI's implementation.
+namespace RVVIntrinsicsTable {
+#define GET_RVVIntrinsicsTable_IMPL
+#include "RISCVGenSearchableTables.inc"
+}
 
 namespace RISCVVectorPseudosTable { 
 #define GET_RISCVVectorPseudoTable_IMPL

@@ -65,236 +65,282 @@ let TargetPrefix = "riscv" in {
   // @llvm.riscv.masked.cmpxchg.{i32,i64}.<p>(...)
   defm int_riscv_masked_cmpxchg : MaskedAtomicRMWFiveArgIntrinsics;
 
+} // TargetPrefix = "riscv"
+
 //===----------------------------------------------------------------------===//
-// RISC-V Vector Extension Intrinsics.
-//===----------------------------------------------------------------------===//
+// Vector Extension
+
+// Derived from EPI's implementation.
+class RVVIntrinsic {
+  // These intrinsics may accept illegal integer values in their llvm_any_ty
+  // operand, so they have to be extended. If set to zero then the intrinsic
+  // does not have any operand that must be extended.
+  Intrinsic IntrinsicID = !cast<Intrinsic>(NAME);
+  bits<4> ExtendOperand = 0;
+}
+
+let TargetPrefix = "riscv" in {
 
 class V_VV : Intrinsic<[llvm_anyvector_ty],
                        [LLVMMatchType<0>, LLVMMatchType<0>],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic;
 
 class V_VV_mask : Intrinsic<[llvm_anyvector_ty],
                             [llvm_anyvector_ty, LLVMMatchType<0>,
                              LLVMMatchType<0>, LLVMMatchType<0>],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic;
 
 class W_VV : Intrinsic<[llvm_anyvector_ty],
                        [llvm_anyvector_ty, LLVMMatchType<1>],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic;
 
 class W_VV_mask : Intrinsic<[llvm_anyvector_ty],
                             [llvm_anyvector_ty, LLVMMatchType<0>,
                              llvm_anyvector_ty, LLVMMatchType<2>],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic;
 
 class V_WV : Intrinsic<[llvm_anyvector_ty],
                        [llvm_anyvector_ty, LLVMMatchType<0>],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic;
 
 class V_WV_mask : Intrinsic<[llvm_anyvector_ty],
                          [llvm_anyvector_ty, LLVMMatchType<0>,
                           llvm_anyvector_ty, LLVMMatchType<0>],
-                         [IntrNoMem]>;
+                         [IntrNoMem]>, RVVIntrinsic;
 
 class V_WX : Intrinsic<[llvm_anyvector_ty],
                        [llvm_anyvector_ty, llvm_anyint_ty],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 2;
+}
 
 class V_WX_mask : Intrinsic<[llvm_anyvector_ty],
                             [llvm_anyvector_ty, LLVMMatchType<0>,
                              llvm_anyvector_ty, llvm_anyint_ty],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 4;
+}
 
 class W_WV : Intrinsic<[llvm_anyvector_ty],
                        [LLVMMatchType<0>, llvm_anyvector_ty],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic;
                         
 class W_WV_mask : Intrinsic<[llvm_anyvector_ty],
                             [llvm_anyvector_ty, LLVMMatchType<0>,
                              LLVMMatchType<0>, llvm_anyvector_ty],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic;
 
 class V_VX : Intrinsic<[llvm_anyvector_ty],
                        [LLVMMatchType<0>, llvm_anyint_ty],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 2;
+}
 
 class V_VX_mask : Intrinsic<[llvm_anyvector_ty],
                             [llvm_anyvector_ty, LLVMMatchType<0>,
                              LLVMMatchType<0>, llvm_anyint_ty],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 4;
+}
 
 class W_VX : Intrinsic<[llvm_anyvector_ty],
                        [llvm_anyvector_ty, llvm_anyint_ty],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 2;
+}
 
 class W_VX_mask : Intrinsic<[llvm_anyvector_ty],
                             [llvm_anyvector_ty, LLVMMatchType<0>,
                              llvm_anyvector_ty, llvm_anyint_ty],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 4;
+}
 
 class W_VF : Intrinsic<[llvm_anyvector_ty],
                        [llvm_anyvector_ty, llvm_anyfloat_ty],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic;
 
 class W_VF_mask : Intrinsic<[llvm_anyvector_ty],
                             [llvm_anyvector_ty, LLVMMatchType<0>,
                              llvm_anyvector_ty, llvm_anyfloat_ty],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic;
 
 class V_VF : Intrinsic<[llvm_anyvector_ty],
                        [LLVMMatchType<0>, llvm_anyfloat_ty],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic;
 
 class V_VF_mask : Intrinsic<[llvm_anyvector_ty],
                             [llvm_anyvector_ty, LLVMMatchType<0>,
                              LLVMMatchType<0>, llvm_anyfloat_ty],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic;
 
 class V_VVV : Intrinsic<[llvm_anyvector_ty],
                         [LLVMMatchType<0>, LLVMMatchType<0>, LLVMMatchType<0>],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic;
 
 class V_VVV_mask : Intrinsic<[llvm_anyvector_ty],
                              [llvm_anyvector_ty, LLVMMatchType<0>,
                               LLVMMatchType<0>, LLVMMatchType<0>],
-                             [IntrNoMem]>;
+                             [IntrNoMem]>, RVVIntrinsic;
 
 class V_VVX : Intrinsic<[llvm_anyvector_ty],
                         [LLVMMatchType<0>, llvm_anyint_ty, LLVMMatchType<0>],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 2;
+}
 
 class V_VVX_mask : Intrinsic<[llvm_anyvector_ty],
                              [llvm_anyvector_ty, LLVMMatchType<0>,
                               llvm_anyint_ty, LLVMMatchType<0>],
-                             [IntrNoMem]>;
+                             [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 3;
+}
 
 class V_VVZ : Intrinsic<[llvm_anyvector_ty],
                         [LLVMMatchType<0>, LLVMMatchType<0>, llvm_anyint_ty],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 3;
+}
 
 class V_VVZ_mask : Intrinsic<[llvm_anyvector_ty],
                              [llvm_anyvector_ty, LLVMMatchType<0>,
                               LLVMMatchType<0>, llvm_anyint_ty],
-                             [IntrNoMem]>;
+                             [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 4;
+}
 
 class V_VVF : Intrinsic<[llvm_anyvector_ty],
                         [LLVMMatchType<0>, llvm_anyfloat_ty, LLVMMatchType<0>],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic;
 
 class V_VVF_mask : Intrinsic<[llvm_anyvector_ty],
                              [llvm_anyvector_ty, LLVMMatchType<0>,
                               llvm_anyfloat_ty, LLVMMatchType<0>],
-                             [IntrNoMem]>;
+                             [IntrNoMem]>, RVVIntrinsic;
 
 class W_V : Intrinsic<[llvm_anyvector_ty],
                       [llvm_anyvector_ty],
-                      [IntrNoMem]>;
+                      [IntrNoMem]>, RVVIntrinsic;
 
 class W_V_mask : Intrinsic<[llvm_anyvector_ty],
                            [llvm_anyvector_ty, LLVMMatchType<0>,
                             llvm_anyvector_ty],
-                           [IntrNoMem]>;
+                           [IntrNoMem]>, RVVIntrinsic;
 
 class V_VVM : Intrinsic<[llvm_anyvector_ty],
                         [LLVMMatchType<0>, LLVMMatchType<0>, llvm_anyvector_ty],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic;
 
 class V_VXM : Intrinsic<[llvm_anyvector_ty],
                         [LLVMMatchType<0>, llvm_anyint_ty, llvm_anyvector_ty],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 2;
+}
 
 class M_VV : Intrinsic<[llvm_anyvector_ty],
                        [llvm_anyvector_ty,  LLVMMatchType<1>],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic;
 
 class M_VV_mask : Intrinsic<[llvm_anyvector_ty],
                             [LLVMMatchType<0>, LLVMMatchType<0>,
                             llvm_anyvector_ty, llvm_anyvector_ty],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic;
 
 class M_VVM : Intrinsic<[llvm_anyvector_ty],
                         [llvm_anyvector_ty, LLVMMatchType<1>, LLVMMatchType<0>],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic;
 
 class M_VX : Intrinsic<[llvm_anyvector_ty],
                        [llvm_anyvector_ty, llvm_anyint_ty],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 2;
+}
 
 class M_VX_mask : Intrinsic<[llvm_anyvector_ty],
                             [LLVMMatchType<0>, LLVMMatchType<0>,
                             llvm_anyvector_ty, llvm_anyint_ty],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 4;
+}
 
 class M_VF : Intrinsic<[llvm_anyvector_ty],
                        [llvm_anyvector_ty, llvm_anyfloat_ty],
-                       [IntrNoMem]>;
+                       [IntrNoMem]>, RVVIntrinsic;
 
 class M_VF_mask : Intrinsic<[llvm_anyvector_ty],
                             [LLVMMatchType<0>, LLVMMatchType<0>,
                             llvm_anyvector_ty, llvm_anyfloat_ty],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic;
 
 class M_VXM : Intrinsic<[llvm_anyvector_ty],
                         [llvm_anyvector_ty, llvm_any_ty, LLVMMatchType<0>],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic;
 
 class V_V : Intrinsic<[llvm_anyvector_ty],
                       [LLVMMatchType<0>],
-                      [IntrNoMem]>;
+                      [IntrNoMem]>, RVVIntrinsic;
 
 class V_V_mask : Intrinsic<[llvm_anyvector_ty],
                       [llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0>],
-                      [IntrNoMem]>;
+                      [IntrNoMem]>, RVVIntrinsic;
 
 class W_WVV : Intrinsic<[llvm_anyvector_ty],
                         [LLVMMatchType<0>, llvm_anyvector_ty, LLVMMatchType<1>],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic;
 
 class W_WVV_mask : Intrinsic<[llvm_anyvector_ty],
-                        [llvm_anyvector_ty, LLVMMatchType<0>, llvm_anyvector_ty, LLVMMatchType<2>],
-                        [IntrNoMem]>;
+                             [llvm_anyvector_ty, LLVMMatchType<0>,
+                              llvm_anyvector_ty, LLVMMatchType<2>],
+                             [IntrNoMem]>, RVVIntrinsic;
 
 class W_WVX : Intrinsic<[llvm_anyvector_ty],
                         [LLVMMatchType<0>, llvm_anyint_ty, llvm_anyvector_ty],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 2;
+}
 
 class W_WVF : Intrinsic<[llvm_anyvector_ty],
                         [LLVMMatchType<0>, llvm_anyfloat_ty, llvm_anyvector_ty],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic;
 
 class W_WVX_mask : Intrinsic<[llvm_anyvector_ty],
                              [llvm_anyvector_ty, LLVMMatchType<0>,
                              llvm_anyint_ty, llvm_anyvector_ty],
-                             [IntrNoMem]>;
+                             [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 3;
+}
 
 class W_WVF_mask : Intrinsic<[llvm_anyvector_ty],
                              [llvm_anyvector_ty, LLVMMatchType<0>,
                              llvm_anyfloat_ty, llvm_anyvector_ty],
-                             [IntrNoMem]>;
+                             [IntrNoMem]>, RVVIntrinsic;
 
 class V_MVV : Intrinsic<[llvm_anyvector_ty],
                         [llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0>],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic;
 
 class V_MVX : Intrinsic<[llvm_anyvector_ty],
                         [llvm_anyvector_ty, LLVMMatchType<0>, llvm_anyint_ty],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 3;
+}
 
-class V_V1 : Intrinsic<[llvm_anyvector_ty], [llvm_anyvector_ty], [IntrNoMem]>;
+class V_V1 : Intrinsic<[llvm_anyvector_ty], [llvm_anyvector_ty], [IntrNoMem]>,
+             RVVIntrinsic;
 
 class V_V1_mask : Intrinsic<[llvm_anyvector_ty],
                             [llvm_anyvector_ty, LLVMMatchType<0>,
                              llvm_anyvector_ty],
-                            [IntrNoMem]>;
+                            [IntrNoMem]>, RVVIntrinsic;
 
 class V_VRV : Intrinsic<[llvm_anyvector_ty],
                         [LLVMMatchType<0>, llvm_anyvector_ty, LLVMMatchType<0>],
-                        [IntrNoMem]>;
+                        [IntrNoMem]>, RVVIntrinsic;
 
 class V_VRV_mask : Intrinsic<[llvm_anyvector_ty],
                              [llvm_anyvector_ty, LLVMMatchType<0>,
                               llvm_anyvector_ty, LLVMMatchType<0>],
-                             [IntrNoMem]>;
+                             [IntrNoMem]>, RVVIntrinsic;
 
 // 6. Configuration-Setting Instructions
 def int_riscv_vsetvl  : Intrinsic<[llvm_i64_ty], [
@@ -558,7 +604,9 @@ defm vmerge : Merge;
 // 12.17. Vector Integer Move Instructions
 def int_riscv_vmv_v_x : Intrinsic<[llvm_anyvector_ty],
                                   [llvm_anyint_ty],
-                                  [IntrNoMem]>;
+                                  [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 1;
+}
 def int_riscv_vmv_v_v : V_V;
 
 // 13.1. Vector Single-Width Saturating Add and Subtract
@@ -693,12 +741,11 @@ def int_riscv_vfmerge_vvm : Intrinsic<[llvm_anyvector_ty],
 def int_riscv_vfmerge_vfm : Intrinsic<[llvm_anyvector_ty],
                                       [llvm_anyvector_ty, LLVMMatchType<0>,
                                        llvm_anyfloat_ty],
-                                      [IntrNoMem]>;
+                                      [IntrNoMem]>, RVVIntrinsic;
 
 // 14.14. Vector Floating-Point Move Instruction
-def int_riscv_vfmv_v_f : Intrinsic<[llvm_anyvector_ty],
-                                   [llvm_anyfloat_ty],
-                                   [IntrNoMem]>;
+def int_riscv_vfmv_v_f : Intrinsic<[llvm_anyvector_ty], [llvm_anyfloat_ty],
+                                   [IntrNoMem]>, RVVIntrinsic;
 
 // 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
 multiclass Unary_V_V1 {
@@ -821,10 +868,12 @@ def int_riscv_vid_v_mask : Intrinsic<[llvm_anyvector_ty],
 // 17.1. Integer Scalar Move Instructions
 def int_riscv_vmv_x_s : Intrinsic<[llvm_anyint_ty],
                                   [llvm_anyvector_ty],
-                                  [IntrNoMem]>;
+                                  [IntrNoMem]>, RVVIntrinsic;
 def int_riscv_vmv_s_x : Intrinsic<[llvm_anyvector_ty],
                                   [llvm_anyvector_ty, llvm_anyint_ty],
-                                  [IntrNoMem]>;
+                                  [IntrNoMem]>, RVVIntrinsic {
+  let ExtendOperand = 2;
+}
 
 // 17.2. Floating-Point Scalar Move Instructions
 def int_riscv_vfmv_f_s : Intrinsic<[llvm_anyfloat_ty],
@@ -832,7 +881,7 @@ def int_riscv_vfmv_f_s : Intrinsic<[llvm_anyfloat_ty],
                                    [IntrNoMem]>;
 def int_riscv_vfmv_s_f : Intrinsic<[llvm_anyvector_ty],
                                    [llvm_anyvector_ty, llvm_anyfloat_ty],
-                                   [IntrNoMem]>;
+                                   [IntrNoMem]>, RVVIntrinsic;
 
 // 17.3. Vector Slide Instructions
 multiclass Ternary_int_v_vvz {
