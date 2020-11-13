@@ -932,7 +932,6 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
     EVT PtrVT = getPointerTy(DAG.getDataLayout());
     return DAG.getRegister(RISCV::X4, PtrVT);
   }
-  #if 0
   case Intrinsic::riscv_vfmacc_vf: {
     SDValue scalar = Op.getOperand(2);
     if (scalar.getSimpleValueType() == MVT::f16) {
@@ -942,59 +941,6 @@ SDValue RISCVTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
     }
     break;
   }
-  case Intrinsic::riscv_vmv_v_x:
-  case Intrinsic::riscv_vmv_s_x: {
-    SDValue Op1 = Op.getOperand(1);
-    if (Op1.getSimpleValueType() == MVT::i8 ||
-        Op1.getSimpleValueType() == MVT::i16 ||
-        Op1.getSimpleValueType() == MVT::i32) {
-    SDValue Promote = DAG.getNode(ISD::SIGN_EXTEND, DL, MVT::i64, Op1);
-    return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), {Op.getOperand(0), Promote});
-  }
-    break;
-  }
-  case Intrinsic::riscv_vnclip_wx:
-  case Intrinsic::riscv_vnclipu_wx:
-  case Intrinsic::riscv_vnsrl_wx:
-  case Intrinsic::riscv_vnsra_wx:
-  case Intrinsic::riscv_vsll_vx:
-  case Intrinsic::riscv_vsrl_vx:
-  case Intrinsic::riscv_vsra_vx:
-  case Intrinsic::riscv_vand_vx:
-  case Intrinsic::riscv_vor_vx:
-  case Intrinsic::riscv_vxor_vx: {
-    SDValue Scalar = Op.getOperand(2);
-    if (Scalar.getSimpleValueType() == MVT::i8 ||
-        Scalar.getSimpleValueType() == MVT::i16 || 
-        Scalar.getSimpleValueType() == MVT::i32) {
-    SDValue Promote = DAG.getNode(ISD::SIGN_EXTEND, DL, MVT::i64, Scalar);
-    return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), {Op.getOperand(0), Op.getOperand(1),
-            Promote});
-    }
-    break;
-  }
-  case Intrinsic::riscv_vqmaccus_vx: {
-    SDValue Scalar = Op.getOperand(2);
-    if (Scalar.getSimpleValueType() == MVT::i8 ||
-        Scalar.getSimpleValueType() == MVT::i16 ||
-        Scalar.getSimpleValueType() == MVT::i32) {
-    SDValue Promote = DAG.getNode(ISD::SIGN_EXTEND, DL, MVT::i64, Scalar);
-    return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), {Op.getOperand(0), Op.getOperand(1),
-            Promote,  Op.getOperand(3)});
-    }
-    break;
-  }
-  case Intrinsic::riscv_vmerge_vxm:
-    SDValue Op3 = Op.getOperand(3);
-    if (Op3.getSimpleValueType() == MVT::i8 || 
-        Op3.getSimpleValueType() == MVT::i16 || 
-        Op3.getSimpleValueType() == MVT::i32) {
-          SDValue Promote = DAG.getNode(ISD::SIGN_EXTEND, DL, MVT::i64, Op3);
-          return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, Op.getValueType(), 
-            {Op.getOperand(0), Op.getOperand(1), Op.getOperand(2), Promote});
-    }
-    break;
-  #endif
   }
 
   // Derived from EPI's implementation.

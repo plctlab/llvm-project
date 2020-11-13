@@ -890,7 +890,7 @@ multiclass unsigned_binary_v_wv_wx{
   foreach I = AllWideUnsignedVector in {
     defm NAME : Binary<NAME, I.OriginVector.Value, I.WideVector.Value,
                        I.OriginVector.Value, "_wv", I.OriginVector.Name,
-                       I.WideVector.BoolValue, [-1, 1], [-1, 0, 3]>;
+                       I.WideVector.BoolValue, [-1, 0], [-1, 0, 2]>;
             
     defm NAME : Binary<NAME, I.OriginVector.Value, I.WideVector.Value,
                        "Uc", "_wx",
@@ -968,11 +968,11 @@ multiclass unsigned_binary_w_wv_wx {
   foreach I = AllWideUnsignedVector in {
     defm NAME : Binary<NAME, I.WideVector.Value, I.WideVector.Value,
                        I.OriginVector.Value, "_wv", I.WideVector.Name,
-                       I.WideVector.Name, [-1, 1], [-1, 0, 3]>;
+                       I.WideVector.BoolValue, [-1, 1], [-1, 0, 3]>;
             
     defm NAME : Binary<NAME, I.WideVector.Value, I.WideVector.Value,
                        I.OriginVector.ElemType.Value, "_wx",
-                       I.WideVector.Name, I.WideVector.Name,
+                       I.WideVector.Name, I.WideVector.BoolValue,
                        [-1, 1], [-1, 0, 3]>;
   }    
 }
@@ -995,7 +995,7 @@ multiclass int_ternary_v_vvm_vxm {
     defm NAME : TernaryMaskOff<NAME, I.Value, I.Value, I.Value, I.BoolValue,
                                "_vvm", I.Name, "", [-1, 2], []>;
     defm NAME : TernaryMaskOff<NAME, I.Value, I.Value, I.ElemType.Value,
-                               I.Value, "_vxm", I.Name, "", [-1, 1, 2], []>;
+                               I.BoolValue, "_vxm", I.Name, "", [-1, 1, 2], []>;
   }
 }
 
@@ -1036,7 +1036,7 @@ multiclass signed_ternary_w_vs {
     defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
                         I.OriginVector.Value, I.WideVector.Value, "_vs",
                         I.OriginVector.Name#"_"#I.WideVector.Name,
-                        I.WideVector.Mask, [-1, 1], [-1, 0, 2]>;
+                        I.OriginVector.BoolValue, [-1, 1], [-1, 0, 2]>;
   }
 }
 
@@ -1049,7 +1049,7 @@ multiclass unsigned_ternary_w_vs {
     defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
                         I.OriginVector.Value, I.WideVector.Value, "_vs",
                         I.OriginVector.Name#"_"#I.WideVector.Name,
-                        I.WideVector.Mask, [-1, 1], [-1, 0, 2]>;
+                        I.OriginVector.BoolValue, [-1, 1], [-1, 0, 2]>;
   }
 }
 
@@ -1509,8 +1509,8 @@ defm vasubu : unsigned_binary_v_vv_vx;
 defm vsmul : signed_binary_v_vv_vx;
 
 // 13.4. Vector Single-Width Scaling Shift Instructions
-defm vssrl : unsigned_binary_v_vv_vx;
-defm vssra : signed_binary_v_vv_vx;
+defm vssrl : unsigned_binary_v_vv_vx_u8;
+defm vssra : signed_binary_v_vv_vx_u8;
 
 // 13.5. Vector Narrowing Fixed-Point Clip Instructions
 defm vnclip : signed_binary_v_wv_wx;
