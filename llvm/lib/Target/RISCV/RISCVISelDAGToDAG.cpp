@@ -76,17 +76,17 @@ void RISCVDAGToDAGISel::Select(SDNode *Node) {
   EVT VT = Node->getValueType(0);
 
   switch (Opcode) {
-  case ISD::INTRINSIC_WO_CHAIN: {
-    unsigned IntNo = cast<ConstantSDNode>(Node->getOperand(0))->getZExtValue();
+  case ISD::INTRINSIC_W_CHAIN: {
+    unsigned IntNo = cast<ConstantSDNode>(Node->getOperand(1))->getZExtValue();
     switch (IntNo) {
       default:
         break;
       case Intrinsic::riscv_vsetvl: {
         SDValue Vtypei = CurDAG->getTargetConstant(
-          cast<ConstantSDNode>(Node->getOperand(2))->getZExtValue(), DL, MVT::i64);
+          cast<ConstantSDNode>(Node->getOperand(3))->getZExtValue(), DL, MVT::i64);
 
-        auto *NodeVSETVLI = CurDAG->getMachineNode(RISCV::VSETVLI, DL, MVT::i64,
-                                                    Node->getOperand(1), Vtypei);
+        auto *NodeVSETVLI = CurDAG->getMachineNode(RISCV::VSETVLI, DL, MVT::i64, MVT::Other,
+                                                    Node->getOperand(2), Vtypei);
         ReplaceNode(Node, NodeVSETVLI);
         return;
       }

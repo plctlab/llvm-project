@@ -345,7 +345,7 @@ class V_VRV_mask : Intrinsic<[llvm_anyvector_ty],
 // 6. Configuration-Setting Instructions
 def int_riscv_vsetvl  : Intrinsic<[llvm_i64_ty], [
     /* requested vector length */  llvm_i64_ty,
-    /* vtype */                    llvm_i64_ty], [IntrNoMem]>;
+    /* vtype */                    llvm_i64_ty], [IntrNoMem,  IntrHasSideEffects]>;
 
 // 7. Vector Loads and Stores
 multiclass Vload {
