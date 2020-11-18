@@ -84,9 +84,9 @@ void RISCVDAGToDAGISel::Select(SDNode *Node) {
       case Intrinsic::riscv_vsetvl: {
         SDValue Vtypei = CurDAG->getTargetConstant(
           cast<ConstantSDNode>(Node->getOperand(3))->getZExtValue(), DL, MVT::i64);
-
+        SDValue Chain = Node->getOperand(0);
         auto *NodeVSETVLI = CurDAG->getMachineNode(RISCV::VSETVLI, DL, MVT::i64, MVT::Other,
-                                                    Node->getOperand(2), Vtypei);
+                                                    Node->getOperand(2), Vtypei, Chain);
         ReplaceNode(Node, NodeVSETVLI);
         return;
       }
