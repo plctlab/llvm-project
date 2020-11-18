@@ -682,7 +682,7 @@ multiclass unsigned_unary_v_m {
 multiclass unsgined_unary_x_m {
   foreach I = AllMaskType in {
     defm NAME : UnaryNoMaskedOff<NAME, "ULi", I.Value, "_m", I.Name, I.Value,
-                                 [0], [0, 1]>;
+                                 [0], [0]>;
   }
 }
 
@@ -691,7 +691,7 @@ multiclass unsgined_unary_x_m {
 multiclass sgined_unary_x_m {
   foreach I = AllMaskType in {
     defm NAME : UnaryNoMaskedOff<NAME, "Li", I.Value, "_m", I.Name, I.Value,
-                                 [0], [0, 1]>;
+                                 [0], [0]>;
   }
 }
 
@@ -1379,6 +1379,9 @@ defm vwsubu : unsigned_binary_w_vv_vx_wv_wx;
 // 12.4. Vector Integer Add-with-Carry/Subtract-with-Borrow Instructions
 defm vadc : int_ternary_v_vvm_vxm;
 defm vsbc : int_ternary_v_vvm_vxm;
+// TODO:
+// defm vmadc :
+// defm vmsbc :
 
 // 12.5. Vector Bitwise Logical Instructions
 defm vand : int_binary_v_vv_vx;
@@ -1389,6 +1392,9 @@ let ShouldEmitBuiltin = 0 in {
     def "vnot_v"#I.Name : Inst<"vnot", [I.Value, I.Value], "_v",
                                      I.Name, 0, [-1],
                                      "vxor_vx_"#I.Name#"(ARG0, -1)">;
+    def "vnot_v"#I.Name#"_mask" :
+      Inst<"vnot", [I.Value, I.BoolValue, I.Value, I.Value], "_v",
+           I.Name, 1, [-1], "vxor_vx_"#I.Name#"_m(ARG0, ARG1, ARG2, -1)">;
   }
 }
 
@@ -1767,6 +1773,7 @@ defm vmnor : bool_binary_m_mm;
 defm vmornot : bool_binary_m_mm;
 defm vmxnor : bool_binary_m_mm;
 
+// TODO:
 // vmmv.m vd, vs => vmand.mm vd, vs, vs
 // defm vmmv : ;
 // vmclr.m vd => vmxor.mm vd, vd, vd
@@ -1810,8 +1817,8 @@ multiclass vmv_x_s_s_x {
                              I.Name#"_"#I.ElemType.Name, "",
                              [-1, 0], []>;
     defm NAME : BinaryMaskOff<NAME, I.Value, I.Value, I.ElemType.Value, "_s_x",
-                              I.Name#"_"#I.ElemType.Name, "",
-                              [-1, 0, 1], []>;
+                              I.Name, "",
+                              [-1, 1], []>;
   }
 }
 defm vmv : vmv_x_s_s_x;
