@@ -79,268 +79,503 @@ class RVVIntrinsic {
   bits<4> ExtendOperand = 0;
 }
 
+// 'F'  -> floating-point scalar
+// 'M'  -> mask vector
+// 'V'  -> vector
+// 'Va' -> another vector, different type
+// 'W'  -> widened vector
+// 'X'  -> integer scalar
+
 let TargetPrefix = "riscv" in {
 
-class V_VV : Intrinsic<[llvm_anyvector_ty],
-                       [LLVMMatchType<0>, LLVMMatchType<0>],
-                       [IntrNoMem]>, RVVIntrinsic;
+class INT_V : Intrinsic<[llvm_anyvector_ty], [], [IntrNoMem]>;
 
-class V_VV_mask : Intrinsic<[llvm_anyvector_ty],
-                            [llvm_anyvector_ty, LLVMMatchType<0>,
-                             LLVMMatchType<0>, LLVMMatchType<0>],
-                            [IntrNoMem]>, RVVIntrinsic;
+class INT_V_MASK : Intrinsic<[llvm_anyvector_ty],
+                             [llvm_anyvector_ty, LLVMMatchType<0>],
+                             [IntrNoMem]>;
 
-class W_VV : Intrinsic<[llvm_anyvector_ty],
-                       [llvm_anyvector_ty, LLVMMatchType<1>],
-                       [IntrNoMem]>, RVVIntrinsic;
+class INT_X_V : Intrinsic<[llvm_anyint_ty], [llvm_anyvector_ty], [IntrNoMem]>;
 
-class W_VV_mask : Intrinsic<[llvm_anyvector_ty],
-                            [llvm_anyvector_ty, LLVMMatchType<0>,
-                             llvm_anyvector_ty, LLVMMatchType<2>],
-                            [IntrNoMem]>, RVVIntrinsic;
+class INT_F_V : Intrinsic<[llvm_anyfloat_ty], [llvm_anyvector_ty], [IntrNoMem]>;
 
-class V_WV : Intrinsic<[llvm_anyvector_ty],
-                       [llvm_anyvector_ty, LLVMMatchType<0>],
-                       [IntrNoMem]>, RVVIntrinsic;
+class INT_X_M : Intrinsic<[llvm_i64_ty], [llvm_anyvector_ty], [IntrNoMem]>;
 
-class V_WV_mask : Intrinsic<[llvm_anyvector_ty],
-                         [llvm_anyvector_ty, LLVMMatchType<0>,
-                          llvm_anyvector_ty, LLVMMatchType<0>],
-                         [IntrNoMem]>, RVVIntrinsic;
+class INT_X_M_MASK : Intrinsic<[llvm_i64_ty],
+                               [llvm_anyvector_ty, LLVMMatchType<0>],
+                               [IntrNoMem]>;
 
-class V_WX : Intrinsic<[llvm_anyvector_ty],
-                       [llvm_anyvector_ty, llvm_anyint_ty],
-                       [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 2;
-}
+class INT_V_V : Intrinsic<[llvm_anyvector_ty], [LLVMMatchType<0>], [IntrNoMem]>;
 
-class V_WX_mask : Intrinsic<[llvm_anyvector_ty],
-                            [llvm_anyvector_ty, LLVMMatchType<0>,
-                             llvm_anyvector_ty, llvm_anyint_ty],
-                            [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 4;
-}
+class INT_V_V_MASK : Intrinsic<[llvm_anyvector_ty],
+                               [llvm_anyvector_ty, LLVMMatchType<0>,
+                                LLVMMatchType<0>],
+                               [IntrNoMem]>;
 
-class W_WV : Intrinsic<[llvm_anyvector_ty],
-                       [LLVMMatchType<0>, llvm_anyvector_ty],
-                       [IntrNoMem]>, RVVIntrinsic;
-                        
-class W_WV_mask : Intrinsic<[llvm_anyvector_ty],
-                            [llvm_anyvector_ty, LLVMMatchType<0>,
-                             LLVMMatchType<0>, llvm_anyvector_ty],
-                            [IntrNoMem]>, RVVIntrinsic;
+class INT_V_Va : Intrinsic<[llvm_anyvector_ty], [llvm_anyvector_ty], [IntrNoMem]>;
 
-class V_VX : Intrinsic<[llvm_anyvector_ty],
-                       [LLVMMatchType<0>, llvm_anyint_ty],
-                       [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 2;
-}
+class INT_V_Va_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 llvm_anyvector_ty],
+                                [IntrNoMem]>;
 
-class V_VX_mask : Intrinsic<[llvm_anyvector_ty],
-                            [llvm_anyvector_ty, LLVMMatchType<0>,
-                             LLVMMatchType<0>, llvm_anyint_ty],
-                            [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 4;
-}
+class INT_V_X : Intrinsic<[llvm_anyvector_ty], [llvm_anyint_ty], [IntrNoMem]>,
+                RVVIntrinsic { let ExtendOperand = 1; }
 
-class W_VX : Intrinsic<[llvm_anyvector_ty],
-                       [llvm_anyvector_ty, llvm_anyint_ty],
-                       [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 2;
-}
+class INT_V_F : Intrinsic<[llvm_anyvector_ty], [llvm_anyfloat_ty], [IntrNoMem]>;
 
-class W_VX_mask : Intrinsic<[llvm_anyvector_ty],
-                            [llvm_anyvector_ty, LLVMMatchType<0>,
-                             llvm_anyvector_ty, llvm_anyint_ty],
-                            [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 4;
-}
+class INT_V_VV : Intrinsic<[llvm_anyvector_ty],
+                           [LLVMMatchType<0>, LLVMMatchType<0>],
+                           [IntrNoMem]>;
 
-class W_VF : Intrinsic<[llvm_anyvector_ty],
-                       [llvm_anyvector_ty, llvm_anyfloat_ty],
-                       [IntrNoMem]>, RVVIntrinsic;
+class INT_V_VV_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 LLVMMatchType<0>, LLVMMatchType<0>],
+                                [IntrNoMem]>;
 
-class W_VF_mask : Intrinsic<[llvm_anyvector_ty],
-                            [llvm_anyvector_ty, LLVMMatchType<0>,
-                             llvm_anyvector_ty, llvm_anyfloat_ty],
-                            [IntrNoMem]>, RVVIntrinsic;
+class INT_V_VX : Intrinsic<[llvm_anyvector_ty],
+                           [LLVMMatchType<0>, llvm_anyint_ty],
+                           [IntrNoMem]>,
+                 RVVIntrinsic { let ExtendOperand = 2; }
 
-class V_VF : Intrinsic<[llvm_anyvector_ty],
-                       [LLVMMatchType<0>, llvm_anyfloat_ty],
-                       [IntrNoMem]>, RVVIntrinsic;
+class INT_V_VX_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 LLVMMatchType<0>, llvm_anyint_ty],
+                                [IntrNoMem]>,
+                      RVVIntrinsic { let ExtendOperand = 4; }
 
-class V_VF_mask : Intrinsic<[llvm_anyvector_ty],
-                            [llvm_anyvector_ty, LLVMMatchType<0>,
-                             LLVMMatchType<0>, llvm_anyfloat_ty],
-                            [IntrNoMem]>, RVVIntrinsic;
+class INT_V_VVa : Intrinsic<[llvm_anyvector_ty],
+                            [LLVMMatchType<0>, llvm_anyvector_ty],
+                            [IntrNoMem]>;
 
-class V_VVV : Intrinsic<[llvm_anyvector_ty],
-                        [LLVMMatchType<0>, LLVMMatchType<0>, LLVMMatchType<0>],
-                        [IntrNoMem]>, RVVIntrinsic;
+class INT_V_VVa_MASK : Intrinsic<[llvm_anyvector_ty],
+                                 [llvm_anyvector_ty, LLVMMatchType<0>,
+                                  LLVMMatchType<0>, llvm_anyvector_ty],
+                                 [IntrNoMem]>;
 
-class V_VVV_mask : Intrinsic<[llvm_anyvector_ty],
-                             [llvm_anyvector_ty, LLVMMatchType<0>,
-                              LLVMMatchType<0>, LLVMMatchType<0>],
-                             [IntrNoMem]>, RVVIntrinsic;
+class INT_V_VF : Intrinsic<[llvm_anyvector_ty],
+                           [LLVMMatchType<0>, llvm_anyfloat_ty],
+                           [IntrNoMem]>;
 
-class V_VVX : Intrinsic<[llvm_anyvector_ty],
-                        [LLVMMatchType<0>, llvm_anyint_ty, LLVMMatchType<0>],
-                        [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 2;
-}
+class INT_V_VF_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 LLVMMatchType<0>, llvm_anyfloat_ty],
+                                [IntrNoMem]>;
 
-class V_VVX_mask : Intrinsic<[llvm_anyvector_ty],
-                             [llvm_anyvector_ty, LLVMMatchType<0>,
-                              llvm_anyint_ty, LLVMMatchType<0>],
-                             [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 3;
-}
+class INT_V_WV : Intrinsic<[llvm_anyvector_ty],
+                           [llvm_anyvector_ty, LLVMMatchType<0>],
+                           [IntrNoMem]>;
 
-class V_VVZ : Intrinsic<[llvm_anyvector_ty],
-                        [LLVMMatchType<0>, LLVMMatchType<0>, llvm_anyint_ty],
-                        [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 3;
-}
+class INT_V_WV_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 llvm_anyvector_ty, LLVMMatchType<0>],
+                                [IntrNoMem]>;
 
-class V_VVZ_mask : Intrinsic<[llvm_anyvector_ty],
-                             [llvm_anyvector_ty, LLVMMatchType<0>,
-                              LLVMMatchType<0>, llvm_anyint_ty],
-                             [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 4;
-}
+class INT_V_WX : Intrinsic<[llvm_anyvector_ty],
+                           [llvm_anyvector_ty, llvm_anyint_ty],
+                           [IntrNoMem]>,
+                 RVVIntrinsic { let ExtendOperand = 2; }
 
-class V_VVF : Intrinsic<[llvm_anyvector_ty],
-                        [LLVMMatchType<0>, llvm_anyfloat_ty, LLVMMatchType<0>],
-                        [IntrNoMem]>, RVVIntrinsic;
+class INT_V_WX_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 llvm_anyvector_ty, llvm_anyint_ty],
+                                [IntrNoMem]>,
+                      RVVIntrinsic { let ExtendOperand = 4; }
 
-class V_VVF_mask : Intrinsic<[llvm_anyvector_ty],
-                             [llvm_anyvector_ty, LLVMMatchType<0>,
-                              llvm_anyfloat_ty, LLVMMatchType<0>],
-                             [IntrNoMem]>, RVVIntrinsic;
-
-class W_V : Intrinsic<[llvm_anyvector_ty],
-                      [llvm_anyvector_ty],
-                      [IntrNoMem]>, RVVIntrinsic;
-
-class W_V_mask : Intrinsic<[llvm_anyvector_ty],
-                           [llvm_anyvector_ty, LLVMMatchType<0>,
-                            llvm_anyvector_ty],
-                           [IntrNoMem]>, RVVIntrinsic;
-
-class V_VVM : Intrinsic<[llvm_anyvector_ty],
-                        [LLVMMatchType<0>, LLVMMatchType<0>, llvm_anyvector_ty],
-                        [IntrNoMem]>, RVVIntrinsic;
-
-class V_VXM : Intrinsic<[llvm_anyvector_ty],
-                        [LLVMMatchType<0>, llvm_anyint_ty, llvm_anyvector_ty],
-                        [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 2;
-}
-
-class M_VV : Intrinsic<[llvm_anyvector_ty],
-                       [llvm_anyvector_ty,  LLVMMatchType<1>],
-                       [IntrNoMem]>, RVVIntrinsic;
-
-class M_VV_mask : Intrinsic<[llvm_anyvector_ty],
+class INT_V_VVV : Intrinsic<[llvm_anyvector_ty],
                             [LLVMMatchType<0>, LLVMMatchType<0>,
-                            llvm_anyvector_ty, llvm_anyvector_ty],
-                            [IntrNoMem]>, RVVIntrinsic;
+                             LLVMMatchType<0>],
+                            [IntrNoMem]>;
 
-class M_VVM : Intrinsic<[llvm_anyvector_ty],
-                        [llvm_anyvector_ty, LLVMMatchType<1>, LLVMMatchType<0>],
-                        [IntrNoMem]>, RVVIntrinsic;
+class INT_V_VVV_MASK : Intrinsic<[llvm_anyvector_ty],
+                                 [llvm_anyvector_ty, LLVMMatchType<0>,
+                                  LLVMMatchType<0>, LLVMMatchType<0>],
+                                 [IntrNoMem]>;
 
-class M_VX : Intrinsic<[llvm_anyvector_ty],
-                       [llvm_anyvector_ty, llvm_anyint_ty],
-                       [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 2;
-}
+class INT_V_VXV : Intrinsic<[llvm_anyvector_ty],
+                            [LLVMMatchType<0>, llvm_anyint_ty,
+                             LLVMMatchType<0>],
+                            [IntrNoMem]>,
+                  RVVIntrinsic { let ExtendOperand = 2; }
 
-class M_VX_mask : Intrinsic<[llvm_anyvector_ty],
+class INT_V_VXV_MASK : Intrinsic<[llvm_anyvector_ty],
+                                 [llvm_anyvector_ty, LLVMMatchType<0>,
+                                  llvm_anyint_ty, LLVMMatchType<0>],
+                                 [IntrNoMem]>,
+                       RVVIntrinsic { let ExtendOperand = 3; }
+
+class INT_V_VVX : Intrinsic<[llvm_anyvector_ty],
                             [LLVMMatchType<0>, LLVMMatchType<0>,
-                            llvm_anyvector_ty, llvm_anyint_ty],
-                            [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 4;
-}
+                             llvm_anyint_ty],
+                            [IntrNoMem]>,
+                  RVVIntrinsic { let ExtendOperand = 3; }
 
-class M_VF : Intrinsic<[llvm_anyvector_ty],
-                       [llvm_anyvector_ty, llvm_anyfloat_ty],
-                       [IntrNoMem]>, RVVIntrinsic;
+class INT_V_VVX_MASK : Intrinsic<[llvm_anyvector_ty],
+                                 [llvm_anyvector_ty, LLVMMatchType<0>,
+                                  LLVMMatchType<0>, llvm_anyint_ty],
+                                 [IntrNoMem]>,
+                       RVVIntrinsic { let ExtendOperand = 4; }
 
-class M_VF_mask : Intrinsic<[llvm_anyvector_ty],
+class INT_V_VFV : Intrinsic<[llvm_anyvector_ty],
+                            [LLVMMatchType<0>, llvm_anyfloat_ty,
+                             LLVMMatchType<0>],
+                            [IntrNoMem]>;
+
+class INT_V_VFV_MASK : Intrinsic<[llvm_anyvector_ty],
+                                 [llvm_anyvector_ty, LLVMMatchType<0>,
+                                  llvm_anyfloat_ty, LLVMMatchType<0>],
+                                 [IntrNoMem]>;
+
+class INT_V_VVM : Intrinsic<[llvm_anyvector_ty],
                             [LLVMMatchType<0>, LLVMMatchType<0>,
-                            llvm_anyvector_ty, llvm_anyfloat_ty],
-                            [IntrNoMem]>, RVVIntrinsic;
-
-class M_VXM : Intrinsic<[llvm_anyvector_ty],
-                        [llvm_anyvector_ty, llvm_any_ty, LLVMMatchType<0>],
-                        [IntrNoMem]>, RVVIntrinsic;
-
-class V_V : Intrinsic<[llvm_anyvector_ty],
-                      [LLVMMatchType<0>],
-                      [IntrNoMem]>, RVVIntrinsic;
-
-class V_V_mask : Intrinsic<[llvm_anyvector_ty],
-                      [llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0>],
-                      [IntrNoMem]>, RVVIntrinsic;
-
-class W_WVV : Intrinsic<[llvm_anyvector_ty],
-                        [LLVMMatchType<0>, llvm_anyvector_ty, LLVMMatchType<1>],
-                        [IntrNoMem]>, RVVIntrinsic;
-
-class W_WVV_mask : Intrinsic<[llvm_anyvector_ty],
-                             [llvm_anyvector_ty, LLVMMatchType<0>,
-                              llvm_anyvector_ty, LLVMMatchType<2>],
-                             [IntrNoMem]>, RVVIntrinsic;
-
-class W_WVX : Intrinsic<[llvm_anyvector_ty],
-                        [LLVMMatchType<0>, llvm_anyint_ty, llvm_anyvector_ty],
-                        [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 2;
-}
-
-class W_WVF : Intrinsic<[llvm_anyvector_ty],
-                        [LLVMMatchType<0>, llvm_anyfloat_ty, llvm_anyvector_ty],
-                        [IntrNoMem]>, RVVIntrinsic;
-
-class W_WVX_mask : Intrinsic<[llvm_anyvector_ty],
-                             [llvm_anyvector_ty, LLVMMatchType<0>,
-                             llvm_anyint_ty, llvm_anyvector_ty],
-                             [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 3;
-}
-
-class W_WVF_mask : Intrinsic<[llvm_anyvector_ty],
-                             [llvm_anyvector_ty, LLVMMatchType<0>,
-                             llvm_anyfloat_ty, llvm_anyvector_ty],
-                             [IntrNoMem]>, RVVIntrinsic;
-
-class V_MVV : Intrinsic<[llvm_anyvector_ty],
-                        [llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0>],
-                        [IntrNoMem]>, RVVIntrinsic;
-
-class V_MVX : Intrinsic<[llvm_anyvector_ty],
-                        [llvm_anyvector_ty, LLVMMatchType<0>, llvm_anyint_ty],
-                        [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 3;
-}
-
-class V_V1 : Intrinsic<[llvm_anyvector_ty], [llvm_anyvector_ty], [IntrNoMem]>,
-             RVVIntrinsic;
-
-class V_V1_mask : Intrinsic<[llvm_anyvector_ty],
-                            [llvm_anyvector_ty, LLVMMatchType<0>,
                              llvm_anyvector_ty],
-                            [IntrNoMem]>, RVVIntrinsic;
+                            [IntrNoMem]>;
 
-class V_VRV : Intrinsic<[llvm_anyvector_ty],
-                        [LLVMMatchType<0>, llvm_anyvector_ty, LLVMMatchType<0>],
-                        [IntrNoMem]>, RVVIntrinsic;
+class INT_V_VXM : Intrinsic<[llvm_anyvector_ty],
+                            [LLVMMatchType<0>, llvm_anyint_ty,
+                             llvm_anyvector_ty],
+                            [IntrNoMem]>,
+                  RVVIntrinsic { let ExtendOperand = 2; }
 
-class V_VRV_mask : Intrinsic<[llvm_anyvector_ty],
-                             [llvm_anyvector_ty, LLVMMatchType<0>,
-                              llvm_anyvector_ty, LLVMMatchType<0>],
-                             [IntrNoMem]>, RVVIntrinsic;
+class INT_V_MVV : Intrinsic<[llvm_anyvector_ty],
+                            [llvm_anyvector_ty, LLVMMatchType<0>,
+                             LLVMMatchType<0>],
+                            [IntrNoMem]>;
+
+class INT_V_MVX : Intrinsic<[llvm_anyvector_ty],
+                            [llvm_anyvector_ty, LLVMMatchType<0>,
+                             llvm_anyint_ty],
+                            [IntrNoMem]>,
+                  RVVIntrinsic { let ExtendOperand = 3; }
+
+class INT_V_MVF : Intrinsic<[llvm_anyvector_ty],
+                            [llvm_anyvector_ty, LLVMMatchType<0>,
+                             llvm_anyfloat_ty],
+                            [IntrNoMem]>;
+
+class INT_V_VVaV : Intrinsic<[llvm_anyvector_ty],
+                             [LLVMMatchType<0>, llvm_anyvector_ty,
+                              LLVMMatchType<0>],
+                             [IntrNoMem]>;
+
+class INT_V_VVaV_MASK : Intrinsic<[llvm_anyvector_ty],
+                                  [llvm_anyvector_ty, LLVMMatchType<0>,
+                                   llvm_anyvector_ty, LLVMMatchType<0>],
+                                  [IntrNoMem]>;
+
+class INT_W_VV : Intrinsic<[llvm_anyvector_ty],
+                           [llvm_anyvector_ty, LLVMMatchType<1>],
+                           [IntrNoMem]>;
+
+class INT_W_VV_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 llvm_anyvector_ty, LLVMMatchType<2>],
+                                [IntrNoMem]>;
+
+class INT_W_WV : Intrinsic<[llvm_anyvector_ty],
+                           [LLVMMatchType<0>, llvm_anyvector_ty],
+                           [IntrNoMem]>;
+                        
+class INT_W_WV_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 LLVMMatchType<0>, llvm_anyvector_ty],
+                                [IntrNoMem]>;
+
+class INT_W_VX : Intrinsic<[llvm_anyvector_ty],
+                           [llvm_anyvector_ty, llvm_anyint_ty],
+                           [IntrNoMem]>,
+                 RVVIntrinsic { let ExtendOperand = 2; }
+
+class INT_W_VX_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 llvm_anyvector_ty, llvm_anyint_ty],
+                                [IntrNoMem]>,
+                      RVVIntrinsic { let ExtendOperand = 4; }
+
+class INT_W_VF : Intrinsic<[llvm_anyvector_ty],
+                           [llvm_anyvector_ty, llvm_anyfloat_ty],
+                           [IntrNoMem]>;
+
+class INT_W_VF_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 llvm_anyvector_ty, llvm_anyfloat_ty],
+                                [IntrNoMem]>;
+
+class INT_W_WVV : Intrinsic<[llvm_anyvector_ty],
+                            [LLVMMatchType<0>, llvm_anyvector_ty,
+                             LLVMMatchType<1>],
+                            [IntrNoMem]>;
+
+class INT_W_WVV_MASK : Intrinsic<[llvm_anyvector_ty],
+                                 [llvm_anyvector_ty, LLVMMatchType<0>,
+                                  llvm_anyvector_ty, LLVMMatchType<2>],
+                                 [IntrNoMem]>;
+
+class INT_W_WVX : Intrinsic<[llvm_anyvector_ty],
+                            [LLVMMatchType<0>, llvm_anyint_ty,
+                             llvm_anyvector_ty],
+                            [IntrNoMem]>,
+                  RVVIntrinsic { let ExtendOperand = 2; }
+
+class INT_W_WVF : Intrinsic<[llvm_anyvector_ty],
+                            [LLVMMatchType<0>, llvm_anyfloat_ty,
+                             llvm_anyvector_ty],
+                            [IntrNoMem]>;
+
+class INT_W_WVX_MASK : Intrinsic<[llvm_anyvector_ty],
+                                 [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 llvm_anyint_ty, llvm_anyvector_ty],
+                                 [IntrNoMem]>,
+                       RVVIntrinsic { let ExtendOperand = 3; }
+
+class INT_W_WVF_MASK : Intrinsic<[llvm_anyvector_ty],
+                                 [llvm_anyvector_ty, LLVMMatchType<0>,
+                                 llvm_anyfloat_ty, llvm_anyvector_ty],
+                                 [IntrNoMem]>;
+
+class INT_M_VV : Intrinsic<[llvm_anyvector_ty],
+                           [llvm_anyvector_ty,  LLVMMatchType<1>],
+                           [IntrNoMem]>;
+
+class INT_M_VV_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [LLVMMatchType<0>, LLVMMatchType<0>,
+                                llvm_anyvector_ty, llvm_anyvector_ty],
+                                [IntrNoMem]>;
+
+class INT_M_VX : Intrinsic<[llvm_anyvector_ty],
+                           [llvm_anyvector_ty, llvm_anyint_ty],
+                           [IntrNoMem]>,
+                 RVVIntrinsic { let ExtendOperand = 2; }
+
+class INT_M_VX_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [LLVMMatchType<0>, LLVMMatchType<0>,
+                                llvm_anyvector_ty, llvm_anyint_ty],
+                                [IntrNoMem]>,
+                      RVVIntrinsic { let ExtendOperand = 4; }
+
+class INT_M_VF : Intrinsic<[llvm_anyvector_ty],
+                           [llvm_anyvector_ty, llvm_anyfloat_ty],
+                           [IntrNoMem]>;
+
+class INT_M_VF_MASK : Intrinsic<[llvm_anyvector_ty],
+                                [LLVMMatchType<0>, LLVMMatchType<0>,
+                                 llvm_anyvector_ty, llvm_anyfloat_ty],
+                                [IntrNoMem]>;
+
+class INT_M_VVM : Intrinsic<[llvm_anyvector_ty],
+                            [llvm_anyvector_ty, LLVMMatchType<1>,
+                             LLVMMatchType<0>],
+                            [IntrNoMem]>;
+
+class INT_M_VXM : Intrinsic<[llvm_anyvector_ty],
+                            [llvm_anyvector_ty, llvm_any_ty, LLVMMatchType<0>],
+                            [IntrNoMem]>;
+
+multiclass INT_RISCV_V {
+  def "int_riscv_" # NAME # "_v" : INT_V;
+  def "int_riscv_" # NAME # "_v_mask" : INT_V_MASK;
+}
+
+multiclass INT_RISCV_X_M {
+  def "int_riscv_" # NAME # "_m" : INT_X_M;
+  def "int_riscv_" # NAME # "_m_mask" : INT_X_M_MASK;
+}
+
+multiclass INT_RISCV_V_V {
+  def "int_riscv_" # NAME # "_v" : INT_V_V;
+  def "int_riscv_" # NAME # "_v_mask" : INT_V_V_MASK;
+}
+
+multiclass INT_RISCV_V_Va {
+  def "int_riscv_" # NAME : INT_V_Va;
+  def "int_riscv_" # NAME # "_mask" : INT_V_Va_MASK;
+}
+
+multiclass INT_RISCV_V_W {
+  def "int_riscv_" # NAME # "_w" : INT_V_Va;
+  def "int_riscv_" # NAME # "_w_mask" : INT_V_Va_MASK;
+}
+
+multiclass INT_RISCV_V_F {
+  def "int_riscv_" # NAME # "_v_f" : INT_V_F;
+}
+
+multiclass INT_RISCV_V_V_X {
+  def "int_riscv_" # NAME # "_v_v" : INT_V_V;
+  def "int_riscv_" # NAME # "_v_x" : INT_V_X;
+}
+
+multiclass INT_RISCV_W_V {
+  def "int_riscv_" # NAME # "_v" : INT_V_Va;
+  def "int_riscv_" # NAME # "_v_mask" : INT_V_Va_MASK;
+}
+
+multiclass INT_RISCV_V_VV {
+  def "int_riscv_" # NAME # "_vv" : INT_V_VV;
+  def "int_riscv_" # NAME # "_vv_mask" : INT_V_VV_MASK;
+}
+
+multiclass INT_RISCV_V_VX {
+  def "int_riscv_" # NAME # "_vx" : INT_V_VX;
+  def "int_riscv_" # NAME # "_vx_mask" : INT_V_VX_MASK;
+}
+
+multiclass INT_RISCV_V_VVa {
+  def "int_riscv_" # NAME # "_vv" : INT_V_VVa;
+  def "int_riscv_" # NAME # "_vv_mask" : INT_V_VVa_MASK;
+}
+
+multiclass INT_RISCV_V_VF {
+  def "int_riscv_" # NAME # "_vf" : INT_V_VF;
+  def "int_riscv_" # NAME # "_vf_mask" : INT_V_VF_MASK;
+}
+
+multiclass INT_RISCV_V_VS {
+  def "int_riscv_" # NAME # "_vs" : INT_V_VVaV;
+  def "int_riscv_" # NAME # "_vs_mask" : INT_V_VVaV_MASK;
+}
+
+multiclass INT_RISCV_V_WV {
+  def "int_riscv_" # NAME # "_wv" : INT_V_WV;
+  def "int_riscv_" # NAME # "_wv_mask" : INT_V_WV_MASK;
+}
+
+multiclass INT_RISCV_V_WX {
+  def "int_riscv_" # NAME # "_wx" : INT_V_WX;
+  def "int_riscv_" # NAME # "_wx_mask" : INT_V_WX_MASK;
+}
+
+multiclass INT_RISCV_V_VVV {
+  def "int_riscv_" # NAME # "_vv" : INT_V_VVV;
+  def "int_riscv_" # NAME # "_vv_mask" : INT_V_VVV_MASK;
+}
+
+multiclass INT_RISCV_V_VVX {
+  def "int_riscv_" # NAME # "_vx" : INT_V_VVX;
+  def "int_riscv_" # NAME # "_vx_mask" : INT_V_VVX_MASK;
+}
+
+multiclass INT_RISCV_V_VXV {
+  def "int_riscv_" # NAME # "_vx" : INT_V_VXV;
+  def "int_riscv_" # NAME # "_vx_mask" : INT_V_VXV_MASK;
+}
+
+multiclass INT_RISCV_V_VFV {
+  def "int_riscv_" # NAME # "_vf" : INT_V_VFV;
+  def "int_riscv_" # NAME # "_vf_mask" : INT_V_VFV_MASK;
+}
+
+multiclass INT_RISCV_V_VVM_VXM {
+  def "int_riscv_" # NAME # "_vvm" : INT_V_VVM;
+  def "int_riscv_" # NAME # "_vxm" : INT_V_VXM;
+}
+
+multiclass INT_RISCV_V_VM {
+  def "int_riscv_" # NAME # "_vm" : INT_V_MVV;
+}
+
+multiclass INT_RISCV_V_MVV_MVX {
+  def "int_riscv_" # NAME # "_vvm" : INT_V_MVV;
+  def "int_riscv_" # NAME # "_vxm" : INT_V_MVX;
+}
+
+multiclass INT_RISCV_V_MVF {
+  def "int_riscv_" # NAME # "_vfm" : INT_V_MVF;
+}
+
+multiclass INT_RISCV_W_VV {
+  def "int_riscv_" # NAME # "_vv" : INT_W_VV;
+  def "int_riscv_" # NAME # "_vv_mask" : INT_W_VV_MASK;
+}
+
+multiclass INT_RISCV_W_VX {
+  def "int_riscv_" # NAME # "_vx" : INT_W_VX;
+  def "int_riscv_" # NAME # "_vx_mask" : INT_W_VX_MASK;
+}
+
+multiclass INT_RISCV_W_VF {
+  def "int_riscv_" # NAME # "_vf" : INT_W_VF;
+  def "int_riscv_" # NAME # "_vf_mask" : INT_W_VF_MASK;
+}
+
+multiclass INT_RISCV_W_WV {
+  def "int_riscv_" # NAME # "_wv" : INT_W_WV;
+  def "int_riscv_" # NAME # "_wv_mask" : INT_W_WV_MASK;
+}
+
+multiclass INT_RISCV_W_WX {
+  def "int_riscv_" # NAME # "_wx" : INT_V_VX;
+  def "int_riscv_" # NAME # "_wx_mask" : INT_V_VX_MASK;
+}
+
+multiclass INT_RISCV_W_WF {
+  def "int_riscv_" # NAME # "_wf" : INT_V_VF;
+  def "int_riscv_" # NAME # "_wf_mask" : INT_V_VF_MASK;
+}
+
+multiclass INT_RISCV_W_WVV {
+  def "int_riscv_" # NAME # "_vv" : INT_W_WVV;
+  def "int_riscv_" # NAME # "_vv_mask" : INT_W_WVV_MASK;
+}
+
+multiclass INT_RISCV_W_WVX {
+  def "int_riscv_" # NAME # "_vx" : INT_W_WVX;
+  def "int_riscv_" # NAME # "_vx_mask" : INT_W_WVX_MASK;
+}
+
+multiclass INT_RISCV_W_WVF {
+  def "int_riscv_" # NAME # "_vf" : INT_W_WVF;
+  def "int_riscv_" # NAME # "_vf_mask" : INT_W_WVF_MASK;
+}
+
+multiclass INT_RISCV_M_M {
+  def "int_riscv_" # NAME # "_m" : INT_V_V;
+  def "int_riscv_" # NAME # "_m_mask" : INT_V_VVV;
+}
+
+multiclass INT_RISCV_M_VV {
+  def "int_riscv_" # NAME # "_vv" : INT_M_VV;
+  def "int_riscv_" # NAME # "_vv_mask" : INT_M_VV_MASK;
+}
+
+multiclass INT_RISCV_M_VX {
+  def "int_riscv_" # NAME # "_vx" : INT_M_VX;
+  def "int_riscv_" # NAME # "_vx_mask" : INT_M_VX_MASK;
+}
+
+multiclass INT_RISCV_M_VF {
+  def "int_riscv_" # NAME # "_vf" : INT_M_VF;
+  def "int_riscv_" # NAME # "_vf_mask" : INT_M_VF_MASK;
+}
+
+multiclass INT_RISCV_M_MM {
+  def "int_riscv_" # NAME # "_mm" : INT_V_VV;
+}
+
+multiclass INT_RISCV_M_VVM_VXM {
+  def "int_riscv_" # NAME # "_vvm" : INT_M_VVM;
+  def "int_riscv_" # NAME # "_vxm" : INT_M_VXM;
+  def "int_riscv_" # NAME # "_vv" : INT_M_VV;
+  def "int_riscv_" # NAME # "_vx" : INT_M_VX;
+}
+
+multiclass INT_RISCV_V_VV_VX : INT_RISCV_V_VV, INT_RISCV_V_VX;
+multiclass INT_RISCV_V_VV_VF : INT_RISCV_V_VV, INT_RISCV_V_VF;
+multiclass INT_RISCV_V_WV_WX : INT_RISCV_V_WV, INT_RISCV_V_WX;
+multiclass INT_RISCV_V_VVa_VX : INT_RISCV_V_VVa, INT_RISCV_V_VX;
+multiclass INT_RISCV_V_VVV_VXV : INT_RISCV_V_VVV, INT_RISCV_V_VXV;
+multiclass INT_RISCV_V_VVV_VFV : INT_RISCV_V_VVV, INT_RISCV_V_VFV;
+
+multiclass INT_RISCV_W_VV_VX : INT_RISCV_W_VV, INT_RISCV_W_VX;
+multiclass INT_RISCV_W_VV_VF : INT_RISCV_W_VV, INT_RISCV_W_VF;
+multiclass INT_RISCV_W_WV_WX : INT_RISCV_W_WV, INT_RISCV_W_WX;
+multiclass INT_RISCV_W_WV_WF : INT_RISCV_W_WV, INT_RISCV_W_WF;
+multiclass INT_RISCV_W_VV_VX_WV_WX : INT_RISCV_W_VV_VX, INT_RISCV_W_WV_WX;
+multiclass INT_RISCV_W_VV_VF_WV_WF : INT_RISCV_W_VV_VF, INT_RISCV_W_WV_WF;
+multiclass INT_RISCV_W_WVV_WVX : INT_RISCV_W_WVV, INT_RISCV_W_WVX;
+multiclass INT_RISCV_W_WVV_WVF : INT_RISCV_W_WVV, INT_RISCV_W_WVF;
+
+multiclass INT_RISCV_M_VV_VX : INT_RISCV_M_VV, INT_RISCV_M_VX;
+multiclass INT_RISCV_M_VV_VF : INT_RISCV_M_VV, INT_RISCV_M_VF;
 
 // 6. Configuration-Setting Instructions
 def int_riscv_vsetvl  : Intrinsic<[llvm_i64_ty], [
@@ -403,517 +638,297 @@ multiclass Vstore {
 defm int_riscv_vstore : Vstore;
 
 // 12.1. Vector Single-Width Integer Add and Subtract
-multiclass Binary_int_vv {
-  def "int_riscv_" # NAME # "_vv" : V_VV;
-  def "int_riscv_" # NAME # "_vv_mask" : V_VV_mask;
-}
-
-multiclass Binary_int_vx {
-  def "int_riscv_" # NAME # "_vx" : V_VX;
-  def "int_riscv_" # NAME # "_vx_mask" : V_VX_mask;
-}
-
-multiclass Binary_int_vv_vx {
-  defm NAME : Binary_int_vv;
-  defm NAME : Binary_int_vx;
-}
-defm vadd : Binary_int_vv_vx;
-defm vsub : Binary_int_vv_vx;
-defm vrsub : Binary_int_vx;
-
-multiclass Binary_w_vv {
-  def "int_riscv_" # NAME # "_vv" : W_VV;
-  def "int_riscv_" # NAME # "_vv_mask" : W_VV_mask;
-}
-
-multiclass Binary_w_vx {
-  def "int_riscv_" # NAME # "_vx" : W_VX;
-  def "int_riscv_" # NAME # "_vx_mask" : W_VX_mask;
-}
-
-multiclass Binary_v_wv {
-  def "int_riscv_" # NAME # "_wv" : V_WV;
-  def "int_riscv_" # NAME # "_wv_mask" : V_WV_mask;
-}
-
-multiclass Binary_v_wx {
-  def "int_riscv_" # NAME # "_wx" : V_WX;
-  def "int_riscv_" # NAME # "_wx_mask" : V_WX_mask;
-}
-
-multiclass Binary_w_wx {
-  def "int_riscv_" # NAME # "_wx" : V_VX;
-  def "int_riscv_" # NAME # "_wx_mask" : V_VX_mask;
-}
-
-multiclass Binary_w_wv {
-  def "int_riscv_" # NAME # "_wv" : W_WV;
-  def "int_riscv_" # NAME # "_wv_mask" : W_WV_mask;
-}
-
-multiclass Binary_w_vf {
-  def "int_riscv_" # NAME # "_vf" : W_VF;
-  def "int_riscv_" # NAME # "_vf_mask" : W_VF_mask;
-}
-
-multiclass Binary_w_wf {
-  def "int_riscv_" # NAME # "_wf" : V_VF;
-  def "int_riscv_" # NAME # "_wf_mask" : V_VF_mask;
-}
+defm vadd : INT_RISCV_V_VV_VX;
+defm vsub : INT_RISCV_V_VV_VX;
+defm vrsub : INT_RISCV_V_VX;
 
 // 12.2. Vector Widening Integer Add/Subtract
-multiclass Binary_int_wide {
-  defm NAME : Binary_w_wv;
-  defm NAME : Binary_w_vx;
-  defm NAME : Binary_w_wx;
-  defm NAME : Binary_w_vv;
-}
-defm vwadd : Binary_int_wide;
-defm vwaddu : Binary_int_wide;
-defm vwsub : Binary_int_wide;
-defm vwsubu : Binary_int_wide;
+defm vwadd : INT_RISCV_W_VV_VX_WV_WX;
+defm vwaddu : INT_RISCV_W_VV_VX_WV_WX;
+defm vwsub : INT_RISCV_W_VV_VX_WV_WX;
+defm vwsubu : INT_RISCV_W_VV_VX_WV_WX;
 
 // 12.3. Vector Integer Extension
-multiclass Extension_int {
-  def "int_riscv_" # NAME : W_V;
-  def "int_riscv_" # NAME # "_mask" : W_V_mask;
-}
-defm vsext : Extension_int;
-defm vzext : Extension_int;
+defm vsext : INT_RISCV_V_Va;
+defm vzext : INT_RISCV_V_Va;
 
 // 12.4. Vector Integer Add-with-Carry/Subtract-with-Borrow Instructions
-multiclass carry_int_vm {
-  def "int_riscv_" # NAME # "_vvm" : M_VVM;
-  def "int_riscv_" # NAME # "_vv" : M_VV;
-  def "int_riscv_" # NAME # "_vxm" : M_VXM;
-}
-multiclass carry_int {
-  def "int_riscv_" # NAME # "_vvm" : V_VVM;
-  def "int_riscv_" # NAME # "_vxm" : V_VXM;
-}
-defm vadc : carry_int;
-defm vmadc : carry_int_vm;
-defm vsbc : carry_int;
-defm vmsbc : carry_int_vm;
+defm vadc : INT_RISCV_V_VVM_VXM;
+defm vmadc : INT_RISCV_M_VVM_VXM;
+defm vsbc : INT_RISCV_V_VVM_VXM;
+defm vmsbc : INT_RISCV_M_VVM_VXM;
 
 // 12.5. Vector Bitwise Logical Instructions
-defm vand : Binary_int_vv_vx;
-defm vor : Binary_int_vv_vx;
-defm vxor : Binary_int_vv_vx;
-def "int_riscv_vnot_v" : V_V; // todo
+defm vand : INT_RISCV_V_VV_VX;
+defm vor : INT_RISCV_V_VV_VX;
+defm vxor : INT_RISCV_V_VV_VX;
 
 // 12.6. Vector Single-Width Bit Shift Instructions
-defm vsll : Binary_int_vv_vx;
-defm vsrl : Binary_int_vv_vx;
-defm vsra : Binary_int_vv_vx;
+defm vsll : INT_RISCV_V_VV_VX;
+defm vsrl : INT_RISCV_V_VV_VX;
+defm vsra : INT_RISCV_V_VV_VX;
 
 // 12.7. Vector Narrowing Integer Right Shift Instructions
-multiclass Binary_int_narrow {
-  defm NAME : Binary_v_wv;
-  defm NAME : Binary_v_wx;
-}
-defm vnsrl : Binary_int_narrow;
-defm vnsra : Binary_int_narrow;
+defm vnsrl : INT_RISCV_V_WV_WX;
+defm vnsra : INT_RISCV_V_WV_WX;
 
 // 12.8. Vector Integer Comparison Instructions
-multiclass Binary_int_comparison {
-  def "int_riscv_" # NAME # "_vv" : M_VV;
-  def "int_riscv_" # NAME # "_vv_mask" : M_VV_mask;
-  def "int_riscv_" # NAME # "_vx" : M_VX;
-  def "int_riscv_" # NAME # "_vx_mask" : M_VX_mask;
-}
-defm vmseq : Binary_int_comparison;
-defm vmsne : Binary_int_comparison;
-defm vmslt : Binary_int_comparison;
-defm vmsltu : Binary_int_comparison;
-defm vmsle : Binary_int_comparison;
-defm vmsleu : Binary_int_comparison;
-defm vmsgt : Binary_int_comparison;
-defm vmsgtu : Binary_int_comparison;
-defm vmsge : Binary_int_comparison;
-defm vmsgeu : Binary_int_comparison;
+defm vmseq : INT_RISCV_M_VV_VX;
+defm vmsne : INT_RISCV_M_VV_VX;
+defm vmslt : INT_RISCV_M_VV_VX;
+defm vmsltu : INT_RISCV_M_VV_VX;
+defm vmsle : INT_RISCV_M_VV_VX;
+defm vmsleu : INT_RISCV_M_VV_VX;
+defm vmsgt : INT_RISCV_M_VV_VX;
+defm vmsgtu : INT_RISCV_M_VV_VX;
+defm vmsge : INT_RISCV_M_VV_VX;
+defm vmsgeu : INT_RISCV_M_VV_VX;
 
 // 12.9. Vector Integer Min/Max Instructions
-defm vmin : Binary_int_vv_vx;
-defm vminu : Binary_int_vv_vx;
-defm vmax : Binary_int_vv_vx;
-defm vmaxu : Binary_int_vv_vx;
+defm vmin : INT_RISCV_V_VV_VX;
+defm vminu : INT_RISCV_V_VV_VX;
+defm vmax : INT_RISCV_V_VV_VX;
+defm vmaxu : INT_RISCV_V_VV_VX;
 
 // 12.10. Vector Single-Width Integer Multiply Instructions
-defm vmulh : Binary_int_vv_vx;
-defm vmul : Binary_int_vv_vx;
-defm vmulhu : Binary_int_vv_vx;
-defm vmulhsu : Binary_int_vv_vx;
+defm vmulh : INT_RISCV_V_VV_VX;
+defm vmul : INT_RISCV_V_VV_VX;
+defm vmulhu : INT_RISCV_V_VV_VX;
+defm vmulhsu : INT_RISCV_V_VV_VX;
 
 // 12.11. Vector Integer Divide Instructions
-defm vdiv : Binary_int_vv_vx;
-defm vdivu : Binary_int_vv_vx;
-defm vrem : Binary_int_vv_vx;
-defm vremu : Binary_int_vv_vx;
+defm vdiv : INT_RISCV_V_VV_VX;
+defm vdivu : INT_RISCV_V_VV_VX;
+defm vrem : INT_RISCV_V_VV_VX;
+defm vremu : INT_RISCV_V_VV_VX;
 
 // 12.12. Vector Widening Integer Multiply Instructions
-multiclass Binary_int_wide_mul {
-  defm NAME : Binary_w_vv;
-  defm NAME : Binary_w_vx;
-}
-defm vwmul : Binary_int_wide_mul;
-defm vwmulu : Binary_int_wide_mul;
-defm vwmulsu : Binary_int_wide_mul;
+defm vwmul : INT_RISCV_W_VV_VX;
+defm vwmulu : INT_RISCV_W_VV_VX;
+defm vwmulsu : INT_RISCV_W_VV_VX;
 
 // 12.13. Vector Single-Width Integer Multiply-Add Instructions
-multiclass Ternary_int_v_vvx_vvv {
-  def "int_riscv_" # NAME # "_vv" : V_VVV;
-  def "int_riscv_" # NAME # "_vv_mask" : V_VVV_mask;
-  def "int_riscv_" # NAME # "_vx" : V_VVX;
-  def "int_riscv_" # NAME # "_vx_mask" : V_VVX_mask;
-}
-defm vmacc : Ternary_int_v_vvx_vvv;
-defm vnmsac : Ternary_int_v_vvx_vvv;
-defm vmadd : Ternary_int_v_vvx_vvv;
-defm vnmsub : Ternary_int_v_vvx_vvv;
+defm vmacc : INT_RISCV_V_VVV_VXV;
+defm vnmsac : INT_RISCV_V_VVV_VXV;
+defm vmadd : INT_RISCV_V_VVV_VXV;
+defm vnmsub : INT_RISCV_V_VVV_VXV;
 
 // 12.14. Vector Widening Integer Multiply-Add Instructions
-multiclass Ternary_int_wide {
-  def "int_riscv_" # NAME # "_vv" : W_WVV;
-  def "int_riscv_" # NAME # "_vv_mask" : W_WVV_mask;
-  def "int_riscv_" # NAME # "_vx" : W_WVX;
-  def "int_riscv_" # NAME # "_vx_mask" : W_WVX_mask;
-}
-multiclass Ternary_int_wide_w_vx {
-  def "int_riscv_" # NAME # "_vx" : W_WVX;
-  def "int_riscv_" # NAME # "_vx_mask" : W_WVX_mask;
-}
-defm vwmacc : Ternary_int_wide;
-defm vwmaccu : Ternary_int_wide;
-defm vwmaccsu : Ternary_int_wide;
-defm vwmaccus : Ternary_int_wide_w_vx;
+defm vwmacc : INT_RISCV_W_WVV_WVX;
+defm vwmaccu : INT_RISCV_W_WVV_WVX;
+defm vwmaccsu : INT_RISCV_W_WVV_WVX;
+defm vwmaccus : INT_RISCV_W_WVX;
 
 // 12.15. Vector Quad-Widening Integer Multiply-Add Instructions
-defm vqmacc : Ternary_int_wide;
-defm vqmaccu : Ternary_int_wide;
-defm vqmaccsu : Ternary_int_wide;
-defm vqmaccus : Ternary_int_wide_w_vx;
+defm vqmacc : INT_RISCV_W_WVV_WVX;
+defm vqmaccu : INT_RISCV_W_WVV_WVX;
+defm vqmaccsu : INT_RISCV_W_WVV_WVX;
+defm vqmaccus : INT_RISCV_W_WVX;
 
 // 12.16. Vector Integer Merge Instructions
-multiclass Merge {
-  def "int_riscv_" # NAME # "_vvm" : V_MVV;
-  def "int_riscv_" # NAME # "_vxm" : V_MVX;
-}
-defm vmerge : Merge;
+defm vmerge : INT_RISCV_V_MVV_MVX;
 
 // 12.17. Vector Integer Move Instructions
-def int_riscv_vmv_v_x : Intrinsic<[llvm_anyvector_ty],
-                                  [llvm_anyint_ty],
-                                  [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 1;
-}
-def int_riscv_vmv_v_v : V_V;
+defm vmv : INT_RISCV_V_V_X;
 
 // 13.1. Vector Single-Width Saturating Add and Subtract
-defm vsadd : Binary_int_vv_vx;
-defm vsaddu : Binary_int_vv_vx;
-defm vssub : Binary_int_vv_vx;
-defm vssubu : Binary_int_vv_vx;
+defm vsadd : INT_RISCV_V_VV_VX;
+defm vsaddu : INT_RISCV_V_VV_VX;
+defm vssub : INT_RISCV_V_VV_VX;
+defm vssubu : INT_RISCV_V_VV_VX;
 
 // 13.2. Vector Single-Width Averaging Add and Subtract
-defm vaadd : Binary_int_vv_vx;
-defm vaaddu : Binary_int_vv_vx;
-defm vasub : Binary_int_vv_vx;
-defm vasubu : Binary_int_vv_vx;
+defm vaadd : INT_RISCV_V_VV_VX;
+defm vaaddu : INT_RISCV_V_VV_VX;
+defm vasub : INT_RISCV_V_VV_VX;
+defm vasubu : INT_RISCV_V_VV_VX;
 
 // 13.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
-defm vsmul : Binary_int_vv_vx;
+defm vsmul : INT_RISCV_V_VV_VX;
 
 // 13.4. Vector Single-Width Scaling Shift Instructions
-defm vssrl : Binary_int_vv_vx;
-defm vssra : Binary_int_vv_vx;
+defm vssrl : INT_RISCV_V_VV_VX;
+defm vssra : INT_RISCV_V_VV_VX;
 
 // 13.5. Vector Narrowing Fixed-Point Clip Instructions
-multiclass Narrowing {
-  def "int_riscv_" # NAME # "_wv" : V_WV;
-  def "int_riscv_" # NAME # "_wv_mask" : V_WV_mask;
-  def "int_riscv_" # NAME # "_wx" : V_WX;
-  def "int_riscv_" # NAME # "_wx_mask" : V_WX_mask;
-}
-defm vnclip : Narrowing;
-defm vnclipu : Narrowing;
+defm vnclip : INT_RISCV_V_WV_WX;
+defm vnclipu : INT_RISCV_V_WV_WX;
 
 // 14.2. Vector Single-Width Floating-Point Add/Subtract Instructions
-multiclass Binary_float_v_vv_vf {
-  def "int_riscv_" # NAME # "_vv" : V_VV;
-  def "int_riscv_" # NAME # "_vv_mask" : V_VV_mask;
-  def "int_riscv_" # NAME # "_vf" : V_VF;
-  def "int_riscv_" # NAME # "_vf_mask" : V_VF_mask;
-}
-defm vfadd : Binary_float_v_vv_vf;
-defm vfsub : Binary_float_v_vv_vf;
-def "int_riscv_vfrsub_vf" : V_VF;
-def "int_riscv_vfrsub_vf_mask" : V_VF_mask;
+defm vfadd : INT_RISCV_V_VV_VF;
+defm vfsub : INT_RISCV_V_VV_VF;
+defm vfrsub : INT_RISCV_V_VF;
 
 // 14.3. Vector Widening Floating-Point Add/Subtract Instructions
-multiclass Binary_float_wide {
-  defm NAME : Binary_w_vv;
-  defm NAME : Binary_w_vf;
-  defm NAME : Binary_w_wf;
-  defm NAME : Binary_w_wv;
-}
-defm vfwadd : Binary_float_wide;
-defm vfwsub : Binary_float_wide;
+defm vfwadd : INT_RISCV_W_VV_VF_WV_WF;
+defm vfwsub : INT_RISCV_W_VV_VF_WV_WF;
 
 // 14.4. Vector Single-Width Floating-Point Multiply/Divide Instructions
-defm vfmul : Binary_float_v_vv_vf;
-defm vfdiv : Binary_float_v_vv_vf;
-def "int_riscv_vfrdiv_vf" : V_VF;
-def "int_riscv_vfrdiv_vf_mask" : V_VF_mask;
+defm vfmul : INT_RISCV_V_VV_VF;
+defm vfdiv : INT_RISCV_V_VV_VF;
+defm vfrdiv : INT_RISCV_V_VF;
 
 // 14.5. Vector Widening Floating-Point Multiply
-defm vfwmul :Binary_w_vv;
-defm vfwmul : Binary_w_vf;
+defm vfwmul :INT_RISCV_W_VV;
+defm vfwmul : INT_RISCV_W_VF;
 
 // 14.6. Vector Single-Width Floating-Point Fused Multiply-Add Instructions
-multiclass Ternary_float_v_vv_vf {
-  def "int_riscv_" # NAME # "_vv" : V_VVV;
-  def "int_riscv_" # NAME # "_vv_mask" : V_VVV_mask;
-  def "int_riscv_" # NAME # "_vf" : V_VVF;
-  def "int_riscv_" # NAME # "_vf_mask" : V_VVF_mask;
-}
-defm vfmacc : Ternary_float_v_vv_vf;
-defm vfnmacc : Ternary_float_v_vv_vf;
-defm vfmsac : Ternary_float_v_vv_vf;
-defm vfnmsac : Ternary_float_v_vv_vf;
-defm vfmadd : Ternary_float_v_vv_vf;
-defm vfnmadd : Ternary_float_v_vv_vf;
-defm vfmsub : Ternary_float_v_vv_vf;
-defm vfnmsub : Ternary_float_v_vv_vf;
+defm vfmacc : INT_RISCV_V_VVV_VFV;
+defm vfnmacc : INT_RISCV_V_VVV_VFV;
+defm vfmsac : INT_RISCV_V_VVV_VFV;
+defm vfnmsac : INT_RISCV_V_VVV_VFV;
+defm vfmadd : INT_RISCV_V_VVV_VFV;
+defm vfnmadd : INT_RISCV_V_VVV_VFV;
+defm vfmsub : INT_RISCV_V_VVV_VFV;
+defm vfnmsub : INT_RISCV_V_VVV_VFV;
 
 // 14.7. Vector Widening Floating-Point Fused MultiplyAdd Instructions
-multiclass Ternary_float_wide {
-  def "int_riscv_" # NAME # "_vv" : W_WVV;
-  def "int_riscv_" # NAME # "_vv_mask" : W_WVV_mask;
-  def "int_riscv_" # NAME # "_vf" : W_WVF;
-  def "int_riscv_" # NAME # "_vf_mask" : W_WVF_mask;
-}
-defm vfwmacc : Ternary_float_wide;
-defm vfwnmacc : Ternary_float_wide;
-defm vfwmsac : Ternary_float_wide;
-defm vfwnmsac : Ternary_float_wide;
+defm vfwmacc : INT_RISCV_W_WVV_WVF;
+defm vfwnmacc : INT_RISCV_W_WVV_WVF;
+defm vfwmsac : INT_RISCV_W_WVV_WVF;
+defm vfwnmsac : INT_RISCV_W_WVV_WVF;
 
 // 14.8. Vector Floating-Point Square-Root Instruction
-def "int_riscv_vfsqrt_v" : V_V;
-def "int_riscv_vfsqrt_v_mask" : V_V_mask;
+defm vfsqrt : INT_RISCV_V_V;
 
 // 14.9. Vector Floating-Point MIN/MAX Instructions
-defm vfmin : Binary_float_v_vv_vf;
-defm vfmax : Binary_float_v_vv_vf;
+defm vfmin : INT_RISCV_V_VV_VF;
+defm vfmax : INT_RISCV_V_VV_VF;
 
 // 14.10. Vector Floating-Point Sign-Injection Instructions
-defm vfsgnj : Binary_float_v_vv_vf;
-defm vfsgnjn : Binary_float_v_vv_vf;
-defm vfsgnjx : Binary_float_v_vv_vf;
+defm vfsgnj : INT_RISCV_V_VV_VF;
+defm vfsgnjn : INT_RISCV_V_VV_VF;
+defm vfsgnjx : INT_RISCV_V_VV_VF;
 
 // 14.11. Vector Floating-Point Compare Instructions
-multiclass Binary_float_vm {
-  def "int_riscv_" # NAME # "_vv" : M_VV;
-  def "int_riscv_" # NAME # "_vv_mask" : M_VV_mask;
-  def "int_riscv_" # NAME # "_vf" : M_VF;
-  def "int_riscv_" # NAME # "_vf_mask" : M_VF_mask;
-}
-defm vmfeq : Binary_float_vm;
-defm vmfne : Binary_float_vm;
-defm vmflt : Binary_float_vm;
-defm vmfle : Binary_float_vm;
-defm vmfgt : Binary_float_vm;
-defm vmfge : Binary_float_vm;
+defm vmfeq : INT_RISCV_M_VV_VF;
+defm vmfne : INT_RISCV_M_VV_VF;
+defm vmflt : INT_RISCV_M_VV_VF;
+defm vmfle : INT_RISCV_M_VV_VF;
+defm vmfgt : INT_RISCV_M_VV_VF;
+defm vmfge : INT_RISCV_M_VV_VF;
 
 // 14.12. Vector Floating-Point Classify Instruction
-def int_riscv_vfclass_v : Intrinsic<[llvm_anyvector_ty], [llvm_anyvector_ty],
-                                    [IntrNoMem]>;
-def int_riscv_vfclass_v_mask : Intrinsic<[llvm_anyvector_ty],
-                                         [llvm_anyvector_ty, llvm_anyvector_ty,
-                                          llvm_anyvector_ty],
-                                         [IntrNoMem]>;
+defm vfclass_v : INT_RISCV_V_Va;
 
 // 14.13. Vector Floating-Point Merge Instruction
-def int_riscv_vfmerge_vvm : Intrinsic<[llvm_anyvector_ty],
-                                      [llvm_anyvector_ty, LLVMMatchType<0>,
-                                       LLVMMatchType<0>],
-                                      [IntrNoMem]>;
-def int_riscv_vfmerge_vfm : Intrinsic<[llvm_anyvector_ty],
-                                      [llvm_anyvector_ty, LLVMMatchType<0>,
-                                       llvm_anyfloat_ty],
-                                      [IntrNoMem]>, RVVIntrinsic;
+defm vfmerge : INT_RISCV_V_MVF;
 
 // 14.14. Vector Floating-Point Move Instruction
-def int_riscv_vfmv_v_f : Intrinsic<[llvm_anyvector_ty], [llvm_anyfloat_ty],
-                                   [IntrNoMem]>, RVVIntrinsic;
+defm vfmv : INT_RISCV_V_F;
 
 // 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
-multiclass Unary_V_V1 {
-  def "int_riscv_" # NAME # "_v" : V_V1;
-  def "int_riscv_" # NAME # "_v_mask" : V_V1_mask;
-}
-defm vfcvt_x_f : Unary_V_V1;
-defm vfcvt_rtz_x_f : Unary_V_V1;
-defm vfcvt_xu_f : Unary_V_V1;
-defm vfcvt_rtz_xu_f : Unary_V_V1;
-defm vfcvt_f_x : Unary_V_V1;
-defm vfcvt_f_xu : Unary_V_V1;
-defm vwcvt_x_x : Unary_V_V1;
-defm vwcvtu_x_x : Unary_V_V1;
+defm vfcvt_x_f : INT_RISCV_W_V;
+defm vfcvt_rtz_x_f : INT_RISCV_W_V;
+defm vfcvt_xu_f : INT_RISCV_W_V;
+defm vfcvt_rtz_xu_f : INT_RISCV_W_V;
+defm vfcvt_f_x : INT_RISCV_W_V;
+defm vfcvt_f_xu : INT_RISCV_W_V;
+defm vwcvt_x_x : INT_RISCV_W_V;
+defm vwcvtu_x_x : INT_RISCV_W_V;
 
 // 14.16. Widening Floating-Point/Integer Type-Convert Instructions
-defm vfwcvt_x_f : Unary_V_V1;
-defm vfwcvt_f_x : Unary_V_V1;
-defm vfwcvt_rtz_x_f : Unary_V_V1;
-defm vfwcvt_rtz_xu_f : Unary_V_V1;
-defm vfwcvt_f_xu : Unary_V_V1;
-defm vfwcvt_f_f : Unary_V_V1;
-defm vfwcvt_xu_f : Unary_V_V1;
+defm vfwcvt_x_f : INT_RISCV_W_V;
+defm vfwcvt_f_x : INT_RISCV_W_V;
+defm vfwcvt_rtz_x_f : INT_RISCV_W_V;
+defm vfwcvt_rtz_xu_f : INT_RISCV_W_V;
+defm vfwcvt_f_xu : INT_RISCV_W_V;
+defm vfwcvt_f_f : INT_RISCV_W_V;
+defm vfwcvt_xu_f : INT_RISCV_W_V;
 
 // 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
-multiclass Unary_n_V_V1 {
-  def "int_riscv_" # NAME # "_w" : V_V1;
-  def "int_riscv_" # NAME # "_w_mask" : V_V1_mask;
-}
-defm vfncvt_x_f : Unary_n_V_V1;
-defm vfncvt_f_x : Unary_n_V_V1;
-defm vfncvt_rtz_x_f : Unary_n_V_V1;
-defm vfncvt_rtz_xu_f : Unary_n_V_V1;
-defm vfncvt_f_xu : Unary_n_V_V1;
-defm vfncvt_f_f : Unary_n_V_V1;
-defm vfncvt_xu_f : Unary_n_V_V1;
-defm vfncvt_rod_f_f : Unary_n_V_V1;
+defm vfncvt_x_f : INT_RISCV_V_W;
+defm vfncvt_f_x : INT_RISCV_V_W;
+defm vfncvt_rtz_x_f : INT_RISCV_V_W;
+defm vfncvt_rtz_xu_f : INT_RISCV_V_W;
+defm vfncvt_f_xu : INT_RISCV_V_W;
+defm vfncvt_f_f : INT_RISCV_V_W;
+defm vfncvt_xu_f : INT_RISCV_V_W;
+defm vfncvt_rod_f_f : INT_RISCV_V_W;
 
 // 15.1. Vector Single-Width Integer Reduction Instructions
-multiclass Reduction_v_vrv {
-  def "int_riscv_" # NAME # "_vs" : V_VRV;
-  def "int_riscv_" # NAME # "_vs_mask" : V_VRV_mask;
-}
-defm vredsum : Reduction_v_vrv;
-defm vredmax : Reduction_v_vrv;
-defm vredmaxu : Reduction_v_vrv;
-defm vredmin : Reduction_v_vrv;
-defm vredminu : Reduction_v_vrv;
-defm vredand : Reduction_v_vrv;
-defm vredor : Reduction_v_vrv;
-defm vredxor : Reduction_v_vrv;
+defm vredsum : INT_RISCV_V_VS;
+defm vredmax : INT_RISCV_V_VS;
+defm vredmaxu : INT_RISCV_V_VS;
+defm vredmin : INT_RISCV_V_VS;
+defm vredminu : INT_RISCV_V_VS;
+defm vredand : INT_RISCV_V_VS;
+defm vredor : INT_RISCV_V_VS;
+defm vredxor : INT_RISCV_V_VS;
 
 // 15.2. Vector Widening Integer Reduction Instructions
-defm vwredsum : Reduction_v_vrv;
-defm vwredsumu : Reduction_v_vrv;
+defm vwredsum : INT_RISCV_V_VS;
+defm vwredsumu : INT_RISCV_V_VS;
 
 // 15.3. Vector Single-Width Floating-Point Reduction Instructions
-defm vfredosum : Reduction_v_vrv;
-defm vfredsum : Reduction_v_vrv;
-defm vfredmax : Reduction_v_vrv;
-defm vfredmin : Reduction_v_vrv;
+defm vfredosum : INT_RISCV_V_VS;
+defm vfredsum : INT_RISCV_V_VS;
+defm vfredmax : INT_RISCV_V_VS;
+defm vfredmin : INT_RISCV_V_VS;
 
 // 15.4. Vector Widening Floating-Point Reduction Instructions
-defm vfwredosum : Reduction_v_vrv;
-defm vfwredsum : Reduction_v_vrv;
+defm vfwredosum : INT_RISCV_V_VS;
+defm vfwredsum : INT_RISCV_V_VS;
 
 // 16.1. Vector Mask-Register Logical Instructions
-def int_riscv_vmand_mm : V_VV;
-def int_riscv_vmnand_mm : V_VV;
-def int_riscv_vmandnot_mm : V_VV;
-def int_riscv_vmxor_mm : V_VV;
-def int_riscv_vmor_mm : V_VV;
-def int_riscv_vmnor_mm : V_VV;
-def int_riscv_vmornot_mm : V_VV;
-def int_riscv_vmxnor_mm : V_VV;
-def int_riscv_vmmv_m : V_V;
-def int_riscv_vmnot_m : V_V;
+defm vmand : INT_RISCV_M_MM;
+defm vmnand : INT_RISCV_M_MM;
+defm vmandnot : INT_RISCV_M_MM;
+defm vmxor : INT_RISCV_M_MM;
+defm vmor : INT_RISCV_M_MM;
+defm vmnor : INT_RISCV_M_MM;
+defm vmornot : INT_RISCV_M_MM;
+defm vmxnor : INT_RISCV_M_MM;
 
 // 16.2. Vector mask population count vpopc
-def int_riscv_vpopc_m : Intrinsic<[llvm_i64_ty],
-                                  [llvm_anyvector_ty],
-                                  [IntrNoMem]>;
-def int_riscv_vpopc_m_mask : Intrinsic<[llvm_i64_ty],
-                                       [llvm_anyvector_ty, llvm_anyvector_ty],
-                                       [IntrNoMem]>;
+defm vpopc : INT_RISCV_X_M;
 
 // 16.3. vfirst find-first-set mask bit
-def int_riscv_vfirst_m : Intrinsic<[llvm_i64_ty],
-                                   [llvm_anyvector_ty],
-                                   [IntrNoMem]>;
-def int_riscv_vfirst_m_mask : Intrinsic<[llvm_i64_ty],
-                                        [llvm_anyvector_ty, llvm_anyvector_ty],
-                                        [IntrNoMem]>;
+defm vfirst : INT_RISCV_X_M;
 
 // 16.4. vmsbf.m set-before-first mask bit
-def int_riscv_vmsbf_m : V_V;
-def int_riscv_vmsbf_m_mask : V_VVV;
+defm vmsbf : INT_RISCV_M_M;
 
 // 16.5. vmsif.m set-including-first mask bit
-def int_riscv_vmsif_m : V_V;
-def int_riscv_vmsif_m_mask : V_VVV;
+defm vmsif : INT_RISCV_M_M;
 
 // 16.6. vmsof.m set-only-first mask bit
-def int_riscv_vmsof_m : V_V;
-def int_riscv_vmsof_m_mask : V_VVV;
+defm vmsof : INT_RISCV_M_M;
 
 // 16.8. Vector Iota Instruction
-def int_riscv_viota_m : V_V1;
-def int_riscv_viota_m_mask : V_V1_mask;
+defm viota_m : INT_RISCV_V_Va;
 
 // 16.9. Vector Element Index Instruction
-def int_riscv_vid_v : Intrinsic<[llvm_anyvector_ty],
-                                [],
-                                [IntrNoMem]>;
-
-def int_riscv_vid_v_mask : Intrinsic<[llvm_anyvector_ty],
-                                     [llvm_anyvector_ty, llvm_anyvector_ty],
-                                     [IntrNoMem]>;
+defm vid : INT_RISCV_V;
 
 // 17.1. Integer Scalar Move Instructions
-def int_riscv_vmv_x_s : Intrinsic<[llvm_anyint_ty],
-                                  [llvm_anyvector_ty],
-                                  [IntrNoMem]>, RVVIntrinsic;
-def int_riscv_vmv_s_x : Intrinsic<[llvm_anyvector_ty],
-                                  [llvm_anyvector_ty, llvm_anyint_ty],
-                                  [IntrNoMem]>, RVVIntrinsic {
-  let ExtendOperand = 2;
-}
+def int_riscv_vmv_x_s : INT_X_V;
+def int_riscv_vmv_s_x : INT_V_VX;
 
 // 17.2. Floating-Point Scalar Move Instructions
-def int_riscv_vfmv_f_s : Intrinsic<[llvm_anyfloat_ty],
-                                   [llvm_anyvector_ty],
-                                   [IntrNoMem]>;
-def int_riscv_vfmv_s_f : Intrinsic<[llvm_anyvector_ty],
-                                   [llvm_anyvector_ty, llvm_anyfloat_ty],
-                                   [IntrNoMem]>, RVVIntrinsic;
+def int_riscv_vfmv_f_s : INT_F_V;
+def int_riscv_vfmv_s_f : INT_V_VF;
 
 // 17.3. Vector Slide Instructions
-multiclass Ternary_int_v_vvz {
-  def "int_riscv_" # NAME # "_vx" : V_VVZ;
-  def "int_riscv_" # NAME # "_vx_mask" : V_VVZ_mask;
-}
-multiclass Binary_float_v_vf {
-  def "int_riscv_" # NAME # "_vf" : V_VF;
-  def "int_riscv_" # NAME # "_vf_mask" : V_VF_mask;
-}
-defm vslideup : Ternary_int_v_vvz;
-defm vslidedown : Ternary_int_v_vvz;
-defm vslide1up : Binary_int_vx;
-defm vslide1down : Binary_int_vx;
-defm vfslide1up : Binary_float_v_vf;
-defm vfslide1down : Binary_float_v_vf;
+defm vslideup : INT_RISCV_V_VVX;
+defm vslidedown : INT_RISCV_V_VVX;
+defm vslide1up : INT_RISCV_V_VX;
+defm vslide1down : INT_RISCV_V_VX;
+defm vfslide1up : INT_RISCV_V_VF;
+defm vfslide1down : INT_RISCV_V_VF;
 
 // 17.4. Vector Register Gather Instruction
-defm vrgather : Binary_int_vv_vx;
+defm vrgather : INT_RISCV_V_VVa_VX;
 
 // 17.5. Vector Compress Instruction
-def int_riscv_vcompress_vm : Intrinsic<[llvm_anyvector_ty],
-                                       [llvm_anyvector_ty, LLVMMatchType<0>,
-                                        LLVMMatchType<0>],
-                                       [IntrNoMem]>;
+defm vcompress : INT_RISCV_V_VM;
 
 // 17.6. Whole Vector Register Move
 // 19.3. Vector Integer Dot-Product Instruction
 // 19.4. Vector Floating-Point Dot Product Instruction
 
 // Reinterpret Cast Conversion Functions
-def int_riscv_vreinterpret_v : V_V1;
+def int_riscv_vreinterpret_v : INT_V_Va;
 
 } // TargetPrefix = "riscv"
 
