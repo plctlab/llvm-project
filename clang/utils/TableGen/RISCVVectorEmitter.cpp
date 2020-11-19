@@ -112,10 +112,50 @@ public:
   RISCVVectorType(std::string Str) : BuiltinStr(Str) {}
 
   std::string getBuiltinStr() { return BuiltinStr; }
+  
+  std::string getTypeName();
 
   std::string parseTypeName();
 };
 
+
+std::string RISCVVectorType::getTypeName() {
+  std::string Builtin = BuiltinStr;
+  std::map<std::string, std::string> TYPE = {
+    {"q1c", "vint8mf8_t"}, {"q2c", "vint8mf4_t"}, {"q4c", "vint8mf2_t"},
+    {"q8c", "vint8m1_t"}, {"q16c", "vint8m2_t"}, {"q32c", "vint8m4_t"},
+    {"q64c", "vint8m8_t"}, {"q1s", "vint16mf4_t"}, {"q2s", "vint16mf2_t"},
+    {"q4s", "vint16m1_t"}, {"q8s", "vint16m2_t"}, {"q16s", "vint16m4_t"},
+    {"q32s", "vint16m8_t"}, {"q1i", "vint32mf2_t"}, {"q2i", "vint32m1_t"},
+    {"q4i", "vint32m2_t"}, {"q8i", "vint32m4_t"}, {"q16i", "vint32m8_t"},
+    {"q1Wi", "vint64m1_t"}, {"q2Wi", "vint64m2_t"}, {"q4Wi", "vint64m4_t"},
+    {"q8Wi", "vint64m8_t"}, {"q1Uc", "vuint8mf8_t"}, {"q2Uc", "vuint8mf4_t"},
+    {"q4Uc", "vuint8mf2_t"}, {"q8Uc", "vuint8m1_t"}, {"q16Uc", "vuint8m2_t"},
+    {"q32Uc", "vuint8m4_t"}, {"q64Uc", "vuint8m8_t"}, {"q1Us", "vuint16mf4_t"},
+    {"q2Us", "vuint16mf2_t"}, {"q4Us", "vuint16m1_t"}, {"q8Us", "vuint16m2_t"},
+    {"q16Us", "vuint16m4_t"}, {"q32Us", "vuint16m8_t"}, {"q1Ui", "vuint32mf2_t"},
+    {"q2Ui", "vuint32m1_t"}, {"q4Ui", "vuint32m2_t"}, {"q8Ui", "vuint32m4_t"},
+    {"q16Ui", "vuint32m8_t"}, {"q1UWi", "vuint64m1_t"}, {"q2UWi", "vuint64m2_t"},
+    {"q4UWi", "vuint64m4_t"}, {"q8UWi", "vuint64m8_t"}, {"q1h", "vfloat16mf4_t"},
+    {"q2h", "vfloat16mf2_t"}, {"q4h",  "vfloat16m1_t"}, {"q8h", "vfloat16m2_t"},
+    {"q16h", "vfloat16m4_t"}, {"q32h", "vfloat16m8_t"}, {"q1f", "vfloat32mf2_t"}, 
+    {"q2f", "vfloat32m1_t"}, {"q4f", "vfloat32m2_t"}, {"q8f", "vfloat32m4_t"},
+    {"q16f", "vfloat32m8_t"}, {"q1d", "vfloat64m1_t"}, {"q2d", "vfloat64m2_t"}, 
+    {"q4d", "vfloat64m4_t"}, {"q8d", "vfloat64m8_t"}, {"q1b", "vbool64_t"},
+    {"q2b", "vbool32_t"}, {"q4b", "vbool16_t"}, {"q8b", "vbool8_t"},
+    {"q16b", "vbool4_t"}, {"q32b", "vbool2_t"}, {"q64b", "vbool1_t"},
+    {"Sc", "int8_t"}, {"Uc", "uint8_t"}, {"s", "int16_t"},
+    {"Us", "uint16_t"}, {"i", "int32_t"}, {"Ui", "uint32_t"},
+    {"Wi", "int64_t"}, {"UWi", "uint64_t"}, {"h", "float16_t"},
+    {"f", "float32_t"}, {"d", "float64_t"}, {"z", "size_t"}
+  };
+  std::map<std::string, std::string>::iterator titer;
+  std::string TypeName ="null"; //TODO, special null, used only at development time
+  titer = TYPE.find(Builtin);
+  if (titer != TYPE.end()) 
+    TypeName = titer->second;
+  return TypeName;
+}
 std::string RISCVVectorType::parseTypeName() {
   std::string Builtin = BuiltinStr;
   if (Builtin[0] != 'q') {
@@ -309,7 +349,7 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
     {"e64", 12} /* 0b001100 */
   };
   std::map<std::string, int>::iterator eiter;
-   
+  
   for (auto def : Defs) {
     if (!def->getCustomDef().empty()) {
       CustomDefs.push_back(def);
@@ -340,6 +380,32 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
       if (def->isMask())
         OS << "_m";
       OS << "(__VA_ARGS__)\n";
+      
+     //vl intrinsic
+    if (def->getInfix() == "_vv" && def->getSuffix().find("_") == std::string::npos) {
+      OS <<"static inline ";
+      int count = 0;
+      int opnum = 1;
+      for (auto type : def->getTypes()) {
+        if (count == 0) {
+          OS <<type->getTypeName()<<" "<< def->getName() << def->getInfix() <<"_"<< def->getSuffix();
+          if (def->isMask())
+             OS << "_m";
+          OS << "_vl(";
+        }
+        else
+          OS << type->getTypeName() << " op" << count << ",";
+          count++;
+      }
+      OS <<"size_t vl) { vsetvl_e" << def->getSuffix().substr(1) <<"(vl); return ";
+      OS << def->getName() << def->getInfix() <<"_"<< def->getSuffix();
+      if (def->isMask())
+        OS << "_m";
+      OS << "(";
+      while (opnum < count - 1)
+        OS << "op" << opnum++ <<",";
+      OS << "op" << opnum++ <<");}\n";
+    }
     }
   }
 
