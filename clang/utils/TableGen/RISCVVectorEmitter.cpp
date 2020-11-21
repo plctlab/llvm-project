@@ -537,6 +537,8 @@ std::string Intrinsic::createStatementInCase() {
     while (!isdigit(*(NameIter++))) {}
     result += "Function *F = CGM.getIntrinsic(Intrinsic::riscv_";
     result += intrinsicMap[std::string(Name.begin(), NameIter-1)];
+    if (isMask())
+      result += "_mask";
     result += ", {";
   } else {
     result += "Function *F = CGM.getIntrinsic(Intrinsic::riscv_" + getName() + getInfix();

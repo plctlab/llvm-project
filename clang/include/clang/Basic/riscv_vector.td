@@ -1161,6 +1161,13 @@ multiclass float_unary_v_v {
   }
 }
 
+multiclass float_unary_v_va {
+  foreach I = AllFloatVectorType in {
+    defm NAME : Unary<NAME, I.Value, I.Value, "_v", I.Name, I.BoolValue,
+                      [-1, 0], [-1, 0, 2]>;
+  }
+}
+
 // vfloat*m*_t vop_v_f_f*m* (float*_t src);
 multiclass float_unary_v_f {
   foreach I = AllFloatVectorType in {
@@ -1217,9 +1224,9 @@ multiclass float_binary_m_vv_vf : float_binary_m_vv, float_binary_m_vf;
 
 // vfloat*m*_t vop_vv_f*m* (vfloat*m*_t op1, vfloat*m*_t op2);
 // vfloat*m*_t vop_vf_f*m* (vfloat*m*_t op1, float*_t op2);
-// vfloat*m*_t vop_vv_f*m*_m (vbool*_t mask, vload*m*_t maskedoff,
+// vfloat*m*_t vop_vv_f*m*_m (vbool*_t mask, vfloat*m*_t maskedoff,
 //                            vfloat*m*_t op1, vfloat*m*_t op2);
-// vfloat*m*_t vop_vf_f*m*_m (vbool*_t mask, vload*m*_t maskedoff,
+// vfloat*m*_t vop_vf_f*m*_m (vbool*_t mask, vfloat*m*_t maskedoff,
 //                            vfloat*m*_t op1, float*_t op2);
 multiclass float_binary_w_vv_vf {
   foreach I = AllWideFloatVector in {
@@ -1236,9 +1243,9 @@ multiclass float_binary_w_vv_vf {
 
 // vfloat*m*_t vop_wv_f*m* (vfloat*m*_t op1, vfloat*m*_t op2);
 // vfloat*m*_t vop_wf_f*m* (vfloat*m*_t op1, float*_t op2);
-// vfloat*m*_t vop_wv_f*m*_m (vbool*_t mask, vload*m*_t maskedoff,
+// vfloat*m*_t vop_wv_f*m*_m (vbool*_t mask, vfloat*m*_t maskedoff,
 //                            vfloat*m*_t op1, vfloat*m*_t op2);
-// vfloat*m*_t vop_wf_f*m*_m (vbool*_t mask, vload*m*_t maskedoff,
+// vfloat*m*_t vop_wf_f*m*_m (vbool*_t mask, vfloat*m*_t maskedoff,
 //                            vfloat*m*_t op1, float*_t op2);
 multiclass float_binary_w_wv_wf {
   foreach I = AllWideFloatVector in {
@@ -1333,7 +1340,7 @@ multiclass load_store {
   foreach I = AllVectorType in {
     def "vle"#I.SEW#"_v"#I.Name : Inst<"vle"#I.SEW,
       [I.Value, I.ElemType.Value#"C*"], "_v", I.Name, 0, [-1, 0]>;
-    def "vle"#I.SEW#"_v"#I.Name#"_mask" : Inst<"vle"#I.SEW, 
+    def "vle"#I.SEW#"_v"#I.Name#"_mask" : Inst<"vle"#I.SEW,
       [I.Value, I.BoolValue, I.Value, I.ElemType.Value#"C*"], "_v", I.Name, 1, [-1, 0, 2]>;
     def "vse"#I.SEW#"_v"#I.Name : Inst<"vse"#I.SEW,
       ["v", I.ElemType.Value#"*", I.Value], "_v", I.Name, 0, [0, 1]>;
@@ -1588,7 +1595,7 @@ let ShouldEmitBuiltin = 0 in {
 }
 
 // 14.12. Vector Floating-Point Classify Instruction
-defm vfclass : float_unary_v_v;
+defm vfclass : float_unary_v_va;
 
 // 14.13. Vector Floating-Point Merge Instruction
 multiclass float_vmerge_vvm {

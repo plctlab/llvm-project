@@ -594,8 +594,7 @@ multiclass Vload {
                                   [llvm_anyptr_ty, llvm_anyvector_ty],
                                   [IntrReadMem]>;
   def "_mask"         : Intrinsic<[llvm_anyvector_ty],
-                                  [llvm_anyvector_ty,
-                                   LLVMPointerType<LLVMMatchType<0>>,
+                                  [llvm_anyvector_ty, LLVMMatchType<0>,
                                    llvm_anyptr_ty],
                                   [IntrReadMem]>;
   def "_strided_mask" : Intrinsic<[llvm_anyvector_ty],
