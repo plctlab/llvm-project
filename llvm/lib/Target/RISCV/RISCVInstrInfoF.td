@@ -474,16 +474,16 @@ def FMAX_H   : FPALUS_rr<0b0010110, 0b001, "fmax.h">,
                Sched<[]>;
 def FMADD_H  : FPFMAS_rrr_frm<OPC_MADD, "fmadd.h", 0b10>,
                Sched<[]>;
-def          : FPFMASDynFrmAlias<FMADD_S, "fmadd.h">;
+def          : FPFMASDynFrmAlias<FMADD_H, "fmadd.h">;
 def FMSUB_H  : FPFMAS_rrr_frm<OPC_MSUB, "fmsub.h", 0b10>,
                Sched<[]>;
-def          : FPFMASDynFrmAlias<FMSUB_S, "fmsub.h">;
+def          : FPFMASDynFrmAlias<FMSUB_H, "fmsub.h">;
 def FNMSUB_H : FPFMAS_rrr_frm<OPC_NMSUB, "fnmsub.h", 0b10>,
                Sched<[]>;
-def          : FPFMASDynFrmAlias<FNMSUB_S, "fnmsub.s">;
+def          : FPFMASDynFrmAlias<FNMSUB_H, "fnmsub.h">;
 def FNMADD_H : FPFMAS_rrr_frm<OPC_NMADD, "fnmadd.h", 0b10>,
                Sched<[]>;
-def          : FPFMASDynFrmAlias<FNMADD_S, "fnmadd.h">;
+def          : FPFMASDynFrmAlias<FNMADD_H, "fnmadd.h">;
 
 def FCVT_W_H : FPUnaryOp_r_frm<0b1100010, GPR, FPR16, "fcvt.w.h">,
                Sched<[]> {
