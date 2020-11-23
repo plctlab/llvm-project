@@ -1,4 +1,3 @@
-// UNSUPPORTED: x86_64-unknown-linux-gnu
 // RUN: %clang_cc1 -triple riscv64-unknown-linux-gnu -target-feature +experimental-v -S -emit-llvm  %s -o - |  FileCheck %s
 
 #include <riscv_vector.h>
