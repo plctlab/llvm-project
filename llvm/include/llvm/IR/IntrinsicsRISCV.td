@@ -648,8 +648,12 @@ defm vwsub : INT_RISCV_W_VV_VX_WV_WX;
 defm vwsubu : INT_RISCV_W_VV_VX_WV_WX;
 
 // 12.3. Vector Integer Extension
-defm vsext : INT_RISCV_V_Va;
-defm vzext : INT_RISCV_V_Va;
+defm vsext_vf2 : INT_RISCV_V_Va;
+defm vsext_vf4 : INT_RISCV_V_Va;
+defm vsext_vf8 : INT_RISCV_V_Va;
+defm vzext_vf2 : INT_RISCV_V_Va;
+defm vzext_vf4 : INT_RISCV_V_Va;
+defm vzext_vf8 : INT_RISCV_V_Va;
 
 // 12.4. Vector Integer Add-with-Carry/Subtract-with-Borrow Instructions
 defm vadc : INT_RISCV_V_VVM_VXM;

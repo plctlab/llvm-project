@@ -49,14 +49,9 @@ class MaskTypeInfo<string name, string value> {
   string Value = value;
 }
 
-class WideVectorTypeInfo<VectorTypeInfo origin, VectorTypeInfo wide> {
-  VectorTypeInfo OriginVector = origin;
-  VectorTypeInfo WideVector = wide;
-}
-
-class IntFloatPair<VectorTypeInfo integer, VectorTypeInfo float> {
-  VectorTypeInfo Integer = integer;
-  VectorTypeInfo Float = float;
+class VectorTypeInfoPair<VectorTypeInfo first, VectorTypeInfo second> {
+  VectorTypeInfo First = first;
+  VectorTypeInfo Second = second;
 }
 
 // Helper class to get the corresponding unsigned integer vector type string.
@@ -82,25 +77,6 @@ class FloatToUnsigned<VectorTypeInfo float> {
                         !eq(float.Name, "f64m2") : "u64m2",
                         !eq(float.Name, "f64m4") : "u64m4",
                         !eq(float.Name, "f64m8") : "u64m8")).Value;
-}
-
-// Helper class to compute the double-width LMUL.
-class ComputeWideLmul<string lmul> {
-  string Result = !cond(!eq(lmul, "mf8") : "mf4",
-                        !eq(lmul, "mf4") : "mf2",
-                        !eq(lmul, "mf2") : "m1",
-                        !eq(lmul, "m1") : "m2",
-                        !eq(lmul, "m2") : "m4",
-                        !eq(lmul, "m4") : "m8");
-}
-
-// Helper class to compute the quad-width LMUL.
-class ComputeQuadWideLmul<string lmul> {
-  string Result = !cond(!eq(lmul, "mf8") : "mf2",
-                        !eq(lmul, "mf4") : "m1",
-                        !eq(lmul, "mf2") : "m2",
-                        !eq(lmul, "m1") : "m4",
-                        !eq(lmul, "m2") : "m8");
 }
 
 class ComputeVectorNum<int shift_size, string lmul> {
@@ -231,226 +207,218 @@ defset list<VectorTypeInfo> AllVectorType = {
   } // defset list<VectorTypeInfo> AllFloatVectorType
 } // defset list<VectorTypeInfo> AllVectorType
 
-defset list<WideVectorTypeInfo> AllWideVector = {
-  defset list<WideVectorTypeInfo> AllWideSignedVector = {
-    foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>(i8#lmul),
-                               !cast<VectorTypeInfo>(i16#WideLmul)>; 
-    }
-    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>(i16#lmul),
-                               !cast<VectorTypeInfo>(i32#WideLmul)>;
-    }
-    foreach lmul = ["mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>(i32#lmul),
-                               !cast<VectorTypeInfo>(i64#WideLmul)>;
-    }
-  }
-
-  defset list<WideVectorTypeInfo> AllWideUnsignedVector = {
-    foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>("u8"#lmul),
-                               !cast<VectorTypeInfo>("u16"#WideLmul)>;
-    }
-    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>("u16"#lmul),
-                               !cast<VectorTypeInfo>("u32"#WideLmul)>;
-    }
-    foreach lmul = ["mf2", "m1", "m2", "m4"] in { 
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>("u32"#lmul),
-                               !cast<VectorTypeInfo>("u64"#WideLmul)>;
-    }
-  }
-
-  defset list<WideVectorTypeInfo> AllWideFloatVector = {
-    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>("f16"#lmul),
-                               !cast<VectorTypeInfo>("f32"#WideLmul)>;
-    }
-    foreach lmul = ["mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>("f32"#lmul),
-                               !cast<VectorTypeInfo>("f64"#WideLmul)>;
-    }
-  }
-}
-
-defset list<WideVectorTypeInfo> AllWideM1Vector = {
-  defset list<WideVectorTypeInfo> AllWideM1SignedVector = {
+defset list<VectorTypeInfoPair> AllWideM1Vector = {
+  defset list<VectorTypeInfoPair> AllWideM1SignedVector = {
     foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>(i8#lmul),
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>(i8#lmul),
                                !cast<VectorTypeInfo>("i16m1")>;
     }
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>(i16#lmul),
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>(i16#lmul),
                                !cast<VectorTypeInfo>("i32m1")>;
     }
     foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>(i32#lmul),
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>(i32#lmul),
                                !cast<VectorTypeInfo>("i64m1")>;
     }
   }
 
-  defset list<WideVectorTypeInfo> AllWideM1UnsignedVector = {
+  defset list<VectorTypeInfoPair> AllWideM1UnsignedVector = {
     foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2", "m4", "m8"] in {
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>("u8"#lmul),
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("u8"#lmul),
                                !cast<VectorTypeInfo>("u16m1")>;
     }
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>("u16"#lmul),
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("u16"#lmul),
                                !cast<VectorTypeInfo>("u32m1")>;
     }
     foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in { 
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>("u32"#lmul),
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("u32"#lmul),
                                !cast<VectorTypeInfo>("u64m1")>;
     }
   }
 
-  defset list<WideVectorTypeInfo> AllWideM1FloatVector = {
+  defset list<VectorTypeInfoPair> AllWideM1FloatVector = {
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>("f16"#lmul),
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("f16"#lmul),
                                !cast<VectorTypeInfo>("f32m1")>;
     }
     foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>("f32"#lmul),
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("f32"#lmul),
                                !cast<VectorTypeInfo>("f64m1")>;
     }
   }
 }
 
-defset list<WideVectorTypeInfo> AllQuadWideVector = {
-  defset list<WideVectorTypeInfo> AllQuadWideSignedVector = {
-    foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2"] in {
-      defvar QuadWideLmul = ComputeQuadWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>(i8#lmul),
-                                         !cast<VectorTypeInfo>(i32#QuadWideLmul)>;
-    }
-    foreach lmul = ["mf4", "mf2", "m1", "m2"] in {
-      defvar QuadWideLmul = ComputeQuadWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>(i16#lmul),
-                                          !cast<VectorTypeInfo>(i64#QuadWideLmul)>;
-    }
+defset list<VectorTypeInfoPair> AllIntPairSEWx2 = {
+  defset list<VectorTypeInfoPair> AllSignedPairSEWx2 = {
+    def : VectorTypeInfoPair<i8mf8,  i16mf4>;
+    def : VectorTypeInfoPair<i8mf4,  i16mf2>;
+    def : VectorTypeInfoPair<i8mf2,  i16m1>;
+    def : VectorTypeInfoPair<i8m1,   i16m2>;
+    def : VectorTypeInfoPair<i8m2,   i16m4>;
+    def : VectorTypeInfoPair<i8m4,   i16m8>;
+    def : VectorTypeInfoPair<i16mf4, i32mf2>;
+    def : VectorTypeInfoPair<i16mf2, i32m1>;
+    def : VectorTypeInfoPair<i16m1,  i32m2>;
+    def : VectorTypeInfoPair<i16m2,  i32m4>;
+    def : VectorTypeInfoPair<i16m4,  i32m8>;
+    def : VectorTypeInfoPair<i32mf2, i64m1>;
+    def : VectorTypeInfoPair<i32m1,  i64m2>;
+    def : VectorTypeInfoPair<i32m2,  i64m4>;
+    def : VectorTypeInfoPair<i32m4,  i64m8>;
   }
-  
-  defset list<WideVectorTypeInfo> AllQuadWideUnsignedVector = {
-    foreach lmul = ["mf8", "mf4", "mf2", "m1", "m2"] in {
-      defvar QuadWideLmul = ComputeQuadWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>(u8#lmul),
-                                         !cast<VectorTypeInfo>(u32#QuadWideLmul)>;
-    }
-    foreach lmul = ["mf4", "mf2", "m1", "m2"] in {
-      defvar QuadWideLmul = ComputeQuadWideLmul<lmul>.Result;
-      def : WideVectorTypeInfo<!cast<VectorTypeInfo>(u16#lmul),
-                                          !cast<VectorTypeInfo>(u64#QuadWideLmul)>;
-    }
+  defset list<VectorTypeInfoPair> AllUnsignedPairSEWx2 = {
+    def : VectorTypeInfoPair<u8mf8,  u16mf4>;
+    def : VectorTypeInfoPair<u8mf4,  u16mf2>;
+    def : VectorTypeInfoPair<u8mf2,  u16m1>;
+    def : VectorTypeInfoPair<u8m1,   u16m2>;
+    def : VectorTypeInfoPair<u8m2,   u16m4>;
+    def : VectorTypeInfoPair<u8m4,   u16m8>;
+    def : VectorTypeInfoPair<u16mf4, u32mf2>;
+    def : VectorTypeInfoPair<u16mf2, u32m1>;
+    def : VectorTypeInfoPair<u16m1,  u32m2>;
+    def : VectorTypeInfoPair<u16m2,  u32m4>;
+    def : VectorTypeInfoPair<u16m4,  u32m8>;
+    def : VectorTypeInfoPair<u32mf2, u64m1>;
+    def : VectorTypeInfoPair<u32m1,  u64m2>;
+    def : VectorTypeInfoPair<u32m2,  u64m4>;
+    def : VectorTypeInfoPair<u32m4,  u64m8>;
   }
-} // defset list<WideVectorTypeInfo> AllQuadWideVector
+} // defset list<VectorTypeInfoPair> AllIntPairSEWx2
 
-defset list<IntFloatPair> AllIntFloatPair = {
-  defset list<IntFloatPair> SignedFloatPair = {
+defset list<VectorTypeInfoPair> AllIntPairSEWx4 = {
+  defset list<VectorTypeInfoPair> AllSignedPairSEWx4 = {
+    def : VectorTypeInfoPair<i8mf8,  i32mf2>;
+    def : VectorTypeInfoPair<i8mf4,  i32m1>;
+    def : VectorTypeInfoPair<i8mf2,  i32m2>;
+    def : VectorTypeInfoPair<i8m1,   i32m4>;
+    def : VectorTypeInfoPair<i8m2,   i32m8>;
+    def : VectorTypeInfoPair<i16mf4, i64m1>;
+    def : VectorTypeInfoPair<i16mf2, i64m2>;
+    def : VectorTypeInfoPair<i16m1,  i64m4>;
+    def : VectorTypeInfoPair<i16m2,  i64m8>;
+  }
+  defset list<VectorTypeInfoPair> AllUnsignedPairSEWx4 = {
+    def : VectorTypeInfoPair<u8mf8,  u32mf2>;
+    def : VectorTypeInfoPair<u8mf4,  u32m1>;
+    def : VectorTypeInfoPair<u8mf2,  u32m2>;
+    def : VectorTypeInfoPair<u8m1,   u32m4>;
+    def : VectorTypeInfoPair<u8m2,   u32m8>;
+    def : VectorTypeInfoPair<u16mf4, u64m1>;
+    def : VectorTypeInfoPair<u16mf2, u64m2>;
+    def : VectorTypeInfoPair<u16m1,  u64m4>;
+    def : VectorTypeInfoPair<u16m2,  u64m8>;
+  }
+} // defset list<VectorTypeInfoPair> AllIntPairSEWx4
+
+defset list<VectorTypeInfoPair> AllIntPairSEWx8 = {
+  defset list<VectorTypeInfoPair> AllSignedPairSEWx8 = {
+    def : VectorTypeInfoPair<i8mf8, i64m1>;
+    def : VectorTypeInfoPair<i8mf4, i64m2>;
+    def : VectorTypeInfoPair<i8mf2, i64m4>;
+    def : VectorTypeInfoPair<i8m1,  i64m8>;
+  }
+  defset list<VectorTypeInfoPair> AllUnsignedPairSEWx8 = {
+    def : VectorTypeInfoPair<u8mf8, u64m1>;
+    def : VectorTypeInfoPair<u8mf4, u64m2>;
+    def : VectorTypeInfoPair<u8mf2, u64m4>;
+    def : VectorTypeInfoPair<u8m1,  u64m8>;
+  }
+} // defset list<VectorTypeInfoPair> AllIntPairSEWx8
+
+defset list<VectorTypeInfoPair> AllIntFloatPair = {
+  defset list<VectorTypeInfoPair> AllSignedFloatPair = {
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
-      def 16b#lmul : IntFloatPair<!cast<VectorTypeInfo>("i16"#lmul),
-                                  !cast<VectorTypeInfo>("f16"#lmul)>;
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("i16"#lmul),
+                               !cast<VectorTypeInfo>("f16"#lmul)>;
     }
     foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
-      def 32b#lmul : IntFloatPair<!cast<VectorTypeInfo>("i32"#lmul),
-                                  !cast<VectorTypeInfo>("f32"#lmul)>;
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("i32"#lmul),
+                               !cast<VectorTypeInfo>("f32"#lmul)>;
     }
     foreach lmul = ["m1", "m2", "m4", "m8"] in {
-      def 64b#lmul : IntFloatPair<!cast<VectorTypeInfo>("i64"#lmul),
-                                  !cast<VectorTypeInfo>("f64"#lmul)>;
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("i64"#lmul),
+                               !cast<VectorTypeInfo>("f64"#lmul)>;
     }
   }
-  defset list<IntFloatPair> UnsignedFloatPair = {
+  defset list<VectorTypeInfoPair> AllUnsignedFloatPair = {
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
-      def u16b#lmul : IntFloatPair<!cast<VectorTypeInfo>("u16"#lmul),
-                                   !cast<VectorTypeInfo>("f16"#lmul)>;
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("u16"#lmul),
+                               !cast<VectorTypeInfo>("f16"#lmul)>;
     }
     foreach lmul = ["mf2", "m1", "m2", "m4", "m8"] in {
-      def u32b#lmul : IntFloatPair<!cast<VectorTypeInfo>("u32"#lmul),
-                                   !cast<VectorTypeInfo>("f32"#lmul)>;
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("u32"#lmul),
+                               !cast<VectorTypeInfo>("f32"#lmul)>;
     }
     foreach lmul = ["m1", "m2", "m4", "m8"] in {
-      def u64b#lmul : IntFloatPair<!cast<VectorTypeInfo>("u64"#lmul),
-                                   !cast<VectorTypeInfo>("f64"#lmul)>;
+      def : VectorTypeInfoPair<!cast<VectorTypeInfo>("u64"#lmul),
+                               !cast<VectorTypeInfo>("f64"#lmul)>;
     }
   }
-} // defset list<IntFloatPair> AllIntFloatPair
+} // defset list<VectorTypeInfoPair> AllIntFloatPair
 
-defset list<WideVectorTypeInfo> AllWideIntFloatPair = {
-  defset list<WideVectorTypeInfo> WideSignedToFloat = {
-    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def 32wsf#lmul : WideVectorTypeInfo<!cast<VectorTypeInfo>("f16"#lmul),
-                                      !cast<VectorTypeInfo>(i32#WideLmul)>;
-    }
-    foreach lmul = ["mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def 64wsf#lmul : WideVectorTypeInfo<!cast<VectorTypeInfo>("f32"#lmul),
-                                      !cast<VectorTypeInfo>(i64#WideLmul)>;
-    }
-  }
-
-  defset list<WideVectorTypeInfo> WideUnsignedToFloat = {
-    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def 32wuf#lmul : WideVectorTypeInfo<!cast<VectorTypeInfo>("f16"#lmul),
-                                      !cast<VectorTypeInfo>(u32#WideLmul)>;
-    }
-    foreach lmul = ["mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def 64wuf#lmul : WideVectorTypeInfo<!cast<VectorTypeInfo>("f32"#lmul),
-                                      !cast<VectorTypeInfo>(u64#WideLmul)>;
-    }
-  }
-} // defset list<WideVectorTypeInfo> AllWideIntFloatPair
-
-defset list<WideVectorTypeInfo> AllWideFloatToInt = {
-  defset list<WideVectorTypeInfo> WideFloatToSigned = {
-    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def 32wfs#lmul : WideVectorTypeInfo<!cast<VectorTypeInfo>("i16"#lmul),
-                                      !cast<VectorTypeInfo>(f32#WideLmul)>;
-    }
-    foreach lmul = ["mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def 64wfs#lmul : WideVectorTypeInfo<!cast<VectorTypeInfo>("i32"#lmul),
-                                      !cast<VectorTypeInfo>(f64#WideLmul)>;
-    }
-  }
-  defset list<WideVectorTypeInfo> WideFloatToUnsigned = {
-    foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def 32wfu#lmul : WideVectorTypeInfo<!cast<VectorTypeInfo>("u16"#lmul),
-                                      !cast<VectorTypeInfo>(f32#WideLmul)>;
-    }
-    foreach lmul = ["mf2", "m1", "m2", "m4"] in {
-      defvar WideLmul = ComputeWideLmul<lmul>.Result;
-      def 64wfu#lmul : WideVectorTypeInfo<!cast<VectorTypeInfo>("u32"#lmul),
-                                      !cast<VectorTypeInfo>(f64#WideLmul)>;
-    }
-  }
-} // defset list<WideVectorTypeInfo> AllWideFloatToInt
-
-defset list<WideVectorTypeInfo> WideFloatToFloat = {
-  foreach lmul = ["mf4", "mf2", "m1", "m2", "m4"] in {
-    defvar WideLmul = ComputeWideLmul<lmul>.Result;
-    def 32wff#lmul : WideVectorTypeInfo<!cast<VectorTypeInfo>("f16"#lmul),
-                                    !cast<VectorTypeInfo>(f32#WideLmul)>;
-  }
-  foreach lmul = ["mf2", "m1", "m2", "m4"] in {
-    defvar WideLmul = ComputeWideLmul<lmul>.Result;
-    def 64wff#lmul : WideVectorTypeInfo<!cast<VectorTypeInfo>("f32"#lmul),
-                                    !cast<VectorTypeInfo>(f64#WideLmul)>;
-  }
+defset list<VectorTypeInfoPair> AllFloatPairSEWx2 = {
+  def : VectorTypeInfoPair<f16mf4, f32mf2>;
+  def : VectorTypeInfoPair<f16mf2, f32m1>;
+  def : VectorTypeInfoPair<f16m1,  f32m2>;
+  def : VectorTypeInfoPair<f16m2,  f32m4>;
+  def : VectorTypeInfoPair<f16m4,  f32m8>;
+  def : VectorTypeInfoPair<f32mf2, f64m1>;
+  def : VectorTypeInfoPair<f32m1,  f64m2>;
+  def : VectorTypeInfoPair<f32m2,  f64m4>;
+  def : VectorTypeInfoPair<f32m4,  f64m8>;
 }
+
+defset list<VectorTypeInfoPair> AllFloatIntPairSEWx2 = {
+  defset list<VectorTypeInfoPair> AllFloatSignedPairSEWx2 = {
+    def : VectorTypeInfoPair<f16mf4, i32mf2>;
+    def : VectorTypeInfoPair<f16mf2, i32m1>;
+    def : VectorTypeInfoPair<f16m1,  i32m2>;
+    def : VectorTypeInfoPair<f16m2,  i32m4>;
+    def : VectorTypeInfoPair<f16m4,  i32m8>;
+    def : VectorTypeInfoPair<f32mf2, i64m1>;
+    def : VectorTypeInfoPair<f32m1,  i64m2>;
+    def : VectorTypeInfoPair<f32m2,  i64m4>;
+    def : VectorTypeInfoPair<f32m4,  i64m8>;
+  }
+  defset list<VectorTypeInfoPair> AllFloatUnsignedPairSEWx2 = {
+    def : VectorTypeInfoPair<f16mf4, u32mf2>;
+    def : VectorTypeInfoPair<f16mf2, u32m1>;
+    def : VectorTypeInfoPair<f16m1,  u32m2>;
+    def : VectorTypeInfoPair<f16m2,  u32m4>;
+    def : VectorTypeInfoPair<f16m4,  u32m8>;
+    def : VectorTypeInfoPair<f32mf2, u64m1>;
+    def : VectorTypeInfoPair<f32m1,  u64m2>;
+    def : VectorTypeInfoPair<f32m2,  u64m4>;
+    def : VectorTypeInfoPair<f32m4,  u64m8>;
+  }
+} // defset list<VectorTypeInfoPair> AllFloatIntPairSEWx2
+
+defset list<VectorTypeInfoPair> AllIntFloatPairSEWx2 = {
+  defset list<VectorTypeInfoPair> AllSignedFloatPairSEWx2 = {
+    def : VectorTypeInfoPair<i16mf4, f32mf2>;
+    def : VectorTypeInfoPair<i16mf2, f32m1>;
+    def : VectorTypeInfoPair<i16m1,  f32m2>;
+    def : VectorTypeInfoPair<i16m2,  f32m4>;
+    def : VectorTypeInfoPair<i16m4,  f32m8>;
+    def : VectorTypeInfoPair<i32mf2, f64m1>;
+    def : VectorTypeInfoPair<i32m1,  f64m2>;
+    def : VectorTypeInfoPair<i32m2,  f64m4>;
+    def : VectorTypeInfoPair<i32m4,  f64m8>;
+  }
+  defset list<VectorTypeInfoPair> AllUnsignedFloatPairSEWx2 = {
+    def : VectorTypeInfoPair<u16mf4, f32mf2>;
+    def : VectorTypeInfoPair<u16mf2, f32m1>;
+    def : VectorTypeInfoPair<u16m1,  f32m2>;
+    def : VectorTypeInfoPair<u16m2,  f32m4>;
+    def : VectorTypeInfoPair<u16m4,  f32m8>;
+    def : VectorTypeInfoPair<u32mf2, f64m1>;
+    def : VectorTypeInfoPair<u32m1,  f64m2>;
+    def : VectorTypeInfoPair<u32m2,  f64m4>;
+    def : VectorTypeInfoPair<u32m4,  f64m8>;
+  }
+} // defset list<VectorTypeInfoPair> AllIntFloatPairSEWx2
 
 //===----------------------------------------------------------------------===//
 // Types
@@ -868,14 +836,14 @@ multiclass int_binary_m_vv_vx : signed_binary_m_vv_vx, unsigned_binary_m_vv_vx;
 // vint*m*_t vop_wx_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
 //                          vint*m*_t op1, uint8_t op2)
 multiclass signed_binary_v_wv_wx{
-  foreach I = AllWideSignedVector in {
-    defm NAME : Binary<NAME, I.OriginVector.Value, I.WideVector.Value,
-                       I.OriginVector.Value, "_wv", I.OriginVector.Name,
-                       I.WideVector.BoolValue, [-1, 0], [-1, 0, 2]>;
+  foreach I = AllSignedPairSEWx2 in {
+    defm NAME : Binary<NAME, I.First.Value, I.Second.Value,
+                       I.First.Value, "_wv", I.First.Name,
+                       I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
             
-    defm NAME : Binary<NAME, I.OriginVector.Value, I.WideVector.Value,
+    defm NAME : Binary<NAME, I.First.Value, I.Second.Value,
                        "Uc", "_wx",
-                       I.OriginVector.Name, I.WideVector.BoolValue,
+                       I.First.Name, I.Second.BoolValue,
                        [-1, 0, 1], [-1, 0, 2, 3]>;
   }
 }
@@ -887,14 +855,14 @@ multiclass signed_binary_v_wv_wx{
 // vuint*m*_t vop_wx_u*m*_m (vbool*_t mask, vuint*m*_t maskedoff,
 //                           vuint*m*_t op1, uint8_t op2)
 multiclass unsigned_binary_v_wv_wx{
-  foreach I = AllWideUnsignedVector in {
-    defm NAME : Binary<NAME, I.OriginVector.Value, I.WideVector.Value,
-                       I.OriginVector.Value, "_wv", I.OriginVector.Name,
-                       I.WideVector.BoolValue, [-1, 0], [-1, 0, 2]>;
+  foreach I = AllUnsignedPairSEWx2 in {
+    defm NAME : Binary<NAME, I.First.Value, I.Second.Value,
+                       I.First.Value, "_wv", I.First.Name,
+                       I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
             
-    defm NAME : Binary<NAME, I.OriginVector.Value, I.WideVector.Value,
+    defm NAME : Binary<NAME, I.First.Value, I.Second.Value,
                        "Uc", "_wx",
-                       I.OriginVector.Name, I.WideVector.BoolValue,
+                       I.First.Name, I.Second.BoolValue,
                        [-1, 0, 1], [-1, 0, 2, 3]>;
   }
 }
@@ -906,14 +874,14 @@ multiclass unsigned_binary_v_wv_wx{
 // vint*m*_t vop_vx_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
 //                          vint*m*_t op1, int*_t op2);
 multiclass signed_binary_w_vv_vx {
-  foreach I = AllWideSignedVector in {
-    defm NAME : Binary<NAME, I.WideVector.Value, I.OriginVector.Value,
-                       I.OriginVector.Value, "_vv", I.WideVector.Name,
-                       I.WideVector.BoolValue, [-1, 0], [-1, 0, 2]>;
+  foreach I = AllSignedPairSEWx2 in {
+    defm NAME : Binary<NAME, I.Second.Value, I.First.Value,
+                       I.First.Value, "_vv", I.Second.Name,
+                       I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
 
-    defm NAME : Binary<NAME, I.WideVector.Value, I.OriginVector.Value,
-                       I.OriginVector.ElemType.Value, "_vx",
-                       I.WideVector.Name, I.WideVector.BoolValue,
+    defm NAME : Binary<NAME, I.Second.Value, I.First.Value,
+                       I.First.ElemType.Value, "_vx",
+                       I.Second.Name, I.Second.BoolValue,
                        [-1, 0, 1], [-1, 0, 2, 3]>;
   }
 }
@@ -925,14 +893,14 @@ multiclass signed_binary_w_vv_vx {
 // vint*m*_t vop_wx_i*m*_m (vbool*_t mask, vint*m*_t maskedoff,
 //                          vint*m*_t op1, int*_t op2);
 multiclass signed_binary_w_wv_wx {
-  foreach I = AllWideSignedVector in {
-    defm NAME : Binary<NAME, I.WideVector.Value, I.WideVector.Value,
-                       I.OriginVector.Value, "_wv", I.WideVector.Name,
-                       I.WideVector.BoolValue, [-1, 1], [-1, 0, 3]>;
+  foreach I = AllSignedPairSEWx2 in {
+    defm NAME : Binary<NAME, I.Second.Value, I.Second.Value,
+                       I.First.Value, "_wv", I.Second.Name,
+                       I.Second.BoolValue, [-1, 1], [-1, 0, 3]>;
             
-    defm NAME : Binary<NAME, I.WideVector.Value, I.WideVector.Value,
-                       I.OriginVector.ElemType.Value, "_wx",
-                       I.WideVector.Name, I.WideVector.BoolValue,
+    defm NAME : Binary<NAME, I.Second.Value, I.Second.Value,
+                       I.First.ElemType.Value, "_wx",
+                       I.Second.Name, I.Second.BoolValue,
                        [-1, 1], [-1, 0, 3]>;
   }
 }
@@ -947,13 +915,13 @@ multiclass signed_binary_w_vv_vx_wv_wx :
 // vuint*m*_t vop_vx_u*m*_m (vbool*_t mask, vint*m*_t maskedoff,
 //                           vuint*m*_t op1, uint*_t op2);
 multiclass unsigned_binary_w_vv_vx {
-  foreach I = AllWideUnsignedVector in {
-    defm NAME : Binary<NAME, I.WideVector.Value, I.OriginVector.Value,
-                       I.OriginVector.Value, "_vv", I.WideVector.Name,
-                       I.WideVector.BoolValue, [-1, 0], [-1, 0, 2]>;
-    defm NAME : Binary<NAME, I.WideVector.Value, I.OriginVector.Value,
-                       I.OriginVector.ElemType.Value, "_vx",
-                       I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllUnsignedPairSEWx2 in {
+    defm NAME : Binary<NAME, I.Second.Value, I.First.Value,
+                       I.First.Value, "_vv", I.Second.Name,
+                       I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
+    defm NAME : Binary<NAME, I.Second.Value, I.First.Value,
+                       I.First.ElemType.Value, "_vx",
+                       I.Second.Name, I.Second.BoolValue,
                        [-1, 0, 1], [-1, 0, 2, 3]>;
   }
 }
@@ -965,14 +933,14 @@ multiclass unsigned_binary_w_vv_vx {
 // vuint*m*_t vop_wx_u*m*_m (vbool*_t mask, vint*m*_t maskedoff,
 //                           vuint*m*_t op1, uint*_t op2);
 multiclass unsigned_binary_w_wv_wx {
-  foreach I = AllWideUnsignedVector in {
-    defm NAME : Binary<NAME, I.WideVector.Value, I.WideVector.Value,
-                       I.OriginVector.Value, "_wv", I.WideVector.Name,
-                       I.WideVector.BoolValue, [-1, 1], [-1, 0, 3]>;
+  foreach I = AllUnsignedPairSEWx2 in {
+    defm NAME : Binary<NAME, I.Second.Value, I.Second.Value,
+                       I.First.Value, "_wv", I.Second.Name,
+                       I.Second.BoolValue, [-1, 1], [-1, 0, 3]>;
             
-    defm NAME : Binary<NAME, I.WideVector.Value, I.WideVector.Value,
-                       I.OriginVector.ElemType.Value, "_wx",
-                       I.WideVector.Name, I.WideVector.BoolValue,
+    defm NAME : Binary<NAME, I.Second.Value, I.Second.Value,
+                       I.First.ElemType.Value, "_wx",
+                       I.Second.Name, I.Second.BoolValue,
                        [-1, 1], [-1, 0, 3]>;
   }    
 }
@@ -1033,10 +1001,10 @@ multiclass int_ternary_v_vs {
 //                               vint*m*_t vector, vint*m1_t scalar);
 multiclass signed_ternary_w_vs {
   foreach I = AllWideM1SignedVector in {
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.Value, I.WideVector.Value, "_vs",
-                        I.OriginVector.Name#"_"#I.WideVector.Name,
-                        I.OriginVector.BoolValue, [-1, 1], [-1, 0, 2]>;
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.Value, I.Second.Value, "_vs",
+                        I.First.Name#"_"#I.Second.Name,
+                        I.First.BoolValue, [-1, 1], [-1, 0, 2]>;
   }
 }
 
@@ -1046,10 +1014,10 @@ multiclass signed_ternary_w_vs {
 //                                vuint*m*_t vector, vuint*m1_t scalar);
 multiclass unsigned_ternary_w_vs {
   foreach I = AllWideM1UnsignedVector in {
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.Value, I.WideVector.Value, "_vs",
-                        I.OriginVector.Name#"_"#I.WideVector.Name,
-                        I.OriginVector.BoolValue, [-1, 1], [-1, 0, 2]>;
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.Value, I.Second.Value, "_vs",
+                        I.First.Name#"_"#I.Second.Name,
+                        I.First.BoolValue, [-1, 1], [-1, 0, 2]>;
   }
 }
 
@@ -1057,10 +1025,10 @@ multiclass unsigned_ternary_w_vs {
 // vint*m*_t vop_vv_i*m*_m (vbool*_t mask, vint*m*_t acc, vint*m*_t op1,
 //                          vint*m*_t op2);
 multiclass signed_ternary_w_vv {
-  foreach I = AllWideSignedVector in {
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.Value, I.OriginVector.Value, "_vv",
-                        I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllSignedPairSEWx2 in {
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.Value, I.First.Value, "_vv",
+                        I.Second.Name, I.Second.BoolValue,
                         [-1, 1], [-1, 0, 2]>;
   }
 }
@@ -1069,10 +1037,10 @@ multiclass signed_ternary_w_vv {
 // vint*m*_t vop_vx_i*m*_m (vbool*_t mask, vint*m*_t acc, uint*_t op1,
 //                          vint*m*_t op2);
 multiclass signed_ternary_w_vx {
-  foreach I = AllWideSignedVector in {
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.ElemType.Value, I.OriginVector.Value,
-                        "_vx", I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllSignedPairSEWx2 in {
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.ElemType.Value, I.First.Value,
+                        "_vx", I.Second.Name, I.Second.BoolValue,
                         [-1, 1, 2], [-1, 0, 2, 3]>;
   }
 }
@@ -1086,14 +1054,14 @@ multiclass signed_ternary_w_vv_vx : signed_ternary_w_vv, signed_ternary_w_vx;
 // vuint*m*_t vop_vx_u*m*_m (vbool*_t mask, vuint*m*_t acc, uint*_t op1,
 //                           vuint*m*_t op2);
 multiclass unsigned_ternary_w_vv_vx {
-  foreach I = AllWideUnsignedVector in {
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.Value, I.OriginVector.Value, "_vv",
-                        I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllUnsignedPairSEWx2 in {
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.Value, I.First.Value, "_vv",
+                        I.Second.Name, I.Second.BoolValue,
                         [-1, 1], [-1, 0, 2]>;
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.ElemType.Value, I.OriginVector.Value,
-                        "_vx", I.WideVector.Name, I.WideVector.BoolValue,
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.ElemType.Value, I.First.Value,
+                        "_vx", I.Second.Name, I.Second.BoolValue,
                         [-1, 1, 2], [-1, 0, 2, 3]>;
   }
 }
@@ -1102,10 +1070,10 @@ multiclass unsigned_ternary_w_vv_vx {
 // vint*m*_t vop_vv_i*m*_m (vbool*_t mask, vint*m*_t acc, vint*m*_t op1,
 //                          vint*m*_t op2);
 multiclass signed_ternary_qw_vv {
-  foreach I = AllQuadWideSignedVector in {
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.Value, I.OriginVector.Value, "_vv",
-                        I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllSignedPairSEWx4 in {
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.Value, I.First.Value, "_vv",
+                        I.Second.Name, I.Second.BoolValue,
                         [-1, 1], [-1, 0, 2]>;
   }
 }
@@ -1114,10 +1082,10 @@ multiclass signed_ternary_qw_vv {
 // vint*m*_t vop_vx_i*m*_m (vbool*_t mask, vint*m*_t acc, uint*_t op1,
 //                          vint*m*_t op2);
 multiclass signed_ternary_qw_vx {
-  foreach I = AllQuadWideSignedVector in {
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.ElemType.Value, I.OriginVector.Value,
-                        "_vx", I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllSignedPairSEWx4 in {
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.ElemType.Value, I.First.Value,
+                        "_vx", I.Second.Name, I.Second.BoolValue,
                         [-1, 1, 2], [-1, 0, 2, 3]>;
   }
 }
@@ -1131,14 +1099,14 @@ multiclass signed_ternary_qw_vv_vx : signed_ternary_qw_vv, signed_ternary_qw_vx;
 // vuint*m*_t vop_vx_u*m*_m (vbool*_t mask, vuint*m*_t acc, uint*_t op1,
 //                           vuint*m*_t op2);
 multiclass unsigned_ternary_qw_vv_vx {
-  foreach I = AllQuadWideUnsignedVector in {
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.Value, I.OriginVector.Value, "_vv",
-                        I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllUnsignedPairSEWx4 in {
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.Value, I.First.Value, "_vv",
+                        I.Second.Name, I.Second.BoolValue,
                         [-1, 1], [-1, 0, 2]>;
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.ElemType.Value, I.OriginVector.Value,
-                        "_vx", I.WideVector.Name, I.WideVector.BoolValue,
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.ElemType.Value, I.First.Value,
+                        "_vx", I.Second.Name, I.Second.BoolValue,
                         [-1, 1, 2], [-1, 0, 2, 3]>;
   }
 }
@@ -1229,14 +1197,14 @@ multiclass float_binary_m_vv_vf : float_binary_m_vv, float_binary_m_vf;
 // vfloat*m*_t vop_vf_f*m*_m (vbool*_t mask, vfloat*m*_t maskedoff,
 //                            vfloat*m*_t op1, float*_t op2);
 multiclass float_binary_w_vv_vf {
-  foreach I = AllWideFloatVector in {
-    defm NAME : Binary<NAME, I.WideVector.Value, I.OriginVector.Value,
-                       I.OriginVector.Value, "_vv", I.WideVector.Name,
-                       I.WideVector.BoolValue, [-1, 0], [-1, 0, 2]>;
+  foreach I = AllFloatPairSEWx2 in {
+    defm NAME : Binary<NAME, I.Second.Value, I.First.Value,
+                       I.First.Value, "_vv", I.Second.Name,
+                       I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
 
-    defm NAME : Binary<NAME, I.WideVector.Value, I.OriginVector.Value,
-                       I.OriginVector.ElemType.Value, "_vf",
-                       I.WideVector.Name, I.WideVector.BoolValue,
+    defm NAME : Binary<NAME, I.Second.Value, I.First.Value,
+                       I.First.ElemType.Value, "_vf",
+                       I.Second.Name, I.Second.BoolValue,
                        [-1, 0, 1], [-1, 0, 2, 3]>;
   }
 }
@@ -1248,14 +1216,14 @@ multiclass float_binary_w_vv_vf {
 // vfloat*m*_t vop_wf_f*m*_m (vbool*_t mask, vfloat*m*_t maskedoff,
 //                            vfloat*m*_t op1, float*_t op2);
 multiclass float_binary_w_wv_wf {
-  foreach I = AllWideFloatVector in {
-    defm NAME : Binary<NAME, I.WideVector.Value, I.WideVector.Value,
-                       I.OriginVector.Value, "_wv", I.WideVector.Name,
-                       I.WideVector.BoolValue, [-1, 1], [-1, 0, 3]>;
+  foreach I = AllFloatPairSEWx2 in {
+    defm NAME : Binary<NAME, I.Second.Value, I.Second.Value,
+                       I.First.Value, "_wv", I.Second.Name,
+                       I.Second.BoolValue, [-1, 1], [-1, 0, 3]>;
             
-    defm NAME : Binary<NAME, I.WideVector.Value, I.WideVector.Value,
-                       I.OriginVector.ElemType.Value, "_wf",
-                       I.WideVector.Name, I.WideVector.BoolValue,
+    defm NAME : Binary<NAME, I.Second.Value, I.Second.Value,
+                       I.First.ElemType.Value, "_wf",
+                       I.Second.Name, I.Second.BoolValue,
                        [-1, 1], [-1, 0, 3]>;
   }
 }
@@ -1299,14 +1267,14 @@ multiclass float_ternary_v_vv_vf {
 // vfloat*m*_t vop_vf_f*m*_m (vbool*_t mask, vfloat*m*_t acc, float*_t op1,
 //                            vfloat*m*_t op2);
 multiclass float_ternary_w_vv_vf {
-  foreach I = AllWideFloatVector in {
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.Value, I.OriginVector.Value, "_vv",
-                        I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllFloatPairSEWx2 in {
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.Value, I.First.Value, "_vv",
+                        I.Second.Name, I.Second.BoolValue,
                         [-1, 1], [-1, 0, 2]>;
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.ElemType.Value, I.OriginVector.Value,
-                        "_vf", I.WideVector.Name, I.WideVector.BoolValue,
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.ElemType.Value, I.First.Value,
+                        "_vf", I.Second.Name, I.Second.BoolValue,
                         [-1, 1, 2], [-1, 0, 2, 3]>;
   }
 }
@@ -1317,10 +1285,10 @@ multiclass float_ternary_w_vv_vf {
 //                                 vfloat*m*_t vector, vfloat*m1_t scalar);
 multiclass float_ternary_w_vs {
   foreach I = AllWideM1FloatVector in {
-    defm NAME : Ternary<NAME, I.WideVector.Value, I.WideVector.Value,
-                        I.OriginVector.Value, I.WideVector.Value, "_vs",
-                        I.OriginVector.Name#"_"#I.WideVector.Name,
-                        I.WideVector.Mask, [-1, 1], [-1, 0, 2]>;
+    defm NAME : Ternary<NAME, I.Second.Value, I.Second.Value,
+                        I.First.Value, I.Second.Value, "_vs",
+                        I.First.Name#"_"#I.Second.Name,
+                        I.Second.Mask, [-1, 1], [-1, 0, 2]>;
   }
 }
 
@@ -1382,6 +1350,38 @@ defm vwaddu : unsigned_binary_w_vv_vx_wv_wx;
 defm vwsubu : unsigned_binary_w_vv_vx_wv_wx;
 
 // 12.3. Vector Integer Extension
+multiclass signed_unary_vfn {
+  foreach I = AllSignedPairSEWx2 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_vf2",
+                      I.Second.Name, I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
+  }
+  foreach I = AllSignedPairSEWx4 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_vf4",
+                      I.Second.Name, I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
+  }
+  foreach I = AllSignedPairSEWx8 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_vf8",
+                      I.Second.Name, I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
+  }
+}
+
+multiclass unsigned_unary_vfn {
+  foreach I = AllUnsignedPairSEWx2 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_vf2",
+                      I.Second.Name, I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
+  }
+  foreach I = AllUnsignedPairSEWx4 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_vf4",
+                      I.Second.Name, I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
+  }
+  foreach I = AllUnsignedPairSEWx8 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_vf8",
+                      I.Second.Name, I.Second.BoolValue, [-1, 0], [-1, 0, 2]>;
+  }
+}
+
+defm vsext : signed_unary_vfn;
+defm vzext : unsigned_unary_vfn;
 
 // 12.4. Vector Integer Add-with-Carry/Subtract-with-Borrow Instructions
 defm vadc : int_ternary_v_vvm_vxm;
@@ -1619,26 +1619,26 @@ defm vfmv : float_unary_v_f;
 
 // 14.15. Single-Width Floating-Point/Integer TypeConvert Instructions
 multiclass vfcvt {
-  foreach I = SignedFloatPair in {
-    defm NAME : Unary<NAME, I.Integer.Value, I.Float.Value, "_x_f_v",
-                      I.Integer.Name, I.Integer.BoolValue,
+  foreach I = AllSignedFloatPair in {
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value, "_x_f_v",
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
-    defm NAME : Unary<NAME, I.Integer.Value, I.Float.Value, "_rtz_x_f_v",
-                      I.Integer.Name, I.Integer.BoolValue,
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value, "_rtz_x_f_v",
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
-    defm NAME : Unary<NAME, I.Float.Value, I.Integer.Value, "_f_x_v",
-                      I.Float.Name, I.Integer.BoolValue,
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_f_x_v",
+                      I.Second.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
-  foreach I = UnsignedFloatPair in {
-    defm NAME : Unary<NAME, I.Integer.Value, I.Float.Value, "_xu_f_v",
-                      I.Integer.Name, I.Integer.BoolValue,
+  foreach I = AllUnsignedFloatPair in {
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value, "_xu_f_v",
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
-    defm NAME : Unary<NAME, I.Integer.Value, I.Float.Value, "_rtz_xu_f_v",
-                      I.Integer.Name, I.Integer.BoolValue,
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value, "_rtz_xu_f_v",
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
-    defm NAME : Unary<NAME, I.Float.Value, I.Integer.Value, "_f_xu_v",
-                      I.Float.Name, I.Integer.BoolValue,
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_f_xu_v",
+                      I.Second.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
 }
@@ -1646,56 +1646,56 @@ defm vfcvt : vfcvt;
 
 // 14.16. Widening Floating-Point/Integer Type-Convert Instructions
 multiclass vfwcvt {
-  foreach I = WideSignedToFloat in {
-    defm NAME : Unary<NAME, I.WideVector.Value, I.OriginVector.Value, "_x_f_v",
-                      I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllFloatSignedPairSEWx2 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_x_f_v",
+                      I.Second.Name, I.Second.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
-    defm NAME : Unary<NAME, I.WideVector.Value, I.OriginVector.Value,
-                      "_rtz_x_f_v", I.WideVector.Name, I.WideVector.BoolValue,
-                      [-1, 0], [-1, 0, 2]>;
-  }
-  foreach I = WideUnsignedToFloat in {
-    defm NAME : Unary<NAME, I.WideVector.Value, I.OriginVector.Value, "_xu_f_v",
-                      I.WideVector.Name, I.WideVector.BoolValue,
-                      [-1, 0], [-1, 0, 2]>;
-    defm NAME : Unary<NAME, I.WideVector.Value, I.OriginVector.Value,
-                      "_rtz_xu_f_v", I.WideVector.Name, I.WideVector.BoolValue,
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value,
+                      "_rtz_x_f_v", I.Second.Name, I.Second.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
-
-  foreach I = WideFloatToSigned in {
-    defm NAME : Unary<NAME, I.WideVector.Value, I.OriginVector.Value, "_f_x_v",
-                      I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllFloatUnsignedPairSEWx2 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_xu_f_v",
+                      I.Second.Name, I.Second.BoolValue,
+                      [-1, 0], [-1, 0, 2]>;
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value,
+                      "_rtz_xu_f_v", I.Second.Name, I.Second.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
 
-  foreach I = WideFloatToUnsigned in {
-    defm NAME : Unary<NAME, I.WideVector.Value, I.OriginVector.Value, "_f_xu_v",
-                      I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllSignedFloatPairSEWx2 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_f_x_v",
+                      I.Second.Name, I.Second.BoolValue,
+                      [-1, 0], [-1, 0, 2]>;
+  }
+
+  foreach I = AllUnsignedFloatPairSEWx2 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_f_xu_v",
+                      I.Second.Name, I.Second.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
   
-  foreach I = WideFloatToFloat in {
-    defm NAME : Unary<NAME, I.WideVector.Value, I.OriginVector.Value, "_f_f_v",
-                      I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllFloatPairSEWx2 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_f_f_v",
+                      I.Second.Name, I.Second.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
 }
 defm vfwcvt : vfwcvt;
 
 multiclass vwcvt {
-  foreach I = AllWideSignedVector in {
-    defm NAME : Unary<NAME, I.WideVector.Value, I.OriginVector.Value, "_x_x_v",
-                      I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllSignedPairSEWx2 in {
+    defm NAME : Unary<NAME, I.Second.Value, I.First.Value, "_x_x_v",
+                      I.Second.Name, I.Second.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
 }
 defm vwcvt : vwcvt;
 
 multiclass vwcvtu {
-  foreach I = AllWideUnsignedVector in {
-    defm NAME : Unary<NAME,  I.WideVector.Value, I.OriginVector.Value, "_x_x_v",
-                      I.WideVector.Name, I.WideVector.BoolValue,
+  foreach I = AllUnsignedPairSEWx2 in {
+    defm NAME : Unary<NAME,  I.Second.Value, I.First.Value, "_x_x_v",
+                      I.Second.Name, I.Second.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
 }
@@ -1703,44 +1703,44 @@ defm vwcvtu : vwcvtu;
 
 // 14.17. Narrowing Floating-Point/Integer Type-Convert Instructions
 multiclass vfncvt {
-  foreach I = WideFloatToSigned in {
-    defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value, "_x_f_w",
-                      I.OriginVector.Name, I.OriginVector.BoolValue,
+  foreach I = AllSignedFloatPairSEWx2 in {
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value, "_x_f_w",
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
-    defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value,
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value,
                       "_rtz_x_f_w",
-                      I.OriginVector.Name, I.OriginVector.BoolValue,
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
-  foreach I = WideFloatToUnsigned in {
-    defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value, "_xu_f_w",
-                      I.OriginVector.Name, I.OriginVector.BoolValue,
+  foreach I = AllUnsignedFloatPairSEWx2 in {
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value, "_xu_f_w",
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
-    defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value,
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value,
                       "_rtz_xu_f_w",
-                      I.OriginVector.Name, I.OriginVector.BoolValue,
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
 
-  foreach I = WideSignedToFloat in {
-    defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value, "_f_x_w",
-                      I.OriginVector.Name, I.OriginVector.BoolValue,
+  foreach I = AllFloatSignedPairSEWx2 in {
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value, "_f_x_w",
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
 
-  foreach I = WideUnsignedToFloat in {
-    defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value, "_f_xu_w",
-                      I.OriginVector.Name, I.OriginVector.BoolValue,
+  foreach I = AllFloatUnsignedPairSEWx2 in {
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value, "_f_xu_w",
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
 
-  foreach I = WideFloatToFloat in {
-    defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value, "_f_f_w",
-                      I.OriginVector.Name, I.OriginVector.BoolValue,
+  foreach I = AllFloatPairSEWx2 in {
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value, "_f_f_w",
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
-    defm NAME : Unary<NAME, I.OriginVector.Value, I.WideVector.Value,
+    defm NAME : Unary<NAME, I.First.Value, I.Second.Value,
                       "_rod_f_f_w",
-                      I.OriginVector.Name, I.OriginVector.BoolValue,
+                      I.First.Name, I.First.BoolValue,
                       [-1, 0], [-1, 0, 2]>;
   }
 }
@@ -1884,11 +1884,11 @@ multiclass reinterpret {
                              "", [-1, 0], []>; 
   }
   foreach I = AllIntFloatPair in {
-    defm NAME : UnaryMaskOff<NAME, I.Integer.Value, I.Float.Value, "_v",
-                             I.Integer.Name#"_"#I.Float.Name, "",
+    defm NAME : UnaryMaskOff<NAME, I.First.Value, I.Second.Value, "_v",
+                             I.First.Name#"_"#I.Second.Name, "",
                              [-1, 0], []>;
-    defm NAME : UnaryMaskOff<NAME, I.Float.Value, I.Integer.Value, "_v",
-                             I.Float.Name#"_"#I.Integer.Name, "",
+    defm NAME : UnaryMaskOff<NAME, I.Second.Value, I.First.Value, "_v",
+                             I.Second.Name#"_"#I.First.Name, "",
                              [-1, 0], []>;
   }
 

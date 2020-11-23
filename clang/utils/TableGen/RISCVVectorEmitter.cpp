@@ -81,14 +81,22 @@ public:
 
   std::vector<int64_t> getAnyTypeOperand() { return AnyTypeOperands; }
 
-  // FixMe: for stride index load or store
-  bool isLoadOrStore() { return (Name.find("vle") != std::string::npos 
-                      || Name.find("vse") != std::string::npos
-                      || Name.find("vlse") != std::string::npos 
-                      || Name.find("vsse") != std::string::npos
-                      || Name.find("vlxei") != std::string::npos
-                      || Name.find("vsuxei") != std::string::npos
-                      || Name.find("vsxei") != std::string::npos) && (Infix != ""); }
+  // FIXME: for stride index load or store
+  bool isLoadOrStore() {
+    return (Name.find("vle8") != std::string::npos
+            || Name.find("vle16") != std::string::npos
+            || Name.find("vle64") != std::string::npos
+            || Name.find("vle32") != std::string::npos
+            || Name.find("vse8") != std::string::npos
+            || Name.find("vse16") != std::string::npos
+            || Name.find("vse32") != std::string::npos
+            || Name.find("vse64") != std::string::npos
+            || Name.find("vlse") != std::string::npos
+            || Name.find("vsse") != std::string::npos
+            || Name.find("vlxei") != std::string::npos
+            || Name.find("vsuxei") != std::string::npos
+            || Name.find("vsxei") != std::string::npos) && (Infix != "");
+  }
   
   bool isVsetvl() { return Name.find("vsetvl") != std::string::npos; }
   bool isMask() { return MaskBit; }
