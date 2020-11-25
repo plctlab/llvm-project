@@ -327,6 +327,147 @@ defset list<VectorTypeInfoPair> AllIntPairSEWx8 = {
   }
 } // defset list<VectorTypeInfoPair> AllIntPairSEWx8
 
+defset list<VectorTypeInfoPair> AllIntPairSEW32 = {
+  // 1:4
+  def : VectorTypeInfoPair<u8mf8,  i32mf2>;
+  def : VectorTypeInfoPair<u8mf4,  i32m1>;
+  def : VectorTypeInfoPair<u8mf2,  i32m2>;
+  def : VectorTypeInfoPair<u8m1,   i32m4>;
+  def : VectorTypeInfoPair<u8m2,   i32m8>;
+  // 1:2
+  def : VectorTypeInfoPair<u16mf4, i32mf2>;
+  def : VectorTypeInfoPair<u16mf2, i32m1>;
+  def : VectorTypeInfoPair<u16m1,  i32m2>;
+  def : VectorTypeInfoPair<u16m2,  i32m4>;
+  def : VectorTypeInfoPair<u16m4,  i32m8>;
+  // 1:1
+  def : VectorTypeInfoPair<u32mf2, i32mf2>;
+  def : VectorTypeInfoPair<u32m1,  i32m1>;
+  def : VectorTypeInfoPair<u32m2,  i32m2>;
+  def : VectorTypeInfoPair<u32m4,  i32m4>;
+  def : VectorTypeInfoPair<u32m8,  i32m8>;
+  // 2:1
+  def : VectorTypeInfoPair<u64m1,  i32mf2>;
+  def : VectorTypeInfoPair<u64m2,  i32m1>;
+  def : VectorTypeInfoPair<u64m4,  i32m2>;
+  def : VectorTypeInfoPair<u64m8,  i32m4>;
+  // 1:4
+  def : VectorTypeInfoPair<u8mf8,  u32mf2>;
+  def : VectorTypeInfoPair<u8mf4,  u32m1>;
+  def : VectorTypeInfoPair<u8mf2,  u32m2>;
+  def : VectorTypeInfoPair<u8m1,   u32m4>;
+  def : VectorTypeInfoPair<u8m2,   u32m8>;
+  // 1:2
+  def : VectorTypeInfoPair<u16mf4, u32mf2>;
+  def : VectorTypeInfoPair<u16mf2, u32m1>;
+  def : VectorTypeInfoPair<u16m1,  u32m2>;
+  def : VectorTypeInfoPair<u16m2,  u32m4>;
+  def : VectorTypeInfoPair<u16m4,  u32m8>;
+  // 1:1
+  def : VectorTypeInfoPair<u32mf2, u32mf2>;
+  def : VectorTypeInfoPair<u32m1,  u32m1>;
+  def : VectorTypeInfoPair<u32m2,  u32m2>;
+  def : VectorTypeInfoPair<u32m4,  u32m4>;
+  def : VectorTypeInfoPair<u32m8,  u32m8>;
+  // 2:1
+  def : VectorTypeInfoPair<u64m1,  u32mf2>;
+  def : VectorTypeInfoPair<u64m2,  u32m1>;
+  def : VectorTypeInfoPair<u64m4,  u32m2>;
+  def : VectorTypeInfoPair<u64m8,  u32m4>;
+}
+
+defset list<VectorTypeInfoPair> AllFloatPairSEW32 = {
+  // 1:4
+  def : VectorTypeInfoPair<u8mf8,  f32mf2>;
+  def : VectorTypeInfoPair<u8mf4,  f32m1>;
+  def : VectorTypeInfoPair<u8mf2,  f32m2>;
+  def : VectorTypeInfoPair<u8m1,   f32m4>;
+  def : VectorTypeInfoPair<u8m2,   f32m8>;
+  // 1:2
+  def : VectorTypeInfoPair<u16mf4, f32mf2>;
+  def : VectorTypeInfoPair<u16mf2, f32m1>;
+  def : VectorTypeInfoPair<u16m1,  f32m2>;
+  def : VectorTypeInfoPair<u16m2,  f32m4>;
+  def : VectorTypeInfoPair<u16m4,  f32m8>;
+  // 1:1
+  def : VectorTypeInfoPair<u32mf2, f32mf2>;
+  def : VectorTypeInfoPair<u32m1,  f32m1>;
+  def : VectorTypeInfoPair<u32m2,  f32m2>;
+  def : VectorTypeInfoPair<u32m4,  f32m4>;
+  def : VectorTypeInfoPair<u32m8,  f32m8>;
+  // 2:1
+  def : VectorTypeInfoPair<u64m1,  f32mf2>;
+  def : VectorTypeInfoPair<u64m2,  f32m1>;
+  def : VectorTypeInfoPair<u64m4,  f32m2>;
+  def : VectorTypeInfoPair<u64m8,  f32m4>;
+}
+
+defset list<VectorTypeInfoPair> AllIntPairSEW64 = {
+  // 1:8
+  def : VectorTypeInfoPair<u8mf8,  i64m1>;
+  def : VectorTypeInfoPair<u8mf4,  i64m2>;
+  def : VectorTypeInfoPair<u8mf2,  i64m4>;
+  def : VectorTypeInfoPair<u8m1,   i64m8>;
+  // 1:4
+  def : VectorTypeInfoPair<u16mf4, i64m1>;
+  def : VectorTypeInfoPair<u16mf2, i64m2>;
+  def : VectorTypeInfoPair<u16m1,  i64m4>;
+  def : VectorTypeInfoPair<u16m2,  i64m8>;
+  // 1:2
+  def : VectorTypeInfoPair<u32mf2, i64m1>;
+  def : VectorTypeInfoPair<u32m1,  i64m2>;
+  def : VectorTypeInfoPair<u32m2,  i64m4>;
+  def : VectorTypeInfoPair<u32m4,  i64m8>;
+  // 1:1
+  def : VectorTypeInfoPair<u64m1,  i64m1>;
+  def : VectorTypeInfoPair<u64m2,  i64m2>;
+  def : VectorTypeInfoPair<u64m4,  i64m4>;
+  def : VectorTypeInfoPair<u64m8,  i64m8>;
+  // 1:8
+  def : VectorTypeInfoPair<u8mf8,  u64m1>;
+  def : VectorTypeInfoPair<u8mf4,  u64m2>;
+  def : VectorTypeInfoPair<u8mf2,  u64m4>;
+  def : VectorTypeInfoPair<u8m1,   u64m8>;
+  // 1:4
+  def : VectorTypeInfoPair<u16mf4, u64m1>;
+  def : VectorTypeInfoPair<u16mf2, u64m2>;
+  def : VectorTypeInfoPair<u16m1,  u64m4>;
+  def : VectorTypeInfoPair<u16m2,  u64m8>;
+  // 1:2
+  def : VectorTypeInfoPair<u32mf2, u64m1>;
+  def : VectorTypeInfoPair<u32m1,  u64m2>;
+  def : VectorTypeInfoPair<u32m2,  u64m4>;
+  def : VectorTypeInfoPair<u32m4,  u64m8>;
+  // 1:1
+  def : VectorTypeInfoPair<u64m1,  u64m1>;
+  def : VectorTypeInfoPair<u64m2,  u64m2>;
+  def : VectorTypeInfoPair<u64m4,  u64m4>;
+  def : VectorTypeInfoPair<u64m8,  u64m8>;
+}
+
+defset list<VectorTypeInfoPair> AllFloatPairSEW64 = {
+  // 1:8
+  def : VectorTypeInfoPair<u8mf8,  f64m1>;
+  def : VectorTypeInfoPair<u8mf4,  f64m2>;
+  def : VectorTypeInfoPair<u8mf2,  f64m4>;
+  def : VectorTypeInfoPair<u8m1,   f64m8>;
+  // 1:4
+  def : VectorTypeInfoPair<u16mf4, f64m1>;
+  def : VectorTypeInfoPair<u16mf2, f64m2>;
+  def : VectorTypeInfoPair<u16m1,  f64m4>;
+  def : VectorTypeInfoPair<u16m2,  f64m8>;
+  // 1:2
+  def : VectorTypeInfoPair<u32mf2, f64m1>;
+  def : VectorTypeInfoPair<u32m1,  f64m2>;
+  def : VectorTypeInfoPair<u32m2,  f64m4>;
+  def : VectorTypeInfoPair<u32m4,  f64m8>;
+  // 1:1
+  def : VectorTypeInfoPair<u64m1,  f64m1>;
+  def : VectorTypeInfoPair<u64m2,  f64m2>;
+  def : VectorTypeInfoPair<u64m4,  f64m4>;
+  def : VectorTypeInfoPair<u64m8,  f64m8>;
+}
+
 defset list<VectorTypeInfoPair> AllIntFloatPair = {
   defset list<VectorTypeInfoPair> AllSignedFloatPair = {
     foreach lmul = ["mf4", "mf2", "m1", "m2", "m4", "m8"] in {
@@ -1337,6 +1478,31 @@ multiclass load_store {
   }
 }
 defm : load_store;
+
+// 8. Vector AMO Operations (Zvamo)
+multiclass vamo {
+  foreach I = !listconcat(AllIntPairSEW32, AllIntPairSEW64, AllFloatPairSEW32,
+                          AllFloatPairSEW64) in {
+    def NAME#"ei"#I.First.SEW#"_v_"#I.Second.Name
+      : Inst<NAME#"ei"#I.First.SEW, [I.Second.Value,
+             I.Second.ElemType.Value#"C*", I.First.Value, I.Second.Value],
+             "_v", I.Second.Name, 0, [-1, 0, 1]>;
+    def NAME#"ei"#I.First.SEW#"_v_"#I.Second.Name#"_mask"
+      : Inst<NAME#"ei"#I.First.SEW, [I.Second.Value, I.Second.BoolValue,
+             I.Second.ElemType.Value#"C*", I.First.Value, I.Second.Value],
+             "_v", I.Second.Name, 1, [-1, 0, 1, 2]>;
+  }
+}
+
+defm vamoswap : vamo;
+defm vamoadd : vamo;
+defm vamoxor : vamo;
+defm vamoand : vamo;
+defm vamoor : vamo;
+defm vamomin : vamo;
+defm vamomax : vamo;
+defm vamominu : vamo;
+defm vamomaxu : vamo;
 
 // 12.1. Vector Single-Width Integer Add and Subtract
 defm vadd : int_binary_v_vv_vx;

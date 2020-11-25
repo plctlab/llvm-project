@@ -636,6 +636,31 @@ multiclass Vstore {
 }
 defm int_riscv_vstore : Vstore;
 
+// 8. Vector AMO Operations (Zvamo)
+multiclass INT_RISCV_W_XVW {
+  foreach I = ["ei8", "ei16", "ei32", "ei64"] in {
+    def "int_riscv_"#NAME#I#"_v"
+      : Intrinsic<[llvm_anyvector_ty],
+                  [llvm_anyptr_ty, llvm_anyvector_ty, LLVMMatchType<0>],
+                  [IntrReadMem, IntrWriteMem]>;
+    def "int_riscv_"#NAME#I#"_v_mask"
+      : Intrinsic<[llvm_anyvector_ty],
+                  [llvm_anyvector_ty, llvm_anyptr_ty,
+                   llvm_anyvector_ty, LLVMMatchType<0>],
+                  [IntrReadMem, IntrWriteMem]>;
+  }
+}
+
+defm vamoswap : INT_RISCV_W_XVW;
+defm vamoadd : INT_RISCV_W_XVW;
+defm vamoxor : INT_RISCV_W_XVW;
+defm vamoand : INT_RISCV_W_XVW;
+defm vamoor : INT_RISCV_W_XVW;
+defm vamomin : INT_RISCV_W_XVW;
+defm vamomax : INT_RISCV_W_XVW;
+defm vamominu : INT_RISCV_W_XVW;
+defm vamomaxu : INT_RISCV_W_XVW;
+
 // 12.1. Vector Single-Width Integer Add and Subtract
 defm vadd : INT_RISCV_V_VV_VX;
 defm vsub : INT_RISCV_V_VV_VX;
