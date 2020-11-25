@@ -304,7 +304,7 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
   OS << "#include <stdint.h>\n";
   OS << "// TODO: float16_t should be implemented based on RISC-V Zfh extension.\n";
   OS << "// See https://github.com/riscv/riscv-v-spec/issues/349.\n";
-  OS << "typedef _Float16 float16_t;\n";
+  OS << "typedef __fp16 float16_t;\n";
   OS << "typedef float float32_t;\n";
   OS << "typedef double float64_t;\n";
   OS << "typedef __attribute__((riscv_mask_type(1))) bool vbool1_t;\n";
