@@ -375,11 +375,11 @@
 // RV32-EXPERIMENTAL-V-NOVERS: error: invalid arch name 'rv32iv'
 // RV32-EXPERIMENTAL-V-NOVERS: experimental extension requires explicit version number
 
-// RUN: %clang -target riscv32-unknown-elf -march=rv32iv0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
-// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-V-BADVERS %s
-// RV32-EXPERIMENTAL-V-BADVERS: error: invalid arch name 'rv32iv0p1'
-// RV32-EXPERIMENTAL-V-BADVERS: unsupported version number 0.1 for experimental extension
-
 // RUN: %clang -target riscv32-unknown-elf -march=rv32iv0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-V-BADVERS %s
+// RV32-EXPERIMENTAL-V-BADVERS: error: invalid arch name 'rv32iv0p9'
+// RV32-EXPERIMENTAL-V-BADVERS: unsupported version number 0.9 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32iv1p0 -menable-experimental-extensions -### %s -c 2>&1 | \
 // RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-V-GOODVERS %s
 // RV32-EXPERIMENTAL-V-GOODVERS: "-target-feature" "+experimental-v"

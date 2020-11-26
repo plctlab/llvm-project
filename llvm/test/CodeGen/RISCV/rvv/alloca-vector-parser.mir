@@ -14,7 +14,7 @@ body:             |
     $x8 = frame-setup ADDI $x2, 16
     $x12 = PseudoReadVTYPE implicit $vtype
     $x11 = PseudoReadVL implicit $vl
-    $x10 = VSETVLI $x0, 12, implicit-def $vl, implicit-def $vtype
+    $x10 = VSETVLI $x0, 24, implicit-def $vl, implicit-def $vtype
     $x0 = VSETVL killed $x11, killed $x12, implicit-def $vl, implicit-def $vtype
     $x10 = SLLI $x10, 3
     $x2 = SUB $x2, killed $x10

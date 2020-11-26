@@ -879,12 +879,12 @@ public:
     if (Fractional) {
       unsigned Flmul = 8 - LmulLog2;
       Op->VType.Lmul = static_cast<VLMUL>(Flmul);
-      Op->VType.Encoding =
-          ((Flmul & 0x4) << 3) | ((SewLog2 & 0x7) << 2) | (Flmul & 0x3);
+      Op->VType.Encoding = (SewLog2 << 3) | Flmul;
     } else {
       Op->VType.Lmul = static_cast<VLMUL>(LmulLog2);
-      Op->VType.Encoding = (SewLog2 << 2) | LmulLog2;
+      Op->VType.Encoding = (SewLog2 << 3) | LmulLog2;
     }
+
     if (TailAgnostic) {
       Op->VType.Encoding |= 0x40;
     }

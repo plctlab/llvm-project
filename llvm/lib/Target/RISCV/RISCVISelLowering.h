@@ -63,22 +63,22 @@ enum NodeType : unsigned {
 
 namespace RISCVVectorLMUL {
 enum Lmul {
-  M1 = 0,
-  M2 = 1,
-  M4 = 2,
-  M8 = 3,
-  MF2 = 35,
-  MF4 = 34,
-  MF8 = 33
+  M1  = 0, /* 0b000000 */
+  M2  = 1, /* 0b000001 */
+  M4  = 2, /* 0b000010 */
+  M8  = 3, /* 0b000011 */
+  MF8 = 5, /* 0b000101 */
+  MF4 = 6, /* 0b000110 */
+  MF2 = 7  /* 0b000111 */
 };
 }
 
 namespace RISCVVectorSEW {
 enum Sew {
-  SEW8 = 0,
-  SEW16 = 4,
-  SEW32 = 8,
-  SEW64 = 12
+  SEW8  =  0, /* 0b000000 */
+  SEW16 =  8, /* 0b001000 */
+  SEW32 = 16, /* 0b010000 */
+  SEW64 = 24  /* 0b011000 */
 };
 }
 

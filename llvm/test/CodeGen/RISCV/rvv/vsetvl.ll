@@ -47,7 +47,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e16m1
 ; CHECK: a0, a0, e16,m1,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 4)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 8)
 ret i64 %a
 }
 
@@ -57,7 +57,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e16m2
 ; CHECK: a0, a0, e16,m2,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 5)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 9)
 ret i64 %a
 }
 
@@ -67,7 +67,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e16m4
 ; CHECK: a0, a0, e16,m4,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 6)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 10)
 ret i64 %a
 }
 
@@ -77,7 +77,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e16m8
 ; CHECK: a0, a0, e16,m8,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 7)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 11)
 ret i64 %a
 }
 
@@ -86,7 +86,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e32m2
 ; CHECK: vsetvli	a0, a0, e32,m2,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 9)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 17)
 ret i64 %a
 }
 
@@ -96,7 +96,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e32m4
 ; CHECK: vsetvli	a0, a0, e32,m4,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 10)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 18)
 ret i64 %a
 }
 
@@ -106,7 +106,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e32m8
 ; CHECK: vsetvli	a0, a0, e32,m8,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 11)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 19)
 ret i64 %a
 }
 
@@ -116,7 +116,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e64m1
 ; CHECK: vsetvli	a0, a0, e64,m1,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 12)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 24)
 ret i64 %a
 }
 
@@ -126,7 +126,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e64m2
 ; CHECK: vsetvli	a0, a0, e64,m2,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 13)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 25)
 ret i64 %a
 }
 
@@ -136,7 +136,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e64m4
 ; CHECK: vsetvli	a0, a0, e64,m4,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 14)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 26)
 ret i64 %a
 }
 
@@ -146,7 +146,7 @@ entry:
 ; CHECK-LABEL: vsetvl_e64m8
 ; CHECK: vsetvli	a0, a0, e64,m8,tu,mu
 ; CHECK: ret 
-%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 15)
+%a =  tail call i64 @llvm.riscv.vsetvl(i64 %0, i64 27)
 ret i64 %a
 }
 
