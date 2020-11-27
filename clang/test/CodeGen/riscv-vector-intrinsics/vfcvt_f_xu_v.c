@@ -1,0 +1,184 @@
+// RUN: %clang_cc1 -triple riscv64-unknown-linux-gnu -target-feature +experimental-v -fallow-half-arguments-and-returns -fnative-half-type -S -emit-llvm  %s -o - |  FileCheck %s
+
+#include <riscv_vector.h>
+
+vfloat16mf4_t test_vfcvt_f_xu_v_f16mf4 (vuint16mf4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16mf4
+  // CHECK: %{{.*}} = call <vscale x 1 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv1f16{{.*}}(<vscale x 1 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16mf4(src);
+}
+
+vfloat16mf2_t test_vfcvt_f_xu_v_f16mf2 (vuint16mf2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16mf2
+  // CHECK: %{{.*}} = call <vscale x 2 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv2f16{{.*}}(<vscale x 2 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16mf2(src);
+}
+
+vfloat16m1_t test_vfcvt_f_xu_v_f16m1 (vuint16m1_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16m1
+  // CHECK: %{{.*}} = call <vscale x 4 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv4f16{{.*}}(<vscale x 4 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16m1(src);
+}
+
+vfloat16m2_t test_vfcvt_f_xu_v_f16m2 (vuint16m2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16m2
+  // CHECK: %{{.*}} = call <vscale x 8 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv8f16{{.*}}(<vscale x 8 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16m2(src);
+}
+
+vfloat16m4_t test_vfcvt_f_xu_v_f16m4 (vuint16m4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16m4
+  // CHECK: %{{.*}} = call <vscale x 16 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv16f16{{.*}}(<vscale x 16 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16m4(src);
+}
+
+vfloat16m8_t test_vfcvt_f_xu_v_f16m8 (vuint16m8_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16m8
+  // CHECK: %{{.*}} = call <vscale x 32 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv32f16{{.*}}(<vscale x 32 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16m8(src);
+}
+
+vfloat32mf2_t test_vfcvt_f_xu_v_f32mf2 (vuint32mf2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f32mf2
+  // CHECK: %{{.*}} = call <vscale x 1 x float> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv1f32{{.*}}(<vscale x 1 x i32> %{{.*}})
+  return vfcvt_f_xu_v_f32mf2(src);
+}
+
+vfloat32m1_t test_vfcvt_f_xu_v_f32m1 (vuint32m1_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f32m1
+  // CHECK: %{{.*}} = call <vscale x 2 x float> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv2f32{{.*}}(<vscale x 2 x i32> %{{.*}})
+  return vfcvt_f_xu_v_f32m1(src);
+}
+
+vfloat32m2_t test_vfcvt_f_xu_v_f32m2 (vuint32m2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f32m2
+  // CHECK: %{{.*}} = call <vscale x 4 x float> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv4f32{{.*}}(<vscale x 4 x i32> %{{.*}})
+  return vfcvt_f_xu_v_f32m2(src);
+}
+
+vfloat32m4_t test_vfcvt_f_xu_v_f32m4 (vuint32m4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f32m4
+  // CHECK: %{{.*}} = call <vscale x 8 x float> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv8f32{{.*}}(<vscale x 8 x i32> %{{.*}})
+  return vfcvt_f_xu_v_f32m4(src);
+}
+
+vfloat32m8_t test_vfcvt_f_xu_v_f32m8 (vuint32m8_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f32m8
+  // CHECK: %{{.*}} = call <vscale x 16 x float> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv16f32{{.*}}(<vscale x 16 x i32> %{{.*}})
+  return vfcvt_f_xu_v_f32m8(src);
+}
+
+vfloat64m1_t test_vfcvt_f_xu_v_f64m1 (vuint64m1_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m1
+  // CHECK: %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv1f64{{.*}}(<vscale x 1 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m1(src);
+}
+
+vfloat64m2_t test_vfcvt_f_xu_v_f64m2 (vuint64m2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m2
+  // CHECK: %{{.*}} = call <vscale x 2 x double> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv2f64{{.*}}(<vscale x 2 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m2(src);
+}
+
+vfloat64m4_t test_vfcvt_f_xu_v_f64m4 (vuint64m4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m4
+  // CHECK: %{{.*}} = call <vscale x 4 x double> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv4f64{{.*}}(<vscale x 4 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m4(src);
+}
+
+vfloat64m8_t test_vfcvt_f_xu_v_f64m8 (vuint64m8_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m8
+  // CHECK: %{{.*}} = call <vscale x 8 x double> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv8f64{{.*}}(<vscale x 8 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m8(src);
+}
+
+vfloat16mf4_t test_vfcvt_f_xu_v_f16mf4_m (vbool64_t mask, vfloat16mf4_t maskedoff, vuint16mf4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16mf4_m
+  // CHECK: %{{.*}} = call <vscale x 1 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv1f16{{.*}}(<vscale x 1 x i1> %{{.*}}, <vscale x 1 x half> %{{.*}}, <vscale x 1 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16mf4_m(mask, maskedoff, src);
+}
+
+vfloat16mf2_t test_vfcvt_f_xu_v_f16mf2_m (vbool32_t mask, vfloat16mf2_t maskedoff, vuint16mf2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16mf2_m
+  // CHECK: %{{.*}} = call <vscale x 2 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv2f16{{.*}}(<vscale x 2 x i1> %{{.*}}, <vscale x 2 x half> %{{.*}}, <vscale x 2 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16mf2_m(mask, maskedoff, src);
+}
+
+vfloat16m1_t test_vfcvt_f_xu_v_f16m1_m (vbool16_t mask, vfloat16m1_t maskedoff, vuint16m1_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16m1_m
+  // CHECK: %{{.*}} = call <vscale x 4 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv4f16{{.*}}(<vscale x 4 x i1> %{{.*}}, <vscale x 4 x half> %{{.*}}, <vscale x 4 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16m1_m(mask, maskedoff, src);
+}
+
+vfloat16m2_t test_vfcvt_f_xu_v_f16m2_m (vbool8_t mask, vfloat16m2_t maskedoff, vuint16m2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16m2_m
+  // CHECK: %{{.*}} = call <vscale x 8 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv8f16{{.*}}(<vscale x 8 x i1> %{{.*}}, <vscale x 8 x half> %{{.*}}, <vscale x 8 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16m2_m(mask, maskedoff, src);
+}
+
+vfloat16m4_t test_vfcvt_f_xu_v_f16m4_m (vbool4_t mask, vfloat16m4_t maskedoff, vuint16m4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16m4_m
+  // CHECK: %{{.*}} = call <vscale x 16 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv16f16{{.*}}(<vscale x 16 x i1> %{{.*}}, <vscale x 16 x half> %{{.*}}, <vscale x 16 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16m4_m(mask, maskedoff, src);
+}
+
+vfloat16m8_t test_vfcvt_f_xu_v_f16m8_m (vbool2_t mask, vfloat16m8_t maskedoff, vuint16m8_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f16m8_m
+  // CHECK: %{{.*}} = call <vscale x 32 x half> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv32f16{{.*}}(<vscale x 32 x i1> %{{.*}}, <vscale x 32 x half> %{{.*}}, <vscale x 32 x i16> %{{.*}})
+  return vfcvt_f_xu_v_f16m8_m(mask, maskedoff, src);
+}
+
+vfloat32mf2_t test_vfcvt_f_xu_v_f32mf2_m (vbool64_t mask, vfloat32mf2_t maskedoff, vuint32mf2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f32mf2_m
+  // CHECK: %{{.*}} = call <vscale x 1 x float> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv1f32{{.*}}(<vscale x 1 x i1> %{{.*}}, <vscale x 1 x float> %{{.*}}, <vscale x 1 x i32> %{{.*}})
+  return vfcvt_f_xu_v_f32mf2_m(mask, maskedoff, src);
+}
+
+vfloat32m1_t test_vfcvt_f_xu_v_f32m1_m (vbool32_t mask, vfloat32m1_t maskedoff, vuint32m1_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f32m1_m
+  // CHECK: %{{.*}} = call <vscale x 2 x float> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv2f32{{.*}}(<vscale x 2 x i1> %{{.*}}, <vscale x 2 x float> %{{.*}}, <vscale x 2 x i32> %{{.*}})
+  return vfcvt_f_xu_v_f32m1_m(mask, maskedoff, src);
+}
+
+vfloat32m2_t test_vfcvt_f_xu_v_f32m2_m (vbool16_t mask, vfloat32m2_t maskedoff, vuint32m2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f32m2_m
+  // CHECK: %{{.*}} = call <vscale x 4 x float> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv4f32{{.*}}(<vscale x 4 x i1> %{{.*}}, <vscale x 4 x float> %{{.*}}, <vscale x 4 x i32> %{{.*}})
+  return vfcvt_f_xu_v_f32m2_m(mask, maskedoff, src);
+}
+
+vfloat32m4_t test_vfcvt_f_xu_v_f32m4_m (vbool8_t mask, vfloat32m4_t maskedoff, vuint32m4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f32m4_m
+  // CHECK: %{{.*}} = call <vscale x 8 x float> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv8f32{{.*}}(<vscale x 8 x i1> %{{.*}}, <vscale x 8 x float> %{{.*}}, <vscale x 8 x i32> %{{.*}})
+  return vfcvt_f_xu_v_f32m4_m(mask, maskedoff, src);
+}
+
+vfloat32m8_t test_vfcvt_f_xu_v_f32m8_m (vbool4_t mask, vfloat32m8_t maskedoff, vuint32m8_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f32m8_m
+  // CHECK: %{{.*}} = call <vscale x 16 x float> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv16f32{{.*}}(<vscale x 16 x i1> %{{.*}}, <vscale x 16 x float> %{{.*}}, <vscale x 16 x i32> %{{.*}})
+  return vfcvt_f_xu_v_f32m8_m(mask, maskedoff, src);
+}
+
+vfloat64m1_t test_vfcvt_f_xu_v_f64m1_m (vbool64_t mask, vfloat64m1_t maskedoff, vuint64m1_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m1_m
+  // CHECK: %{{.*}} = call <vscale x 1 x double> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv1f64{{.*}}(<vscale x 1 x i1> %{{.*}}, <vscale x 1 x double> %{{.*}}, <vscale x 1 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m1_m(mask, maskedoff, src);
+}
+
+vfloat64m2_t test_vfcvt_f_xu_v_f64m2_m (vbool32_t mask, vfloat64m2_t maskedoff, vuint64m2_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m2_m
+  // CHECK: %{{.*}} = call <vscale x 2 x double> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv2f64{{.*}}(<vscale x 2 x i1> %{{.*}}, <vscale x 2 x double> %{{.*}}, <vscale x 2 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m2_m(mask, maskedoff, src);
+}
+
+vfloat64m4_t test_vfcvt_f_xu_v_f64m4_m (vbool16_t mask, vfloat64m4_t maskedoff, vuint64m4_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m4_m
+  // CHECK: %{{.*}} = call <vscale x 4 x double> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv4f64{{.*}}(<vscale x 4 x i1> %{{.*}}, <vscale x 4 x double> %{{.*}}, <vscale x 4 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m4_m(mask, maskedoff, src);
+}
+
+vfloat64m8_t test_vfcvt_f_xu_v_f64m8_m (vbool8_t mask, vfloat64m8_t maskedoff, vuint64m8_t src) {
+  // CHECK-LABEL: test_vfcvt_f_xu_v_f64m8_m
+  // CHECK: %{{.*}} = call <vscale x 8 x double> @llvm.riscv.vfcvt.f.xu.v.{{.*}}nxv8f64{{.*}}(<vscale x 8 x i1> %{{.*}}, <vscale x 8 x double> %{{.*}}, <vscale x 8 x i64> %{{.*}})
+  return vfcvt_f_xu_v_f64m8_m(mask, maskedoff, src);
+}
+
