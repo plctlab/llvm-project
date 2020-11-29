@@ -153,6 +153,7 @@ void RISCVInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
     DL = I->getDebugLoc();
 
   unsigned Opcode;
+  bool isRISCVVector = false;
 
   if (RISCV::GPRRegClass.hasSubClassEq(RC))
     Opcode = TRI->getRegSizeInBits(RISCV::GPRRegClass) == 32 ?
@@ -161,24 +162,34 @@ void RISCVInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
     Opcode = RISCV::FSW;
   else if (RISCV::FPR64RegClass.hasSubClassEq(RC))
     Opcode = RISCV::FSD;
-  else if (RISCV::VRRegClass.hasSubClassEq(RC) || 
-           RISCV::VRM2RegClass.hasSubClassEq(RC) ||
-           RISCV::VRM4RegClass.hasSubClassEq(RC) ||
-           RISCV::VRM8RegClass.hasSubClassEq(RC)) {
-    RVFI->setHasSpillVRs();
-    MFI.setStackID(FI, TargetStackID::RISCVVector);
-    BuildMI(MBB, I, DL, get(RISCV::VS1R_V))
-        .addReg(SrcReg, getKillRegState(IsKill))
-        .addFrameIndex(FI);
-    return;
+  else if (RISCV::VRRegClass.hasSubClassEq(RC)) {
+    Opcode = RISCV::VS1R_V;
+    isRISCVVector = true;
+  } else if (RISCV::VRM2RegClass.hasSubClassEq(RC)) {
+    Opcode = RISCV::VS2R_V;
+    isRISCVVector = true;
+  } else if (RISCV::VRM4RegClass.hasSubClassEq(RC)) {
+    Opcode = RISCV::VS4R_V;
+    isRISCVVector = true;
+  } else if (RISCV::VRM8RegClass.hasSubClassEq(RC)) {
+    Opcode = RISCV::VS8R_V;
+    isRISCVVector = true;
   }
   else
     llvm_unreachable("Can't store this register to stack slot");
 
+  if (isRISCVVector) {
+    RVFI->setHasSpillVRs();
+    MFI.setStackID(FI, TargetStackID::RISCVVector);
+    BuildMI(MBB, I, DL, get(Opcode))
+      .addReg(SrcReg, getKillRegState(IsKill))
+      .addFrameIndex(FI);
+  } else {
   BuildMI(MBB, I, DL, get(Opcode))
       .addReg(SrcReg, getKillRegState(IsKill))
       .addFrameIndex(FI)
       .addImm(0);
+  }
 }
 
 void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
@@ -195,6 +206,7 @@ void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
     DL = I->getDebugLoc();
 
   unsigned Opcode;
+  bool isRISCVVector = false;
 
   if (RISCV::GPRRegClass.hasSubClassEq(RC))
     Opcode = TRI->getRegSizeInBits(RISCV::GPRRegClass) == 32 ?
@@ -203,20 +215,29 @@ void RISCVInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
     Opcode = RISCV::FLW;
   else if (RISCV::FPR64RegClass.hasSubClassEq(RC))
     Opcode = RISCV::FLD;
-  else if (RISCV::VRRegClass.hasSubClassEq(RC) ||
-           RISCV::VRM2RegClass.hasSubClassEq(RC) ||
-           RISCV::VRM4RegClass.hasSubClassEq(RC) ||
-           RISCV::VRM8RegClass.hasSubClassEq(RC)) {
-    RVFI->setHasSpillVRs();
-    MFI.setStackID(FI, TargetStackID::RISCVVector);
-    BuildMI(MBB, I, DL, get(RISCV::VL1R_V), DstReg)
-        .addFrameIndex(FI);
-    return;
+  else if (RISCV::VRRegClass.hasSubClassEq(RC)) {
+    Opcode = RISCV::VL1RE8_V;
+    isRISCVVector = true;
+  } else if (RISCV::VRM2RegClass.hasSubClassEq(RC)) {
+    Opcode = RISCV::VL2RE8_V;
+    isRISCVVector = true;
+  } else if (RISCV::VRM4RegClass.hasSubClassEq(RC)) {
+    Opcode = RISCV::VL4RE8_V;
+    isRISCVVector = true;
+  } else if (RISCV::VRM8RegClass.hasSubClassEq(RC)) {
+    Opcode = RISCV::VL8RE8_V;
+    isRISCVVector = true;
   }
   else
     llvm_unreachable("Can't load this register from stack slot");
 
-  BuildMI(MBB, I, DL, get(Opcode), DstReg).addFrameIndex(FI).addImm(0);
+  if (isRISCVVector) {
+    RVFI->setHasSpillVRs();
+    MFI.setStackID(FI, TargetStackID::RISCVVector);
+    BuildMI(MBB, I, DL, get(Opcode), DstReg).addFrameIndex(FI);
+  }
+  else
+    BuildMI(MBB, I, DL, get(Opcode), DstReg).addFrameIndex(FI).addImm(0);
 }
 
 void RISCVInstrInfo::movImm(MachineBasicBlock &MBB,

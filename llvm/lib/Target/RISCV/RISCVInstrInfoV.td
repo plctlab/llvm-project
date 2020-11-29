@@ -117,9 +117,9 @@ class VIndexedLoad<RISCVWidth width, string opcodestr>
                 "$vd, (${rs1}), $vs2$vm">;
 
 // vl<nf>r.v vd, (rs1)
-class VWholeLoad<bits<3> nf, string opcodestr>
-    : RVInstVLU<nf, 0b0, LUMOPUnitStrideWholeReg,
-                0b000, (outs VRegOp:$vd), (ins GPR:$rs1),
+class VWholeLoad<bits<3> nf, RISCVWidth width, string opcodestr>
+    : RVInstVLU<nf, width.Value{3}, LUMOPUnitStrideWholeReg,
+                width.Value{2-0}, (outs VRegOp:$vd), (ins GPR:$rs1),
                 opcodestr, "$vd, (${rs1})"> {
   let vm = 1;
   let Uses = [];
@@ -516,8 +516,17 @@ def VSUXEI256_V : VIndexedStore<MOPSTIndexedUnord, LSWidth256, "vsuxei256.v">;
 def VSUXEI512_V : VIndexedStore<MOPSTIndexedUnord, LSWidth512, "vsuxei512.v">;
 def VSUXEI1024_V : VIndexedStore<MOPSTIndexedUnord, LSWidth1024, "vsuxei1024.v">;
 
-def VL1R_V : VWholeLoad<0, "vl1r.v">;
-def VS1R_V : VWholeStore<0, "vs1r.v">;
+foreach nf = [1, 2, 4, 8] in {
+  def VL#nf#RE8_V : VWholeLoad<!add(nf, -1), LSWidth8, "vl" # nf # "re8.v">;
+  def VL#nf#RE16_V : VWholeLoad<!add(nf, -1), LSWidth16, "vl" # nf # "re16.v">;
+  def VL#nf#RE32_V : VWholeLoad<!add(nf, -1), LSWidth32, "vl" # nf # "re32.v">;
+  def VL#nf#RE64_V : VWholeLoad<!add(nf, -1), LSWidth64, "vl" # nf # "re64.v">;
+  def VL#nf#RE128_V : VWholeLoad<!add(nf, -1), LSWidth128, "vl" # nf # "re128.v">;
+  def VL#nf#RE256_V : VWholeLoad<!add(nf, -1), LSWidth256, "vl" # nf # "re256.v">;
+  def VL#nf#RE512_V : VWholeLoad<!add(nf, -1), LSWidth512, "vl" # nf # "re512.v">;
+  def VL#nf#RE1024_V : VWholeLoad<!add(nf, -1), LSWidth1024, "vl" # nf # "re1024.v">;
+  def VS#nf#R_V : VWholeStore<!add(nf, -1), "vs" # nf # "r.v">;
+}
 
 // Vector Single-Width Integer Add and Subtract
 defm VADD_V : VALU_IV_V_X_I<"vadd", 0b000000>;

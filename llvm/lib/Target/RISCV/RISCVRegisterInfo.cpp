@@ -181,8 +181,14 @@ void RISCVRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
     }
     case RISCV::VLE32_V:
     case RISCV::VSE32_V:
-    case RISCV::VL1R_V:
-    case RISCV::VS1R_V: {
+    case RISCV::VL1RE8_V:
+    case RISCV::VL2RE8_V:
+    case RISCV::VL4RE8_V:
+    case RISCV::VL8RE8_V:
+    case RISCV::VS1R_V:
+    case RISCV::VS2R_V:
+    case RISCV::VS4R_V:
+    case RISCV::VS8R_V: {
       MachineOperand StackSlot = MI.getOperand(FIOperandNum);
       unsigned Opcode = getRegSizeInBits(RISCV::GPRRegClass) == 32 ? RISCV::LW :
                                                                    RISCV::LD;

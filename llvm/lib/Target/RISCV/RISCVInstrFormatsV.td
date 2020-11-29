@@ -66,6 +66,10 @@ def LSWidth128   : RISCVWidth<0b1000>;
 def LSWidth256   : RISCVWidth<0b1101>;
 def LSWidth512   : RISCVWidth<0b1110>;
 def LSWidth1024  : RISCVWidth<0b1111>;
+// defset list<RISCVWidth> AllSEW = {
+//   LSWidth8, LSWidth16, LSWidth32, LSWidth64,
+//   LSWidth64, LSWidth128, LSWidth256, LSWidth1024
+// }
 
 class RVInstSetVLi<dag outs, dag ins, string opcodestr, string argstr>
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
