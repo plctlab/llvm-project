@@ -57,23 +57,23 @@ defset list<LMULToRC> AllLMULs = {
   def MF8 : LMULToRC<"F8", VR, 11>;
 }
 
-class WideLMULToRCInfo<RegisterClass ori, RegisterClass wid, string lmul,
-                        int wlm, string olmul> {
+class WideLMULToRCInfo<RegisterClass ori, RegisterClass wid, string olmul,
+                       string wlmul, int lmul> {
   RegisterClass OriginRegClass = ori;
   RegisterClass WideRegClass = wid;
-  string LMULstr = lmul;
   string OriginLMULstr = olmul;
-  int WideLMUL = wlm;
+  string WideLMULstr = wlmul;
+  int LMUL = lmul;
 }
 
 defset list<WideLMULToRCInfo> AllWideLMULs = {
   // TODO : fractional lmul
-  def WMF4 : WideLMULToRCInfo<VR, VR, "F4", 10, "F8">;
-  def WMF2 : WideLMULToRCInfo<VR, VR, "F2", 9, "F4">;
-  def WM1 : WideLMULToRCInfo<VR, VR, "1", 1, "F2">;
-  def WM2 : WideLMULToRCInfo<VR, VRM2, "2", 2, "1">;
-  def WM4 : WideLMULToRCInfo<VRM2, VRM4, "4", 4, "2">;
-  def WM8 : WideLMULToRCInfo<VRM4, VRM8, "8", 8, "4">;
+  def WMF4 : WideLMULToRCInfo<VR, VR, "F8", "F4", 11>;
+  def WMF2 : WideLMULToRCInfo<VR, VR, "F4", "F2", 10>;
+  def WM1 : WideLMULToRCInfo<VR, VR, "F2", "1", 9>;
+  def WM2 : WideLMULToRCInfo<VR, VRM2, "1", "2", 1>;
+  def WM4 : WideLMULToRCInfo<VRM2, VRM4, "2", "4", 2>;
+  def WM8 : WideLMULToRCInfo<VRM4, VRM8, "4", "8", 4>;
 }
 
 defset list<VectorTypeInfo> AllVectors = {
@@ -170,8 +170,7 @@ class WideVectorInfo<VectorTypeInfo ori, ValueType wid, RegisterClass wrc,
   VectorTypeInfo OriginVector = ori;
   ValueType WidenVector = wid;
   RegisterClass WidenRegClass = wrc;
-  int WidenLMUL = !mul(ori.LMUL, 2);
-  int WidenSEW = !mul(ori.SEW, 2);
+  int WidenSEW = ori.SEW;
   string WidenLMULstr = widelmulstr;
 }
 
@@ -235,32 +234,32 @@ defset list<WideVectorInfo> AllQuadWideIntegerVectors = {
   def QWidev8xi16 : WideVectorInfo<Vtypev8xi16, nxv8i64, VRM8, "8_16_M2">;
 }
 
-class VectorTypeInfoToNarrowOrWide<VectorTypeInfo vti, VectorTypeInfo wti,
-                                   string lmulstr> {
-  VectorTypeInfo Vti = vti;
-  VectorTypeInfo Wti = wti;
+class VectorTypeInfoPair<VectorTypeInfo first, VectorTypeInfo second,
+                         string lmulstr> {
+  VectorTypeInfo First = first;
+  VectorTypeInfo Second = second;
   string LMULstr = lmulstr;
 }
 
-defset list<VectorTypeInfoToNarrowOrWide> AllWideFloatToIntVectors = {
-  // vfloat16mf4_t, vint32mf2_t
-  def : VectorTypeInfoToNarrowOrWide<Vtypev1xi32, Vtypev1xf16, "F4_16_MF2">;
-  // vfloat16mf2_t, vint32m1_t
-  def : VectorTypeInfoToNarrowOrWide<Vtypev2xi32, Vtypev2xf16, "F2_16_M1">;
-  // vfloat16m1_t, vint32m2_t
-  def : VectorTypeInfoToNarrowOrWide<Vtypev4xi32, Vtypev4xf16, "1_16_M2">;
-  // vfloat16m2_t, vint32m4_t
-  def : VectorTypeInfoToNarrowOrWide<Vtypev8xi32, Vtypev8xf16, "2_16_M4">;
-  // vfloat16m4_t, vint32m8_t
-  def : VectorTypeInfoToNarrowOrWide<Vtypev16xi32, Vtypev16xf16, "4_16_M8">;
-  // vfloat32mf2_t, vint64m1_t
-  def : VectorTypeInfoToNarrowOrWide<Vtypev1xi64, Vtypev1xf32, "F2_32_M1">;
-  // vfloat32m1_t, vint64m2_t
-  def : VectorTypeInfoToNarrowOrWide<Vtypev2xi64, Vtypev2xf32, "1_32_M2">;
-  // vfloat32m2_t, vint64m4_t
-  def : VectorTypeInfoToNarrowOrWide<Vtypev4xi64, Vtypev4xf32, "2_32_M4">;
-  // vfloat32m4_t, vint64m8_t
-  def : VectorTypeInfoToNarrowOrWide<Vtypev8xi64, Vtypev8xf32, "4_32_M8">;
+defset list<VectorTypeInfoPair> AllWideIntAndFloatVectors = {
+  // vint32mf2_t, vfloat16mf4_t
+  def : VectorTypeInfoPair<Vtypev1xi32, Vtypev1xf16, "F4_16_MF2">;
+  // vint32m1_t, vfloat16mf2_t
+  def : VectorTypeInfoPair<Vtypev2xi32, Vtypev2xf16, "F2_16_M1">;
+  // vint32m2_t ,vfloat16m1_t
+  def : VectorTypeInfoPair<Vtypev4xi32, Vtypev4xf16, "1_16_M2">;
+  // vint32m4_t ,vfloat16m2_t
+  def : VectorTypeInfoPair<Vtypev8xi32, Vtypev8xf16, "2_16_M4">;
+  // vint32m8_t ,vfloat16m4_t
+  def : VectorTypeInfoPair<Vtypev16xi32, Vtypev16xf16, "4_16_M8">;
+  // vint64m1_t ,vfloat32mf2_t
+  def : VectorTypeInfoPair<Vtypev1xi64, Vtypev1xf32, "F2_32_M1">;
+  // vint64m2_t ,vfloat32m1_t
+  def : VectorTypeInfoPair<Vtypev2xi64, Vtypev2xf32, "1_32_M2">;
+  // vint64m4_t ,vfloat32m2_t
+  def : VectorTypeInfoPair<Vtypev4xi64, Vtypev4xf32, "2_32_M4">;
+  // vint64m8_t ,vfloat32m4_t
+  def : VectorTypeInfoPair<Vtypev8xi64, Vtypev8xf32, "4_32_M8">;
 }
 
 def RVVIntrinsicsTable : GenericTable {
@@ -302,7 +301,7 @@ class GetIntVectorTypeInfo<VectorTypeInfo vti>
 class GetFloatVectorTypeInfo<VectorTypeInfo vti>
 {
   // Equivalent float vector type. Eg.
-  //   Vtypev2xf32 → Vtypev2xf32
+  //   Vtypev2xi32 → Vtypev2xf32
   VectorTypeInfo FVti = !cast<VectorTypeInfo>(
                         !subst("xi", "xf", !cast<string>(vti)));
 }
@@ -363,11 +362,11 @@ multiclass pseudo_unary_v_v {
 }
 
 multiclass pseudo_unary_v_w<string constraints = ""> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar vti = I.Vti;
-    defvar wti = I.Wti;
-    let LMUL = vti.LMUL in {
-      defm _V : pseudo_unary<vti.RegClass, wti.RegClass, I.LMULstr,
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = I.First;
+    defvar src = I.Second;
+    let LMUL = src.LMUL in {
+      defm _V : pseudo_unary<dst.RegClass, src.RegClass, I.LMULstr,
                              constraints>;
     }
   }
@@ -399,55 +398,55 @@ multiclass pseudo_vid {
 }
 
 multiclass pseudo_unary_f_w<string constraints = ""> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar vti = GetIntVectorTypeInfo<I.Wti>.Vti;
-    let LMUL = vti.LMUL in {
-      defm _V : pseudo_unary<fti.RegClass, vti.RegClass, I.LMULstr,
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = GetFloatVectorTypeInfo<I.First>.FVti;
+    defvar src = GetIntVectorTypeInfo<I.Second>.Vti;
+    let LMUL = src.LMUL in {
+      defm _V : pseudo_unary<dst.RegClass, src.RegClass, I.LMULstr,
                              constraints>;
     }
   }
 }
 
 multiclass pseudo_unary_f_f<string constraints = ""> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar wti = I.Wti;
-    let LMUL = fti.LMUL in {
-      defm _V : pseudo_unary<fti.RegClass, wti.RegClass, I.LMULstr,
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = GetFloatVectorTypeInfo<I.First>.FVti;
+    defvar src = I.Second;
+    let LMUL = src.LMUL in {
+      defm _V : pseudo_unary<dst.RegClass, src.RegClass, I.LMULstr,
                              constraints>;
     }
   }
 }
 
 multiclass pseudo_unary_f_n<string constraints = ""> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar vti = GetIntVectorTypeInfo<I.Wti>.Vti;
-    let LMUL = vti.LMUL in {
-      defm _W : pseudo_unary<vti.RegClass, fti.RegClass, I.LMULstr,
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = GetIntVectorTypeInfo<I.Second>.Vti;
+    defvar src = GetFloatVectorTypeInfo<I.First>.FVti;
+    let LMUL = dst.LMUL in {
+      defm _W : pseudo_unary<dst.RegClass, src.RegClass, I.LMULstr,
                              constraints>;
     }
   }
 }
 
 multiclass pseudo_unary_v_n<string constraints = ""> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar vti = I.Vti;
-    defvar wti = I.Wti;
-    let LMUL = vti.LMUL in {
-      defm _W : pseudo_unary<wti.RegClass, vti.RegClass, I.LMULstr,
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = I.Second;
+    defvar src = I.First;
+    let LMUL = dst.LMUL in {
+      defm _W : pseudo_unary<dst.RegClass, src.RegClass, I.LMULstr,
                              constraints>;
     }
   }
 }
 
 multiclass pseudo_unary_f_f_n<string constraints = ""> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar wti = I.Wti;
-    let LMUL = fti.LMUL in {
-      defm _W : pseudo_unary<wti.RegClass, fti.RegClass, I.LMULstr,
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = I.Second;
+    defvar src = GetFloatVectorTypeInfo<I.First>.FVti;
+    let LMUL = dst.LMUL in {
+      defm _W : pseudo_unary<dst.RegClass, src.RegClass, I.LMULstr,
                              constraints>;
     }
   }
@@ -546,22 +545,22 @@ multiclass pseudo_binary_v_vv_vf<string constraints = "">
 
 multiclass pseudo_binary_w_vv_vx<string constraints = ""> {
   foreach I = AllWideLMULs in {
-    let LMUL = I.WideLMUL in {
+    let LMUL = I.LMUL in {
       defm _VV : pseudo_binary<I.WideRegClass, I.OriginRegClass,
-                               I.OriginRegClass, I.LMULstr, constraints>;
+                               I.OriginRegClass, I.WideLMULstr, constraints>;
       defm _VX : pseudo_binary<I.WideRegClass, I.OriginRegClass,
-                               GPR, I.LMULstr, constraints>;
+                               GPR, I.WideLMULstr, constraints>;
     }
   }
 }
 
 multiclass pseudo_binary_w_wv_wx<string constraints = ""> {
   foreach I = AllWideLMULs in {
-    let LMUL = I.WideLMUL in {
+    let LMUL = I.LMUL in {
       defm _WV : pseudo_binary<I.WideRegClass, I.WideRegClass,
-                               I.OriginRegClass, I.LMULstr, constraints>;
+                               I.OriginRegClass, I.WideLMULstr, constraints>;
       defm _WX : pseudo_binary<I.WideRegClass, I.WideRegClass,
-                               GPR, I.LMULstr, constraints>;
+                               GPR, I.WideLMULstr, constraints>;
     }
   }
 }
@@ -571,22 +570,22 @@ multiclass pseudo_binary_w_vv_vx_wv_wx<string constraints = "">
 
 multiclass pseudo_binary_w_vv_vf<string constraints = ""> {
   foreach I = AllWideLMULs in {
-    let LMUL = I.WideLMUL in {
+    let LMUL = I.LMUL in {
       defm _VV : pseudo_binary<I.WideRegClass, I.OriginRegClass,
-                               I.OriginRegClass, I.LMULstr, constraints>;
+                               I.OriginRegClass, I.WideLMULstr, constraints>;
       defm _VF : pseudo_binary<I.WideRegClass, I.OriginRegClass,
-                               FPR32, I.LMULstr, constraints>;
+                               FPR32, I.WideLMULstr, constraints>;
     }
   }
 }
 
 multiclass pseudo_binary_w_wv_wf<string constraints = ""> {
   foreach I = AllWideLMULs in {
-    let LMUL = I.WideLMUL in {
+    let LMUL = I.LMUL in {
       defm _WV : pseudo_binary<I.WideRegClass, I.WideRegClass,
-                               I.OriginRegClass, I.LMULstr, constraints>;
+                               I.OriginRegClass, I.WideLMULstr, constraints>;
       defm _WF : pseudo_binary<I.WideRegClass, I.WideRegClass,
-                               FPR32, I.LMULstr, constraints>;
+                               FPR32, I.WideLMULstr, constraints>;
     }
   }
 }
@@ -596,7 +595,7 @@ multiclass pseudo_binary_w_vv_vf_wv_wf<string constraints = "">
 
 multiclass pseudo_binary_n_wn_wx<string constraints = ""> {
   foreach I = AllWideLMULs in {
-    let LMUL = I.WideLMUL in {
+    let LMUL = I.LMUL in {
       defm _WV : pseudo_binary<I.OriginRegClass, I.WideRegClass,
                                I.OriginRegClass, I.OriginLMULstr, constraints>;
       defm _WX : pseudo_binary<I.OriginRegClass, I.WideRegClass, GPR,
@@ -715,23 +714,23 @@ multiclass pseudo_binary_v_vm<string constraints = ""> {
 
 multiclass pseudo_ternary_w_wvv<string constraints = ""> {
   foreach I = AllWideLMULs in
-    let LMUL = I.WideLMUL in
+    let LMUL = I.LMUL in
       defm _VV : pseudo_ternary<I.WideRegClass, I.OriginRegClass,
-                                I.OriginRegClass, I.LMULstr, constraints>;
+                                I.OriginRegClass, I.WideLMULstr, constraints>;
 }
 
 multiclass pseudo_ternary_w_wvx<string constraints = ""> {
   foreach I = AllWideLMULs in
-    let LMUL = I.WideLMUL in
+    let LMUL = I.LMUL in
       defm _VX : pseudo_ternary<I.WideRegClass, GPR, I.OriginRegClass,
-                                I.LMULstr, constraints>;
+                                I.WideLMULstr, constraints>;
 }
 
 multiclass pseudo_ternary_w_wvf<string constraints = ""> {
   foreach I = AllWideLMULs in
-    let LMUL = I.WideLMUL in
+    let LMUL = I.LMUL in
       defm _VF : pseudo_ternary<I.WideRegClass, FPR32, I.OriginRegClass,
-                                I.LMULstr, constraints>;
+                                I.WideLMULstr, constraints>;
 }
 
 multiclass pseudo_ternary_w_wvv_wvx<string constraints = "">
@@ -878,71 +877,71 @@ multiclass pat_intrinsic_vfmv<string intrinsic_name, string insn_name> {
 
 multiclass pat_intrinsic_unary_w_f_v<string intrinsic_name,
                                      string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar vti = I.Vti;
-    defvar wti = I.Wti;
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = I.First;
+    defvar src = I.Second;
     defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
-                               vti.Type, wti.Type, vti.Mask, vti.SEW,
-                               I.LMULstr, vti.RegClass, wti.RegClass>;
+                               dst.Type, src.Type, dst.Mask, src.SEW,
+                               I.LMULstr, dst.RegClass, src.RegClass>;
 
   }
 }
 
 multiclass pat_intrinsic_unary_w_v_f<string intrinsic_name,
                                      string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar vti = GetIntVectorTypeInfo<I.Wti>.Vti;
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = GetFloatVectorTypeInfo<I.First>.FVti;
+    defvar src = GetIntVectorTypeInfo<I.Second>.Vti;
     defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
-                               fti.Type, vti.Type, fti.Mask, fti.SEW,
-                               I.LMULstr, fti.RegClass, vti.RegClass>;
+                               dst.Type, src.Type, dst.Mask, src.SEW,
+                               I.LMULstr, dst.RegClass, src.RegClass>;
 
   }
 }
 
 multiclass pat_intrinsic_unary_w_f_f<string intrinsic_name,
                                      string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar wti = I.Wti;
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = GetFloatVectorTypeInfo<I.First>.FVti;
+    defvar src = I.Second;
     defm : pat_intrinsic_unary<intrinsic_name#"_v", insn_name#"_V",
-                               fti.Type, wti.Type, fti.Mask, fti.SEW,
-                               I.LMULstr, fti.RegClass, wti.RegClass>;
+                               dst.Type, src.Type, dst.Mask, src.SEW,
+                               I.LMULstr, dst.RegClass, src.RegClass>;
 
   }
 }
 
 multiclass pat_intrinsic_unary_n_v_f<string intrinsic_name,
                                      string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar vti = I.Vti;
-    defvar wti = I.Wti;
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = I.Second;
+    defvar src = I.First;
     defm : pat_intrinsic_unary<intrinsic_name#"_w", insn_name#"_W",
-                               wti.Type, vti.Type, wti.Mask, wti.SEW,
-                               I.LMULstr, wti.RegClass, vti.RegClass>;
+                               dst.Type, src.Type, dst.Mask, dst.SEW,
+                               I.LMULstr, dst.RegClass, src.RegClass>;
   }
 }
 
 multiclass pat_intrinsic_unary_n_f_v<string intrinsic_name,
                                      string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar vti = GetIntVectorTypeInfo<I.Wti>.Vti;
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = GetIntVectorTypeInfo<I.Second>.Vti;
+    defvar src = GetFloatVectorTypeInfo<I.First>.FVti;
     defm : pat_intrinsic_unary<intrinsic_name#"_w", insn_name#"_W",
-                               vti.Type, fti.Type, vti.Mask, vti.SEW,
-                               I.LMULstr, vti.RegClass, fti.RegClass>;
+                               dst.Type, src.Type, dst.Mask, dst.SEW,
+                               I.LMULstr, dst.RegClass, src.RegClass>;
 
   }
 }
 
 multiclass pat_intrinsic_unary_n_f_f<string intrinsic_name,
                                      string insn_name> {
-  foreach I = AllWideFloatToIntVectors in {
-    defvar fti = GetFloatVectorTypeInfo<I.Vti>.FVti;
-    defvar wti = I.Wti;
+  foreach I = AllWideIntAndFloatVectors in {
+    defvar dst = I.Second;
+    defvar src = GetFloatVectorTypeInfo<I.First>.FVti;
     defm : pat_intrinsic_unary<intrinsic_name#"_w", insn_name#"_W",
-                               wti.Type, fti.Type, wti.Mask, wti.SEW,
-                               I.LMULstr, wti.RegClass, fti.RegClass>;
+                               dst.Type, src.Type, dst.Mask, dst.SEW,
+                               I.LMULstr, dst.RegClass, src.RegClass>;
 
   }
 }
