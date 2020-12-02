@@ -528,6 +528,11 @@ foreach nf = [1, 2, 4, 8] in {
   def VS#nf#R_V : VWholeStore<!add(nf, -1), "vs" # nf # "r.v">;
 }
 
+def : InstAlias<"vl1r.v $vd, (${rs1})", (VL1RE8_V  VRegOp:$vd, GPR:$rs1)>;
+def : InstAlias<"vl2r.v $vd, (${rs1})", (VL2RE8_V  VRegOp:$vd, GPR:$rs1)>;
+def : InstAlias<"vl4r.v $vd, (${rs1})", (VL4RE8_V  VRegOp:$vd, GPR:$rs1)>;
+def : InstAlias<"vl8r.v $vd, (${rs1})", (VL8RE8_V  VRegOp:$vd, GPR:$rs1)>;
+
 // Vector Single-Width Integer Add and Subtract
 defm VADD_V : VALU_IV_V_X_I<"vadd", 0b000000>;
 defm VSUB_V : VALU_IV_V_X<"vsub", 0b000010>;

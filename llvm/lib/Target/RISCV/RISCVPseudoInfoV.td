@@ -978,7 +978,7 @@ multiclass pat_intrinsic_binary<string intrinsic_name, string insn_name,
                           (arg1_type arg1:$rs1),
                           (arg2_type arg2:$rs2))),
             swap_helper<
-              (insn (result_type zero_reg)),
+              (insn (result_type (IMPLICIT_DEF))),
               (insn (arg1_type arg1:$rs1)),
               (insn ToScalarOp<arg2_type, arg2, "rs2">.Result),
               (insn (mask_type zero_reg), sew), swap>.Value>;

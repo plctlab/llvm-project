@@ -211,6 +211,9 @@ bool RISCVExpandPseudo::expandRISCVVector(MachineBasicBlock &MBB,
                                           int SEWIndex, int VLMul) {
   MachineInstr &MI = *MBBI;
   DebugLoc DL = MI.getDebugLoc();
+  MachineFunction *MF = MBB.getParent();
+  auto &STI = MF->getSubtarget();
+  auto *RISCVRegInfo = STI.getRegisterInfo(); 
 
   MachineInstrBuilder MIB = BuildMI(MBB, MI, DL, TII->get(BaseInstr));
 
@@ -235,6 +238,13 @@ bool RISCVExpandPseudo::expandRISCVVector(MachineBasicBlock &MBB,
       continue;
     }
 
+    Register Reg = Op->getReg();
+    if ((&RISCV::VRM2RegClass)->contains(Reg) ||
+        (&RISCV::VRM4RegClass)->contains(Reg) ||
+        (&RISCV::VRM8RegClass)->contains(Reg)) {
+      Reg = RISCVRegInfo->getSubReg(Reg, RISCV::sub_vrm2);
+    }
+
     unsigned int Flags = 0;
     if (Op->isImplicit())
       Flags |= RegState::Implicit;
@@ -245,7 +255,7 @@ bool RISCVExpandPseudo::expandRISCVVector(MachineBasicBlock &MBB,
     if (Op->isUndef())
       Flags |= RegState::Undef;
 
-    MIB.addReg(Op->getReg(), Flags);
+    MIB.addReg(Reg, Flags);
   }
 
   MI.eraseFromParent(); // The pseudo instruction is gone now.
