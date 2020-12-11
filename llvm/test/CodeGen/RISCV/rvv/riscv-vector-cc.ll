@@ -7,9 +7,9 @@ declare <vscale x 1 x double> @llvm.riscv.vfadd.vv.nxv1f64.nxv1f64(
 define <vscale x 1 x double> @too_many_registers_1(
 ; CHECK-LABEL: too_many_registers_1:
 ; CHECK:       # %bb.0:
+; CHECK-NEXT:    vl1re64.v	v25, (a2)
+; CHECK-NEXT:    vl1re64.v	v26, (a1)
 ; CHECK-NEXT:    vsetvli	zero, zero, e64,m1,tu,mu
-; CHECK-NEXT:    vle64.v	v25, (a2)
-; CHECK-NEXT:    vle64.v	v26, (a1)
 ; CHECK-NEXT:    vfadd.vv	v16, v26, v25
 ; CHECK-NEXT:    ret
                                  i64 %gvl,
@@ -35,9 +35,9 @@ define <vscale x 1 x double> @too_many_registers_2(
 ; CHECK:       # %bb.0:
 ; CHECK-NEXT:    ld	a0, 8(sp)
 ; CHECK-NEXT:    ld	a1, 0(sp)
+; CHECK-NEXT:    vl1re64.v	v25, (a0)
+; CHECK-NEXT:    vl1re64.v	v26, (a1)
 ; CHECK-NEXT:    vsetvli	zero, zero, e64,m1,tu,mu
-; CHECK-NEXT:    vle64.v	v25, (a0)
-; CHECK-NEXT:    vle64.v	v26, (a1)
 ; CHECK-NEXT:    vfadd.vv	v16, v26, v25
 ; CHECK-NEXT:    ret
                                  i64 %gvl,

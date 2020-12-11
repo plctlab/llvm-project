@@ -22,13 +22,13 @@ define <vscale x 1 x i64> @n1fv6() nounwind {
 ; CHECK-NEXT:	vsetvli	zero, zero, e64,m1,tu,mu
 ; CHECK-NEXT:	vmv.v.x	v16, a0
 ; CHECK-NEXT:	ld	a0, -24(s0)
-; CHECK-NEXT:	vse64.v	v16, (a0)
+; CHECK-NEXT:	vs1r.v	v16, (a0)
 ; CHECK-NEXT:	csrr	a1, vlenb
 ; CHECK-NEXT:	srli	a1, a1, 3
 ; CHECK-NEXT:	addi	a2, zero, 8
 ; CHECK-NEXT:	mul	a1, a1, a2
 ; CHECK-NEXT:	add	a0, a0, a1
-; CHECK-NEXT:	vse64.v	v16, (a0)
+; CHECK-NEXT:	vs1r.v	v16, (a0)
 ; CHECK-NEXT:	addi	sp, s0, -32
 ; CHECK-NEXT:	ld	s0, 16(sp)
 ; CHECK-NEXT:	ld	ra, 24(sp)
@@ -64,22 +64,22 @@ define <vscale x 1 x i64> @n1fv6_1() nounwind {
 ; CHECK-NEXT:	vsetvli	zero, zero, e64,m1,tu,mu
 ; CHECK-NEXT:	vmv.v.x	v25, a0
 ; CHECK-NEXT:	ld	a0, -24(s0)
-; CHECK-NEXT:	vse64.v	v25, (a0)
+; CHECK-NEXT:	vs1r.v	v25, (a0)
 ; CHECK-NEXT:	csrr	a1, vlenb
 ; CHECK-NEXT:	srli	a1, a1, 3
 ; CHECK-NEXT:	addi	a2, zero, 8
 ; CHECK-NEXT:	mul	a2, a1, a2
 ; CHECK-NEXT:	add	a2, a0, a2
-; CHECK-NEXT:	vse64.v	v25, (a2)
+; CHECK-NEXT:	vs1r.v	v25, (a2)
 ; CHECK-NEXT:	addi	a2, zero, 16
 ; CHECK-NEXT:	mul	a2, a1, a2
 ; CHECK-NEXT:	add	a2, a0, a2
-; CHECK-NEXT:	vse64.v	v25, (a2)
+; CHECK-NEXT:	vs1r.v	v25, (a2)
 ; CHECK-NEXT:	addi	a3, zero, 24
 ; CHECK-NEXT:	mul	a1, a1, a3
 ; CHECK-NEXT:	add	a0, a0, a1
-; CHECK-NEXT:	vse64.v	v25, (a0)
-; CHECK-NEXT:	vle64.v	v16, (a2)
+; CHECK-NEXT:	vs1r.v	v25, (a0)
+; CHECK-NEXT:	vl1re64.v	v16, (a2)
 ; CHECK-NEXT:	addi	sp, s0, -32
 ; CHECK-NEXT:	ld	s0, 16(sp)
 ; CHECK-NEXT:	ld	ra, 24(sp)

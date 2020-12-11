@@ -31,6 +31,13 @@ class ToScalarOp<ValueType type, DAGOperand operand, string name> {
                      1 : !dag(type, [operand], [name]));
 }
 
+class RoundFMToM1<string Lmul> {
+  string Result = !cond(!eq(Lmul, "F8") : "1",
+                        !eq(Lmul, "F4") : "1",
+                        !eq(Lmul, "F2") : "1",
+                        1 : Lmul);
+}
+
 class VectorTypeInfo<ValueType type, ValueType mask, int sew,
                      RegisterClass reg_class, int lmul, string lmul_str> {
   ValueType Type = type;
@@ -304,6 +311,28 @@ class GetFloatVectorTypeInfo<VectorTypeInfo vti>
   //   Vtypev2xi32 → Vtypev2xf32
   VectorTypeInfo FVti = !cast<VectorTypeInfo>(
                         !subst("xi", "xf", !cast<string>(vti)));
+}
+
+foreach I = [M1, M2, M4, M8] in {
+  defvar lmul = I.LMULstr;
+  foreach sew = [8, 16, 32, 64] in {
+    let mayLoad = 1, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 0,
+        LMUL = I.LMUL, SEWIndex = 3, MergeOpIndex = 1,
+        BaseInstr = !cast<Instruction>("VL"#lmul#"RE"#sew#"_V") in {
+      def PseudoVL#lmul#RE#sew#_V
+        : Pseudo<(outs I.RegClass:$rd), (ins I.RegClass:$merge,
+                 GPR:$rs1, ixlenimm:$sew), []>,
+          RISCVVectorPseudo;
+    }
+  }
+  let mayLoad = 0, mayStore = 1, hasSideEffects = 0, usesCustomInserter = 0,
+    LMUL = I.LMUL, SEWIndex = 3, MergeOpIndex = 0,
+    BaseInstr = !cast<Instruction>("VS"#lmul#"R_V") in {
+  def PseudoVS#lmul#R_V
+    : Pseudo<(outs), (ins I.RegClass:$merge, I.RegClass:$rs1,
+              GPR:$rs2, ixlenimm:$sew), []>,
+      RISCVVectorPseudo;
+  }
 }
 
 // load / store instruction
@@ -1468,21 +1497,19 @@ multiclass pat_intrinsic_vload_store {
               (I.Type (!cast<Instruction>("PseudoVLE"#I.SEW#"_V_M"#str)
                         (I.Type zero_reg), i64:$rs1, (I.Mask zero_reg),
                         I.SEW))>;
-
+    
     def : Pat<(I.Type (load i64:$rs1)),
-              (I.Type (!cast<Instruction>("PseudoVLE"#I.SEW#"_V_M"#str)
-                        (I.Type zero_reg), i64:$rs1, (I.Mask zero_reg),
-                        I.SEW))>;
+              (I.Type (!cast<Instruction>("PseudoVL"#RoundFMToM1<str>.Result#"RE"#I.SEW#"_V")
+                        (I.Type zero_reg), i64:$rs1, I.SEW))>;
 
     def : Pat<(int_riscv_vstore i64:$rs2, (I.Type I.RegClass:$rs1)),
                    (!cast<Instruction>("PseudoVSE"#I.SEW#"_V_M"#str)
                    (I.Type zero_reg), (I.Type I.RegClass:$rs1), i64:$rs2,
                    (I.Mask zero_reg), I.SEW)>;
-
+    
     def : Pat<(store (I.Type I.RegClass:$rs1), i64:$rs2),
-              (!cast<Instruction>("PseudoVSE"#I.SEW#"_V_M"#str)
-              (I.Type zero_reg), (I.Type I.RegClass:$rs1), i64:$rs2,
-              (I.Mask zero_reg), I.SEW)>;
+              (!cast<Instruction>("PseudoVS"#RoundFMToM1<str>.Result#"R_V")
+              (I.Type zero_reg), (I.Type I.RegClass:$rs1), i64:$rs2, I.SEW)>;
   }
 }
 

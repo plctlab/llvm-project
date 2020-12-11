@@ -16,8 +16,7 @@ entry:
 ;CHECK: sub	sp, sp, a0
 ;CHECK: sd	sp, -24(s0)
 ;CHECK: ld	a0, -24(s0)
-;CHECK: vsetvli	zero, zero, e32,m1,tu,mu
-;CHECK: vse32.v	v16, (a0)
+;CHECK: vs1r.v	v16, (a0)
 ;CHECK: addi	sp, s0, -32
 ;CHECK: ld	s0, 16(sp)
 ;CHECK: ld	ra, 24(sp)

@@ -45,15 +45,15 @@ define dso_local void @saxpy_vec(i64 %n, float %a, float* %x, float* %y) #0 {
 ; CHECK-NEXT: 	slli	a2, a2, 2
 ; CHECK-NEXT: 	ld	a4, -48(s0)
 ; CHECK-NEXT: 	add	a2, a3, a2
-; CHECK-NEXT: 	vse32.v	v8, (a0)
+; CHECK-NEXT: 	vs8r.v	v8, (a0)
 ; CHECK-NEXT: 	sd	a2, -40(s0)
 ; CHECK-NEXT: 	vle32.v	v8, (a4)
 ; CHECK-NEXT: 	flw	ft0, -28(s0)
-; CHECK-NEXT: 	vle32.v	v16, (a0)
+; CHECK-NEXT: 	vl8re32.v	v16, (a0)
 ; CHECK-NEXT: 	ld	a2, -48(s0)
-; CHECK-NEXT: 	vse32.v	v8, (a1)
+; CHECK-NEXT: 	vs8r.v	v8, (a1)
 ; CHECK-NEXT: 	vfmacc.vf	v8, ft0, v16
-; CHECK-NEXT: 	vse32.v	v8, (a1)
+; CHECK-NEXT: 	vs8r.v	v8, (a1)
 ; CHECK-NEXT: 	vse32.v	v8, (a2)
 ; CHECK-NEXT: 	ld	a2, -56(s0)
 ; CHECK-NEXT: 	ld	a3, -48(s0)
