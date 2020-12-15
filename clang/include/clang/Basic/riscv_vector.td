@@ -1454,7 +1454,7 @@ multiclass load_store {
     def "vse"#I.SEW#"_v"#I.Name : Inst<"vse"#I.SEW,
       ["v", I.ElemType.Value#"*", I.Value], "_v", I.Name, 0, [0, 1]>;
     def "vse"#I.SEW#"_v"#I.Name#"_mask" : Inst<"vse"#I.SEW,
-      ["v", I.BoolValue, I.Value, I.ElemType.Value#"C*"], "_v", I.Name, 1, [0, 1, 2]>;
+      ["v", I.BoolValue, I.ElemType.Value#"C*", I.Value], "_v", I.Name, 1, [0, 1, 2]>;
     def "vlse"#I.SEW#"_v"#I.Name : Inst<"vlse"#I.SEW,
       [I.Value, I.ElemType.Value#"C*", "Y"], "_v", I.Name, 0, [-1, 0]>;
     def "vlse"#I.SEW#"_v"#I.Name#"_mask" : Inst<"vlse"#I.SEW,
