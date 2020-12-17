@@ -6,71 +6,75 @@
 define dso_local void @saxpy_vec(i64 %n, float %a, float* %x, float* %y) #0 {
 ; CHECK-LABEL: saxpy_vec
 ; CHECK:       # %bb.0: # %entry
-; CHECK-NEXT:  addi	sp, sp, -128
-; CHECK-NEXT: 	.cfi_def_cfa_offset 128
-; CHECK-NEXT: 	sd	ra, 120(sp)
-; CHECK-NEXT: 	sd	s0, 112(sp)
-; CHECK-NEXT: 	.cfi_offset ra, -8
-; CHECK-NEXT: 	.cfi_offset s0, -16
-; CHECK-NEXT: 	addi	s0, sp, 128
-; CHECK-NEXT: 	.cfi_def_cfa s0, 0
-; CHECK-NEXT: 	andi	sp, sp, -64
-; CHECK-NEXT: 	csrr	a4, vlenb
-; CHECK-NEXT: 	slli	a5, a4, 3
-; CHECK-NEXT: 	sub	sp, sp, a5
-; CHECK-NEXT: 	sd	sp, -72(s0)
-; CHECK-NEXT: 	slli	a4, a4, 3
-; CHECK-NEXT: 	sub	sp, sp, a4
-; CHECK-NEXT: 	sd	sp, -80(s0)
-; CHECK-NEXT: 	fmv.w.x	ft0, a1
-; CHECK-NEXT: 	sd	a0, -24(s0)
-; CHECK-NEXT: 	fsw	ft0, -28(s0)
-; CHECK-NEXT: 	sd	a2, -40(s0)
-; CHECK-NEXT: 	sd	a3, -48(s0)
-; CHECK-NEXT: 	ld	a0, -72(s0)
-; CHECK-NEXT: 	ld	a1, -80(s0)
-; CHECK-NEXT: .LBB0_1:                                # %for.cond
-; CHECK-NEXT:                                        # =>This Inner Loop Header: Depth=1
-; CHECK-NEXT: 	ld	a2, -24(s0)
-; CHECK-NEXT: 	vsetvli	a2, a2, e32,m8,tu,mu
-; CHECK-NEXT: 	sd	a2, -56(s0)
-; CHECK-NEXT: 	beqz	a2, .LBB0_3
-; CHECK-NEXT: # %bb.2:                                # %for.body
+; CHECK-NEXT:	addi	sp, sp, -128
+; CHECK-NEXT:	.cfi_def_cfa_offset 128
+; CHECK-NEXT:	sd	ra, 120(sp)
+; CHECK-NEXT:	sd	s0, 112(sp)
+; CHECK-NEXT:	sd	s1, 104(sp)
+; CHECK-NEXT:	.cfi_offset ra, -8
+; CHECK-NEXT:	.cfi_offset s0, -16
+; CHECK-NEXT:	.cfi_offset s1, -24
+; CHECK-NEXT:	addi	s0, sp, 128
+; CHECK-NEXT:	.cfi_def_cfa s0, 0
+; CHECK-NEXT:	andi	sp, sp, -64
+; CHECK-NEXT:	mv	s1, sp
+; CHECK-NEXT:	csrr	a4, vlenb
+; CHECK-NEXT:	slli	a5, a4, 3
+; CHECK-NEXT:	sub	sp, sp, a5
+; CHECK-NEXT:	sd	sp, 56(s1)
+; CHECK-NEXT:	slli	a4, a4, 3
+; CHECK-NEXT:	sub	sp, sp, a4
+; CHECK-NEXT:	sd	sp, 48(s1)
+; CHECK-NEXT:	fmv.w.x	ft0, a1
+; CHECK-NEXT:	sd	a0, 96(s1)
+; CHECK-NEXT:	fsw	ft0, 92(s1)
+; CHECK-NEXT:	sd	a2, 80(s1)
+; CHECK-NEXT:	sd	a3, 72(s1)
+; CHECK-NEXT:	ld	a0, 56(s1)
+; CHECK-NEXT:	ld	a1, 48(s1)
+; CHECK-NEXT:.LBB0_1:                                # %for.cond
+; CHECK-NEXT:                                       # =>This Inner Loop Header: Depth=1
+; CHECK-NEXT:	ld	a2, 96(s1)
+; CHECK-NEXT:	vsetvli	a2, a2, e32,m8,tu,mu
+; CHECK-NEXT:	sd	a2, 64(s1)
+; CHECK-NEXT:	beqz	a2, .LBB0_3
+; CHECK-NEXT:# %bb.2:                                # %for.body
 ; CHECK-NEXT:                                        #   in Loop: Header=BB0_1 Depth=1
-; CHECK-NEXT: 	ld	a2, -40(s0)
-; CHECK-NEXT: 	vsetvli	zero, zero, e32,m8,tu,mu
-; CHECK-NEXT: 	vle32.v	v8, (a2)
-; CHECK-NEXT: 	ld	a2, -56(s0)
-; CHECK-NEXT: 	ld	a3, -40(s0)
-; CHECK-NEXT: 	slli	a2, a2, 2
-; CHECK-NEXT: 	ld	a4, -48(s0)
-; CHECK-NEXT: 	add	a2, a3, a2
-; CHECK-NEXT: 	vs8r.v	v8, (a0)
-; CHECK-NEXT: 	sd	a2, -40(s0)
-; CHECK-NEXT: 	vle32.v	v8, (a4)
-; CHECK-NEXT: 	flw	ft0, -28(s0)
-; CHECK-NEXT: 	vl8re32.v	v16, (a0)
-; CHECK-NEXT: 	ld	a2, -48(s0)
-; CHECK-NEXT: 	vs8r.v	v8, (a1)
-; CHECK-NEXT: 	vfmacc.vf	v8, ft0, v16
-; CHECK-NEXT: 	vs8r.v	v8, (a1)
-; CHECK-NEXT: 	vse32.v	v8, (a2)
-; CHECK-NEXT: 	ld	a2, -56(s0)
-; CHECK-NEXT: 	ld	a3, -48(s0)
-; CHECK-NEXT: 	slli	a2, a2, 2
-; CHECK-NEXT: 	add	a2, a3, a2
-; CHECK-NEXT: 	sd	a2, -48(s0)
-; CHECK-NEXT: 	ld	a2, -56(s0)
-; CHECK-NEXT: 	ld	a3, -24(s0)
-; CHECK-NEXT: 	sub	a2, a3, a2
-; CHECK-NEXT: 	sd	a2, -24(s0)
-; CHECK-NEXT: 	j	.LBB0_1
-; CHECK-NEXT: .LBB0_3:                                # %for.end
-; CHECK-NEXT: 	addi	sp, s0, -128
-; CHECK-NEXT: 	ld	s0, 112(sp)
-; CHECK-NEXT: 	ld	ra, 120(sp)
-; CHECK-NEXT: 	addi	sp, sp, 128
-; CHECK-NEXT: 	ret
+; CHECK-NEXT:	ld	a2, 80(s1)
+; CHECK-NEXT:	vsetvli	zero, zero, e32,m8,tu,mu
+; CHECK-NEXT:	vle32.v	v8, (a2)
+; CHECK-NEXT:	ld	a2, 64(s1)
+; CHECK-NEXT:	ld	a3, 80(s1)
+; CHECK-NEXT:	slli	a2, a2, 2
+; CHECK-NEXT:	ld	a4, 72(s1)
+; CHECK-NEXT:	add	a2, a3, a2
+; CHECK-NEXT:	vs8r.v	v8, (a0)
+; CHECK-NEXT:	sd	a2, 80(s1)
+; CHECK-NEXT:	vle32.v	v8, (a4)
+; CHECK-NEXT:	flw	ft0, 92(s1)
+; CHECK-NEXT:	vl8re32.v	v16, (a0)
+; CHECK-NEXT:	ld	a2, 72(s1)
+; CHECK-NEXT:	vs8r.v	v8, (a1)
+; CHECK-NEXT:	vfmacc.vf	v8, ft0, v16
+; CHECK-NEXT:	vs8r.v	v8, (a1)
+; CHECK-NEXT:	vse32.v	v8, (a2)
+; CHECK-NEXT:ld	a2, 64(s1)
+; CHECK-NEXT:	ld	a3, 72(s1)
+; CHECK-NEXT:	slli	a2, a2, 2
+; CHECK-NEXT:	add	a2, a3, a2
+; CHECK-NEXT:	sd	a2, 72(s1)
+; CHECK-NEXT:	ld	a2, 64(s1)
+; CHECK-NEXT:	ld	a3, 96(s1)
+; CHECK-NEXT:	sub	a2, a3, a2
+; CHECK-NEXT:	sd	a2, 96(s1)
+; CHECK-NEXT:	j	.LBB0_1
+; CHECK-NEXT:.LBB0_3:                                # %for.end
+; CHECK-NEXT:	addi	sp, s0, -128
+; CHECK-NEXT:	ld	s1, 104(sp)
+; CHECK-NEXT:	ld	s0, 112(sp)
+; CHECK-NEXT:	ld	ra, 120(sp)
+; CHECK-NEXT:	addi	sp, sp, 128
+; CHECK-NEXT:	ret
 entry:
   %n.addr = alloca i64, align 8
   %a.addr = alloca float, align 4

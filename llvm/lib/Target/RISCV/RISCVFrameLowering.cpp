@@ -130,8 +130,10 @@ bool RISCVFrameLowering::hasFP(const MachineFunction &MF) const {
 bool RISCVFrameLowering::hasBP(const MachineFunction &MF) const {
   const MachineFrameInfo &MFI = MF.getFrameInfo();
   const TargetRegisterInfo *TRI = STI.getRegisterInfo();
+  auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
 
-  return MFI.hasVarSizedObjects() && TRI->needsStackRealignment(MF);
+  return ((MFI.hasVarSizedObjects() || RVFI->hasSpillVRs())
+         && TRI->needsStackRealignment(MF));
 }
 
 // Determines the size of the frame and maximum call frame size.
@@ -559,8 +561,7 @@ int RISCVFrameLowering::getFrameIndexReference(const MachineFunction &MF,
       Offset += FirstSPAdjustAmount;
     else
       Offset += MFI.getStackSize();
-  } else if (RI->needsStackRealignment(MF) && !MFI.isFixedObjectIndex(FI)
-      && !HasRISCVVector) {
+  } else if (RI->needsStackRealignment(MF) && !MFI.isFixedObjectIndex(FI)) {
     // If the stack was realigned, the frame pointer is set in order to allow
     // SP to be restored, so we need another base register to record the stack
     // after realignment.
