@@ -2003,8 +2003,8 @@ multiclass vfmv_f_s_s_f {
                              I.Name#"_"#I.ElemType.Name, "",
                              [-1, 0], []>;
     defm NAME : BinaryMaskOff<NAME, I.Value, I.Value, I.ElemType.Value, "_s_f",
-                              I.Name#"_"#I.ElemType.Name, "",
-                              [-1, 0, 1], []>;
+                              I.Name, "",
+                              [-1, 1], []>;
   }
 }
 defm vfmv : vfmv_f_s_s_f;
