@@ -2043,10 +2043,10 @@ defm vcompress : all_ternary_v_vm;
 multiclass reinterpret {
   foreach I = AllSignedVectorType in {
     defm NAME : UnaryMaskOff<NAME, I.Value, IntToUnsigned<I>.Result, "_v",
-                             I.Name#"_"#!subst("i", "u", I.Name),
+                             !subst("i", "u", I.Name)#"_"#I.Name,
                              "", [-1, 0], []>;
     defm NAME : UnaryMaskOff<NAME, IntToUnsigned<I>.Result, I.Value, "_v",
-                             !subst("i", "u", I.Name)#"_"#I.Name,
+                             I.Name#"_"#!subst("i", "u", I.Name),
                              "", [-1, 0], []>; 
   }
   foreach I = AllIntFloatPair in {
