@@ -20,3 +20,21 @@ entry:
 tail call void @llvm.riscv.vstore.f32(float* %0, <vscale x 2 x float> %1)
 ret void
 }
+
+define <vscale x 1 x i1> @mask_v1i1(<vscale x 1 x i1>* %0) {
+entry:
+; CHECK-LABEL: mask_v1i1
+; CHECK: vl1r.v	v0, (a0)
+; CHECK: ret
+%1 = load <vscale x 1 x i1>, <vscale x 1 x i1>* %0
+ret <vscale x 1 x i1> %1
+}
+
+define <vscale x 2 x i1> @mask_v2i1(<vscale x 2 x i1>* %0) {
+entry:
+; CHECK-LABEL: mask_v1i1
+; CHECK: vl1r.v	v0, (a0)
+; CHECK: ret
+%1 = load <vscale x 2 x i1>, <vscale x 2 x i1>* %0
+ret <vscale x 2 x i1> %1
+}

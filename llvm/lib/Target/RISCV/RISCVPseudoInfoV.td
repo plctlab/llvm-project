@@ -1511,6 +1511,11 @@ multiclass pat_intrinsic_vload_store {
               (!cast<Instruction>("PseudoVS"#RoundFMToM1<str>.Result#"R_V")
               (I.Type zero_reg), (I.Type I.RegClass:$rs1), i64:$rs2, I.SEW)>;
   }
+
+  foreach Mask = [nxv1i1, nxv2i1, nxv4i1, nxv8i1, nxv16i1, nxv32i1, nxv64i1] in {
+    def : Pat<(Mask (load i64:$rs1)), (Mask (VL1RE8_V i64:$rs1))>;
+    def : Pat<(store (Mask VR:$vs3), GPR:$rs1), (VS1R_V (Mask VR:$vs3), GPR:$rs1)>;
+  }
 }
 
 defm : pat_intrinsic_vload_store;
