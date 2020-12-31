@@ -14910,8 +14910,11 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       BuiltinID <= RISCV::BI__builtin_riscv_vreinterpret_v_u8mf8_i8mf8) {
     return EmitRISCVReinterpret(Ops[0], ResultType);
     
+  } else if (BuiltinID >= RISCV::BI__builtin_riscv_vundefined_f16m1 && 
+             BuiltinID <= RISCV::BI__builtin_riscv_vundefined_u8mf8) {
+    return UndefValue::get(ResultType);
   }
- 
+   
   switch (BuiltinID) {
     #define GEN_RISCV_VECTOR_BUILTIN_CG
     #include "clang/Basic/riscv_vector_builtin_cg.inc"

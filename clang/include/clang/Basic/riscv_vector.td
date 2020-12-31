@@ -2259,6 +2259,10 @@ multiclass reinterpret {
 defm vreinterpret : reinterpret;
 
 // Vector Initialization Functions
+foreach I = AllVectorType in {
+  def "vundefined_"#I.Name : Inst<"vundefined", [I.Value], "", I.Name, 0, [0]>;
+}
+
 let ShouldEmitBuiltin = 0 in {
   foreach I = AllIntVectorType in {
     def "vzero_"#I.Name : Inst<"vzero", [""], "", I.Name, 0, [-1],

@@ -99,6 +99,7 @@ public:
   }
   
   bool isVsetvl() { return Name.find("vsetvl") != std::string::npos; }
+  bool isSpecial() { return Name.find("vundefined") != std::string::npos; }
   bool isMask() { return MaskBit; }
 
   std::string getCustomDef() { return CustomDef; }
@@ -486,9 +487,13 @@ void RISCVVectorEmitter::createBuiltinCG(raw_ostream &OS) {
   }
 
   for (auto intrinsics : SplitedIntrinsics) {
+    bool isspecial = 0;
     for (auto &intrinsic : intrinsics.second) {
       if (intrinsic->isVsetvl()) {
         OS << "case RISCV::BI__builtin_riscv_vsetvl:\n";
+        break;
+      } else if(intrinsic->isSpecial()) {
+        isspecial = 1;
         break;
       }
       OS << "case RISCV::BI__builtin_riscv_" << intrinsic->getName() 
@@ -497,9 +502,11 @@ void RISCVVectorEmitter::createBuiltinCG(raw_ostream &OS) {
         OS << "_m";
       OS <<  ":\n";
     }
-    OS << "{\n";
-    OS << intrinsics.second[0]->createStatementInCase();
-    OS << "}\n";
+    if (!isspecial) {
+      OS << "{\n";
+      OS << intrinsics.second[0]->createStatementInCase();
+      OS << "}\n";
+    }
   }
 }
 
