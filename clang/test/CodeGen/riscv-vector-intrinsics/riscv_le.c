@@ -4,7 +4,11 @@
 
 #include <riscv_vector.h>
 
+vint64m1_t test_vlxei64_v_i64m1 (const int64_t *base, vuint64m1_t bindex) {
+  return vlxei64_v_i64m1(base, bindex);
+}
 
+//CHECK: %2 = call <vscale x 1 x i64> @llvm.riscv.vload.indexed.nxv1i64.p0i64.nxv1i64(i64* %0, <vscale x 1 x i64> %1)
 
 vint32m1_t  __attribute__((noinline)) testle32(const int32_t* src) {
   return vle32_v_i32m1(src);

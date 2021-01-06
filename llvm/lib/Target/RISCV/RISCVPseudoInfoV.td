@@ -339,13 +339,23 @@ foreach I = [M1, M2, M4, M8] in {
 foreach I = AllLMULs in {
   defvar lmul = I.LMULstr;
   foreach sew = [8, 16, 32, 64] in {
-    let mayLoad = 1, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1, 
-        LMUL = I.LMUL, Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 1,
-        BaseInstr = !cast<Instruction>("VLE"#sew#"_V") in {
-      def PseudoVLE#sew#_V_M#lmul
-        : Pseudo<(outs I.RegClass:$rd), (ins I.RegClass:$merge,
+    let mayLoad = 1, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1,
+      LMUL = I.LMUL in 
+    {
+      let Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 1,
+        BaseInstr = !cast<Instruction>("VLE"#sew#"_V") in 
+        def PseudoVLE#sew#_V_M#lmul
+          : Pseudo<(outs I.RegClass:$rd), (ins I.RegClass:$merge,
                  GPR:$rs1, VMaskOp:$mask, ixlenimm:$sew), []>,
           RISCVVectorPseudo;
+     
+      let Uses = [VL, VTYPE], SEWIndex = 5, MergeOpIndex = 1,
+        BaseInstr = !cast<Instruction>("VLXEI"#sew#"_V") in
+        def PseudoVLXEI#sew#_V_M#lmul
+          : Pseudo<(outs I.RegClass:$rd), (ins I.RegClass:$merge,
+                 GPR:$rs1, I.RegClass:$rs2, VMaskOp:$mask, ixlenimm:$sew), []>,
+          RISCVVectorPseudo; 
+ 
     }
 
     let mayLoad = 0, mayStore = 1, hasSideEffects = 0, usesCustomInserter = 1,
@@ -356,7 +366,8 @@ foreach I = AllLMULs in {
                  GPR:$rs2, VMaskOp:$mask, ixlenimm:$sew), []>,
           RISCVVectorPseudo;
     }
-  }
+  
+  }  
 }
 
 let mayLoad = 0, mayStore = 0, hasSideEffects = 0, usesCustomInserter = 1 in {
@@ -1510,6 +1521,11 @@ multiclass pat_intrinsic_vload_store {
     def : Pat<(store (I.Type I.RegClass:$rs1), i64:$rs2),
               (!cast<Instruction>("PseudoVS"#RoundFMToM1<str>.Result#"R_V")
               (I.Type zero_reg), (I.Type I.RegClass:$rs1), i64:$rs2, I.SEW)>;
+
+    def : Pat<(I.Type (int_riscv_vload_indexed i64:$rs1, (I.Type I.RegClass:$rs2))),
+              (I.Type (!cast<Instruction>("PseudoVLXEI"#I.SEW#"_V_M"#str)
+                       (I.Type zero_reg), i64:$rs1, (I.Type I.RegClass:$rs2), (I.Mask zero_reg),
+                        I.SEW))>;
   }
 
   foreach Mask = [nxv1i1, nxv2i1, nxv4i1, nxv8i1, nxv16i1, nxv32i1, nxv64i1] in {

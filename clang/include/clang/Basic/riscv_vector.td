@@ -559,8 +559,68 @@ defset list<VectorTypeInfoPair> AllIntFloatPairSEWx2 = {
     def : VectorTypeInfoPair<u32m2,  f64m4>;
     def : VectorTypeInfoPair<u32m4,  f64m8>;
   }
+ 
+  defset list<VectorTypeInfoPair> AllUnsignedSEW8FloatPairSEWx2 = {
+    def : VectorTypeInfoPair<u8mf8, f16mf4>;
+    def : VectorTypeInfoPair<u8mf4, f16mf2>;
+    def : VectorTypeInfoPair<u8mf2, f16m1>;
+    def : VectorTypeInfoPair<u8m1,  f16m2>;
+    def : VectorTypeInfoPair<u8m2,  f16m4>;
+    def : VectorTypeInfoPair<u8m4,  f16m8>;
+  }
 } // defset list<VectorTypeInfoPair> AllIntFloatPairSEWx2
 
+defset list<VectorTypeInfoPair> AllUnsignedSEWFloatPairSEWx4 = {
+  defset list<VectorTypeInfoPair> AllUnsignedSEW8FloatPairSEWx4 = {
+    def : VectorTypeInfoPair<u8mf8, f32mf2>;
+    def : VectorTypeInfoPair<u8mf4, f32m1>;
+    def : VectorTypeInfoPair<u8mf2, f32m2>;
+    def : VectorTypeInfoPair<u8m1,  f32m4>;
+    def : VectorTypeInfoPair<u8m2,  f32m8>;
+  }
+
+  defset list<VectorTypeInfoPair> AllUnsignedSEW16FloatPairSEWx4 = {
+    def : VectorTypeInfoPair<u16mf4, f64m1>;
+    def : VectorTypeInfoPair<u16mf2, f64m2>;
+    def : VectorTypeInfoPair<u16m1,  f64m4>;
+    def : VectorTypeInfoPair<u16m2,  f64m8>;
+  }
+} // defset list<VectorTypeInfoPair> AllUnsignedSEWFloatPairSEWx4
+
+defset list<VectorTypeInfoPair> AllIntSEW8FloatPairSEWx8 = {
+  defset list<VectorTypeInfoPair> AllUnsignedSEW8FloatPairSEWx8 = {
+    def : VectorTypeInfoPair<u8mf8, f64m1>;
+    def : VectorTypeInfoPair<u8mf4, f64m2>;
+    def : VectorTypeInfoPair<u8mf2, f64m4>;
+    def : VectorTypeInfoPair<u8m1, f64m8>;
+  }
+} //defset list<VectorTypeInfoPair> AllIntSEW8FloatPairSEWx8
+
+defset list<VectorTypeInfoPair> AllFloatSEWSignedPairSEWx2 = {
+  defset list<VectorTypeInfoPair> AllFloatSEW16SignedPairSEWx2 = {
+    def : VectorTypeInfoPair<f16mf4, u32mf2>;
+    def : VectorTypeInfoPair<f16mf2, u32m1>;
+    def : VectorTypeInfoPair<f16m1, u32m2>;
+    def : VectorTypeInfoPair<f16m2, u32m4>;
+    def : VectorTypeInfoPair<f16m4, u32m8>;
+  }
+  
+  defset list<VectorTypeInfoPair> AllFloatSEW32SignedPairSEWx2 = {
+    def : VectorTypeInfoPair<f32mf2, u64m1>;
+    def : VectorTypeInfoPair<f32m1, u64m2>;
+    def : VectorTypeInfoPair<f32m2, u64m4>;
+    def : VectorTypeInfoPair<f32m4, u64m8>;
+  }
+} //defset list<VectorTypeInfoPair> AllFloatSEWSignedPairSEWx2
+
+defset list<VectorTypeInfoPair> AllFloatSEWSignedPairSEWx4 = {
+  defset list<VectorTypeInfoPair> AllFloatSEW16SignedPairSEWx4 = {
+    def : VectorTypeInfoPair<f16mf4, u64m1>;
+    def : VectorTypeInfoPair<f16mf2, u64m2>;
+    def : VectorTypeInfoPair<f16m1, u64m4>;
+    def : VectorTypeInfoPair<f16m2, u64m8>;
+  }
+}
 //===----------------------------------------------------------------------===//
 // Types
 //===----------------------------------------------------------------------===//
@@ -1476,6 +1536,38 @@ multiclass load_store {
     //   ["v", I.BoolValue, I.ElemType.Value#"C*", !cast<VectorTypeInfo>(!subst("i", "u", !cast<string>(I))).Value,
     //   I.Value], "_v", I.Name, 1, [0, 1, 2, 3]>;
   }
+
+  foreach I = AllIntVectorType in {
+    def "vlxei"#I.SEW#"_v"#I.Name : Inst<"vlxei"#I.SEW,
+       [I.Value, I.ElemType.Value#"C*", !cast<VectorTypeInfo>(!subst("i", "u", !cast<string>(I))).Value],
+        "_v", I.Name, 0, [-1, 0, 1]>;
+  }
+  
+  foreach I = AllFloatVectorType in {
+    def "vlxei"#I.SEW#"_v"#I.Name : Inst<"vlxei"#I.SEW,
+       [I.Value, I.ElemType.Value#"C*", FloatToUnsigned<I>.Result],
+        "_v", I.Name, 0, [-1, 0, 1]>;
+  }
+  
+  foreach I = !listconcat(AllIntPairSEWx2, AllIntPairSEWx4, AllIntPairSEWx8, 
+                          AllUnsignedSEW8FloatPairSEWx2, AllUnsignedSEWFloatPairSEWx4,
+                          AllUnsignedSEW8FloatPairSEWx8, AllUnsignedFloatPairSEWx2) in {
+    def "vlxei"#I.First.SEW#"_v_"#I.Second.Name
+      : Inst<"vlxei"#I.First.SEW, [I.Second.Value,
+             I.Second.ElemType.Value#"C*", I.First.Value],
+             "_v", I.Second.Name, 0, [-1, 0, 1]>;
+  }
+  
+  foreach I = !listconcat(AllSignedPairSEWx2, AllSignedPairSEWx4,
+                          AllSignedPairSEWx8, AllFloatSEWSignedPairSEWx2,
+                          AllFloatSEWSignedPairSEWx4, AllUnsignedPairSEWx4,
+                          AllUnsignedPairSEWx8) in {
+    def "vlxei"#I.Second.SEW#"_v_"#I.First.Name
+      : Inst<"vlxei"#I.Second.SEW, [I.First.Value,
+             I.First.ElemType.Value#"C*", !subst("i", "u", I.Second.Value)],
+             "_v", I.First.Name, 0, [-1, 0, 1]>;
+  } 
+ 
 }
 defm : load_store;
 
