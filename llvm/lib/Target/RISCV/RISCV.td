@@ -49,6 +49,29 @@ def HasStdExtZfh : Predicate<"Subtarget->hasStdExtZfh()">,
                              AssemblerPredicate<(all_of FeatureExtZfh),
                              "'Zfh' (Half-Precision Floating-Point)">;
 
+def FeatureExtZfinx
+    : SubtargetFeature<"experimental-zfinx", "HasStdExtZfinx", "true",
+                       "'Zfinx' (Float in Integer)">;
+def HasStdExtZfinx : Predicate<"Subtarget->hasStdExtZfinx()">,
+                             AssemblerPredicate<(all_of FeatureExtZfinx),
+                             "'Zfinx' (Float in Integer)">;
+
+def FeatureExtZfdinx
+    : SubtargetFeature<"experimental-zfdinx", "HasStdExtZfdinx", "true",
+                       "'Zfdinx' (Double in Integer)",
+                       [FeatureExtZfinx]>;
+def HasStdExtZfdinx : Predicate<"Subtarget->hasStdExtZfdinx()">,
+                             AssemblerPredicate<(all_of FeatureExtZfdinx),
+                             "'Zfdinx' (Double in Integer)">;
+
+def FeatureExtZfhinx
+    : SubtargetFeature<"experimental-zfhinx", "HasStdExtZfhinx", "true",
+                       "'Zfhinx' (Half Float in Integer)",
+                       [FeatureExtZfinx]>;
+def HasStdExtZfhinx : Predicate<"Subtarget->hasStdExtZfhinx()">,
+                             AssemblerPredicate<(all_of FeatureExtZfhinx),
+                             "'Zfhinx' (Half Float in Integer)">;
+
 def FeatureStdExtC
     : SubtargetFeature<"c", "HasStdExtC", "true",
                        "'C' (Compressed Instructions)">;

@@ -161,6 +161,36 @@ static DecodeStatus DecodeGPRCRegisterClass(MCInst &Inst, uint64_t RegNo,
   return MCDisassembler::Success;
 }
 
+static DecodeStatus DecodeGPRF16RegisterClass(MCInst &Inst, uint64_t RegNo,
+                                            uint64_t Address,
+                                            const void *Decoder) {
+  return DecodeGPRRegisterClass(Inst, RegNo, Address, Decoder);
+}
+
+static DecodeStatus DecodeGPRF32RegisterClass(MCInst &Inst, uint64_t RegNo,
+                                            uint64_t Address,
+                                            const void *Decoder) {
+  return DecodeGPRRegisterClass(Inst, RegNo, Address, Decoder);
+}
+
+static DecodeStatus DecodeGPRF64RegisterClass(MCInst &Inst, uint64_t RegNo,
+                                            uint64_t Address,
+                                            const void *Decoder) {
+  return DecodeGPRRegisterClass(Inst, RegNo, Address, Decoder);
+}
+
+static DecodeStatus DecodeGPRPF64RegisterClass(MCInst &Inst, uint64_t RegNo,
+                                             uint64_t Address,
+                                             const void *Decoder) {
+  if (RegNo >= 32 || RegNo & 1) {
+    return MCDisassembler::Fail;
+  }
+
+  MCRegister Reg = RISCV::X0 + RegNo;
+  Inst.addOperand(MCOperand::createReg(Reg));
+  return MCDisassembler::Success;
+}
+
 static DecodeStatus DecodeVRRegisterClass(MCInst &Inst, uint64_t RegNo,
                                           uint64_t Address,
                                           const void *Decoder) {
@@ -367,6 +397,30 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
       return MCDisassembler::Fail;
     }
     Insn = support::endian::read32le(Bytes.data());
+
+    if (STI.getFeatureBits()[RISCV::FeatureExtZfdinx] &&
+        !STI.getFeatureBits()[RISCV::Feature64Bit]) {
+      LLVM_DEBUG(dbgs() << "Trying RV32DZfinx table (Double in Integer and"
+                                                                  "rv32)\n");
+      Result = decodeInstruction(DecoderTableRV32DZfinx32, MI, Insn, Address,
+                                   this, STI);
+      if (Result != MCDisassembler::Fail) {
+        Size = 4;
+        return Result;
+      }
+    }
+
+    if (STI.getFeatureBits()[RISCV::FeatureExtZfinx]) {
+      LLVM_DEBUG(dbgs() << "Trying RVZfinx table (Float in Integer):\n");
+      // Calling the auto-generated decoder function.
+      Result = decodeInstruction(DecoderTableRVZfinx32, MI, Insn, Address, this,
+                                 STI);
+      if (Result != MCDisassembler::Fail) {
+        Size = 4;
+        return Result;
+      }
+    }
+
     LLVM_DEBUG(dbgs() << "Trying RISCV32 table :\n");
     Result = decodeInstruction(DecoderTable32, MI, Insn, Address, this, STI);
     Size = 4;
