@@ -64,16 +64,16 @@ entry:
 }
 
 ; Function Attrs: nounwind
-declare <vscale x 1 x i1> @llvm.riscv.vmxnor.mm.nxv1i1(<vscale x 1 x i1>, <vscale x 1 x i1>)
+declare <vscale x 2 x i1> @llvm.riscv.vmxnor.mm.nxv2i1(<vscale x 2 x i1>, <vscale x 2 x i1>)
 ; Function Attrs: nounwind
-declare <vscale x 4 x i1> @llvm.riscv.vmxnor.mm.nxv4i1(<vscale x 4 x i1>, <vscale x 4 x i1>)
+declare <vscale x 8 x i1> @llvm.riscv.vmxnor.mm.nxv8i1(<vscale x 8 x i1>, <vscale x 8 x i1>)
 ; Function Attrs: nounwind
 declare <vscale x 32 x i1> @llvm.riscv.vmxnor.mm.nxv32i1(<vscale x 32 x i1>, <vscale x 32 x i1>)
 ; Function Attrs: nounwind
-declare <vscale x 2 x i1> @llvm.riscv.vmxnor.mm.nxv2i1(<vscale x 2 x i1>, <vscale x 2 x i1>)
-; Function Attrs: nounwind
 declare <vscale x 16 x i1> @llvm.riscv.vmxnor.mm.nxv16i1(<vscale x 16 x i1>, <vscale x 16 x i1>)
+; Function Attrs: nounwind
+declare <vscale x 4 x i1> @llvm.riscv.vmxnor.mm.nxv4i1(<vscale x 4 x i1>, <vscale x 4 x i1>)
 ; Function Attrs: nounwind
 declare <vscale x 64 x i1> @llvm.riscv.vmxnor.mm.nxv64i1(<vscale x 64 x i1>, <vscale x 64 x i1>)
 ; Function Attrs: nounwind
-declare <vscale x 8 x i1> @llvm.riscv.vmxnor.mm.nxv8i1(<vscale x 8 x i1>, <vscale x 8 x i1>)
+declare <vscale x 1 x i1> @llvm.riscv.vmxnor.mm.nxv1i1(<vscale x 1 x i1>, <vscale x 1 x i1>)

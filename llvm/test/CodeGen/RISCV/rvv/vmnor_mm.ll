@@ -5,7 +5,6 @@ define <vscale x 64 x i1> @test_vmnor_mm_b1(<vscale x 64 x i1> %op1, <vscale x 6
 entry:
 ; CHECK-LABEL: vmnor_mm_b1
 ; CHECK: vmnor.mm {{v[0-9]+}}, {{v[0-9]+}}, {{v[0-9]+}}
-; CHECK: ret
   %call = tail call <vscale x 64 x i1> @llvm.riscv.vmnor.mm.nxv64i1(<vscale x 64 x i1> %op1, <vscale x 64 x i1> %op2)
   ret <vscale x 64 x i1> %call
 }
@@ -15,7 +14,6 @@ define <vscale x 32 x i1> @test_vmnor_mm_b2(<vscale x 32 x i1> %op1, <vscale x 3
 entry:
 ; CHECK-LABEL: vmnor_mm_b2
 ; CHECK: vmnor.mm {{v[0-9]+}}, {{v[0-9]+}}, {{v[0-9]+}}
-; CHECK: ret
   %call = tail call <vscale x 32 x i1> @llvm.riscv.vmnor.mm.nxv32i1(<vscale x 32 x i1> %op1, <vscale x 32 x i1> %op2)
   ret <vscale x 32 x i1> %call
 }
@@ -25,7 +23,6 @@ define <vscale x 16 x i1> @test_vmnor_mm_b4(<vscale x 16 x i1> %op1, <vscale x 1
 entry:
 ; CHECK-LABEL: vmnor_mm_b4
 ; CHECK: vmnor.mm {{v[0-9]+}}, {{v[0-9]+}}, {{v[0-9]+}}
-; CHECK: ret
   %call = tail call <vscale x 16 x i1> @llvm.riscv.vmnor.mm.nxv16i1(<vscale x 16 x i1> %op1, <vscale x 16 x i1> %op2)
   ret <vscale x 16 x i1> %call
 }
@@ -35,7 +32,6 @@ define <vscale x 8 x i1> @test_vmnor_mm_b8(<vscale x 8 x i1> %op1, <vscale x 8 x
 entry:
 ; CHECK-LABEL: vmnor_mm_b8
 ; CHECK: vmnor.mm {{v[0-9]+}}, {{v[0-9]+}}, {{v[0-9]+}}
-; CHECK: ret
   %call = tail call <vscale x 8 x i1> @llvm.riscv.vmnor.mm.nxv8i1(<vscale x 8 x i1> %op1, <vscale x 8 x i1> %op2)
   ret <vscale x 8 x i1> %call
 }
@@ -45,7 +41,6 @@ define <vscale x 4 x i1> @test_vmnor_mm_b16(<vscale x 4 x i1> %op1, <vscale x 4 
 entry:
 ; CHECK-LABEL: vmnor_mm_b16
 ; CHECK: vmnor.mm {{v[0-9]+}}, {{v[0-9]+}}, {{v[0-9]+}}
-; CHECK: ret
   %call = tail call <vscale x 4 x i1> @llvm.riscv.vmnor.mm.nxv4i1(<vscale x 4 x i1> %op1, <vscale x 4 x i1> %op2)
   ret <vscale x 4 x i1> %call
 }
@@ -55,7 +50,6 @@ define <vscale x 2 x i1> @test_vmnor_mm_b32(<vscale x 2 x i1> %op1, <vscale x 2 
 entry:
 ; CHECK-LABEL: vmnor_mm_b32
 ; CHECK: vmnor.mm {{v[0-9]+}}, {{v[0-9]+}}, {{v[0-9]+}}
-; CHECK: ret
   %call = tail call <vscale x 2 x i1> @llvm.riscv.vmnor.mm.nxv2i1(<vscale x 2 x i1> %op1, <vscale x 2 x i1> %op2)
   ret <vscale x 2 x i1> %call
 }
@@ -65,22 +59,21 @@ define <vscale x 1 x i1> @test_vmnor_mm_b64(<vscale x 1 x i1> %op1, <vscale x 1 
 entry:
 ; CHECK-LABEL: vmnor_mm_b64
 ; CHECK: vmnor.mm {{v[0-9]+}}, {{v[0-9]+}}, {{v[0-9]+}}
-; CHECK: ret
   %call = tail call <vscale x 1 x i1> @llvm.riscv.vmnor.mm.nxv1i1(<vscale x 1 x i1> %op1, <vscale x 1 x i1> %op2)
   ret <vscale x 1 x i1> %call
 }
 
 ; Function Attrs: nounwind
-declare <vscale x 32 x i1> @llvm.riscv.vmnor.mm.nxv32i1(<vscale x 32 x i1>, <vscale x 32 x i1>)
-; Function Attrs: nounwind
-declare <vscale x 8 x i1> @llvm.riscv.vmnor.mm.nxv8i1(<vscale x 8 x i1>, <vscale x 8 x i1>)
-; Function Attrs: nounwind
-declare <vscale x 16 x i1> @llvm.riscv.vmnor.mm.nxv16i1(<vscale x 16 x i1>, <vscale x 16 x i1>)
+declare <vscale x 1 x i1> @llvm.riscv.vmnor.mm.nxv1i1(<vscale x 1 x i1>, <vscale x 1 x i1>)
 ; Function Attrs: nounwind
 declare <vscale x 4 x i1> @llvm.riscv.vmnor.mm.nxv4i1(<vscale x 4 x i1>, <vscale x 4 x i1>)
 ; Function Attrs: nounwind
-declare <vscale x 1 x i1> @llvm.riscv.vmnor.mm.nxv1i1(<vscale x 1 x i1>, <vscale x 1 x i1>)
+declare <vscale x 32 x i1> @llvm.riscv.vmnor.mm.nxv32i1(<vscale x 32 x i1>, <vscale x 32 x i1>)
 ; Function Attrs: nounwind
 declare <vscale x 64 x i1> @llvm.riscv.vmnor.mm.nxv64i1(<vscale x 64 x i1>, <vscale x 64 x i1>)
 ; Function Attrs: nounwind
 declare <vscale x 2 x i1> @llvm.riscv.vmnor.mm.nxv2i1(<vscale x 2 x i1>, <vscale x 2 x i1>)
+; Function Attrs: nounwind
+declare <vscale x 8 x i1> @llvm.riscv.vmnor.mm.nxv8i1(<vscale x 8 x i1>, <vscale x 8 x i1>)
+; Function Attrs: nounwind
+declare <vscale x 16 x i1> @llvm.riscv.vmnor.mm.nxv16i1(<vscale x 16 x i1>, <vscale x 16 x i1>)
