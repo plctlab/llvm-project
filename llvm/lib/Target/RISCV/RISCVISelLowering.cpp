@@ -82,6 +82,15 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
   // Set up the register classes.
   addRegisterClass(XLenVT, &RISCV::GPRRegClass);
 
+  if (Subtarget.hasStdExtZfinx())
+    addRegisterClass(MVT::f32, &RISCV::GPRRegClass);
+
+  if (Subtarget.hasStdExtZfhinx())
+    addRegisterClass(MVT::f16, &RISCV::GPRRegClass);
+
+  if (Subtarget.hasStdExtZfdinx())
+    addRegisterClass(MVT::f64, &RISCV::GPRRegClass);
+
   if (Subtarget.hasStdExtZfh())
     addRegisterClass(MVT::f16, &RISCV::FPR16RegClass);
   if (Subtarget.hasStdExtF())
@@ -2288,6 +2297,7 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
   unsigned XLen = DL.getLargestLegalIntTypeSizeInBits();
   assert(XLen == 32 || XLen == 64);
   MVT XLenVT = XLen == 32 ? MVT::i32 : MVT::i64;
+  const RISCVSubtarget &STI = TLI.getSubtarget();
 
   // Any return value split in to more than two values can't be returned
   // directly.
@@ -2327,13 +2337,20 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
   // From this point on, rely on UseGPRForF16_F32, UseGPRForF64 and
   // similar local variables rather than directly checking against the target
   // ABI.
-
-  if (UseGPRForF16_F32 && (ValVT == MVT::f16 || ValVT == MVT::f32)) {
-    LocVT = XLenVT;
-    LocInfo = CCValAssign::BCvt;
-  } else if (UseGPRForF64 && XLen == 64 && ValVT == MVT::f64) {
-    LocVT = MVT::i64;
-    LocInfo = CCValAssign::BCvt;
+  if (!STI.hasStdExtZfinx()) {
+    if (UseGPRForF16_F32 && (ValVT == MVT::f16 || ValVT == MVT::f32)) {
+      LocVT = XLenVT;
+      LocInfo = CCValAssign::BCvt;
+    } else if (UseGPRForF64 && XLen == 64 && ValVT == MVT::f64) {
+      LocVT = MVT::i64;
+      LocInfo = CCValAssign::BCvt;
+    }
+  } else {
+    assert(UseGPRForF16_F32 && "Zfinx must use GPR for float argument");
+    if (ValVT == MVT::f32 || ValVT = MVT::f16) {
+      LocVT = ValVT;
+      LocInfo = CCValAssign::Full;
+    }
   }
 
   // If this is a variadic argument, the RISC-V calling convention requires
@@ -2468,6 +2485,7 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
   }
 
   assert((!UseGPRForF16_F32 || !UseGPRForF64 || LocVT == XLenVT ||
+          STI.hasStdExtZfinx() || STI.hasStdExtZdinx() || STI.hasStdExtZfhinx() ||
           (TLI.getSubtarget().hasStdExtV() && ValVT.isScalableVector())) &&
          "Expected an XLenVT or scalable vector types at this stage");
 

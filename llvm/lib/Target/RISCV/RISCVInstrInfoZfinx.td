@@ -202,3 +202,10 @@ def ZFCVT_S_LU_INX : FPUnaryOpINX_r_frm<0b1101000, GPRF32Op, GPROp, "fcvt.s.lu">
 }
 def           : FPUnaryOpINXDynFrmAlias<ZFCVT_S_LU_INX, "fcvt.s.lu", GPRF32Op, GPROp>;
 } // Predicates = [HasStdExtZfinx, IsRV64]
+
+class PatGPRF32GPRF32<SDPatternOperator OpNode, RVInstRFrm Inst>
+    : Pat<(OpNode GPRF32:$rs1, GPRF32:$rs2), (Inst $rs1, $rs2, 0b111)>;
+
+let Predicates = [HasStdExtZfinx] in {
+  def : PatGPRF32GPRF32<fadd, FADD_S_INX>;
+}
