@@ -203,9 +203,60 @@ def ZFCVT_S_LU_INX : FPUnaryOpINX_r_frm<0b1101000, GPRF32Op, GPROp, "fcvt.s.lu">
 def           : FPUnaryOpINXDynFrmAlias<ZFCVT_S_LU_INX, "fcvt.s.lu", GPRF32Op, GPROp>;
 } // Predicates = [HasStdExtZfinx, IsRV64]
 
-class PatGPRF32GPRF32<SDPatternOperator OpNode, RVInstRFrm Inst>
+//===----------------------------------------------------------------------===//
+// Pseudo-instructions and codegen patterns
+//===----------------------------------------------------------------------===//
+
+/// Generic pattern classes
+class PatGPRF32GPRF32<SDPatternOperator OpNode, RVInstR Inst>
+    : Pat<(OpNode GPRF32:$rs1, GPRF32:$rs2), (Inst $rs1, $rs2)>;
+
+class PatGPRF32GPRF32DynFrm<SDPatternOperator OpNode, RVInstRFrm Inst>
     : Pat<(OpNode GPRF32:$rs1, GPRF32:$rs2), (Inst $rs1, $rs2, 0b111)>;
 
 let Predicates = [HasStdExtZfinx] in {
-  def : PatGPRF32GPRF32<fadd, FADD_S_INX>;
-}
+
+/// Float arithmetic operations
+
+def : PatGPRF32GPRF32DynFrm<fadd, FADD_S_INX>;
+def : PatGPRF32GPRF32DynFrm<fsub, FSUB_S_INX>;
+def : PatGPRF32GPRF32DynFrm<fmul, FMUL_S_INX>;
+def : PatGPRF32GPRF32DynFrm<fdiv, FDIV_S_INX>;
+
+def : Pat<(fsqrt GPRF32:$rs1), (FSQRT_S_INX GPRF32:$rs1, 0b111)>;
+
+def : Pat<(fneg GPRF32:$rs1), (FSGNJN_S_INX $rs1, $rs1)>;
+def : Pat<(fabs GPRF32:$rs1), (FSGNJX_S_INX $rs1, $rs1)>;
+
+def : PatGPRF32GPRF32<fcopysign, FSGNJ_S_INX>;
+def : Pat<(fcopysign GPRF32:$rs1, (fneg GPRF32:$rs2)), (FSGNJN_S_INX $rs1, $rs2)>;
+
+// fmadd: rs1 * rs2 + rs3
+def : Pat<(fma GPRF32:$rs1, GPRF32:$rs2, GPRF32:$rs3),
+          (FMADD_S_INX $rs1, $rs2, $rs3, 0b111)>;
+
+// fmsub: rs1 * rs2 - rs3
+def : Pat<(fma GPRF32:$rs1, GPRF32:$rs2, (fneg GPRF32:$rs3)),
+          (FMSUB_S_INX GPRF32:$rs1, GPRF32:$rs2, GPRF32:$rs3, 0b111)>;
+
+// fnmsub: -rs1 * rs2 + rs3
+def : Pat<(fma (fneg GPRF32:$rs1), GPRF32:$rs2, GPRF32:$rs3),
+          (FNMSUB_S_INX GPRF32:$rs1, GPRF32:$rs2, GPRF32:$rs3, 0b111)>;
+
+// fnmadd: -rs1 * rs2 - rs3
+def : Pat<(fma (fneg GPRF32:$rs1), GPRF32:$rs2, (fneg GPRF32:$rs3)),
+          (FNMADD_S_INX GPRF32:$rs1, GPRF32:$rs2, GPRF32:$rs3, 0b111)>;
+
+def : PatGPRF32GPRF32<fminnum, FMIN_S_INX>;
+def : PatGPRF32GPRF32<fmaxnum, FMAX_S_INX>;
+
+/// Setcc
+def : PatGPRF32GPRF32<seteq, FEQ_S_INX>;
+def : PatGPRF32GPRF32<setoeq, FEQ_S_INX>;
+def : PatGPRF32GPRF32<setlt, FLT_S_INX>;
+def : PatGPRF32GPRF32<setolt, FLT_S_INX>;
+def : PatGPRF32GPRF32<setle, FLE_S_INX>;
+def : PatGPRF32GPRF32<setole, FLE_S_INX>;
+
+def Select_GPRF32_Using_CC_GPR : SelectCC_rrirr<GPRF32, GPR>;
+} // Predicates = [HasStdExtZfinx]

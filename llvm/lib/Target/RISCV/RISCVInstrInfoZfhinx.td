@@ -185,3 +185,69 @@ def FCVT_D_H_INX : FPUnaryOpINX_r<0b0100001, 0b000, GPRF64Op, GPRF16Op, "fcvt.d.
   let rs2 = 0b00010;
 }
 } // Predicates = [HasStdExtZfhinx, HasStdExtZfdinx]
+
+//===----------------------------------------------------------------------===//
+// Pseudo-instructions and codegen patterns
+//===----------------------------------------------------------------------===//
+
+/// Generic pattern classes
+class PatGPRF16GPRF16<SDPatternOperator OpNode, RVInstR Inst>
+    : Pat<(OpNode GPRF16:$rs1, GPRF16:$rs2), (Inst $rs1, $rs2)>;
+
+class PatGPRF16GPRF16DynFrm<SDPatternOperator OpNode, RVInstRFrm Inst>
+    : Pat<(OpNode GPRF16:$rs1, GPRF16:$rs2), (Inst $rs1, $rs2, 0b111)>;
+
+let Predicates = [HasStdExtZfhinx] in {
+
+/// Float arithmetic operations
+
+def : PatGPRF16GPRF16DynFrm<fadd, FADD_H_INX>;
+def : PatGPRF16GPRF16DynFrm<fsub, FSUB_H_INX>;
+def : PatGPRF16GPRF16DynFrm<fmul, FMUL_H_INX>;
+def : PatGPRF16GPRF16DynFrm<fdiv, FDIV_H_INX>;
+
+def : Pat<(fsqrt GPRF16:$rs1), (FSQRT_H_INX GPRF16:$rs1, 0b111)>;
+
+def : Pat<(fneg GPRF16:$rs1), (FSGNJN_H_INX $rs1, $rs1)>;
+def : Pat<(fabs GPRF16:$rs1), (FSGNJX_H_INX $rs1, $rs1)>;
+
+def : PatGPRF16GPRF16<fcopysign, FSGNJ_H_INX>;
+def : Pat<(fcopysign GPRF16:$rs1, (fneg GPRF16:$rs2)), (FSGNJN_H_INX $rs1, $rs2)>;
+def : Pat<(fcopysign GPRF16:$rs1, FPR32:$rs2),
+          (FSGNJ_H_INX $rs1, (FCVT_H_S_INX $rs2, 0b111))>;
+def : Pat<(fcopysign GPRF16:$rs1, FPR64:$rs2),
+          (FSGNJ_H_INX $rs1, (FCVT_H_D_INX $rs2, 0b111))>;
+def : Pat<(fcopysign FPR32:$rs1, GPRF16:$rs2), (FSGNJ_S_INX $rs1, (FCVT_S_H_INX $rs2))>;
+def : Pat<(fcopysign FPR64:$rs1, GPRF16:$rs2), (FSGNJ_D_INX $rs1, (FCVT_D_H_INX $rs2))>;
+
+// fmadd: rs1 * rs2 + rs3
+def : Pat<(fma GPRF16:$rs1, GPRF16:$rs2, GPRF16:$rs3),
+          (FMADD_H_INX $rs1, $rs2, $rs3, 0b111)>;
+
+// fmsub: rs1 * rs2 - rs3
+def : Pat<(fma GPRF16:$rs1, GPRF16:$rs2, (fneg GPRF16:$rs3)),
+          (FMSUB_H_INX GPRF16:$rs1, GPRF16:$rs2, GPRF16:$rs3, 0b111)>;
+
+// fnmsub: -rs1 * rs2 + rs3
+def : Pat<(fma (fneg GPRF16:$rs1), GPRF16:$rs2, GPRF16:$rs3),
+          (FNMSUB_H_INX GPRF16:$rs1, GPRF16:$rs2, GPRF16:$rs3, 0b111)>;
+
+// fnmadd: -rs1 * rs2 - rs3
+def : Pat<(fma (fneg GPRF16:$rs1), GPRF16:$rs2, (fneg GPRF16:$rs3)),
+          (FNMADD_H_INX GPRF16:$rs1, GPRF16:$rs2, GPRF16:$rs3, 0b111)>;
+
+def : PatGPRF16GPRF16<fminnum, FMIN_H_INX>;
+def : PatGPRF16GPRF16<fmaxnum, FMAX_H_INX>;
+
+/// Setcc
+
+def : PatGPRF16GPRF16<seteq, FEQ_H_INX>;
+def : PatGPRF16GPRF16<setoeq, FEQ_H_INX>;
+def : PatGPRF16GPRF16<setlt, FLT_H_INX>;
+def : PatGPRF16GPRF16<setolt, FLT_H_INX>;
+def : PatGPRF16GPRF16<setle, FLE_H_INX>;
+def : PatGPRF16GPRF16<setole, FLE_H_INX>;
+
+def Select_GPRF16_Using_CC_GPR : SelectCC_rrirr<GPRF16, GPR>;
+
+} // Predicates = [HasStdExtZfhinx]

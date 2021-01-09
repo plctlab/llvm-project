@@ -2347,7 +2347,7 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
     }
   } else {
     assert(UseGPRForF16_F32 && "Zfinx must use GPR for float argument");
-    if (ValVT == MVT::f32 || ValVT = MVT::f16) {
+    if (ValVT == MVT::f32 || ValVT == MVT::f16) {
       LocVT = ValVT;
       LocInfo = CCValAssign::Full;
     }
@@ -2485,7 +2485,7 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
   }
 
   assert((!UseGPRForF16_F32 || !UseGPRForF64 || LocVT == XLenVT ||
-          STI.hasStdExtZfinx() || STI.hasStdExtZdinx() || STI.hasStdExtZfhinx() ||
+          STI.hasStdExtZfinx() || STI.hasStdExtZfdinx() || STI.hasStdExtZfhinx() ||
           (TLI.getSubtarget().hasStdExtV() && ValVT.isScalableVector())) &&
          "Expected an XLenVT or scalable vector types at this stage");
 
