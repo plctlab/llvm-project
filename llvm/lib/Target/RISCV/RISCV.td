@@ -180,6 +180,13 @@ def HasStdExtZvamo : Predicate<"Subtarget->hasStdExtZvamo()">,
                               AssemblerPredicate<(all_of FeatureExtZvamo),
                               "'Zvamo'(Vector AMO Operations)">;
 
+def FeatureStdExtP
+    : SubtargetFeature<"experimental-p", "HasStdExtP", "true",
+                       "'P' (SIMD extension instructions)">;
+def HasStdExtP : Predicate<"Subtarget->hasStdExtP()">,
+                  AssemblerPredicate<(all_of FeatureStdExtP),
+                  "'P' (SIMD extension instructions)">;
+
 def Feature64Bit
     : SubtargetFeature<"64bit", "HasRV64", "true", "Implements RV64">;
 def IsRV64 : Predicate<"Subtarget->is64Bit()">,

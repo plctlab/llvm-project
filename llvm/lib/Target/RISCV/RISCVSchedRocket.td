@@ -16,7 +16,7 @@ def RocketModel : SchedMachineModel {
   let IssueWidth = 1;        // 1 micro-op is dispatched per cycle.
   let LoadLatency = 3;
   let MispredictPenalty = 3;
-  let UnsupportedFeatures = [HasStdExtV, HasStdExtZvamo, HasStdExtZvlsseg];
+  let UnsupportedFeatures = [HasStdExtV, HasStdExtZvamo, HasStdExtZvlsseg, HasStdExtP];
 }
 
 //===----------------------------------------------------------------------===//
