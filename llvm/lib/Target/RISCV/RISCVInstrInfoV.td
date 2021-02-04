@@ -1124,3 +1124,4 @@ defm VQMACCUS_V : VALUr_IV_X<"vqmaccus", 0b111110>;
 
 
 include "RISCVPseudoInfoV.td"
+include "RISCVInstrInfoVSDPatterns.td"
