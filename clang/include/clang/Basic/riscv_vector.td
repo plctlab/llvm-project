@@ -1568,6 +1568,12 @@ multiclass load_store {
              "_v", I.First.Name, 0, [-1, 0, 1]>;
   } 
  
+  foreach I = AllVectorType in {
+    def "vle"#I.SEW#"ff_v"#I.Name : Inst<"vle"#I.SEW#"ff",
+      [I.Value, I.ElemType.Value#"C*"], "_v", I.Name, 0, [-1, 0]>;
+    def "vle"#I.SEW#"ff_v"#I.Name#"_mask" : Inst<"vle"#I.SEW#"ff",
+      [I.Value, I.BoolValue, I.Value, I.ElemType.Value#"C*"], "_v", I.Name, 1, [-1, 0, 2]>;
+  }
 }
 defm : load_store;
 

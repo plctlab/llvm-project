@@ -552,6 +552,10 @@ std::string Intrinsic::createStatementInCase() {
     while (!isdigit(*(NameIter++))) {}
     result += "Function *F = CGM.getIntrinsic(Intrinsic::riscv_";
     result += intrinsicMap[std::string(Name.begin(), NameIter-1)];
+    // case of command "vle*ff"
+    if(Name.find("vle")!=Name.npos && Name.find("ff")!=Name.npos){
+      result += "_faultfirst";
+    }
     if (isMask())
       result += "_mask";
     result += ", {";

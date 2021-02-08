@@ -355,7 +355,14 @@ foreach I = AllLMULs in {
           : Pseudo<(outs I.RegClass:$rd), (ins I.RegClass:$merge,
                  GPR:$rs1, I.RegClass:$rs2, VMaskOp:$mask, ixlenimm:$sew), []>,
           RISCVVectorPseudo; 
- 
+      
+      // vleff
+      let Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 1,
+        BaseInstr = !cast<Instruction>("VLE"#sew#"FF_V") in 
+        def PseudoVLE#sew#FF_V_M#lmul
+          : Pseudo<(outs I.RegClass:$rd), (ins I.RegClass:$merge,
+                 GPR:$rs1, VMaskOp:$mask, ixlenimm:$sew), []>,
+          RISCVVectorPseudo;
     }
 
     let mayLoad = 0, mayStore = 1, hasSideEffects = 0, usesCustomInserter = 1,
@@ -1525,6 +1532,11 @@ multiclass pat_intrinsic_vload_store {
     def : Pat<(I.Type (int_riscv_vload_indexed i64:$rs1, (I.Type I.RegClass:$rs2))),
               (I.Type (!cast<Instruction>("PseudoVLXEI"#I.SEW#"_V_M"#str)
                        (I.Type zero_reg), i64:$rs1, (I.Type I.RegClass:$rs2), (I.Mask zero_reg),
+                        I.SEW))>;
+
+    def : Pat<(I.Type (int_riscv_vload_faultfirst i64:$rs1)),
+              (I.Type (!cast<Instruction>("PseudoVLE"#I.SEW#"FF_V_M"#str)
+                        (I.Type zero_reg), i64:$rs1, (I.Mask zero_reg),
                         I.SEW))>;
   }
 

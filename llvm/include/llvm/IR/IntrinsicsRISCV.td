@@ -593,6 +593,9 @@ multiclass Vload {
   def "_indexed"      : Intrinsic<[llvm_anyvector_ty],
                                   [llvm_anyptr_ty, llvm_anyvector_ty],
                                   [IntrReadMem]>;
+  def "_faultfirst" : Intrinsic<[llvm_anyvector_ty],
+                                  [llvm_anyptr_ty],
+                                  [IntrReadMem]>;
   def "_mask"         : Intrinsic<[llvm_anyvector_ty],
                                   [llvm_anyvector_ty, LLVMMatchType<0>,
                                    llvm_anyptr_ty],
@@ -604,6 +607,10 @@ multiclass Vload {
   def "_indexed_mask" : Intrinsic<[llvm_anyvector_ty],
                                   [llvm_anyvector_ty, LLVMMatchType<0>,
                                    llvm_anyptr_ty, llvm_anyvector_ty],
+                                  [IntrReadMem]>;
+  def "_faultfirst_mask" : Intrinsic<[llvm_anyvector_ty],
+                                  [llvm_anyvector_ty, LLVMMatchType<0>,
+                                   llvm_anyptr_ty],
                                   [IntrReadMem]>;
 }
 defm int_riscv_vload : Vload;
