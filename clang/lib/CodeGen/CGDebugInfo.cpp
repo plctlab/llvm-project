@@ -2746,23 +2746,60 @@ llvm::DIType *CGDebugInfo::CreateType(const VectorType *Ty,
   int64_t Count = Ty->getNumElements();
 
   llvm::Metadata *Subscript;
+  uint64_t Size;
   QualType QTy(Ty, 0);
   auto SizeExpr = SizeExprCache.find(QTy);
-  if (SizeExpr != SizeExprCache.end())
+  if (SizeExpr != SizeExprCache.end()) {
     Subscript = DBuilder.getOrCreateSubrange(
         SizeExpr->getSecond() /*count*/, nullptr /*lowerBound*/,
         nullptr /*upperBound*/, nullptr /*stride*/);
-  else {
-    auto *CountNode =
-        llvm::ConstantAsMetadata::get(llvm::ConstantInt::getSigned(
-            llvm::Type::getInt64Ty(CGM.getLLVMContext()), Count ? Count : -1));
-    Subscript = DBuilder.getOrCreateSubrange(
-        CountNode /*count*/, nullptr /*lowerBound*/, nullptr /*upperBound*/,
-        nullptr /*stride*/);
+    Size = CGM.getContext().getTypeSize(Ty);
+  } else {
+    if (Ty->getVectorKind() == VectorType::RISCVVector) {
+      unsigned ElementCount = Ty->getNumElements();
+      unsigned SEW = CGM.getContext().getTypeSize(Ty->getElementType());
+      bool Fractional = false;
+      unsigned LMUL;
+      unsigned FixedSize = ElementCount * SEW;
+      if (Ty->getElementType() == CGM.getContext().BoolTy) {
+        LMUL = 1;
+      } else if (FixedSize < 64) {
+        Fractional = true;
+        LMUL = 64 / FixedSize;
+      } else {
+        LMUL = FixedSize / 64;
+      }
+      SmallVector<int64_t, 12> Expr(
+          {llvm::dwarf::DW_OP_bregx, 4096+0xC22, 0,
+           llvm::dwarf::DW_OP_constu, SEW/8,
+           llvm::dwarf::DW_OP_div,
+           llvm::dwarf::DW_OP_constu, LMUL});
+      if (Fractional)
+        Expr.push_back(llvm::dwarf::DW_OP_div);
+      else
+        Expr.push_back(llvm::dwarf::DW_OP_mul);
+      Expr.push_back(llvm::dwarf::DW_OP_constu);
+      Expr.push_back(1);
+      Expr.push_back(llvm::dwarf::DW_OP_minus);
+
+      auto *LowerBound =
+          llvm::ConstantAsMetadata::get(llvm::ConstantInt::getSigned(
+              llvm::Type::getInt64Ty(CGM.getLLVMContext()), 0));
+      auto *UpperBound = DBuilder.createExpression(Expr);
+      Subscript = DBuilder.getOrCreateSubrange(
+          /*count*/ nullptr, LowerBound, UpperBound, /*stride*/ nullptr);
+      Size = 0;
+    } else {
+      auto *CountNode =
+          llvm::ConstantAsMetadata::get(llvm::ConstantInt::getSigned(
+              llvm::Type::getInt64Ty(CGM.getLLVMContext()), Count ? Count : -1));
+      Subscript = DBuilder.getOrCreateSubrange(
+          CountNode /*count*/, nullptr /*lowerBound*/, nullptr /*upperBound*/,
+          nullptr /*stride*/);
+      Size = CGM.getContext().getTypeSize(Ty);
+    }
   }
   llvm::DINodeArray SubscriptArray = DBuilder.getOrCreateArray(Subscript);
-
-  uint64_t Size = CGM.getContext().getTypeSize(Ty);
   auto Align = getTypeAlignIfRequired(Ty, CGM.getContext());
 
   return DBuilder.createVectorType(Size, Align, ElementTy, SubscriptArray);
@@ -4224,6 +4261,16 @@ llvm::DILocalVariable *CGDebugInfo::EmitDeclare(const VarDecl *VD,
             llvm::DebugLoc::get(Line, Column, Scope, CurInlinedAt),
             Builder.GetInsertBlock());
       }
+    }
+  }
+
+  if (!VD->hasAttr<BlocksAttr>()) {
+    QualType T = VD->getType();
+    if (T->getTypeClass() == Type::Typedef) {
+        QualType TT = cast<TypedefType>(T)->getDecl()->getUnderlyingType();
+        if (TT->getTypeClass() == Type::Vector &&
+          cast<VectorType>(TT)->getVectorKind() == VectorType::RISCVVector)
+          Expr.push_back(llvm::dwarf::DW_OP_deref);
     }
   }
 

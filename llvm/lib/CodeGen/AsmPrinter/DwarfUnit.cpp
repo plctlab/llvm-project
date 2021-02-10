@@ -1400,6 +1400,8 @@ static bool hasVectorBeenPadded(const DICompositeType *CTy) {
          "Invalid vector element array, expected one element of type subrange");
   const auto Subrange = cast<DISubrange>(Elements[0]);
   const auto CI = Subrange->getCount().get<ConstantInt *>();
+  if (!CI)
+    return false;
   const int32_t NumVecElements = CI->getSExtValue();
 
   // Ensure we found the element count and that the actual size is wide
