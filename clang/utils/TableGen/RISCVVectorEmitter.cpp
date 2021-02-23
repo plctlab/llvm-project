@@ -404,7 +404,7 @@ void RISCVVectorEmitter::createHeader(raw_ostream &OS) {
         }
         else
           OS << type->getTypeName() << " op" << count << ",";
-          count++;
+        count++;
       }
       OS <<"size_t vl) { vsetvl_e" << def->getSuffix().substr(1) <<"(vl); return ";
       OS << def->getName() << def->getInfix() <<"_"<< def->getSuffix();
