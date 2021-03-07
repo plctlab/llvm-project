@@ -11,25 +11,6 @@
 ///
 //===----------------------------------------------------------------------===//
 
-
-//===----------------------------------------------------------------------===//
-// Operand and SDNode transformation definitions.
-//===----------------------------------------------------------------------===//
-def uimm2 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<2>(Imm);}]> {
-  let ParserMatchClass = UImmAsmOperand<2>;
-  let DecoderMethod = "decodeUImmOperand<2>";
-  let OperandType = "OPERAND_UIMM2";
-  let OperandNamespace = "RISCVOp";
-}
-
-def rcon : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
-  let ParserMatchClass = UImmAsmOperand<4>;
-  let EncoderMethod = "getImmOpValue";
-  let DecoderMethod = "decodeUImmOperand<4>";
-  let OperandType = "OPERAND_UIMM4";
-  let OperandNamespace = "RISCVOp";
-}
-
 //===----------------------------------------------------------------------===//
 // Instruction class templates
 //===----------------------------------------------------------------------===//
@@ -60,7 +41,7 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in {
         }
     // op rd rs1 rcon
     class RVKUnary_rcon<bits<7> funct7, bits<3> funct3, string opcodestr>
-        : RVInstI<funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1, rcon:$rcon),
+        : RVInstI<funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1, uimm4:$rcon),
                 opcodestr, "$rd, $rs1, $rcon"> {
         bits<4> rcon;
         
