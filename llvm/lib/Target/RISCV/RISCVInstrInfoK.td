@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 ///
-/// This file describes the RISC-K instructions from the standard 'K' 
+/// This file describes the RISC-V instructions from the standard 'K' 
 /// scalar cryptography extension, version 0.8.1. 
 ///
 //===----------------------------------------------------------------------===//
