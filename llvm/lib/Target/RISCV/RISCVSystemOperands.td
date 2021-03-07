@@ -372,3 +372,9 @@ def : SysReg<"vxrm", 0x00A>;
 def : SysReg<"vl", 0xC20>;
 def : SysReg<"vtype", 0xC21>;
 def : SysReg<"vlenb", 0xC22>;
+
+//===-----------------------------------------------
+// K ext CSRs
+//===-----------------------------------------------
+def MENTROPY : SysReg<"mentropy", 0xF15>;
+def MNOISE   : SysReg<"mnoise", 0x7A9>;
