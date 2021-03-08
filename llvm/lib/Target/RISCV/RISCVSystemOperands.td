@@ -374,7 +374,7 @@ def : SysReg<"vtype", 0xC21>;
 def : SysReg<"vlenb", 0xC22>;
 
 //===-----------------------------------------------
-// K ext CSRs
+// Machine Scalar Cryptography CSRs
 //===-----------------------------------------------
 def MENTROPY : SysReg<"mentropy", 0xF15>;
 def MNOISE   : SysReg<"mnoise", 0x7A9>;

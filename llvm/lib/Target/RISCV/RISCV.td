@@ -193,7 +193,6 @@ def FeatureStdExtK
 def HasStdExtK : Predicate<"Subtarget->hasStdExtK()">,
                            AssemblerPredicate<(all_of FeatureStdExtK),
                            "'K' (Scalar Cryptography Instructions)">;
-                           
 def Feature64Bit
     : SubtargetFeature<"64bit", "HasRV64", "true", "Implements RV64">;
 def IsRV64 : Predicate<"Subtarget->is64Bit()">,
