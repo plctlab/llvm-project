@@ -15,19 +15,18 @@
 // Instruction class templates
 //===----------------------------------------------------------------------===//
 
-let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in {
-    // op rd, rs1
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
     class RVKUnary<bits<7> funct7, bits<5> funct5, bits<3> funct3, string opcodestr>
         : RVInstR<funct7, funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1), opcodestr, "$rd, $rs1">{
             let Inst{24-20} = funct5;
         }
 
-    // op rd rs1 rs2
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
     class RVKBinary<bits<7> funct7, bits<3> funct3, string opcodestr>
         : RVInstR<funct7, funct3, OPC_OP, (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
                 opcodestr, "$rd, $rs1, $rs2">;
 
-    // op rt rs2 bs
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
     class RVKByteSelect<bits<5> funct5, string opcodestr>
         : RVInstS<0b000, OPC_OP, (outs GPR:$rt), (ins GPR:$rs2, uimm2:$bs), 
                 opcodestr, "$rt, $rs2, $bs">{
@@ -39,7 +38,8 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in {
             let Inst{19-15}=rt;
             let Inst{11-7}=0b00000;
         }
-    // op rd rs1 rcon
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
     class RVKUnary_rcon<bits<7> funct7, bits<3> funct3, string opcodestr>
         : RVInstI<funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1, uimm4:$rcon),
                 opcodestr, "$rd, $rs1, $rcon"> {
@@ -50,7 +50,9 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in {
         let Inst{23-20} = rcon;
     }
 
-} // hasSideEffects = 0, mayLoad = 0, mayStore = 0
+//===----------------------------------------------------------------------===//
+// Instructions
+//===----------------------------------------------------------------------===//
 
 let Predicates = [HasStdExtK] in {
     def SHA256SUM0 :    RVKUnary<0b0001000, 0b00000, 0b001, "sha256sum0">, 
@@ -70,6 +72,7 @@ let Predicates = [HasStdExtK] in {
                         Sched<[]>;
     def SM4KS      :    RVKByteSelect<0b11010, "sm4ks">,
                         Sched<[]>;
+
     // Assembler Pseudo Instructions
     def : InstAlias<"getnoise $rd", (CSRRS GPR:$rd, MNOISE.Encoding, X0)>, 
                         Sched<[]>;
