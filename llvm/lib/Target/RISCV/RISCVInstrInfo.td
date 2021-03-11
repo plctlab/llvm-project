@@ -135,14 +135,6 @@ def uimm2 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<2>(Imm);}]> {
   let OperandNamespace = "RISCVOp";
 }
 
-def uimm4 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
-  let ParserMatchClass = UImmAsmOperand<4>;
-  let EncoderMethod = "getImmOpValue";
-  let DecoderMethod = "decodeUImmOperand<4>";
-  let OperandType = "OPERAND_UIMM4";
-  let OperandNamespace = "RISCVOp";
-}
-
 def uimm5 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<5>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<5>;
   let DecoderMethod = "decodeUImmOperand<5>";

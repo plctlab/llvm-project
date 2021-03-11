@@ -43,31 +43,7 @@ sha512sig1l a0, a1, a2
 # CHECK-ERROR: instruction requires the following: 'K' (Scalar Cryptography Instructions)
 # CHECK-UNKNOWN: 33 85 c5 5e <unknown>
 sha512sig1h a0, a1, a2
-
-# CHECK-INST: csrr a0, mnoise 
-# CHECK-ENCODING: [0x73,0x25,0x90,0x7a]
-# CHECK-ERROR: instruction requires the following: 'K' (Scalar Cryptography Instructions)
-# CHECK-UNKNOWN: 73 25 90 7a csrr a0, mnoise
-getnoise a0
-
-# CHECK-INST: csrr a0, mentropy
-# CHECK-ENCODING: [0x73,0x25,0x50,0xf1]
-# CHECK-ERROR: instruction requires the following: 'K' (Scalar Cryptography Instructions)
-# CHECK-UNKNOWN: 73 25 50 f1 csrr a0, mentropy
-pollentropy a0
-
-# CHECK-INST: sm4ed t0, a2, 3
-# CHECK-ENCODING: [0x33,0x80,0xc2,0xf0]
-# CHECK-ERROR: instruction requires the following: 'K' (Scalar Cryptography Instructions)
-# CHECK-UNKNOWN: 33 80 c2 f0 <unknown>
-sm4ed t0, a2, 3
-
-# CHECK-INST: sm4ks t0, a2, 3
-# CHECK-ENCODING: [0x33,0x80,0xc2,0xf4]
-# CHECK-ERROR: instruction requires the following: 'K' (Scalar Cryptography Instructions)
-# CHECK-UNKNOWN: 33 80 c2 f4 <unknown>
-sm4ks t0, a2, 3
-
+ 
 # CHECK-INST: aes32esmi t0, a2, 3
 # CHECK-ENCODING: [0x33,0x80,0xc2,0xf6]
 # CHECK-ERROR: instruction requires the following: 'K' (Scalar Cryptography Instructions)
