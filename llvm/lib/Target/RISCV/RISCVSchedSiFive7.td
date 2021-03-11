@@ -15,7 +15,7 @@ def SiFive7Model : SchedMachineModel {
   let LoadLatency = 3;
   let MispredictPenalty = 3;
   let CompleteModel = 0;
-  let UnsupportedFeatures = [HasStdExtV, HasStdExtZvamo, HasStdExtZvlsseg];
+  let UnsupportedFeatures = [HasStdExtV, HasStdExtZvamo, HasStdExtZvlsseg, HasStdExtK];
 }
 
 // The SiFive7 microarchitecure has two pipelines: A and B.
