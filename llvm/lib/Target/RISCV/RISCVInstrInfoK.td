@@ -55,78 +55,48 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 //===----------------------------------------------------------------------===//
 
 let Predicates = [HasStdExtK] in {
-    def SHA256SUM0 :    RVKUnary<0b0001000, 0b00000, 0b001, "sha256sum0">, 
-                        Sched<[]>;
-    def SHA256SUM1 :    RVKUnary<0b0001000, 0b00001, 0b001, "sha256sum1">, 
-                        Sched<[]>;
-    def SHA256SIG0 :    RVKUnary<0b0001000, 0b00010, 0b001, "sha256sig0">, 
-                        Sched<[]>;
-    def SHA256SIG1 :    RVKUnary<0b0001000, 0b00011, 0b001, "sha256sig1">, 
-                        Sched<[]>;
-    def SM3P0      :    RVKUnary<0b0001000, 0b01000, 0b001, "sm3p0">, 
-                        Sched<[]>;
-    def SM3P1      :    RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">, 
-                        Sched<[]>;
+    def SHA256SUM0 : RVKUnary<0b0001000, 0b00000, 0b001, "sha256sum0">;
+    def SHA256SUM1 : RVKUnary<0b0001000, 0b00001, 0b001, "sha256sum1">;
+    def SHA256SIG0 : RVKUnary<0b0001000, 0b00010, 0b001, "sha256sig0">;
+    def SHA256SIG1 : RVKUnary<0b0001000, 0b00011, 0b001, "sha256sig1">;
 
-    def SM4ED      :    RVKByteSelect<0b11000, "sm4ed">,
-                        Sched<[]>;
-    def SM4KS      :    RVKByteSelect<0b11010, "sm4ks">,
-                        Sched<[]>;
+    def SM3P0 : RVKUnary<0b0001000, 0b01000, 0b001, "sm3p0">;
+    def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
+    def SM4ED : RVKByteSelect<0b11000, "sm4ed">;
+    def SM4KS : RVKByteSelect<0b11010, "sm4ks">;
 
     // Assembler Pseudo Instructions
-    def : InstAlias<"getnoise $rd", (CSRRS GPR:$rd, MNOISE.Encoding, X0)>, 
-                        Sched<[]>;
-    def : InstAlias<"pollentropy $rd", (CSRRS GPR:$rd, MENTROPY.Encoding, X0)>, 
-                        Sched<[]>;
+    def : InstAlias<"getnoise $rd", (CSRRS GPR:$rd, MNOISE.Encoding, X0)>;
+    def : InstAlias<"pollentropy $rd", (CSRRS GPR:$rd, MENTROPY.Encoding, X0)>;
 } // Predicates = [HasStdExtK]
 
 let Predicates = [HasStdExtK, IsRV32] in {
-    def SHA512SUM0R : RVKBinary<0b0101000, 0b000, "sha512sum0r">, 
-                        Sched<[]>;
-    def SHA512SUM1R : RVKBinary<0b0101001, 0b000, "sha512sum1r">, 
-                        Sched<[]>;
-    def SHA512SIG0L : RVKBinary<0b0101010, 0b000, "sha512sig0l">, 
-                        Sched<[]>;
-    def SHA512SIG0H : RVKBinary<0b0101110, 0b000, "sha512sig0h">, 
-                        Sched<[]>;
-    def SHA512SIG1L : RVKBinary<0b0101011, 0b000, "sha512sig1l">, 
-                        Sched<[]>;
-    def SHA512SIG1H : RVKBinary<0b0101111, 0b000, "sha512sig1h">, 
-                        Sched<[]>;
+    def SHA512SUM0R : RVKBinary<0b0101000, 0b000, "sha512sum0r">;
+    def SHA512SUM1R : RVKBinary<0b0101001, 0b000, "sha512sum1r">;
+    def SHA512SIG0L : RVKBinary<0b0101010, 0b000, "sha512sig0l">;
+    def SHA512SIG0H : RVKBinary<0b0101110, 0b000, "sha512sig0h">;
+    def SHA512SIG1L : RVKBinary<0b0101011, 0b000, "sha512sig1l">;
+    def SHA512SIG1H : RVKBinary<0b0101111, 0b000, "sha512sig1h">;
 
-    def AES32ESMI  :    RVKByteSelect<0b11011, "aes32esmi">,
-                        Sched<[]>;
-    def AES32ESI  :     RVKByteSelect<0b11001, "aes32esi">,
-                        Sched<[]>;
-    def AES32DSMI  :    RVKByteSelect<0b11111, "aes32dsmi">,
-                        Sched<[]>;
-    def AES32DSI  :     RVKByteSelect<0b11101, "aes32dsi">,
-                        Sched<[]>;
+    def AES32ESMI : RVKByteSelect<0b11011, "aes32esmi">;
+    def AES32DSMI : RVKByteSelect<0b11111, "aes32dsmi">;
+    def AES32ESI : RVKByteSelect<0b11001, "aes32esi">;
+    def AES32DSI : RVKByteSelect<0b11101, "aes32dsi">;
 } // Predicates = [HasStdExtK, IsRV32]
 
 let Predicates = [HasStdExtK, IsRV64] in {
-    def SHA512SUM0  : RVKUnary<0b0001000, 0b00100, 0b001, "sha512sum0">, 
-                        Sched<[]>;
-    def SHA512SUM1  : RVKUnary<0b0001000, 0b00101, 0b001, "sha512sum1">, 
-                        Sched<[]>;
-    def SHA512SIG0  : RVKUnary<0b0001000, 0b00110, 0b001, "sha512sig0">, 
-                        Sched<[]>;
-    def SHA512SIG1  : RVKUnary<0b0001000, 0b00111, 0b001, "sha512sig1">, 
-                        Sched<[]>;
-    def AES64IM     : RVKUnary<0b0011000, 0b00000, 0b001, "aes64im">, 
-                        Sched<[]>;
+    def SHA512SUM0 : RVKUnary<0b0001000, 0b00100, 0b001, "sha512sum0">;
+    def SHA512SUM1 : RVKUnary<0b0001000, 0b00101, 0b001, "sha512sum1">;
+    def SHA512SIG0 : RVKUnary<0b0001000, 0b00110, 0b001, "sha512sig0">;
+    def SHA512SIG1 : RVKUnary<0b0001000, 0b00111, 0b001, "sha512sig1">;
+    
+    def AES64IM  : RVKUnary<0b0011000, 0b00000, 0b001, "aes64im">;
+    def AES64KS2 : RVKBinary<0b0111111, 0b000, "aes64ks2">;
+    def AES64ESM : RVKBinary<0b0011011, 0b000, "aes64esm">;
+    def AES64DSM : RVKBinary<0b0011111, 0b000, "aes64dsm">;
+    
+    def AES64ES : RVKBinary<0b0011001, 0b000, "aes64es">;
+    def AES64DS : RVKBinary<0b0011101, 0b000, "aes64ds">;
 
-    def AES64KS2    : RVKBinary<0b0111111, 0b000, "aes64ks2">, 
-                        Sched<[]>;
-    def AES64ESM    : RVKBinary<0b0011011, 0b000, "aes64esm">, 
-                        Sched<[]>;
-    def AES64ES     : RVKBinary<0b0011001, 0b000, "aes64es">, 
-                        Sched<[]>;
-    def AES64DSM    : RVKBinary<0b0011111, 0b000, "aes64dsm">, 
-                        Sched<[]>;
-    def AES64DS     : RVKBinary<0b0011101, 0b000, "aes64ds">, 
-                        Sched<[]>;
-
-    def AES64KS1I   : RVKUnary_rcon<0b0011000, 0b001, "aes64ks1i">, 
-                        Sched<[]>;
+    def AES64KS1I : RVKUnary_rcon<0b0011000, 0b001, "aes64ks1i">;
 } // Predicates = [HasStdExtK, IsRV64]
