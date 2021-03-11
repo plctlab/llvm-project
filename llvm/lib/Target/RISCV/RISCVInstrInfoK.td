@@ -11,92 +11,106 @@
 ///
 //===----------------------------------------------------------------------===//
 
+def RconArg : AsmOperandClass {
+  let Name = "RconArg";
+  let RenderMethod = "addImmOperands";
+  let DiagnosticType = "InvalidRconArg";
+}
+
+def rcon : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
+  let ParserMatchClass = RconArg;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeUImmOperand<4>";
+  let OperandType = "OPERAND_UIMM4";
+  let OperandNamespace = "RISCVOp";
+}
+
 //===----------------------------------------------------------------------===//
 // Instruction class templates
 //===----------------------------------------------------------------------===//
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-    class RVKUnary<bits<7> funct7, bits<5> funct5, bits<3> funct3, string opcodestr>
-        : RVInstR<funct7, funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1), opcodestr, "$rd, $rs1">{
-            let Inst{24-20} = funct5;
-        }
-
-let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-    class RVKBinary<bits<7> funct7, bits<3> funct3, string opcodestr>
-        : RVInstR<funct7, funct3, OPC_OP, (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
-                opcodestr, "$rd, $rs1, $rs2">;
-
-let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-    class RVKByteSelect<bits<5> funct5, string opcodestr>
-        : RVInstS<0b000, OPC_OP, (outs GPR:$rt), (ins GPR:$rs2, uimm2:$bs), 
-                opcodestr, "$rt, $rs2, $bs">{
-            bits<2> bs;
-            bits<5> rt;
-
-            let Inst{31-30}=bs;
-            let Inst{29-25}=funct5;
-            let Inst{19-15}=rt;
-            let Inst{11-7}=0b00000;
-        }
-
-let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-    class RVKUnary_rcon<bits<7> funct7, bits<3> funct3, string opcodestr>
-        : RVInstI<funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1, uimm4:$rcon),
-                opcodestr, "$rd, $rs1, $rcon"> {
-        bits<4> rcon;
-        
-        let Inst{31-25} = funct7;
-        let Inst{24} = 1;
-        let Inst{23-20} = rcon;
+class RVKUnary<bits<7> funct7, bits<5> funct5, bits<3> funct3, string opcodestr>
+    : RVInstR<funct7, funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1), opcodestr, "$rd, $rs1">{
+        let Inst{24-20} = funct5;
     }
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class RVKBinary<bits<7> funct7, bits<3> funct3, string opcodestr>
+    : RVInstR<funct7, funct3, OPC_OP, (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2),
+            opcodestr, "$rd, $rs1, $rs2">;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class RVKByteSelect<bits<5> funct5, string opcodestr>
+    : RVInstS<0b000, OPC_OP, (outs GPR:$rt), (ins GPR:$rs2, uimm2:$bs), 
+            opcodestr, "$rt, $rs2, $bs">{
+        bits<2> bs;
+        bits<5> rt;
+
+        let Inst{31-30}=bs;
+        let Inst{29-25}=funct5;
+        let Inst{19-15}=rt;
+        let Inst{11-7}=0b00000;
+    }
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class RVKUnary_rcon<bits<7> funct7, bits<3> funct3, string opcodestr>
+    : RVInstI<funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1, rcon:$rcon),
+            opcodestr, "$rd, $rs1, $rcon"> {
+    bits<4> rcon;
+    
+    let Inst{31-25} = funct7;
+    let Inst{24} = 1;
+    let Inst{23-20} = rcon;
+}
 
 //===----------------------------------------------------------------------===//
 // Instructions
 //===----------------------------------------------------------------------===//
 
 let Predicates = [HasStdExtK] in {
-    def SHA256SUM0 : RVKUnary<0b0001000, 0b00000, 0b001, "sha256sum0">;
-    def SHA256SUM1 : RVKUnary<0b0001000, 0b00001, 0b001, "sha256sum1">;
-    def SHA256SIG0 : RVKUnary<0b0001000, 0b00010, 0b001, "sha256sig0">;
-    def SHA256SIG1 : RVKUnary<0b0001000, 0b00011, 0b001, "sha256sig1">;
+def SHA256SUM0 : RVKUnary<0b0001000, 0b00000, 0b001, "sha256sum0">;
+def SHA256SUM1 : RVKUnary<0b0001000, 0b00001, 0b001, "sha256sum1">;
+def SHA256SIG0 : RVKUnary<0b0001000, 0b00010, 0b001, "sha256sig0">;
+def SHA256SIG1 : RVKUnary<0b0001000, 0b00011, 0b001, "sha256sig1">;
 
-    def SM3P0 : RVKUnary<0b0001000, 0b01000, 0b001, "sm3p0">;
-    def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
-    def SM4ED : RVKByteSelect<0b11000, "sm4ed">;
-    def SM4KS : RVKByteSelect<0b11010, "sm4ks">;
+def SM3P0 : RVKUnary<0b0001000, 0b01000, 0b001, "sm3p0">;
+def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
+def SM4ED : RVKByteSelect<0b11000, "sm4ed">;
+def SM4KS : RVKByteSelect<0b11010, "sm4ks">;
 
-    // Assembler Pseudo Instructions
-    def : InstAlias<"getnoise $rd", (CSRRS GPR:$rd, MNOISE.Encoding, X0)>;
-    def : InstAlias<"pollentropy $rd", (CSRRS GPR:$rd, MENTROPY.Encoding, X0)>;
+// Assembler Pseudo Instructions
+def : InstAlias<"getnoise $rd", (CSRRS GPR:$rd, MNOISE.Encoding, X0)>;
+def : InstAlias<"pollentropy $rd", (CSRRS GPR:$rd, MENTROPY.Encoding, X0)>;
 } // Predicates = [HasStdExtK]
 
 let Predicates = [HasStdExtK, IsRV32] in {
-    def SHA512SUM0R : RVKBinary<0b0101000, 0b000, "sha512sum0r">;
-    def SHA512SUM1R : RVKBinary<0b0101001, 0b000, "sha512sum1r">;
-    def SHA512SIG0L : RVKBinary<0b0101010, 0b000, "sha512sig0l">;
-    def SHA512SIG0H : RVKBinary<0b0101110, 0b000, "sha512sig0h">;
-    def SHA512SIG1L : RVKBinary<0b0101011, 0b000, "sha512sig1l">;
-    def SHA512SIG1H : RVKBinary<0b0101111, 0b000, "sha512sig1h">;
+def SHA512SUM0R : RVKBinary<0b0101000, 0b000, "sha512sum0r">;
+def SHA512SUM1R : RVKBinary<0b0101001, 0b000, "sha512sum1r">;
+def SHA512SIG0L : RVKBinary<0b0101010, 0b000, "sha512sig0l">;
+def SHA512SIG0H : RVKBinary<0b0101110, 0b000, "sha512sig0h">;
+def SHA512SIG1L : RVKBinary<0b0101011, 0b000, "sha512sig1l">;
+def SHA512SIG1H : RVKBinary<0b0101111, 0b000, "sha512sig1h">;
 
-    def AES32ESMI : RVKByteSelect<0b11011, "aes32esmi">;
-    def AES32DSMI : RVKByteSelect<0b11111, "aes32dsmi">;
-    def AES32ESI : RVKByteSelect<0b11001, "aes32esi">;
-    def AES32DSI : RVKByteSelect<0b11101, "aes32dsi">;
+def AES32ESMI : RVKByteSelect<0b11011, "aes32esmi">;
+def AES32DSMI : RVKByteSelect<0b11111, "aes32dsmi">;
+def AES32ESI : RVKByteSelect<0b11001, "aes32esi">;
+def AES32DSI : RVKByteSelect<0b11101, "aes32dsi">;
 } // Predicates = [HasStdExtK, IsRV32]
 
 let Predicates = [HasStdExtK, IsRV64] in {
-    def SHA512SUM0 : RVKUnary<0b0001000, 0b00100, 0b001, "sha512sum0">;
-    def SHA512SUM1 : RVKUnary<0b0001000, 0b00101, 0b001, "sha512sum1">;
-    def SHA512SIG0 : RVKUnary<0b0001000, 0b00110, 0b001, "sha512sig0">;
-    def SHA512SIG1 : RVKUnary<0b0001000, 0b00111, 0b001, "sha512sig1">;
-    
-    def AES64IM  : RVKUnary<0b0011000, 0b00000, 0b001, "aes64im">;
-    def AES64KS2 : RVKBinary<0b0111111, 0b000, "aes64ks2">;
-    def AES64ESM : RVKBinary<0b0011011, 0b000, "aes64esm">;
-    def AES64DSM : RVKBinary<0b0011111, 0b000, "aes64dsm">;
-    
-    def AES64ES : RVKBinary<0b0011001, 0b000, "aes64es">;
-    def AES64DS : RVKBinary<0b0011101, 0b000, "aes64ds">;
+def SHA512SUM0 : RVKUnary<0b0001000, 0b00100, 0b001, "sha512sum0">;
+def SHA512SUM1 : RVKUnary<0b0001000, 0b00101, 0b001, "sha512sum1">;
+def SHA512SIG0 : RVKUnary<0b0001000, 0b00110, 0b001, "sha512sig0">;
+def SHA512SIG1 : RVKUnary<0b0001000, 0b00111, 0b001, "sha512sig1">;
 
-    def AES64KS1I : RVKUnary_rcon<0b0011000, 0b001, "aes64ks1i">;
+def AES64IM  : RVKUnary<0b0011000, 0b00000, 0b001, "aes64im">;
+def AES64KS2 : RVKBinary<0b0111111, 0b000, "aes64ks2">;
+def AES64ESM : RVKBinary<0b0011011, 0b000, "aes64esm">;
+def AES64DSM : RVKBinary<0b0011111, 0b000, "aes64dsm">;
+
+def AES64ES : RVKBinary<0b0011001, 0b000, "aes64es">;
+def AES64DS : RVKBinary<0b0011101, 0b000, "aes64ds">;
+
+def AES64KS1I : RVKUnary_rcon<0b0011000, 0b001, "aes64ks1i">;
 } // Predicates = [HasStdExtK, IsRV64]
