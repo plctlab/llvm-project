@@ -55,6 +55,14 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   bool HasStdExtZvlsseg = false;
   bool HasStdExtZvamo = false;
   bool HasStdExtZfh = false;
+  bool HasStdExtZkr = false;
+  bool HasStdExtZkn = false;
+  bool HasStdExtZknd = false;
+  bool HasStdExtZkne = false;
+  bool HasStdExtZknh = false;
+  bool HasStdExtZks = false;
+  bool HasStdExtZksh = false;
+  bool HasStdExtZksed = false;
   bool HasStdExtK = false;
   bool HasRV64 = false;
   bool IsRV32E = false;
@@ -124,6 +132,14 @@ public:
   bool hasStdExtZvamo() const { return HasStdExtZvamo; }
   bool hasStdExtZfh() const { return HasStdExtZfh; }
   bool hasStdExtK() const { return HasStdExtK; }
+  bool hasStdExtZkr() const { return HasStdExtZkr; }
+  bool hasStdExtZkn() const { return HasStdExtZkn; }
+  bool hasStdExtZknd() const { return HasStdExtZknd; }
+  bool hasStdExtZkne() const { return HasStdExtZkne; }
+  bool hasStdExtZknh() const { return HasStdExtZknh; }
+  bool hasStdExtZks() const { return HasStdExtZks; }
+  bool hasStdExtZksh() const { return HasStdExtZksh; }
+  bool hasStdExtZksed() const { return HasStdExtZksed; }
   bool is64Bit() const { return HasRV64; }
   bool isRV32E() const { return IsRV32E; }
   bool enableLinkerRelax() const { return EnableLinkerRelax; }
