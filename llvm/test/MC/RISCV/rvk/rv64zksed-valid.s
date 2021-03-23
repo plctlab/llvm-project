@@ -1,14 +1,3 @@
-# With K extension:
-# RUN: llvm-mc -triple=riscv64 -show-encoding --mattr=+experimental-k %s \
-# RUN:      | FileCheck %s --check-prefixes=CHECK-ENCODING,CHECK-INST
-# RUN: not llvm-mc -triple=riscv64 -show-encoding %s 2>&1 \
-# RUN:      | FileCheck %s --check-prefix=CHECK-ERROR
-# RUN: llvm-mc -triple=riscv64 -filetype=obj --mattr=+experimental-k %s \
-# RUN:      | llvm-objdump -d --mattr=+experimental-k - \
-# RUN:      | FileCheck %s --check-prefix=CHECK-INST
-# RUN: llvm-mc -triple=riscv64 -filetype=obj --mattr=+experimental-k %s \
-# RUN:      | llvm-objdump -d - | FileCheck %s --check-prefix=CHECK-UNKNOWN
-
 # With Zks extension:
 # RUN: llvm-mc -triple=riscv64 -show-encoding --mattr=+experimental-zks %s \
 # RUN:      | FileCheck %s --check-prefixes=CHECK-ENCODING,CHECK-INST
