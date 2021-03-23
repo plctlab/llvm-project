@@ -1,7 +1,3 @@
-# With K extension:
-# RUN: not llvm-mc -triple=riscv32 -mattr=+experimental-k < %s 2>&1 \
-# RUN:        | FileCheck %s --check-prefix=CHECK-ERROR
-
 # With Zks extension:
 # RUN: not llvm-mc -triple=riscv32 -mattr=+experimental-zks < %s 2>&1 \
 # RUN:        | FileCheck %s --check-prefix=CHECK-ERROR

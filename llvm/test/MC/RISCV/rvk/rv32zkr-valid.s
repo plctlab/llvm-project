@@ -9,7 +9,7 @@
 # RUN: llvm-mc -triple=riscv32 -filetype=obj --mattr=+experimental-k %s \
 # RUN:      | llvm-objdump -d - | FileCheck %s --check-prefix=CHECK-UNKNOWN
 
-# With k base extension:
+# With Zkr extension:
 # RUN: llvm-mc -triple=riscv32 -show-encoding --mattr=+experimental-zkr %s \
 # RUN:      | FileCheck %s --check-prefixes=CHECK-ENCODING,CHECK-INST
 # RUN: not llvm-mc -triple=riscv32 -show-encoding %s 2>&1 \
