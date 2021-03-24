@@ -716,7 +716,7 @@ class Inst<string name, list<string> types, string inf, string suf,
   // The list of indexes for the overload type. Use '-1' to refer to result
   // type, '0' to refer to the first argument type and so on. This is used
   // to generate clang builtin codegen snippet. The given indexes must be
-  // consisted with llvm/include/llvm/IR/IntrinsicsRISCV.td. For an example,
+  // consistent with llvm/include/llvm/IR/IntrinsicsRISCV.td. For example,
   // the index list of
   //   class V_VX : Intrinsic<[ llvm_anyvector_ty ],
   //                          [ LLVMMatchType<0>, llvm_anyint_ty ],
@@ -1541,12 +1541,22 @@ multiclass load_store {
     def "vlxei"#I.SEW#"_v"#I.Name : Inst<"vlxei"#I.SEW,
        [I.Value, I.ElemType.Value#"C*", !cast<VectorTypeInfo>(!subst("i", "u", !cast<string>(I))).Value],
         "_v", I.Name, 0, [-1, 0, 1]>;
+    def "vsuxei"#I.SEW#"_v"#I.Name : Inst<"vsuxei"#I.SEW,
+      ["v", I.ElemType.Value#"*", I.Value, !cast<VectorTypeInfo>(!subst("i", "u", !cast<string>(I))).Value], "_v", I.Name, 0, [0, 1, 2]>;
   }
   
   foreach I = AllFloatVectorType in {
     def "vlxei"#I.SEW#"_v"#I.Name : Inst<"vlxei"#I.SEW,
        [I.Value, I.ElemType.Value#"C*", FloatToUnsigned<I>.Result],
         "_v", I.Name, 0, [-1, 0, 1]>;
+  }
+
+  foreach I = !listconcat(
+    AllIntPairSEWx2, AllIntPairSEWx4, AllIntPairSEWx8, AllUnsignedFloatPairSEWx2, AllUnsignedFloatPair
+  ) in {
+    def "vsuxei"#I.First.SEW#"_v"#I.Second.Name
+      : Inst<"vsuxei"#I.First.SEW, ["v", I.Second.ElemType.Value#"*",
+             !cast<VectorTypeInfo>(!subst("i", "u", !cast<string>(I.First))).Value, I.Second.Value], "_v", I.Second.Name, 0, [0, 1, 2]>;
   }
   
   foreach I = !listconcat(AllIntPairSEWx2, AllIntPairSEWx4, AllIntPairSEWx8, 

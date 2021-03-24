@@ -310,7 +310,8 @@ void test_vsuxei32_v_f64m4 (float64_t *base, vuint32m2_t bindex, vfloat64m4_t va
 
 void test_vsuxei32_v_f64m8 (float64_t *base, vuint32m4_t bindex, vfloat64m8_t value) {
   // CHECK-LABEL: test_vsuxei32_v_f64m8
-  // CHECK: ret void
+  // CHECK: call void @llvm.riscv.vstore.unordered.indexed{{.*}}nxv8f64{{.*}}(double* %{{[0-9]+}}, <vscale x 8 x i32> %{{[0-9]+}}, <vscale x 8 x double> %{{[0-9]+}})
+  vsuxei32_v_f64m8(base, bindex, value);
   return;
 }
 

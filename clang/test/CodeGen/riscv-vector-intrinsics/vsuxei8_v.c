@@ -4,7 +4,8 @@
 
 void test_vsuxei8_v_i8mf8 (int8_t *base, vuint8mf8_t bindex, vint8mf8_t value) {
   // CHECK-LABEL: test_vsuxei8_v_i8mf8
-  // CHECK: ret void
+  // CHECK: call void @llvm.riscv.vstore.unordered.indexed{{.*}}nxv1i8{{.*}}(i8* %{{[0-9]+}}, <vscale x 1 x i8> %{{[0-9]+}}, <vscale x 1 x i8> %{{[0-9]+}})
+  vsuxei8_v_i8mf8(base, bindex, value);
   return;
 }
 
@@ -46,7 +47,8 @@ void test_vsuxei8_v_i8m8 (int8_t *base, vuint8m8_t bindex, vint8m8_t value) {
 
 void test_vsuxei8_v_i16mf4 (int16_t *base, vuint8mf8_t bindex, vint16mf4_t value) {
   // CHECK-LABEL: test_vsuxei8_v_i16mf4
-  // CHECK: ret void
+  // CHECK: call void @llvm.riscv.vstore.unordered.indexed{{.*}}nxv1i16{{.*}}(i16* %{{[0-9]+}}, <vscale x 1 x i8> %{{[0-9]+}}, <vscale x 1 x i16> %{{[0-9]+}})
+  vsuxei8_v_i16mf4(base, bindex, value);
   return;
 }
 
@@ -190,7 +192,8 @@ void test_vsuxei8_v_u16mf2 (uint16_t *base, vuint8mf4_t bindex, vuint16mf2_t val
 
 void test_vsuxei8_v_u16m1 (uint16_t *base, vuint8mf2_t bindex, vuint16m1_t value) {
   // CHECK-LABEL: test_vsuxei8_v_u16m1
-  // CHECK: ret void
+  // CHECK: call void @llvm.riscv.vstore.unordered.indexed{{.*}}nxv4i16{{.*}}(i16* %{{[0-9]+}}, <vscale x 4 x i8> %{{[0-9]+}}, <vscale x 4 x i16> %{{[0-9]+}})
+  vsuxei8_v_u16m1(base, bindex, value);
   return;
 }
 

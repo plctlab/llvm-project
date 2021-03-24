@@ -366,14 +366,21 @@ foreach I = AllLMULs in {
     }
 
     let mayLoad = 0, mayStore = 1, hasSideEffects = 0, usesCustomInserter = 1,
-        LMUL = I.LMUL, Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 0,
-        BaseInstr = !cast<Instruction>("VSE"#sew#"_V") in {
-      def PseudoVSE#sew#_V_M#lmul
-        : Pseudo<(outs), (ins I.RegClass:$merge, I.RegClass:$rs1,
-                 GPR:$rs2, VMaskOp:$mask, ixlenimm:$sew), []>,
+        LMUL = I.LMUL in {
+      let Uses = [VL, VTYPE], SEWIndex = 4, MergeOpIndex = 0,
+        BaseInstr = !cast<Instruction>("VSE"#sew#"_V") in
+        def PseudoVSE#sew#_V_M#lmul
+          : Pseudo<(outs), (ins I.RegClass:$merge, I.RegClass:$rs1,
+                   GPR:$rs2, VMaskOp:$mask, ixlenimm:$sew), []>,
+          RISCVVectorPseudo;
+
+      let Uses = [VL, VTYPE], SEWIndex = 5, MergeOpIndex = 0,
+        BaseInstr = !cast<Instruction>("VSUXEI"#sew#"_V") in
+        def PseudoVSUXEI#sew#_V#lmul
+          : Pseudo<(outs), (ins I.RegClass:$merge, I.RegClass:$rs1,
+                 GPR:$rs2, I.RegClass:$rs3, VMaskOp:$mask, ixlenimm:$sew), []>,
           RISCVVectorPseudo;
     }
-  
   }  
 }
 
@@ -1533,6 +1540,11 @@ multiclass pat_intrinsic_vload_store {
               (I.Type (!cast<Instruction>("PseudoVLXEI"#I.SEW#"_V_M"#str)
                        (I.Type zero_reg), i64:$rs1, (I.Type I.RegClass:$rs2), (I.Mask zero_reg),
                         I.SEW))>;
+
+    def : Pat<(int_riscv_vstore_unordered_indexed i64:$rs2, (I.Type I.RegClass:$rs1), (I.Type I.RegClass:$rs3)),
+              (!cast<Instruction>("PseudoVSUXEI"#I.SEW#"_V"#str)
+                       (I.Type zero_reg), (I.Type I.RegClass:$rs1), i64:$rs2, (I.Type I.RegClass:$rs3),
+                       (I.Mask zero_reg), I.SEW)>;
 
     def : Pat<(I.Type (int_riscv_vload_faultfirst i64:$rs1)),
               (I.Type (!cast<Instruction>("PseudoVLE"#I.SEW#"FF_V_M"#str)

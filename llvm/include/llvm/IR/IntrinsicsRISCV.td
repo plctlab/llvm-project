@@ -632,6 +632,12 @@ multiclass Vstore {
                                    LLVMPointerType<LLVMMatchType<0>>,
                                    llvm_anyvector_ty, llvm_i64_ty],
                                   [IntrWriteMem]>;
+  def "_unordered_indexed" : Intrinsic<[],
+                                       [llvm_anyptr_ty,
+                                        llvm_anyvector_ty,
+                                        llvm_anyvector_ty
+                                       ],
+                                       [IntrWriteMem]>;
   def "_strided_mask" : Intrinsic<[],
                                   [llvm_anyptr_ty, llvm_i64_ty,
                                    llvm_anyvector_ty],

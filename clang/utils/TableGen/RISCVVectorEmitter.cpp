@@ -545,7 +545,7 @@ std::string Intrinsic::createStatementInCase() {
   std::string result = "";
   std::map<std::string, std::string> intrinsicMap= 
     {{"vle", "vload"}, {"vse", "vstore"}, {"vlse", "vload_strided"}, {"vsse", "vstore_strided"},
-     {"vlxei", "vload_indexed"}, {"vsxei", "vstore_indexed"}};
+     {"vlxei", "vload_indexed"}, {"vsxei", "vstore_indexed"}, {"vsuxei", "vstore_unordered_indexed"}};
   if (isLoadOrStore()) {
     std::string Name = getName();
     std::string::iterator NameIter = Name.begin();
