@@ -55,15 +55,17 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   bool HasStdExtZvlsseg = false;
   bool HasStdExtZvamo = false;
   bool HasStdExtZfh = false;
-  bool HasStdExtZkr = false;
+  bool HasStdExtK = false;
+  bool HasStdExtZkb = false;
+  bool HasStdExtZkg = false;
   bool HasStdExtZkn = false;
   bool HasStdExtZknd = false;
   bool HasStdExtZkne = false;
   bool HasStdExtZknh = false;
+  bool HasStdExtZkr = false;
   bool HasStdExtZks = false;
   bool HasStdExtZksh = false;
   bool HasStdExtZksed = false;
-  bool HasStdExtK = false;
   bool HasRV64 = false;
   bool IsRV32E = false;
   bool EnableLinkerRelax = false;
@@ -132,11 +134,13 @@ public:
   bool hasStdExtZvamo() const { return HasStdExtZvamo; }
   bool hasStdExtZfh() const { return HasStdExtZfh; }
   bool hasStdExtK() const { return HasStdExtK; }
-  bool hasStdExtZkr() const { return HasStdExtZkr; }
+  bool hasStdExtZkb() const { return HasStdExtZkb; }
+  bool hasStdExtZkg() const { return HasStdExtZkg; }
   bool hasStdExtZkn() const { return HasStdExtZkn; }
   bool hasStdExtZknd() const { return HasStdExtZknd; }
   bool hasStdExtZkne() const { return HasStdExtZkne; }
   bool hasStdExtZknh() const { return HasStdExtZknh; }
+  bool hasStdExtZkr() const { return HasStdExtZkr; }
   bool hasStdExtZks() const { return HasStdExtZks; }
   bool hasStdExtZksh() const { return HasStdExtZksh; }
   bool hasStdExtZksed() const { return HasStdExtZksed; }

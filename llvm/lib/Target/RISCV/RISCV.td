@@ -187,6 +187,20 @@ def FeatureExtZvamo
 def HasStdExtZvamo : Predicate<"Subtarget->hasStdExtZvamo()">,
                               AssemblerPredicate<(all_of FeatureExtZvamo),
                               "'Zvamo'(Vector AMO Operations)">;
+def FeatureExtZkb
+    : SubtargetFeature<"experimental-zkb", "HasStdExtZkb", "true",
+                       "'Zkb'(Bitmanip subset included in the scalar cryptography extension)",
+                       [FeatureExtZbp]>;
+def HasStdExtZkb : Predicate<"Subtarget->hasStdExtZkb()">,
+                              AssemblerPredicate<(all_of FeatureExtZkb),
+                              "'Zkb'(Bitmanip subset included in the scalar cryptography extension)">;
+def FeatureExtZkg
+    : SubtargetFeature<"experimental-zkg", "HasStdExtZkg", "true",
+                       "'Zkg'(Constant time carry-less multiply for Galois/Counter Mode)",
+                       [FeatureExtZbc]>;
+def HasStdExtZkg : Predicate<"Subtarget->hasStdExtZkg()">,
+                              AssemblerPredicate<(all_of FeatureExtZkg),
+                              "'Zkg'(Constant time carry-less multiply for Galois/Counter Mode)">;
 def FeatureExtZksh
     : SubtargetFeature<"experimental-zksh", "HasStdExtZksh", "true",
                        "'Zksh'(SM3 Hash function instructions)">;
@@ -203,7 +217,9 @@ def FeatureExtZks
     : SubtargetFeature<"experimental-zks", "HasStdExtZks", "true",
                        "'Zks'(ShangMi (SM) algorithm suite)",
                        [FeatureExtZksed,
-                       FeatureExtZksh]>;
+                       FeatureExtZksh,
+                       FeatureExtZkg,
+                       FeatureExtZkb]>;
 def HasStdExtZks : Predicate<"Subtarget->hasStdExtZks()">,
                               AssemblerPredicate<(all_of FeatureExtZks),
                               "'Zks'(ShangMi (SM) algorithm suite)">;
@@ -230,7 +246,9 @@ def FeatureExtZkn
                        "'Zkn'(NIST algorithm suite)",
                        [FeatureExtZknd,
                        FeatureExtZkne,
-                       FeatureExtZknh]>;
+                       FeatureExtZknh,
+                       FeatureExtZkg,
+                       FeatureExtZkb]>;
 def HasStdExtZkn : Predicate<"Subtarget->hasStdExtZkn()">,
                               AssemblerPredicate<(all_of FeatureExtZkn),
                               "'Zkn'(NIST algorithm suite)">;
@@ -244,8 +262,7 @@ def FeatureStdExtK
     : SubtargetFeature<"experimental-k", "HasStdExtK", "true",
                        "'K' (Scalar Cryptography Instructions)",
                        [FeatureExtZkr,
-                       FeatureExtZkn,
-                       FeatureExtZks]>;
+                       FeatureExtZkn]>;
 def HasStdExtK : Predicate<"Subtarget->hasStdExtK()">,
                            AssemblerPredicate<(all_of FeatureStdExtK),
                            "'K' (Scalar Cryptography Instructions)">;
