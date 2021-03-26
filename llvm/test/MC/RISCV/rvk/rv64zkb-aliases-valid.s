@@ -51,10 +51,10 @@
 # CHECK-S-OBJ: rev.b t0, t1
 rev.b x5, x6
 
-# CHECK-S-OBJ-NOALIAS: shfli t0, t1, 15
+# CHECK-S-OBJ-NOALIAS: shfli t0, t1, 31
 # CHECK-S-OBJ: zip t0, t1
 zip x5, x6
 
-# CHECK-S-OBJ-NOALIAS: unshfli t0, t1, 15
+# CHECK-S-OBJ-NOALIAS: unshfli t0, t1, 31
 # CHECK-S-OBJ: unzip t0, t1
 unzip x5, x6

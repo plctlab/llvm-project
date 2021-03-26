@@ -76,7 +76,7 @@ packu t0, t1, t2
 packh t0, t1, t2
 
 # CHECK-ASM-AND-OBJ: rev8 t0, t1
-# CHECK-ASM: encoding: [0x93,0x52,0x83,0x69]
+# CHECK-ASM: encoding: [0x93,0x52,0x83,0x6b]
 rev8 t0, t1
 
 # CHECK-ASM-AND-OBJ: grevi t0, t1, 0
