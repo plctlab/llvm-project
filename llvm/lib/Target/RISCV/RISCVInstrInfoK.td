@@ -7,7 +7,10 @@
 //===----------------------------------------------------------------------===//
 ///
 /// This file describes the RISC-V instructions from the standard 'K' 
-/// scalar cryptography extension, version 0.8.1. 
+/// scalar cryptography extension, version 0.9.0. 
+/// 
+/// This version is still experimental as the 'K' extension hasn't been
+/// ratified yet.
 ///
 //===----------------------------------------------------------------------===//
 
