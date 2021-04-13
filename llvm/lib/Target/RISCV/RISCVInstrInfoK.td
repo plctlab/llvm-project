@@ -128,3 +128,11 @@ let Predicates = [HasStdExtZksh] in {
 def SM3P0 : RVKUnary<0b0001000, 0b01000, 0b001, "sm3p0">;
 def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
 } // Predicates = [HasStdExtZksh]
+
+//===----------------------------------------------------------------------===//
+// Intrinsics
+//===----------------------------------------------------------------------===//
+
+let Predicates = [HasStdExtZknh, IsRV32] in {
+def : PatGprGpr<int_riscv_sha512sig0l, SHA512SIG0L>;
+}

@@ -1245,4 +1245,15 @@ let TargetPrefix = "riscv" in {
     defm vsuxseg # nf : RISCVISegStore<nf>;
   }
 
+//===----------------------------------------------------------------------===//
+// Scalar Cryptography
+
+// These intrinsics will lower directly into the corresponding instructions
+// added by the scalar cyptography extension, if the extension is present.
+
+class ScalarCryptoGprGprIntrinsic32 : Intrinsic<[llvm_i32_ty],
+                                                [llvm_i32_ty, llvm_i32_ty],
+                                                [IntrNoMem, IntrSpeculatable]>;
+
+def int_riscv_sha512sig0l : ScalarCryptoGprGprIntrinsic32;
 } // TargetPrefix = "riscv"
