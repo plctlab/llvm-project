@@ -12,3 +12,6 @@
 
 aes64ks1i a0, a1, 11
 # CHECK-ERROR: immediate must be an integer in the range [0, 10]
+
+aes64ks1i a0, a1, -1
+# CHECK-ERROR: immediate must be an integer in the range [0, 10]

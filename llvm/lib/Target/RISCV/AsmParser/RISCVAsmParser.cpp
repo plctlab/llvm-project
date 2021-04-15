@@ -721,7 +721,7 @@ public:
     if (!isImm())
       return false;
     bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
-    return IsConstantImm && isUInt<4>(Imm + 5) &&
+    return IsConstantImm && Imm>= INT64_C(0) && Imm <= INT64_C(10) &&
            VK == RISCVMCExpr::VK_RISCV_None;
   }
 
