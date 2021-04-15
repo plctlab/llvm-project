@@ -20,7 +20,7 @@ def RconArg : AsmOperandClass {
   let DiagnosticType = "InvalidRconArg";
 }
 
-def rcon : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
+def rcon : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<4>(Imm);}]> {
   let ParserMatchClass = RconArg;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeUImmOperand<4>";
