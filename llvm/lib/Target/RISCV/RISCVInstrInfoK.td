@@ -141,3 +141,10 @@ def : PatGprGpr<int_riscv_sha512sig1h, SHA512SIG1H>;
 def : PatGprGpr<int_riscv_sha512sum0r, SHA512SUM0R>;
 def : PatGprGpr<int_riscv_sha512sum1r, SHA512SUM1R>;
 }
+
+let Predicates = [HasStdExtZknh, IsRV64] in {
+def : PatGpr<int_riscv_sha512sig0, SHA512SIG0>;
+def : PatGpr<int_riscv_sha512sig1, SHA512SIG1>;
+def : PatGpr<int_riscv_sha512sum0, SHA512SUM0>;
+def : PatGpr<int_riscv_sha512sum1, SHA512SUM1>;
+}
