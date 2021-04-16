@@ -135,4 +135,9 @@ def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
 
 let Predicates = [HasStdExtZknh, IsRV32] in {
 def : PatGprGpr<int_riscv_sha512sig0l, SHA512SIG0L>;
+def : PatGprGpr<int_riscv_sha512sig0h, SHA512SIG0H>;
+def : PatGprGpr<int_riscv_sha512sig1l, SHA512SIG1L>;
+def : PatGprGpr<int_riscv_sha512sig1h, SHA512SIG1H>;
+def : PatGprGpr<int_riscv_sha512sum0r, SHA512SUM0R>;
+def : PatGprGpr<int_riscv_sha512sum1r, SHA512SUM1R>;
 }

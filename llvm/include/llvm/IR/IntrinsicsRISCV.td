@@ -1256,4 +1256,9 @@ class ScalarCryptoGprGprIntrinsic32 : Intrinsic<[llvm_i32_ty],
                                                 [IntrNoMem, IntrSpeculatable]>;
 
 def int_riscv_sha512sig0l : ScalarCryptoGprGprIntrinsic32;
+def int_riscv_sha512sig0h : ScalarCryptoGprGprIntrinsic32;
+def int_riscv_sha512sig1l : ScalarCryptoGprGprIntrinsic32;
+def int_riscv_sha512sig1h : ScalarCryptoGprGprIntrinsic32;
+def int_riscv_sha512sum0r : ScalarCryptoGprGprIntrinsic32;
+def int_riscv_sha512sum1r : ScalarCryptoGprGprIntrinsic32;
 } // TargetPrefix = "riscv"
