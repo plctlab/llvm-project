@@ -66,7 +66,48 @@ define i64 @aes64im(i64 %a) nounwind {
     %val = call i64 @llvm.riscv.aes64im(i64 %a)
     ret i64 %val
 }
+
+declare i64 @llvm.riscv.sha256sig0(i64);
+
+define i64 @sha256sig0(i64 %a) nounwind {
+; RV64IK-LABEL: sha256sig0
+; RV64IK: # %bb.0:
+; RV64IK-NEXT: sha256sig0 a{{[0-9]+}}, a{{[0-9]+}}
+; RV64IK-NEXT: ret
+    %val = call i64 @llvm.riscv.sha256sig0(i64 %a)
+    ret i64 %val
+}
+
+declare i64 @llvm.riscv.sha256sig1(i64);
+
+define i64 @sha256sig1(i64 %a) nounwind {
+; RV64IK-LABEL: sha256sig1
+; RV64IK: # %bb.0:
+; RV64IK-NEXT: sha256sig1 a{{[0-9]+}}, a{{[0-9]+}}
+; RV64IK-NEXT: ret
+    %val = call i64 @llvm.riscv.sha256sig1(i64 %a)
+    ret i64 %val
+}
+
+declare i64 @llvm.riscv.sha256sum0(i64);
+
+define i64 @sha256sum0(i64 %a) nounwind {
+; RV64IK-LABEL: sha256sum0
+; RV64IK: # %bb.0:
+; RV64IK-NEXT: sha256sum0 a{{[0-9]+}}, a{{[0-9]+}}
+; RV64IK-NEXT: ret
     %val = call i64 @llvm.riscv.sha256sum0(i64 %a)
+    ret i64 %val
+}
+
+declare i64 @llvm.riscv.sha256sum1(i64);
+
+define i64 @sha256sum1(i64 %a) nounwind {
+; RV64IK-LABEL: sha256sum1
+; RV64IK: # %bb.0:
+; RV64IK-NEXT: sha256sum1 a{{[0-9]+}}, a{{[0-9]+}}
+; RV64IK-NEXT: ret
+    %val = call i64 @llvm.riscv.sha256sum1(i64 %a)
     ret i64 %val
 }
 

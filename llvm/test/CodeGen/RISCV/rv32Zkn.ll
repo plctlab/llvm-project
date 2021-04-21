@@ -1,6 +1,50 @@
 ; RUN: llc -mtriple=riscv32 -mattr=+experimental-k -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s -check-prefix=RV32IK
 
+declare i32 @llvm.riscv.sha256sig0(i32);
+
+define i32 @sha256sig0(i32 %a) nounwind {
+; RV64IK-LABEL: sha256sig0
+; RV64IK: # %bb.0:
+; RV64IK-NEXT: sha256sig0 a{{[0-9]+}}, a{{[0-9]+}}
+; RV64IK-NEXT: ret
+    %val = call i32 @llvm.riscv.sha256sig0(i32 %a)
+    ret i32 %val
+}
+
+declare i32 @llvm.riscv.sha256sig1(i32);
+
+define i32 @sha256sig1(i32 %a) nounwind {
+; RV64IK-LABEL: sha256sig1
+; RV64IK: # %bb.0:
+; RV64IK-NEXT: sha256sig1 a{{[0-9]+}}, a{{[0-9]+}}
+; RV64IK-NEXT: ret
+    %val = call i32 @llvm.riscv.sha256sig1(i32 %a)
+    ret i32 %val
+}
+
+declare i32 @llvm.riscv.sha256sum0(i32);
+
+define i32 @sha256sum0(i32 %a) nounwind {
+; RV64IK-LABEL: sha256sum0
+; RV64IK: # %bb.0:
+; RV64IK-NEXT: sha256sum0 a{{[0-9]+}}, a{{[0-9]+}}
+; RV64IK-NEXT: ret
+    %val = call i32 @llvm.riscv.sha256sum0(i32 %a)
+    ret i32 %val
+}
+
+declare i32 @llvm.riscv.sha256sum1(i32);
+
+define i32 @sha256sum1(i32 %a) nounwind {
+; RV64IK-LABEL: sha256sum1
+; RV64IK: # %bb.0:
+; RV64IK-NEXT: sha256sum1 a{{[0-9]+}}, a{{[0-9]+}}
+; RV64IK-NEXT: ret
+    %val = call i32 @llvm.riscv.sha256sum1(i32 %a)
+    ret i32 %val
+}
+
 declare i32 @llvm.riscv.sha512sig0l(i32, i32);
 
 define i32 @sha512sig0l(i32 %a, i32 %b) nounwind {

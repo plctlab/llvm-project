@@ -1281,4 +1281,15 @@ def int_riscv_sha512sig1  : ScalarCryptoGprIntrinsic64;
 def int_riscv_sha512sum0  : ScalarCryptoGprIntrinsic64;
 def int_riscv_sha512sum1  : ScalarCryptoGprIntrinsic64;
 def int_riscv_aes64im     : ScalarCryptoGprIntrinsic64;
+
+class ScalarCryptoGprIntrinsicAny    : Intrinsic<[llvm_anyint_ty],
+                                                 [LLVMMatchType<0>],
+                                                 [IntrNoMem, IntrSpeculatable]>;
+
+def int_riscv_sha256sig0  : ScalarCryptoGprIntrinsicAny;
+def int_riscv_sha256sig1  : ScalarCryptoGprIntrinsicAny;
+def int_riscv_sha256sum0  : ScalarCryptoGprIntrinsicAny;
+def int_riscv_sha256sum1  : ScalarCryptoGprIntrinsicAny;
+def int_riscv_sm3p0       : ScalarCryptoGprIntrinsicAny;
+def int_riscv_sm3p1       : ScalarCryptoGprIntrinsicAny;
 } // TargetPrefix = "riscv"
