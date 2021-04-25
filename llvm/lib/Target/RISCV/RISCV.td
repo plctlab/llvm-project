@@ -143,6 +143,13 @@ def HasStdExtZbbOrZbp
                                    "'Zbb' (Base 'B' Instructions) or "
                                    "'Zbp' (Permutation 'B' Instructions)">;
 
+def FeatureStdExtZce
+    : SubtargetFeature<"experimental-zce", "HasStdExtZce", "true",
+                       "'Zce' (code-size reduction extension proposal v0.31)">;
+def HasStdExtZce : Predicate<"Subtarget->hasStdExtZce()">,
+                           AssemblerPredicate<(all_of FeatureStdExtZce),
+                           "'Zce' (code-size reduction extension proposal v0.31)">;
+
 def FeatureNoRVCHints
     : SubtargetFeature<"no-rvc-hints", "EnableRVCHintInstrs", "false",
                        "Disable RVC Hint Instructions.">;
