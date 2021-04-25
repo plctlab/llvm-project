@@ -158,6 +158,12 @@ def FeatureStdExtB
 def HasStdExtB : Predicate<"Subtarget->hasStdExtB()">,
                            AssemblerPredicate<(all_of FeatureStdExtB),
                            "'B' (Bit Manipulation Instructions)">;
+def FeatureStdExtZce
+    : SubtargetFeature<"experimental-zce", "HasStdExtZce", "true",
+                       "'Zce' (code-size reduction extension proposal v0.31)">;
+def HasStdExtZce : Predicate<"Subtarget->hasStdExtZce()">,
+                           AssemblerPredicate<(all_of FeatureStdExtZce),
+                           "'Zce' (code-size reduction extension proposal v0.31)">;
 
 def FeatureNoRVCHints
     : SubtargetFeature<"no-rvc-hints", "EnableRVCHintInstrs", "false",
