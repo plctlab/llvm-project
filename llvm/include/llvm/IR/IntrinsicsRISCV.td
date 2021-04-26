@@ -1251,45 +1251,40 @@ let TargetPrefix = "riscv" in {
 // These intrinsics will lower directly into the corresponding instructions
 // added by the scalar cyptography extension, if the extension is present.
 
-class ScalarCryptoGprGprIntrinsic32 : Intrinsic<[llvm_i32_ty],
-                                                [llvm_i32_ty, llvm_i32_ty],
-                                                [IntrNoMem, IntrSpeculatable]>;
+class ScalarCryptoGprGprIntrinsic : Intrinsic<[llvm_anyint_ty],
+                                                [LLVMMatchType<0>,
+                                                 LLVMMatchType<0>],
+                                                [IntrNoMem, IntrWillReturn,
+                                                 IntrSpeculatable]>;
 
-def int_riscv_sha512sig0l : ScalarCryptoGprGprIntrinsic32;
-def int_riscv_sha512sig0h : ScalarCryptoGprGprIntrinsic32;
-def int_riscv_sha512sig1l : ScalarCryptoGprGprIntrinsic32;
-def int_riscv_sha512sig1h : ScalarCryptoGprGprIntrinsic32;
-def int_riscv_sha512sum0r : ScalarCryptoGprGprIntrinsic32;
-def int_riscv_sha512sum1r : ScalarCryptoGprGprIntrinsic32;
+def int_riscv_sha512sig0l : ScalarCryptoGprGprIntrinsic;
+def int_riscv_sha512sig0h : ScalarCryptoGprGprIntrinsic;
+def int_riscv_sha512sig1l : ScalarCryptoGprGprIntrinsic;
+def int_riscv_sha512sig1h : ScalarCryptoGprGprIntrinsic;
+def int_riscv_sha512sum0r : ScalarCryptoGprGprIntrinsic;
+def int_riscv_sha512sum1r : ScalarCryptoGprGprIntrinsic;
 
-class ScalarCryptoGprGprIntrinsic64 : Intrinsic<[llvm_i64_ty],
-                                                [llvm_i64_ty, llvm_i64_ty],
-                                                [IntrNoMem, IntrSpeculatable]>;
+def int_riscv_aes64ds     : ScalarCryptoGprGprIntrinsic;
+def int_riscv_aes64dsm    : ScalarCryptoGprGprIntrinsic;
+def int_riscv_aes64ks2    : ScalarCryptoGprGprIntrinsic;
+def int_riscv_aes64esm    : ScalarCryptoGprGprIntrinsic;
+def int_riscv_aes64es     : ScalarCryptoGprGprIntrinsic;
 
-def int_riscv_aes64ds     : ScalarCryptoGprGprIntrinsic64;
-def int_riscv_aes64dsm    : ScalarCryptoGprGprIntrinsic64;
-def int_riscv_aes64ks2    : ScalarCryptoGprGprIntrinsic64;
-def int_riscv_aes64esm    : ScalarCryptoGprGprIntrinsic64;
-def int_riscv_aes64es     : ScalarCryptoGprGprIntrinsic64;
+class ScalarCryptoGprIntrinsic    : Intrinsic<[llvm_anyint_ty],
+                                              [LLVMMatchType<0>],
+                                              [IntrNoMem, IntrWillReturn,
+                                               IntrSpeculatable]>;
 
-class ScalarCryptoGprIntrinsic64    : Intrinsic<[llvm_i64_ty],
-                                                [llvm_i64_ty],
-                                                [IntrNoMem, IntrSpeculatable]>;
+def int_riscv_sha512sig0  : ScalarCryptoGprIntrinsic;
+def int_riscv_sha512sig1  : ScalarCryptoGprIntrinsic;
+def int_riscv_sha512sum0  : ScalarCryptoGprIntrinsic;
+def int_riscv_sha512sum1  : ScalarCryptoGprIntrinsic;
+def int_riscv_aes64im     : ScalarCryptoGprIntrinsic;
 
-def int_riscv_sha512sig0  : ScalarCryptoGprIntrinsic64;
-def int_riscv_sha512sig1  : ScalarCryptoGprIntrinsic64;
-def int_riscv_sha512sum0  : ScalarCryptoGprIntrinsic64;
-def int_riscv_sha512sum1  : ScalarCryptoGprIntrinsic64;
-def int_riscv_aes64im     : ScalarCryptoGprIntrinsic64;
-
-class ScalarCryptoGprIntrinsicAny    : Intrinsic<[llvm_anyint_ty],
-                                                 [LLVMMatchType<0>],
-                                                 [IntrNoMem, IntrSpeculatable]>;
-
-def int_riscv_sha256sig0  : ScalarCryptoGprIntrinsicAny;
-def int_riscv_sha256sig1  : ScalarCryptoGprIntrinsicAny;
-def int_riscv_sha256sum0  : ScalarCryptoGprIntrinsicAny;
-def int_riscv_sha256sum1  : ScalarCryptoGprIntrinsicAny;
-def int_riscv_sm3p0       : ScalarCryptoGprIntrinsicAny;
-def int_riscv_sm3p1       : ScalarCryptoGprIntrinsicAny;
+def int_riscv_sha256sig0  : ScalarCryptoGprIntrinsic;
+def int_riscv_sha256sig1  : ScalarCryptoGprIntrinsic;
+def int_riscv_sha256sum0  : ScalarCryptoGprIntrinsic;
+def int_riscv_sha256sum1  : ScalarCryptoGprIntrinsic;
+def int_riscv_sm3p0       : ScalarCryptoGprIntrinsic;
+def int_riscv_sm3p1       : ScalarCryptoGprIntrinsic;
 } // TargetPrefix = "riscv"
