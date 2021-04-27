@@ -18606,8 +18606,12 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
     break;
   }
   // Vector builtins are handled from here.
-#include "clang/Basic/riscv_vector_builtin_cg.inc"
+  #include "clang/Basic/riscv_vector_builtin_cg.inc"
+  // Crypto builtin
+  #include "clang/Basic/riscv_crypto_builtin_cg.inc"
   }
+  
+
 
   assert(ID != Intrinsic::not_intrinsic);
 

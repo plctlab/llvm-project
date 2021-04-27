@@ -88,6 +88,9 @@ enum ActionType {
   GenRISCVVectorHeader,
   GenRISCVVectorBuiltins,
   GenRISCVVectorBuiltinCG,
+  GenRiscvCryptoHeader,
+  GenRiscvCryptoBuiltinCG,
+  GenRiscvCryptoBuiltins,
   GenAttrDocs,
   GenDiagDocs,
   GenOptDocs,
@@ -243,6 +246,12 @@ cl::opt<ActionType> Action(
                    "Generate riscv_vector_builtins.inc for clang"),
         clEnumValN(GenRISCVVectorBuiltinCG, "gen-riscv-vector-builtin-codegen",
                    "Generate riscv_vector_builtin_cg.inc for clang"),
+        clEnumValN(GenRiscvCryptoHeader, "gen-riscv-crypto-header",
+                   "Generate rvkintrin.h for clang"),
+        clEnumValN(GenRiscvCryptoBuiltinCG, "gen-riscv-crypto-builtin-codegen",
+                   "Generate RISCV Crypto builtin code-generate for clang"),
+        clEnumValN(GenRiscvCryptoBuiltins, "gen-riscv-crypto-builtin",
+                   "Generate RISCV Crypto builtin define"),
         clEnumValN(GenAttrDocs, "gen-attr-docs",
                    "Generate attribute documentation"),
         clEnumValN(GenDiagDocs, "gen-diag-docs",
@@ -457,6 +466,15 @@ bool ClangTableGenMain(raw_ostream &OS, RecordKeeper &Records) {
     break;
   case GenRISCVVectorBuiltinCG:
     EmitRVVBuiltinCG(Records, OS);
+    break;
+  case GenRiscvCryptoHeader:
+    EmitRiscvCryptoHeader(Records, OS);
+    break;
+  case GenRiscvCryptoBuiltinCG:
+    EmitRiscvCryptoBuiltinCG(Records, OS);
+    break;
+  case GenRiscvCryptoBuiltins:
+    EmitRiscvCryptoBuiltins(Records, OS);
     break;
   case GenAttrDocs:
     EmitClangAttrDocs(Records, OS);

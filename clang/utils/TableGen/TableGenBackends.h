@@ -101,6 +101,10 @@ void EmitSveBuiltinCG(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitSveTypeFlags(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitSveRangeChecks(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 
+void EmitRiscvCryptoHeader(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+void EmitRiscvCryptoBuiltinCG(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+void EmitRiscvCryptoBuiltins(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+
 void EmitMveHeader(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitMveBuiltinDef(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitMveBuiltinSema(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);

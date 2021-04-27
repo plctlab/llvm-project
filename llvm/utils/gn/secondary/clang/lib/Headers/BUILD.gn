@@ -50,6 +50,13 @@ clang_tablegen("riscv_vector") {
   output_name = "riscv_vector.h"
 }
 
+# Generate rvkintrin.h
+clang_tablegen("rvkintrin") {
+  args = [ "-gen-riscv-crypto-header" ]
+  td_file = "//clang/include/clang/Basic/rvkintrin.td"
+  output_name = "rvkintrin.h"
+}
+
 copy("tablegen_headers") {
   visibility = [ ":Headers" ]
   deps = [
@@ -60,6 +67,7 @@ copy("tablegen_headers") {
     ":arm_neon",
     ":arm_sve",
     ":riscv_vector",
+    ":rvkintrin",
   ]
   sources = []
   foreach(dep, deps) {

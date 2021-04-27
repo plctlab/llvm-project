@@ -219,6 +219,8 @@ clang_generate_header(-gen-arm-mve-header arm_mve.td arm_mve.h)
 clang_generate_header(-gen-arm-cde-header arm_cde.td arm_cde.h)
 # Generate riscv_vector.h
 clang_generate_header(-gen-riscv-vector-header riscv_vector.td riscv_vector.h)
+# Generate rvkintrin.h
+clang_generate_header(-gen-riscv-crypto-header rvkintrin.td rvkintrin.h)
 
 add_custom_target(clang-resource-headers ALL DEPENDS ${out_files})
 set_target_properties(clang-resource-headers PROPERTIES
