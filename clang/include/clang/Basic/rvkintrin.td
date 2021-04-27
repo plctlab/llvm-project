@@ -31,26 +31,35 @@ class Inst<string name, bit rv32, bit rv64,list<string> param_types, string retu
     bit ShouldEmitBuiltin = 1;
 }
 
-class RVK32Inst<string name, list<string> param_types = [], string return_types, string types> 
-            : Inst<name, 1, 0, param_types, return_types, types>;
-
-class RVK64Inst<string name, list<string> param_types = [], string return_types, string types> 
-            : Inst<name, 0, 1, param_types, return_types, types>;
-
-class RVKInst<string name, list<string> param_types = [], string return_types, string types> 
-            : Inst<name, 1, 1, param_types, return_types, types>;
-
-class RVK32InstBinary<string name, list<string> param_types, string return_types, string types, list<int> intrinsic_types = []>
-            : RVK32Inst<name, param_types, return_types, types>{
+class RVK32Inst<list<string> param_types = [], string return_types, string types, list<int> intrinsic_types = []> 
+            : Inst<NAME, 1, 0, param_types, return_types, types>{
     let IntrinsicTypes = intrinsic_types;
 }
 
-class RVK64InstBinary<string name, list<string> param_types, string return_types, string types, list<int> intrinsic_types = []>
-            : RVK64Inst<name, param_types, return_types, types>{
+class RVK64Inst<list<string> param_types = [], string return_types, string types, list<int> intrinsic_types = []> 
+            : Inst<NAME, 0, 1, param_types, return_types, types>{
     let IntrinsicTypes = intrinsic_types;
 }
 
+class RVKInst<list<string> param_types = [], string return_types, string types, list<int> intrinsic_types = []> 
+            : Inst<NAME, 1, 1, param_types, return_types, types>{
+    let IntrinsicTypes = intrinsic_types;
+}
 
-// def aesdsi : RVK32InstBinary<"aes32dsi", "ZZu8", [0,1,-1]>;
+// RV32
+// === AES32: Zkn (RV32), Zknd, Zkne 
+// def aesdsi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi", [0,1,2]>;
+// def aes32dsmi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi", [0,1,2]>;
+// def aes32esi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi", [0,1,2]>;
+// def aes32esmi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi", [0,1,2]>;
 
-    def aes64dsm : RVK64InstBinary<"aes64dsm", ["int64_t", "int64_t"], "int64_t", "WiWiWi">;
+
+// RV64
+// AES64: Zkn (RV64), Zknd, Zkne
+def aes64dsm : RVK64Inst<["int64_t", "int64_t"], "int64_t", "WiWiWi">;
+def aes64ds  : RVK64Inst<["int64_t", "int64_t"], "int64_t", "WiWiWi">;
+def aes64ks2 : RVK64Inst<["int64_t", "int64_t"], "int64_t", "WiWiWi">;
+def aes64esm : RVK64Inst<["int64_t", "int64_t"], "int64_t", "WiWiWi">;
+def aes64es  : RVK64Inst<["int64_t", "int64_t"], "int64_t", "WiWiWi">;
+// def aes64ks1i : RVK64Inst<["int64_t", "int"], "int64_t", "WiWii">;
+def aes64im : RVK64Inst<["int64_t"], "int64_t", "WiWi">;

@@ -153,12 +153,12 @@ void RISCVCryptoEmitter::createHeader(raw_ostream &OS) {
             OS << param << " rs" <<flag;
           }
           OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
-          flag = 0;
-          for(auto param : PT){
-            if(flag++>0){
+          for (int i = 0; i < flag; i++)
+          {
+            if(i>0){
               OS << ",";
             }
-            OS <<"rs" <<flag;
+            OS <<"rs" <<i+1;
           }
           OS <<"); }\n";
         }else{
@@ -184,12 +184,12 @@ void RISCVCryptoEmitter::createHeader(raw_ostream &OS) {
             OS << param << " rs" <<flag;
           }
           OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
-          flag = 0;
-          for(auto param : PT){
-            if(flag++>0){
+          for (int i = 0; i < flag; i++)
+          {
+            if(i>0){
               OS << ",";
             }
-            OS <<"rs" <<flag;
+            OS <<"rs" <<i+1;
           }
           OS <<"); }\n";
         }else{
@@ -214,12 +214,12 @@ void RISCVCryptoEmitter::createHeader(raw_ostream &OS) {
             OS << param << " rs" <<flag;
           }
           OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
-          flag = 0;
-          for(auto param : PT){
-            if(flag++>0){
+          for (int i = 0; i < flag; i++)
+          {
+            if(i>0){
               OS << ",";
             }
-            OS <<"rs" <<flag;
+            OS <<"rs" <<i+1;
           }
           OS <<"); }\n";
         }else{
@@ -242,9 +242,8 @@ void RISCVCryptoEmitter::createBuiltinCG(raw_ostream &OS){
 
   for (auto def : Defs) {
     OS << "case RISCV::BI__builtin_riscv_"<< def->getName() <<":\n";
-    OS << "{\n";
     def->createSwitchBody(OS);
-    OS << "}\n";
+    OS << " break;\n";
   }
 }
 
@@ -270,17 +269,18 @@ void Intrinsic::createSwitchBody(raw_ostream &OS) {
   if (!getName().empty()){
     OS << "  ID = Intrinsic::riscv_" + getName() + ";\n";
   }
+  if (IntrinsicTypes.size() > 0){
     OS << "  IntrinsicTypes = {";
-
-  // ListSeparator LS;
-  int flag = 0;
-  for (const auto &Idx : IntrinsicTypes) {
-    if (Idx == -1)
-      OS << (flag++ == 0?"":",") << "ResultType";
-    else
-      OS << (flag++ == 0?"":",") << "Ops[" << Idx << "]->getType()";
+    ListSeparator LS;
+    for (const auto &Idx : IntrinsicTypes) {
+      if (Idx == -1)
+        OS << LS << "ResultType";
+      else
+        OS << LS << "Ops[" << Idx << "]->getType()";
+    }
+    OS << "};\n";
   }
-  OS << "};\n";
+    
 }
 
 void RISCVCryptoEmitter::createIntrinsic(Record *R, std::vector<std::shared_ptr<Intrinsic>>& Out){
