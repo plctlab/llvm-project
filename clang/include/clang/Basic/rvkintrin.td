@@ -7,7 +7,7 @@
 //===----------------------------------------------------------------------===//
 //
 // This file defines the TableGen definitions from which the RISC-V Crypto
-// header file will be generated. It is also used to generate clang CodeGen
+// header file will be generated. It is also used to generate Clang CodeGen
 // snippet.
 //
 //===----------------------------------------------------------------------===//
