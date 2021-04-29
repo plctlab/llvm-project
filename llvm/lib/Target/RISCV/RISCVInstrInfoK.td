@@ -172,3 +172,11 @@ let Predicates = [HasStdExtZksh] in {
 def : PatGpr<int_riscv_sm3p0, SM3P0>;
 def : PatGpr<int_riscv_sm3p1, SM3P1>;
 }
+
+let Predicates = [HasStdExtZkr] in {
+class PatEntropy<SDPatternOperator OpNode, string name>
+    : Pat<(OpNode), (Pseudo<(outs GPR:$rd), (ins), [], name, "$rd">)>;
+
+def : PatEntropy<int_riscv_getnoise, "getnoise">;
+def : PatEntropy<int_riscv_pollentropy, "pollentropy">;
+}

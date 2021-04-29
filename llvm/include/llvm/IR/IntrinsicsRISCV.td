@@ -1292,4 +1292,11 @@ def int_riscv_sha256sum0  : ScalarCryptoGprIntrinsicAny;
 def int_riscv_sha256sum1  : ScalarCryptoGprIntrinsicAny;
 def int_riscv_sm3p0       : ScalarCryptoGprIntrinsicAny;
 def int_riscv_sm3p1       : ScalarCryptoGprIntrinsicAny;
+
+class ScalarCryptoEntropyIntrinsicAny : Intrinsic<[llvm_anyint_ty], [],
+                                                  [IntrNoMem,
+                                                   IntrSpeculatable]>;
+
+def int_riscv_getnoise    : ScalarCryptoEntropyIntrinsicAny;
+def int_riscv_pollentropy : ScalarCryptoEntropyIntrinsicAny;
 } // TargetPrefix = "riscv"
