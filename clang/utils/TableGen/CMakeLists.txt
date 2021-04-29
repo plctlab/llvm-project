@@ -20,7 +20,7 @@ add_tablegen(clang-tblgen CLANG
   NeonEmitter.cpp
   RISCVVEmitter.cpp
   SveEmitter.cpp
-  RiscvCryptoEmitter.cpp
+  RISCVKEmitter.cpp
   TableGen.cpp
   )
 set_target_properties(clang-tblgen PROPERTIES FOLDER "Clang tablegenning")
