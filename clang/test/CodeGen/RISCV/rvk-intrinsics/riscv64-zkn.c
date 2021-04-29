@@ -83,3 +83,69 @@ int64_t test_rv64_aes64im(int64_t rs1){
 int64_t test_rv64_aes64ks2(int64_t rs1, int64_t rs2){
     return _rv64_aes64ks2(rs1, rs2);
 }
+
+// RV64ZKN-LABEL: i64 @test_rv_sha256sig0(
+// RV64ZKN-NEXT:  entry:
+// RV64ZKN-NEXT:  [[RS1_ADDR:%.*]] = alloca i64, align 8
+// RV64ZKN-NEXT:  store i64 [[RS1:%.*]], i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[TMP0:%.*]] = load i64, i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[CALL:%.*]] = call i64 @_rv_sha256sig0(i64 [[TMP0]])
+// RV64ZKN-NEXT:  ret i64 [[CALL]]
+long test_rv_sha256sig0(long rs1){
+    return _rv_sha256sig0(rs1);
+}
+
+// RV64ZKN-LABEL: i64 @test_rv_sha256sig1(
+// RV64ZKN-NEXT:  entry:
+// RV64ZKN-NEXT:  [[RS1_ADDR:%.*]] = alloca i64, align 8
+// RV64ZKN-NEXT:  store i64 [[RS1:%.*]], i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[TMP0:%.*]] = load i64, i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[CALL:%.*]] = call i64 @_rv_sha256sig1(i64 [[TMP0]])
+// RV64ZKN-NEXT:  ret i64 [[CALL]]
+long test_rv_sha256sig1(long rs1){
+    return _rv_sha256sig1(rs1);
+}
+
+// RV64ZKN-LABEL: i64 @test_rv_sha256sum0(
+// RV64ZKN-NEXT:  entry:
+// RV64ZKN-NEXT:  [[RS1_ADDR:%.*]] = alloca i64, align 8
+// RV64ZKN-NEXT:  store i64 [[RS1:%.*]], i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[TMP0:%.*]] = load i64, i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[CALL:%.*]] = call i64 @_rv_sha256sum0(i64 [[TMP0]])
+// RV64ZKN-NEXT:  ret i64 [[CALL]]
+long test_rv_sha256sum0(long rs1){
+    return _rv_sha256sum0(rs1);
+}
+
+// RV64ZKN-LABEL: i64 @test_rv_sha256sum1(
+// RV64ZKN-NEXT:  entry:
+// RV64ZKN-NEXT:  [[RS1_ADDR:%.*]] = alloca i64, align 8
+// RV64ZKN-NEXT:  store i64 [[RS1:%.*]], i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[TMP0:%.*]] = load i64, i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[CALL:%.*]] = call i64 @_rv_sha256sum1(i64 [[TMP0]])
+// RV64ZKN-NEXT:  ret i64 [[CALL]]
+long test_rv_sha256sum1(long rs1){
+    return _rv_sha256sum1(rs1);
+}
+
+// RV64ZKN-LABEL: i64 @test_rv_sm3p0(
+// RV64ZKN-NEXT:  entry:
+// RV64ZKN-NEXT:  [[RS1_ADDR:%.*]] = alloca i64, align 8
+// RV64ZKN-NEXT:  store i64 [[RS1:%.*]], i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[TMP0:%.*]] = load i64, i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[CALL:%.*]] = call i64 @_rv_sm3p0(i64 [[TMP0]])
+// RV64ZKN-NEXT:  ret i64 [[CALL]]
+long test_rv_sm3p0(long rs1){
+    return _rv_sm3p0(rs1);
+}
+
+// RV64ZKN-LABEL: i64 @test_rv_sm3p1(
+// RV64ZKN-NEXT:  entry:
+// RV64ZKN-NEXT:  [[RS1_ADDR:%.*]] = alloca i64, align 8
+// RV64ZKN-NEXT:  store i64 [[RS1:%.*]], i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[TMP0:%.*]] = load i64, i64* [[RS1_ADDR]], align 8
+// RV64ZKN-NEXT:  [[CALL:%.*]] = call i64 @_rv_sm3p1(i64 [[TMP0]])
+// RV64ZKN-NEXT:  ret i64 [[CALL]]
+long test_rv_sm3p1(long rs1){
+    return _rv_sm3p1(rs1);
+}

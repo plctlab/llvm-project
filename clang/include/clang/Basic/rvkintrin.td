@@ -81,14 +81,14 @@ def sha512sum1 : RVK64Inst<["int64_t"], "int64_t", "WiWi">;
 // RV32&64
 
 //	=== SHA256: Zkn (RV32, RV64), Zknh
-def sha256sig0 : RVKInst<["long"],"long","LiLi">;
-def sha256sig1 : RVKInst<["long"],"long","LiLi">;
-def sha256sum0 : RVKInst<["long"],"long","LiLi">;
-def sha256sum1 : RVKInst<["long"],"long","LiLi">;
+def sha256sig0 : RVKInst<["long"],"long","LiLi",[0,-1]>;
+def sha256sig1 : RVKInst<["long"],"long","LiLi",[0,-1]>;
+def sha256sum0 : RVKInst<["long"],"long","LiLi",[0,-1]>;
+def sha256sum1 : RVKInst<["long"],"long","LiLi",[0,-1]>;
 
 //	=== SM3:	Zks (RV32, RV64), Zksh 
-def sm3p0 : RVKInst<["long"],"long","LiLi">;
-def sm3p1 : RVKInst<["long"],"long","LiLi">;
+def sm3p0 : RVKInst<["long"],"long","LiLi",[0,-1]>;
+def sm3p1 : RVKInst<["long"],"long","LiLi",[0,-1]>;
 //	=== SM4:	Zks (RV32, RV64), Zksed
 // def sm4ks : RVKInst<["long","long","uint8_t"],"long","LiLiLiUi">;
 // def sm4ed : RVKInst<["long","long","uint8_t"],"long","LiLiLiUi">;
