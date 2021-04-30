@@ -24,10 +24,14 @@ public:
   void createBuiltins(raw_ostream &OS);
 
   void createIntrinsic(Record *R, std::vector<std::shared_ptr<Intrinsic>>& Out);
+
+  void createEmulateIntrinsic(Record *R, std::vector<std::shared_ptr<Intrinsic>>& Out);
 };
 
 class Intrinsic {
 private:
+  std::string Prefix;
+
   // The name fo the intrinsic
   std::string Name;
   
@@ -37,9 +41,9 @@ private:
   // The type string of the intrinsic
   StringRef Types;
 
-  // If not empty, the emitter will use it to define the intrinsic function.
-  // Otherwise, the emitter will generate intrinsic in the default way.
-  std::string CustomDef;
+  // If not empty, the emitter will use it to define the intrinsic emulate function 
+  // so that it can be called without suport of k-Ext.
+  std::string EmulateDef;
 
   bool enableForRV32;
   bool enableForRV64;
@@ -49,10 +53,11 @@ private:
   std::vector<int64_t> IntrinsicTypes;
 
 public:
+  std::string getPrefix() { return Prefix; }
 
   std::string getName() { return Name; }
 
-  std::string getCustomDef() { return CustomDef; }
+  std::string getEmulateDef() { return EmulateDef; }
 
   StringRef getTypes() { return Types; }
 
@@ -60,8 +65,11 @@ public:
 
   StringRef getReturnType() { return returnType; }
 
-  Intrinsic(StringRef Name, std::vector<StringRef> paramTypes, StringRef returnType, StringRef Types, std::vector<int64_t> &IntrinsicTypes, StringRef Def, bool enableForRV32, bool enableForRV64)
-      : Name(Name.str()), paramTypes(paramTypes), returnType(returnType), Types(Types), CustomDef(Def), enableForRV32(enableForRV32), enableForRV64(enableForRV64), IntrinsicTypes(IntrinsicTypes) {}
+  Intrinsic(StringRef Name, std::vector<StringRef> paramTypes, StringRef returnType, StringRef Def)
+      : Prefix(""), Name(Name.str()), paramTypes(paramTypes), returnType(returnType), EmulateDef(Def) {}
+
+  Intrinsic(StringRef Prefix, StringRef Name, std::vector<StringRef> paramTypes, StringRef returnType, StringRef Types, std::vector<int64_t> &IntrinsicTypes, StringRef Def, bool enableForRV32, bool enableForRV64)
+      : Prefix(Prefix.str()), Name(Name.str()), paramTypes(paramTypes), returnType(returnType), Types(Types), EmulateDef(Def), enableForRV32(enableForRV32), enableForRV64(enableForRV64), IntrinsicTypes(IntrinsicTypes) {}
 
   void createSwitchBody(raw_ostream &OS);
 };
@@ -107,7 +115,8 @@ void RISCVCryptoEmitter::createHeader(raw_ostream &OS) {
     OS << "#include <stdint.h>\n";
     OS << "\n";
     OS << "//	always include bitmanip intrinsics; architecture macros defined there\n";
-    OS << "// #include \"rvintrin.h\"\n"; 
+    OS << "\n//Fixme: uncomment include line in clang/utils/TableGen/RISCVKEmitter.cpp when rvintrin.h is available. \n";
+    OS << "//#include \"rvintrin.h\"\n"; 
     OS << "\n";
     OS << "//	IMPORTANT:\n";
     OS << "//	Compilers should never emit emulation code (especially conditionals or\n";
@@ -122,10 +131,15 @@ void RISCVCryptoEmitter::createHeader(raw_ostream &OS) {
     OS << "#ifndef RVINTRIN_EMULATE\n";
 
     std::vector<Record *> RV = Records.getAllDerivedDefinitions("Inst");
+    std::vector<Record *> Emulat = Records.getAllDerivedDefinitions("EmulateIntr");
     std::vector<std::shared_ptr<Intrinsic>> RV32Defs;
     std::vector<std::shared_ptr<Intrinsic>> RV64Defs;
     std::vector<std::shared_ptr<Intrinsic>> RVUniDefs;
-    std::vector<std::shared_ptr<Intrinsic>> CustomDefs;
+    std::vector<std::shared_ptr<Intrinsic>> EmulateDefs;
+
+    for (auto Intr : Emulat) {
+      createEmulateIntrinsic(Intr, EmulateDefs);
+    }
 
     for (auto R : RV) {
       if(R->getValueAsBit("enableForRV32")&&R->getValueAsBit("enableForRV64")){
@@ -137,99 +151,137 @@ void RISCVCryptoEmitter::createHeader(raw_ostream &OS) {
       }
     }
 
-    OS << "#ifndef RVINTRIN_RV32\n";
+    OS << "#ifdef RVINTRIN_RV32\n";
     for (auto def : RV32Defs) {
-      if (!def->getCustomDef().empty()) {
-        CustomDefs.push_back(def);
-      }else{
-        std::vector<StringRef> PT = def->getParamTypes();
-        OS << "static inline " << def->getReturnType() << " _rv32_" << def->getName() << "(";
-        if(PT.size()>0){
-          int flag = 0;
-          for(auto param : PT){
-            if(flag++>0){
-              OS << ",";
-            }
-            OS << param << " rs" <<flag;
+      if (!def->getEmulateDef().empty()) {
+        EmulateDefs.push_back(def);
+      }
+      std::vector<StringRef> PT = def->getParamTypes();
+      OS << "static inline " << def->getReturnType() << " " << def->getPrefix() << def->getName() << "(";
+      if(PT.size()>0){
+        int flag = 0;
+        for(auto param : PT){
+          if(flag++>0){
+            OS << ",";
           }
-          OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
-          for (int i = 0; i < flag; i++)
-          {
-            if(i>0){
-              OS << ",";
-            }
-            OS <<"rs" <<i+1;
-          }
-          OS <<"); }\n";
-        }else{
-          OS << "...)" << " { __builtin_riscv_" << def->getName() << "(__VA_ARGS__) }\n";
+          OS << param << " rs" <<flag;
         }
+        OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
+        for (int i = 0; i < flag; i++)
+        {
+          if(i>0){
+            OS << ",";
+          }
+          OS <<"rs" <<i+1;
+        }
+        OS <<"); }\n";
+      }else{
+        OS << "...)" << " { __builtin_riscv_" << def->getName() << "(__VA_ARGS__) }\n";
       }
     }
     OS << "#endif // RVINTRIN_RV32\n";
 
-    OS << "#ifndef RVINTRIN_RV64\n";
+    OS << "#ifdef RVINTRIN_RV64\n";
     for (auto def : RV64Defs) {
-      if (!def->getCustomDef().empty()) {
-        CustomDefs.push_back(def);
-      }else{
-        std::vector<StringRef> PT = def->getParamTypes();
-        OS << "static inline " << def->getReturnType() << " _rv64_" << def->getName() << "(";
-        if(PT.size()>0){
-          int flag = 0;
-          for(auto param : PT){
-            if(flag++>0){
-              OS << ",";
-            }
-            OS << param << " rs" <<flag;
+      if (!def->getEmulateDef().empty()) {
+        EmulateDefs.push_back(def);
+      }
+      std::vector<StringRef> PT = def->getParamTypes();
+      OS << "static inline " << def->getReturnType() << " " << def->getPrefix() << def->getName() << "(";
+      if(PT.size()>0){
+        int flag = 0;
+        for(auto param : PT){
+          if(flag++>0){
+            OS << ",";
           }
-          OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
-          for (int i = 0; i < flag; i++)
-          {
-            if(i>0){
-              OS << ",";
-            }
-            OS <<"rs" <<i+1;
-          }
-          OS <<"); }\n";
-        }else{
-          OS << "...)" << " { __builtin_riscv_" << def->getName() << "(__VA_ARGS__); }\n";
+          OS << param << " rs" <<flag;
         }
+        OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
+        for (int i = 0; i < flag; i++)
+        {
+          if(i>0){
+            OS << ",";
+          }
+          OS <<"rs" <<i+1;
+        }
+        OS <<"); }\n";
+      }else{
+        OS << "...)" << " { __builtin_riscv_" << def->getName() << "(__VA_ARGS__); }\n";
       }
     }
     OS << "#endif // RVINTRIN_RV64\n";
 
     for (auto def : RVUniDefs) {
-      if (!def->getCustomDef().empty()) {
-        CustomDefs.push_back(def);
-      }else{
-        std::vector<StringRef> PT = def->getParamTypes();
-        OS << "static inline " << def->getReturnType() << " _rv_" << def->getName() << "(";
-        if(PT.size()>0){
-          int flag = 0;
-          for(auto param : PT){
-            if(flag++>0){
-              OS << ",";
-            }
-            OS << param << " rs" <<flag;
+      if (!def->getEmulateDef().empty()) {
+        EmulateDefs.push_back(def);
+      }
+      std::vector<StringRef> PT = def->getParamTypes();
+      OS << "static inline " << def->getReturnType() << " " << def->getPrefix() << def->getName() << "(";
+      if(PT.size()>0){
+        int flag = 0;
+        for(auto param : PT){
+          if(flag++>0){
+            OS << ",";
           }
-          OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
-          for (int i = 0; i < flag; i++)
-          {
-            if(i>0){
-              OS << ",";
-            }
-            OS <<"rs" <<i+1;
-          }
-          OS <<"); }\n";
-        }else{
-          OS << "...)" << " { __builtin_riscv_" << def->getName() << "(__VA_ARGS__); }\n";
+          OS << param << " rs" <<flag;
         }
+        OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
+        for (int i = 0; i < flag; i++)
+        {
+          if(i>0){
+            OS << ",";
+          }
+          OS <<"rs" <<i+1;
+        }
+        OS <<"); }\n";
+      }else{
+        OS << "...)" << " { __builtin_riscv_" << def->getName() << "(__VA_ARGS__); }\n";
       }
     }
 
+    OS << "#else\n";
+    OS << "//	===	RVINTRIN_EMULATE ==============================================\n";
+    OS << "/*\n";
+    OS << " *	_rvk_emu_*(...)\n";
+    OS << " *	  Some INTERNAL tables (rvk_emu.c) and functions.\n";
+    OS << " */\n";
+    OS << "extern const uint8_t _rvk_emu_aes_fwd_sbox[256];	//	AES Forward S-Box\n";
+    OS << "extern const uint8_t _rvk_emu_aes_inv_sbox[256];	//	AES Inverse S-Box\n";
+    OS << "extern const uint8_t _rvk_emu_sm4_sbox[256];		//	SM4 S-Box\n";
+    OS << "//	rvk_emu internal: multiply by 0x02 in AES's GF(256) - LFSR style.\n\n";
+
+    for (auto def : EmulateDefs) {
+      OS << "static inline " << def->getReturnType() << " " << def->getPrefix() << def->getName();
+      OS << "(";
+      std::vector<StringRef> types = def->getParamTypes();
+      for(size_t i = 0; i<types.size(); i++){
+        OS << ((i>0)?", ":"") << types[i] << " rs" <<i+1;
+      }
+      OS << ");\n";
+    }
+    OS << "\n\n";
+    for (auto def : EmulateDefs) {
+      OS << "static inline " << def->getReturnType() << " " << def->getPrefix() << def->getName();
+      OS << "(";
+      std::vector<StringRef> types = def->getParamTypes();
+      for(size_t i = 0; i<types.size(); i++){
+        OS << ((i>0)?", ":"") << types[i] << " rs" <<i+1;
+      }
+      OS << ")\n";
+      OS << "{";
+      OS << def->getEmulateDef();
+      OS << "\n}\n";
+    }
+
+    OS << "//	=== Entropy source:	Zkr (RV32 & RV64) -- function prototypes only for emu.\n";
+    OS << "long _rv_pollentropy();\n";
+    OS << "long _rv_getnoise();\n";
+    OS << "\n";
+    
     OS << "#endif	// RVINTRIN_EMULATE\n";
     OS << "#endif	// _RVKINTRIN_H_\n";
+
+
 }
 
 void RISCVCryptoEmitter::createBuiltinCG(raw_ostream &OS){
@@ -286,15 +338,25 @@ void Intrinsic::createSwitchBody(raw_ostream &OS) {
 void RISCVCryptoEmitter::createIntrinsic(Record *R, std::vector<std::shared_ptr<Intrinsic>>& Out){
   StringRef Name = R->getValueAsString("IntrinsicName");
   StringRef BuiltinStr = R->getValueAsString("BuiltinStr");
+  StringRef Prefix = R->getValueAsString("Prefix");
   bool enableForRV32 = R->getValueAsBit("enableForRV32");
   bool enableForRV64 = R->getValueAsBit("enableForRV64");
-  StringRef Def = R->getValueAsString("CustomDef");
+  StringRef Def = R->getValueAsString("EmulateDef");
   std::vector<StringRef> paramTypes = R->getValueAsListOfStrings("paramTypes");
   StringRef returnType = R->getValueAsString("returnType");
   std::vector<int64_t> IntrinsicTypes =
         R->getValueAsListOfInts("IntrinsicTypes");
 
-  Out.push_back(std::make_shared<Intrinsic>(Name, paramTypes, returnType, BuiltinStr, IntrinsicTypes, Def, enableForRV32, enableForRV64));
+  Out.push_back(std::make_shared<Intrinsic>(Prefix, Name, paramTypes, returnType, BuiltinStr, IntrinsicTypes, Def, enableForRV32, enableForRV64));
+}
+
+void RISCVCryptoEmitter::createEmulateIntrinsic(Record *R, std::vector<std::shared_ptr<Intrinsic>>& Out){
+  StringRef Name = R->getValueAsString("IntrinsicName");
+  StringRef Def = R->getValueAsString("EmulateDef");
+  std::vector<StringRef> paramTypes = R->getValueAsListOfStrings("paramTypes");
+  StringRef returnType = R->getValueAsString("returnType");
+
+  Out.push_back(std::make_shared<Intrinsic>(Name, paramTypes, returnType, Def));
 }
 
 namespace clang {

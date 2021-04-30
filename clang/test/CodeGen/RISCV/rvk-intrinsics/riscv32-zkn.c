@@ -1,6 +1,9 @@
 // RUN: %clang_cc1 -triple riscv32 -target-feature +experimental-k -emit-llvm %s -o - \
 // RUN:     | FileCheck %s  -check-prefix=RV32ZKN
 
+// Fixme: delete this line when rvintrin.h is available. 
+#define RVINTRIN_RV32
+
 #include <rvkintrin.h>
 
 // RV32ZKN-LABEL: i32 @test_rv32_sha512sig0l(

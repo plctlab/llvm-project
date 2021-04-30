@@ -1,6 +1,9 @@
 // RUN: %clang_cc1 -triple riscv64 -target-feature +experimental-k -emit-llvm %s -o - \
 // RUN:     | FileCheck %s  -check-prefix=RV64ZKN
 
+// Fixme: delete this line when rvintrin.h is available. 
+#define RVINTRIN_RV64
+
 #include <rvkintrin.h>
 
 // RV64ZKN-LABEL: i64 @test_rv64_aes64dsm(
