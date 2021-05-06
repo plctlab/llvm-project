@@ -136,6 +136,19 @@ def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
 // Intrinsics
 //===----------------------------------------------------------------------===//
 
+def NodeUimm2 : TImmLeaf<i32, [{return isUInt<2>(Imm);}]>;
+
+class PatGprGprByteSelect<SDPatternOperator OpNode, RVInst Inst>
+    : Pat<(OpNode GPR:$rs1, GPR:$rs2, NodeUimm2:$imm),
+          (Inst GPR:$rs1, GPR:$rs2, NodeUimm2:$imm)>;
+
+let Predicates = [HasStdExtZkn, IsRV32] in {
+def : PatGprGprByteSelect<int_riscv_aes32dsi, AES32DSI>;
+def : PatGprGprByteSelect<int_riscv_aes32dsmi, AES32DSMI>;
+def : PatGprGprByteSelect<int_riscv_aes32esi, AES32ESI>;
+def : PatGprGprByteSelect<int_riscv_aes32esmi, AES32ESMI>;
+}
+
 let Predicates = [HasStdExtZknh, IsRV32] in {
 def : PatGprGpr<int_riscv_sha512sig0l, SHA512SIG0L>;
 def : PatGprGpr<int_riscv_sha512sig0h, SHA512SIG0H>;
@@ -174,6 +187,11 @@ def : PatGpr<int_riscv_sha256sum1, SHA256SUM1>;
 let Predicates = [HasStdExtZksh] in {
 def : PatGpr<int_riscv_sm3p0, SM3P0>;
 def : PatGpr<int_riscv_sm3p1, SM3P1>;
+}
+
+let Predicates = [HasStdExtZksed] in {
+def : PatGprGprByteSelect<int_riscv_sm4ks, SM4KS>;
+def : PatGprGprByteSelect<int_riscv_sm4ed, SM4ED>;
 }
 
 let Predicates = [HasStdExtZkr] in {

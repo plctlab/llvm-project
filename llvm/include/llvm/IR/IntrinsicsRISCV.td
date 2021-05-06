@@ -1251,6 +1251,32 @@ let TargetPrefix = "riscv" in {
 // These intrinsics will lower directly into the corresponding instructions
 // added by the scalar cyptography extension, if the extension is present.
 
+class ScalarCryptoByteSelect32      : Intrinsic<[llvm_i32_ty],
+                                                [llvm_i32_ty,
+                                                 llvm_i32_ty,
+                                                 llvm_i32_ty],
+                                                [IntrNoMem, IntrSpeculatable,
+                                                 IntrWillReturn,
+                                                 ImmArg<ArgIndex<2>>,
+                                                 Returned<ArgIndex<0>>]>;
+
+def int_riscv_aes32dsi  : ScalarCryptoByteSelect32;
+def int_riscv_aes32dsmi : ScalarCryptoByteSelect32;
+def int_riscv_aes32esi  : ScalarCryptoByteSelect32;
+def int_riscv_aes32esmi : ScalarCryptoByteSelect32;
+
+class ScalarCryptoByteSelectAny     : Intrinsic<[llvm_anyint_ty],
+                                                [LLVMMatchType<0>,
+                                                 LLVMMatchType<0>,
+                                                 llvm_anyint_ty],
+                                                [IntrNoMem, IntrSpeculatable,
+                                                 IntrWillReturn,
+                                                 ImmArg<ArgIndex<2>>,
+                                                 Returned<ArgIndex<0>>]>;
+
+def int_riscv_sm4ks     : ScalarCryptoByteSelectAny;
+def int_riscv_sm4ed     : ScalarCryptoByteSelectAny;
+
 class ScalarCryptoGprGprIntrinsic32 : Intrinsic<[llvm_i32_ty],
                                                 [llvm_i32_ty, llvm_i32_ty],
                                                 [IntrNoMem, IntrSpeculatable]>;
