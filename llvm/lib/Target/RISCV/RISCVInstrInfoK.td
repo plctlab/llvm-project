@@ -137,6 +137,7 @@ def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
 //===----------------------------------------------------------------------===//
 
 def NodeUimm2 : TImmLeaf<i32, [{return isUInt<2>(Imm);}]>;
+def NodeRcon  : TImmLeaf<i64, [{return isUInt<4>(Imm);}]>;
 
 class PatGprGprByteSelect<SDPatternOperator OpNode, RVInst Inst>
     : Pat<(OpNode GPR:$rs1, GPR:$rs2, NodeUimm2:$imm),
@@ -174,6 +175,8 @@ def : PatGpr<int_riscv_aes64im, AES64IM>;
 let Predicates = [HasStdExtZkne, IsRV64] in {
 def : PatGprGpr<int_riscv_aes64es, AES64ES>;
 def : PatGprGpr<int_riscv_aes64esm, AES64ESM>;
+def : Pat<(XLenVT (int_riscv_aes64ks1i (XLenVT GPR:$rs1), NodeRcon:$rcon)),
+          (AES64KS1I GPR:$rs1, NodeRcon:$rcon)>;
 def : PatGprGpr<int_riscv_aes64ks2, AES64KS2>;
 }
 

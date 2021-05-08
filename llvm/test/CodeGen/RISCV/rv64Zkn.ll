@@ -45,6 +45,17 @@ define i64 @aes64dsm(i64 %a, i64 %b) nounwind {
     ret i64 %val
 }
 
+declare i64 @llvm.riscv.aes64ks1i(i64, i64);
+
+define i64 @aes64ks1i(i64 %a) nounwind {
+; RV64IK-LABEL: aes64ks1i
+; RV64IK: # %bb.0:
+; RV64IK-NEXT: aes64ks1i a{{[0-9]+}}, a{{[0-9]+}}, {{[0-9]+}}
+; RV64IK-NEXT: ret
+    %val = call i64 @llvm.riscv.aes64ks1i(i64 %a, i64 10)
+    ret i64 %val
+}
+
 declare i64 @llvm.riscv.aes64ks2(i64, i64);
 
 define i64 @aes64ks2(i64 %a, i64 %b) nounwind {
