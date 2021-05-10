@@ -45,11 +45,12 @@ class RVKBinary<bits<7> funct7, bits<3> funct3, string opcodestr>
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class RVKByteSelect<bits<5> funct5, string opcodestr>
-    : RVInstS<0b000, OPC_OP, (outs GPR:$rt), (ins GPR:$rs2, uimm2:$bs), 
+    : RVInstS<0b000, OPC_OP, (outs GPR:$rt), (ins GPR:$rs1, GPR:$rs2, uimm2:$bs),
             opcodestr, "$rt, $rs2, $bs">{
         bits<2> bs;
         bits<5> rt;
 
+        let Constraints = "$rt = $rs1";
         let Inst{31-30}=bs;
         let Inst{29-25}=funct5;
         let Inst{19-15}=rt;
