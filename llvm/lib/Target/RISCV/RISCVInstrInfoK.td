@@ -136,12 +136,17 @@ def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
 // Intrinsics
 //===----------------------------------------------------------------------===//
 
-def NodeUimm2 : TImmLeaf<i32, [{return isUInt<2>(Imm);}]>;
-def NodeRcon  : TImmLeaf<i64, [{return isUInt<4>(Imm);}]>;
+def NodeUimm2_32 : TImmLeaf<i32, [{return isUInt<2>(Imm);}]>;
+def NodeUimm2_64 : TImmLeaf<i64, [{return isUInt<2>(Imm);}]>;
+def NodeRcon     : TImmLeaf<i64, [{return isUInt<4>(Imm);}]>;
 
 class PatGprGprByteSelect<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode GPR:$rs1, GPR:$rs2, NodeUimm2:$imm),
-          (Inst GPR:$rs1, GPR:$rs2, NodeUimm2:$imm)>;
+    : Pat<(OpNode GPR:$rs1, GPR:$rs2, NodeUimm2_32:$imm),
+          (Inst GPR:$rs1, GPR:$rs2, NodeUimm2_32:$imm)>;
+
+class PatGprGprByteSelect64<SDPatternOperator OpNode, RVInst Inst>
+    : Pat<(OpNode GPR:$rs1, GPR:$rs2, NodeUimm2_64:$imm),
+          (Inst GPR:$rs1, GPR:$rs2, NodeUimm2_64:$imm)>;
 
 let Predicates = [HasStdExtZkn, IsRV32] in {
 def : PatGprGprByteSelect<int_riscv_aes32dsi, AES32DSI>;
@@ -192,9 +197,14 @@ def : PatGpr<int_riscv_sm3p0, SM3P0>;
 def : PatGpr<int_riscv_sm3p1, SM3P1>;
 }
 
-let Predicates = [HasStdExtZksed] in {
+let Predicates = [HasStdExtZksed, IsRV32] in {
 def : PatGprGprByteSelect<int_riscv_sm4ks, SM4KS>;
 def : PatGprGprByteSelect<int_riscv_sm4ed, SM4ED>;
+}
+
+let Predicates = [HasStdExtZksed, IsRV64] in {
+def : PatGprGprByteSelect64<int_riscv_sm4ks, SM4KS>;
+def : PatGprGprByteSelect64<int_riscv_sm4ed, SM4ED>;
 }
 
 let Predicates = [HasStdExtZkr] in {
