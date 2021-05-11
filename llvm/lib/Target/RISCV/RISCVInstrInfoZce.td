@@ -19,27 +19,6 @@ include "RISCVInstrFormatsZce.td"
 // Operand and SDNode transformation definitions.
 //===----------------------------------------------------------------------===//
 
-// echo "c.zext.b s0" | bin/llvm-mc -triple=riscv64 -mattr=+experimental-zce -show-encoding
-let Predicates = [HasStdExtZce] in
-def C_ZEXT_B : RVZcecInst16<0b00, 0b000 , "c.zext.b">, Sched<[]>;
-
-let Predicates = [HasStdExtZce] in
-def C_SEXT_B : RVZcecInst16<0b00, 0b100 , "c.sext.b">, Sched<[]>;
-
-let Predicates = [HasStdExtZce] in
-def C_ZEXT_H : RVZcecInst16<0b00, 0b001 , "c.zext.h">, Sched<[]>;
-
-let Predicates = [HasStdExtZce] in
-def C_SEXT_H : RVZcecInst16<0b00, 0b101 , "c.sext.h">, Sched<[]>;
-
-let Predicates = [HasStdExtZce, IsRV64] in
-def C_ZEXT_W : RVZcecInst16<0b00, 0b010 , "c.zext.w">, Sched<[]>;
-
-// def C_NOT : RVZcecInst16<0b00, 0b110 , "c.not">, Sched<[]>;
-// def C_NEG : RVZcecInst16<0b00, 0b111 , "c.neg">, Sched<[]>;
-
-// def C_MUL : RVZcecInstC_MUL<0b01, "c.mul">, Sched<[]>;
-
 def uimm4 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<4>;
   let EncoderMethod = "getImmOpValue";
@@ -65,6 +44,10 @@ def uimm5_lsb0 : Operand<XLenVT>,
   }];
 }
 
+//===----------------------------------------------------------------------===//
+// Instruction Class Templates
+//===----------------------------------------------------------------------===//
+
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 class ZceLoad_ri<bits<3> funct3, bits<2> opcode, string opcodestr,
                  RegisterClass cls, DAGOperand opnd>
@@ -76,6 +59,28 @@ class ZceStore_ri<bits<3> funct3, bits<2> opcode, string opcodestr,
                  RegisterClass cls, DAGOperand opnd>
     : RVInst16CS<funct3, opcode, (outs), (ins cls:$rs2, GPRC:$rs1, opnd:$imm),
                  opcodestr, "$rs2, ${imm}(${rs1})">;
+
+//===----------------------------------------------------------------------===//
+// Instructions
+//===----------------------------------------------------------------------===//
+
+// echo "c.zext.b s0" | bin/llvm-mc -triple=riscv64 -mattr=+experimental-zce -show-encoding
+let Predicates = [HasStdExtZce] in {
+
+def C_ZEXT_B : RVZcecInst16<0b00, 0b000 , "c.zext.b">, Sched<[]>;
+def C_SEXT_B : RVZcecInst16<0b00, 0b100 , "c.sext.b">, Sched<[]>;
+def C_ZEXT_H : RVZcecInst16<0b00, 0b001 , "c.zext.h">, Sched<[]>;
+def C_SEXT_H : RVZcecInst16<0b00, 0b101 , "c.sext.h">, Sched<[]>;
+
+// def C_NOT : RVZcecInst16<0b00, 0b110 , "c.not">, Sched<[]>;
+// def C_NEG : RVZcecInst16<0b00, 0b111 , "c.neg">, Sched<[]>;
+
+// def C_MUL : RVZcecInstC_MUL<0b01, "c.mul">, Sched<[]>;
+
+}
+
+let Predicates = [HasStdExtZce, IsRV64] in
+def C_ZEXT_W : RVZcecInst16<0b00, 0b010 , "c.zext.w">, Sched<[]>;
 
 let Predicates = [HasStdExtZce] in {
 
