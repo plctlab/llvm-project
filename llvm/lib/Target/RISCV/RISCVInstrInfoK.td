@@ -20,8 +20,8 @@ def RnumArg : AsmOperandClass {
   let DiagnosticType = "InvalidRnumArg";
 }
 
-def rnum : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<4>(Imm);}]> {
-  let ParserMatchClass = RnumArg;
+def rcon : Operand<XLenVT>, TImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
+  let ParserMatchClass = RconArg;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeUImmOperand<4>";
   let OperandType = "OPERAND_UIMM4";
@@ -136,17 +136,9 @@ def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
 // Intrinsics
 //===----------------------------------------------------------------------===//
 
-def NodeUimm2_32 : TImmLeaf<i32, [{return isUInt<2>(Imm);}]>;
-def NodeUimm2_64 : TImmLeaf<i64, [{return isUInt<2>(Imm);}]>;
-def NodeRcon     : TImmLeaf<i64, [{return isUInt<4>(Imm);}]>;
-
 class PatGprGprByteSelect<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode GPR:$rs1, GPR:$rs2, NodeUimm2_32:$imm),
-          (Inst GPR:$rs1, GPR:$rs2, NodeUimm2_32:$imm)>;
-
-class PatGprGprByteSelect64<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode GPR:$rs1, GPR:$rs2, NodeUimm2_64:$imm),
-          (Inst GPR:$rs1, GPR:$rs2, NodeUimm2_64:$imm)>;
+    : Pat<(OpNode GPR:$rs1, GPR:$rs2, uimm2:$imm),
+          (Inst GPR:$rs1, GPR:$rs2, uimm2:$imm)>;
 
 let Predicates = [HasStdExtZkn, IsRV32] in {
 def : PatGprGprByteSelect<int_riscv_aes32dsi, AES32DSI>;
@@ -180,8 +172,8 @@ def : PatGpr<int_riscv_aes64im, AES64IM>;
 let Predicates = [HasStdExtZkne, IsRV64] in {
 def : PatGprGpr<int_riscv_aes64es, AES64ES>;
 def : PatGprGpr<int_riscv_aes64esm, AES64ESM>;
-def : Pat<(XLenVT (int_riscv_aes64ks1i (XLenVT GPR:$rs1), NodeRcon:$rcon)),
-          (AES64KS1I GPR:$rs1, NodeRcon:$rcon)>;
+def : Pat<(XLenVT (int_riscv_aes64ks1i (XLenVT GPR:$rs1), rcon:$rcon)),
+          (AES64KS1I GPR:$rs1, rcon:$rcon)>;
 def : PatGprGpr<int_riscv_aes64ks2, AES64KS2>;
 }
 
@@ -203,8 +195,8 @@ def : PatGprGprByteSelect<int_riscv_sm4ed, SM4ED>;
 }
 
 let Predicates = [HasStdExtZksed, IsRV64] in {
-def : PatGprGprByteSelect64<int_riscv_sm4ks, SM4KS>;
-def : PatGprGprByteSelect64<int_riscv_sm4ed, SM4ED>;
+def : PatGprGprByteSelect<int_riscv_sm4ks, SM4KS>;
+def : PatGprGprByteSelect<int_riscv_sm4ed, SM4ED>;
 }
 
 let Predicates = [HasStdExtZkr] in {
