@@ -528,6 +528,15 @@ public:
     return IsConstantImm && isUInt<3>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
+  bool isUImm4() const {
+    int64_t Imm;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    if (!isImm())
+      return false;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isUInt<4>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
   bool isUImm5() const {
     int64_t Imm;
     RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
@@ -582,6 +591,16 @@ public:
     bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
     return IsConstantImm && (Imm != 0) &&
            (isUInt<5>(Imm) || (Imm >= 0xfffe0 && Imm <= 0xfffff)) &&
+           VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
+  bool isUImm5Lsb0() const {
+    if (!isImm())
+      return false;
+    int64_t Imm;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isShiftedUInt<4, 1>(Imm) &&
            VK == RISCVMCExpr::VK_RISCV_None;
   }
 
