@@ -2082,6 +2082,17 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
     clearFeatureBits(RISCV::FeatureExtZbt, "experimental-zbt");
     clearFeatureBits(RISCV::FeatureExtZvamo, "experimental-zvamo");
     clearFeatureBits(RISCV::FeatureStdExtZvlsseg, "experimental-zvlsseg");
+    clearFeatureBits(RISCV::FeatureStdExtK, "experimental-k");
+    clearFeatureBits(RISCV::FeatureExtZkb, "experimental-zkb");
+    clearFeatureBits(RISCV::FeatureExtZkg, "experimental-zkg");
+    clearFeatureBits(RISCV::FeatureExtZkn, "experimental-zkn");
+    clearFeatureBits(RISCV::FeatureExtZknd, "experimental-zknd");
+    clearFeatureBits(RISCV::FeatureExtZkne, "experimental-zkne");
+    clearFeatureBits(RISCV::FeatureExtZknh, "experimental-zknh");
+    clearFeatureBits(RISCV::FeatureExtZkr, "experimental-zkr");
+    clearFeatureBits(RISCV::FeatureExtZks, "experimental-zks");
+    clearFeatureBits(RISCV::FeatureExtZksh, "experimental-zsh");
+    clearFeatureBits(RISCV::FeatureExtZksed, "experimental-zksed");
 
     while (!Arch.empty()) {
       bool DropFirst = true;
@@ -2110,6 +2121,8 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
         setFeatureBits(RISCV::FeatureStdExtB, "experimental-b");
       } else if (Arch[0] == 'v') {
         setFeatureBits(RISCV::FeatureStdExtV, "experimental-v");
+      } else if (Arch[0] == 'k') {
+          setFeatureBits(RISCV::FeatureStdExtK, "experimental-k");
       } else if (Arch[0] == 's' || Arch[0] == 'x' || Arch[0] == 'z') {
         StringRef Ext =
             Arch.take_until([](char c) { return ::isdigit(c) || c == '_'; });
@@ -2142,6 +2155,26 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
           setFeatureBits(RISCV::FeatureExtZvamo, "experimental-zvamo");
         else if (Ext == "zvlsseg")
           setFeatureBits(RISCV::FeatureStdExtZvlsseg, "experimental-zvlsseg");
+        else if (Ext == "zkb")
+          setFeatureBits(RISCV::FeatureExtZkb, "experimental-zkb");
+        else if (Ext == "zkg")
+          setFeatureBits(RISCV::FeatureExtZkg, "experimental-zkg");
+        else if (Ext == "zkn")
+          setFeatureBits(RISCV::FeatureExtZkn, "experimental-zkn");
+        else if (Ext == "zknd")
+          setFeatureBits(RISCV::FeatureExtZknd, "experimental-zknd");
+        else if (Ext == "zkne")
+          setFeatureBits(RISCV::FeatureExtZkne, "experimental-zkne");
+        else if (Ext == "zknh")
+          setFeatureBits(RISCV::FeatureExtZknh, "experimental-zknh");
+        else if (Ext == "zkr")
+          setFeatureBits(RISCV::FeatureExtZkr, "experimental-zkr");
+        else if (Ext == "zkns")
+          setFeatureBits(RISCV::FeatureExtZks, "experimental-zks");
+        else if (Ext == "zknsh")
+          setFeatureBits(RISCV::FeatureExtZksh, "experimental-zksh");
+        else if (Ext == "zknsed")
+          setFeatureBits(RISCV::FeatureExtZksed, "experimental-zksed");
         else
           return Error(ValueExprLoc, "bad arch string " + Ext);
         Arch = Arch.drop_until([](char c) { return ::isdigit(c) || c == '_'; });
@@ -2188,6 +2221,8 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
         formalArchStr = (Twine(formalArchStr) + "_b0p93").str();
       if (getFeatureBits(RISCV::FeatureStdExtV))
         formalArchStr = (Twine(formalArchStr) + "_v0p10").str();
+      if (getFeatureBits(RISCV::FeatureStdExtK))
+        formalArchStr = (Twine(formalArchStr) + "_k0p9").str();
       if (getFeatureBits(RISCV::FeatureExtZfh))
         formalArchStr = (Twine(formalArchStr) + "_zfh0p1").str();
       if (getFeatureBits(RISCV::FeatureExtZba))
@@ -2216,7 +2251,26 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
         formalArchStr = (Twine(formalArchStr) + "_zvamo0p10").str();
       if (getFeatureBits(RISCV::FeatureStdExtZvlsseg))
         formalArchStr = (Twine(formalArchStr) + "_zvlsseg0p10").str();
-
+      if (getFeatureBits(RISCV::FeatureExtZkb))
+        formalArchStr = (Twine(formalArchStr) + "_zkb0p9").str();
+      if (getFeatureBits(RISCV::FeatureExtZkg))
+        formalArchStr = (Twine(formalArchStr) + "_zkg0p9").str();
+      if (getFeatureBits(RISCV::FeatureExtZkn))
+        formalArchStr = (Twine(formalArchStr) + "_zkn0p9").str();
+      if (getFeatureBits(RISCV::FeatureExtZknd))
+        formalArchStr = (Twine(formalArchStr) + "_zknd0p9").str();
+      if (getFeatureBits(RISCV::FeatureExtZkne))
+        formalArchStr = (Twine(formalArchStr) + "_zkne0p9").str();
+      if (getFeatureBits(RISCV::FeatureExtZknh))
+        formalArchStr = (Twine(formalArchStr) + "_zknh0p9").str();
+      if (getFeatureBits(RISCV::FeatureExtZkr))
+        formalArchStr = (Twine(formalArchStr) + "_zkr0p9").str();
+      if (getFeatureBits(RISCV::FeatureExtZks))
+        formalArchStr = (Twine(formalArchStr) + "_zks0p9").str();
+      if (getFeatureBits(RISCV::FeatureExtZksh))
+        formalArchStr = (Twine(formalArchStr) + "_zksh0p9").str();
+      if (getFeatureBits(RISCV::FeatureExtZksed))
+        formalArchStr = (Twine(formalArchStr) + "_zksed0p9").str();
       getTargetStreamer().emitTextAttribute(Tag, formalArchStr);
     }
   }
