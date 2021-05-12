@@ -83,3 +83,6 @@
 
 .attribute arch, "rv32iv_zvamo0p10_zvlsseg"
 # CHECK: attribute      5, "rv32i2p0_v0p10_zvamo0p10_zvlsseg0p10"
+
+.attribute arch, "rv32ik"
+# CHECK: attribute      5, "rv32i2p0_k0p9_zbc0p93_zbp0p93_zkb0p9_zkg0p9_zkn0p9_zknd0p9_zkne0p9_zknh0p9_zkr0p9"
