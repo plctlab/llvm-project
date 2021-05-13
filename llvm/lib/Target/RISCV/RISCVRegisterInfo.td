@@ -195,6 +195,10 @@ def GPRTC : RegisterClass<"RISCV", [XLenVT], 32, (add
   let RegInfos = XLenRI;
 }
 
+def GP : RegisterClass<"RISCV", [XLenVT], 32, (add X3)> {
+  let RegInfos = XLenRI;
+}
+
 def SP : RegisterClass<"RISCV", [XLenVT], 32, (add X2)> {
   let RegInfos = XLenRI;
 }

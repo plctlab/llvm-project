@@ -44,6 +44,41 @@ def uimm5_lsb0 : Operand<XLenVT>,
   }];
 }
 
+def uimm16_lsb00 : Operand<XLenVT>,
+                  ImmLeaf<XLenVT, [{return isShiftedUInt<14, 2>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<16, "Lsb00">;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeUImmOperand<16>";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return isShiftedUInt<14, 2>(Imm);
+  }];
+}
+
+class RVInstZceI<bits<3> funct3_2, bits<3> funct3, bits<7> opcode, dag outs, dag ins,
+              string opcodestr, string argstr>
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
+  bits<17> imm;
+  bits<5> rd;
+  bits<5> rs1;
+
+  let Inst{31-29} = funct3_2;
+  let Inst{28-22} = imm{8-2};
+  let Inst{21-20} = imm{10-9};
+  let Inst{19-15} = imm{15-11};
+  let Inst{14-12} = funct3;
+  let Inst{11-7} = rd;
+  let Inst{6-0} = opcode;
+}
+
+
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class RVZceload<bits<3> funct3_2, bits<3> funct3, string opcodestr, DAGOperand opnd>
+    : RVInstZceI<funct3_2, funct3, 0b0000111, (outs GPR:$rd), (ins GP:$rs1, opnd:$imm),
+              opcodestr, "$rd, ${imm}(${rs1})">;
+
 //===----------------------------------------------------------------------===//
 // Instruction Class Templates
 //===----------------------------------------------------------------------===//
@@ -77,6 +112,11 @@ def C_SEXT_H : RVZcecInst16<0b00, 0b101 , "c.sext.h">, Sched<[]>;
 
 // def C_MUL : RVZcecInstC_MUL<0b01, "c.mul">, Sched<[]>;
 
+}
+
+// 7.2
+let Predicates = [NotHasStdExtD, HasStdExtZce] in {
+  def LWGP :  RVZceload<0b000, 0b011, "lwgp", uimm16_lsb00>, Sched<[]>;
 }
 
 let Predicates = [HasStdExtZce, IsRV64] in
