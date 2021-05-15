@@ -34,6 +34,17 @@
 // CHECK-NOT: __riscv_vector
 // CHECK-NOT: __riscv_zvamo
 // CHECK-NOT: __riscv_zvlsseg
+// CHECK-NOT: __riscv_k
+// CHECK-NOT: __riscv_zkb
+// CHECK-NOT: __riscv_zkg
+// CHECK-NOT: __riscv_zkn
+// CHECK-NOT: __riscv_zknd
+// CHECK-NOT: __riscv_zkne
+// CHECK-NOT: __riscv_zknh
+// CHECK-NOT: __riscv_zkr
+// CHECK-NOT: __riscv_zks
+// CHECK-NOT: __riscv_zksh
+// CHECK-NOT: __riscv_zksed
 
 // RUN: %clang -target riscv32-unknown-linux-gnu -march=rv32im -x c -E -dM %s \
 // RUN: -o - | FileCheck --check-prefix=CHECK-M-EXT %s
@@ -234,6 +245,7 @@
 // CHECK-V-EXT: __riscv_vector 1
 // CHECK-V-EXT: __riscv_zvlsseg 10000
 
+
 // RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
 // RUN: -march=rv32izvamo0p10 -x c -E -dM %s \
 // RUN: -o - | FileCheck --check-prefix=CHECK-ZVAMO-EXT %s
@@ -252,3 +264,123 @@
 // RUN: -march=rv64izfh0p1 -x c -E -dM %s \
 // RUN: -o - | FileCheck --check-prefix=CHECK-ZFH-EXT %s
 // CHECK-ZFH-EXT: __riscv_zfh 1000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32ik0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-32K-EXT %s
+// CHECK-32K-EXT: __riscv_k 9000
+// CHECK-32K-EXT: __riscv_zkb 9000
+// CHECK-32K-EXT: __riscv_zkg 9000
+// CHECK-32K-NOT: __riscv_zkn  9000
+// CHECK-32K-NOT: __riscv_zknd  9000
+// CHECK-32K-NOT: __riscv_zkne  9000
+// CHECK-32K-NOT: __riscv_zknh  9000
+// CHECK-32K-NOT: __riscv_zkr  9000
+// CHECK-32K-NOT: __riscv_zks  9000
+// CHECK-32K-NOT: __riscv_zksh  9000
+// CHECK-32K-NOT: __riscv_zksed  9000
+
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64ik0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-64K-EXT %s
+// CHECK-64K-EXT: __riscv_k 9000
+// CHECK-64K-EXT: __riscv_zkb 9000
+// CHECK-64K-EXT: __riscv_zkg 9000
+// CHECK-64K-NOT: __riscv_zkn  9000
+// CHECK-64K-NOT: __riscv_zknd  9000
+// CHECK-64K-NOT: __riscv_zkne  9000
+// CHECK-64K-NOT: __riscv_zknh  9000
+// CHECK-64K-NOT: __riscv_zkr  9000
+// CHECK-64K-NOT: __riscv_zks  9000
+// CHECK-64K-NOT: __riscv_zksh  9000
+// CHECK-64K-NOT: __riscv_zksed  9000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32izkb0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKB-EXT %s
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64izkb0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKB-EXT %s
+// CHECK-ZKB-NOT: __riscv_k
+// CHECK-ZKB-EXT: __riscv_zkb 9000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32izkg0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKG-EXT %s
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64izkg0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKG-EXT %s
+// CHECK-ZKG-NOT: __riscv_k
+// CHECK-ZKG-EXT: __riscv_zkg 9000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32izkn0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKN-EXT %s
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64izkn0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKN-EXT %s
+// CHECK-ZKN-NOT: __riscv_k
+// CHECK-ZKN-EXT: __riscv_zkn 9000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32izknd0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKND-EXT %s
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64izknd0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKND-EXT %s
+// CHECK-ZKND-NOT: __riscv_k
+// CHECK-ZKND-EXT: __riscv_zknd 9000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32izkne0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKNE-EXT %s
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64izkne0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKNE-EXT %s
+// CHECK-ZKNE-NOT: __riscv_k
+// CHECK-ZKNE-EXT: __riscv_zkne 9000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32izknh0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKNH-EXT %s
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64izknh0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKNH-EXT %s
+// CHECK-ZKNH-NOT: __riscv_k
+// CHECK-ZKNH-EXT: __riscv_zknh 9000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32izkr0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKR-EXT %s
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64izkr0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKR-EXT %s
+// CHECK-ZKR-NOT: __riscv_k
+// CHECK-ZKR-EXT: __riscv_zkr 9000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32izks0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKS-EXT %s
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64izks0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKS-EXT %s
+// CHECK-ZKS-NOT: __riscv_k
+// CHECK-ZKS-EXT: __riscv_zks 9000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32izksh0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKSH-EXT %s
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64izksh0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKSH-EXT %s
+// CHECK-ZKSH-NOT: __riscv_k
+// CHECK-ZKSH-EXT: __riscv_zksh 9000
+
+// RUN: %clang -target riscv32-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv32izksed0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKSED-EXT %s
+// RUN: %clang -target riscv64-unknown-linux-gnu -menable-experimental-extensions \
+// RUN: -march=rv64izksed0p9 -x c -E -dM %s \
+// RUN: -o - | FileCheck --check-prefix=CHECK-ZKSED-EXT %s
+// CHECK-ZKSED-NOT: __riscv_k
+// CHECK-ZKSED-EXT: __riscv_zksed 9000

@@ -31,8 +31,8 @@ protected:
   bool HasD = false;
   bool HasC = false;
   bool HasB = false;
-  bool HasV = false;
   bool HasK = false;
+  bool HasV = false;
   bool HasZba = false;
   bool HasZbb = false;
   bool HasZbc = false;
@@ -44,6 +44,16 @@ protected:
   bool HasZbr = false;
   bool HasZbs = false;
   bool HasZbt = false;
+  bool HasZkb = false;
+  bool HasZkg = false;
+  bool HasZkn = false;
+  bool HasZknd = false;
+  bool HasZkne = false;
+  bool HasZknh = false;
+  bool HasZkr = false;
+  bool HasZks = false;
+  bool HasZksh = false;
+  bool HasZksed = false;
   bool HasZfh = false;
   bool HasZvamo = false;
   bool HasZvlsseg = false;

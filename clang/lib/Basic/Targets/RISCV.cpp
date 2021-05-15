@@ -181,6 +181,9 @@ void RISCVTargetInfo::getTargetDefines(const LangOptions &Opts,
     Builder.defineMacro("__riscv_bitmanip");
   }
 
+  if (HasK)
+    Builder.defineMacro("__riscv_k", "9000");
+
   if (HasV) {
     Builder.defineMacro("__riscv_v", "10000");
     Builder.defineMacro("__riscv_vector");
@@ -218,6 +221,36 @@ void RISCVTargetInfo::getTargetDefines(const LangOptions &Opts,
 
   if (HasZbt)
     Builder.defineMacro("__riscv_zbt", "93000");
+
+  if (HasZkb)
+    Builder.defineMacro("__riscv_zkb", "9000");
+  
+  if (HasZkg)
+    Builder.defineMacro("__riscv_zkg", "9000");
+  
+  if (HasZkn)
+    Builder.defineMacro("__riscv_zkn", "9000");
+  
+  if (HasZknd)
+    Builder.defineMacro("__riscv_zknd", "9000");
+
+  if (HasZkne)
+    Builder.defineMacro("__riscv_zkne", "9000");
+
+  if (HasZknh)
+    Builder.defineMacro("__riscv_zknh", "9000");
+
+  if (HasZkr)
+    Builder.defineMacro("__riscv_zkr", "9000");
+
+  if (HasZks)
+    Builder.defineMacro("__riscv_zks", "9000");
+
+  if (HasZksh)
+    Builder.defineMacro("__riscv_zksh", "9000");
+
+  if (HasZksed)
+    Builder.defineMacro("__riscv_zksed", "9000");
 
   if (HasZfh)
     Builder.defineMacro("__riscv_zfh", "1000");
@@ -279,6 +312,16 @@ bool RISCVTargetInfo::hasFeature(StringRef Feature) const {
       .Case("experimental-zbr", HasZbr)
       .Case("experimental-zbs", HasZbs)
       .Case("experimental-zbt", HasZbt)
+      .Case("experimental-zkb", HasZkb)
+      .Case("experimental-zkg", HasZkg)
+      .Case("experimental-zkn", HasZkn)
+      .Case("experimental-zknd", HasZknd)
+      .Case("experimental-zkne", HasZkne)
+      .Case("experimental-zknh", HasZknh)
+      .Case("experimental-zkr", HasZkr)
+      .Case("experimental-zks", HasZks)
+      .Case("experimental-zksh", HasZksh)
+      .Case("experimental-zksed", HasZksed)
       .Case("experimental-zfh", HasZfh)
       .Case("experimental-zvamo", HasZvamo)
       .Case("experimental-zvlsseg", HasZvlsseg)
@@ -301,10 +344,10 @@ bool RISCVTargetInfo::handleTargetFeatures(std::vector<std::string> &Features,
       HasC = true;
     else if (Feature == "+experimental-b")
       HasB = true;
-    else if (Feature == "+experimental-v")
-      HasV = true;
     else if (Feature == "+experimental-k")
       HasK = true;
+    else if (Feature == "+experimental-v")
+      HasV = true;
     else if (Feature == "+experimental-zba")
       HasZba = true;
     else if (Feature == "+experimental-zbb")
@@ -327,6 +370,26 @@ bool RISCVTargetInfo::handleTargetFeatures(std::vector<std::string> &Features,
       HasZbs = true;
     else if (Feature == "+experimental-zbt")
       HasZbt = true;
+    else if (Feature == "+experimental-zkb")
+      HasZkb = true;
+    else if (Feature == "+experimental-zkg")
+      HasZkg = true;
+    else if (Feature == "+experimental-zkn")
+      HasZkn = true;
+    else if (Feature == "+experimental-zknd")
+      HasZknd = true;
+    else if (Feature == "+experimental-zkne")
+      HasZkne = true;
+    else if (Feature == "+experimental-zknh")
+      HasZknh = true;
+    else if (Feature == "+experimental-zkr")
+      HasZkr = true;
+    else if (Feature == "+experimental-zks")
+      HasZks = true;
+    else if (Feature == "+experimental-zksh")
+      HasZksh = true;
+    else if (Feature == "+experimental-zksed")
+      HasZksed = true;
     else if (Feature == "+experimental-zfh")
       HasZfh = true;
     else if (Feature == "+experimental-zvamo")

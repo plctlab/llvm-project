@@ -66,6 +66,10 @@ isExperimentalExtension(StringRef Ext) {
     return RISCVExtensionVersion{"0", "10"};
   if (Ext == "zfh")
     return RISCVExtensionVersion{"0", "1"};
+  if (Ext == "k" || Ext == "zkb" || Ext == "zkg" || Ext == "zkn" ||
+      Ext == "zknd" || Ext == "zkne" || Ext == "zknh" || Ext == "zkr" ||
+      Ext == "zks" || Ext == "zksh" || Ext == "zksed")
+    return RISCVExtensionVersion{"0", "9"};
   return None;
 }
 
@@ -295,7 +299,7 @@ static bool getArchFeatures(const Driver &D, StringRef MArch,
 
   // The canonical order specified in ISA manual.
   // Ref: Table 22.1 in RISC-V User-Level ISA V2.2
-  StringRef StdExts = "mafdqlcbjtpvn";
+  StringRef StdExts = "mafdqlcbjtpvnk";
   bool HasF = false, HasD = false;
   char Baseline = MArch[4];
 
@@ -433,6 +437,19 @@ static bool getArchFeatures(const Driver &D, StringRef MArch,
     case 'v':
       Features.push_back("+experimental-v");
       Features.push_back("+experimental-zvlsseg");
+      break;
+    case 'k':
+      Features.push_back("+experimental-k");
+      Features.push_back("+experimental-zkb");
+      Features.push_back("+experimental-zkg");
+      Features.push_back("+experimental-zkn");
+      Features.push_back("+experimental-zknd");
+      Features.push_back("+experimental-zkne");
+      Features.push_back("+experimental-zknh");
+      Features.push_back("+experimental-zkr");
+      Features.push_back("+experimental-zks");
+      Features.push_back("+experimental-zksh");
+      Features.push_back("+experimental-zksed");
       break;
     }
 

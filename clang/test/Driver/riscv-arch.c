@@ -488,3 +488,212 @@
 // RUN: %clang -target riscv32-unknown-elf -march=rv32izvlsseg0p10 -menable-experimental-extensions -### %s -c 2>&1 | \
 // RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZVLSSEG-GOODVERS %s
 // RV32-EXPERIMENTAL-ZVLSSEG-GOODVERS: "-target-feature" "+experimental-zvlsseg"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32ik -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-K-NOFLAG %s
+// RV32-EXPERIMENTAL-K-NOFLAG: error: invalid arch name 'rv32ik'
+// RV32-EXPERIMENTAL-K-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32ik -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-K-NOVERS %s
+// RV32-EXPERIMENTAL-K-NOVERS: error: invalid arch name 'rv32ik'
+// RV32-EXPERIMENTAL-K-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32ik0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-K-BADVERS %s
+// RV32-EXPERIMENTAL-K-BADVERS: error: invalid arch name 'rv32ik0p1'
+// RV32-EXPERIMENTAL-K-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32ik0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-K-GOODVERS %s
+// RV32-EXPERIMENTAL-K-GOODVERS: "-target-feature" "+experimental-k"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkb -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKB-NOFLAG %s
+// RV32-EXPERIMENTAL-ZKB-NOFLAG: error: invalid arch name 'rv32izkb'
+// RV32-EXPERIMENTAL-ZKB-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkb -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKB-NOVERS %s
+// RV32-EXPERIMENTAL-ZKB-NOVERS: error: invalid arch name 'rv32izkb'
+// RV32-EXPERIMENTAL-ZKB-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkb0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKB-BADVERS %s
+// RV32-EXPERIMENTAL-ZKB-BADVERS: error: invalid arch name 'rv32izkb0p1'
+// RV32-EXPERIMENTAL-ZKB-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkb0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKB-GOODVERS %s
+// RV32-EXPERIMENTAL-ZKB-GOODVERS: "-target-feature" "+experimental-zkb"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkg -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKG-NOFLAG %s
+// RV32-EXPERIMENTAL-ZKG-NOFLAG: error: invalid arch name 'rv32izkg'
+// RV32-EXPERIMENTAL-ZKG-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkg -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKG-NOVERS %s
+// RV32-EXPERIMENTAL-ZKG-NOVERS: error: invalid arch name 'rv32izkg'
+// RV32-EXPERIMENTAL-ZKG-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkg0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKG-BADVERS %s
+// RV32-EXPERIMENTAL-ZKG-BADVERS: error: invalid arch name 'rv32izkg0p1'
+// RV32-EXPERIMENTAL-ZKG-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkg0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKG-GOODVERS %s
+// RV32-EXPERIMENTAL-ZKG-GOODVERS: "-target-feature" "+experimental-zkg"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkn -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKN-NOFLAG %s
+// RV32-EXPERIMENTAL-ZKN-NOFLAG: error: invalid arch name 'rv32izkn'
+// RV32-EXPERIMENTAL-ZKN-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkn -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKN-NOVERS %s
+// RV32-EXPERIMENTAL-ZKN-NOVERS: error: invalid arch name 'rv32izkn'
+// RV32-EXPERIMENTAL-ZKN-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkn0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKN-BADVERS %s
+// RV32-EXPERIMENTAL-ZKN-BADVERS: error: invalid arch name 'rv32izkn0p1'
+// RV32-EXPERIMENTAL-ZKN-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkn0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKN-GOODVERS %s
+// RV32-EXPERIMENTAL-ZKN-GOODVERS: "-target-feature" "+experimental-zkn"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izknd -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKND-NOFLAG %s
+// RV32-EXPERIMENTAL-ZKND-NOFLAG: error: invalid arch name 'rv32izknd'
+// RV32-EXPERIMENTAL-ZKND-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izknd -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKND-NOVERS %s
+// RV32-EXPERIMENTAL-ZKND-NOVERS: error: invalid arch name 'rv32izknd'
+// RV32-EXPERIMENTAL-ZKND-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izknd0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKND-BADVERS %s
+// RV32-EXPERIMENTAL-ZKND-BADVERS: error: invalid arch name 'rv32izknd0p1'
+// RV32-EXPERIMENTAL-ZKND-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izknd0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKND-GOODVERS %s
+// RV32-EXPERIMENTAL-ZKND-GOODVERS: "-target-feature" "+experimental-zknd"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkne -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKNE-NOFLAG %s
+// RV32-EXPERIMENTAL-ZKNE-NOFLAG: error: invalid arch name 'rv32izkne'
+// RV32-EXPERIMENTAL-ZKNE-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkne -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKNE-NOVERS %s
+// RV32-EXPERIMENTAL-ZKNE-NOVERS: error: invalid arch name 'rv32izkne'
+// RV32-EXPERIMENTAL-ZKNE-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkne0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKNE-BADVERS %s
+// RV32-EXPERIMENTAL-ZKNE-BADVERS: error: invalid arch name 'rv32izkne0p1'
+// RV32-EXPERIMENTAL-ZKNE-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkne0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKNE-GOODVERS %s
+// RV32-EXPERIMENTAL-ZKNE-GOODVERS: "-target-feature" "+experimental-zkne"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izknh -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKNH-NOFLAG %s
+// RV32-EXPERIMENTAL-ZKNH-NOFLAG: error: invalid arch name 'rv32izknh'
+// RV32-EXPERIMENTAL-ZKNH-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izknh -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKNH-NOVERS %s
+// RV32-EXPERIMENTAL-ZKNH-NOVERS: error: invalid arch name 'rv32izknh'
+// RV32-EXPERIMENTAL-ZKNH-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izknh0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKNH-BADVERS %s
+// RV32-EXPERIMENTAL-ZKNH-BADVERS: error: invalid arch name 'rv32izknh0p1'
+// RV32-EXPERIMENTAL-ZKNH-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izknh0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKNH-GOODVERS %s
+// RV32-EXPERIMENTAL-ZKNH-GOODVERS: "-target-feature" "+experimental-zknh"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkr -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKR-NOFLAG %s
+// RV32-EXPERIMENTAL-ZKR-NOFLAG: error: invalid arch name 'rv32izkr'
+// RV32-EXPERIMENTAL-ZKR-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkr -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKR-NOVERS %s
+// RV32-EXPERIMENTAL-ZKR-NOVERS: error: invalid arch name 'rv32izkr'
+// RV32-EXPERIMENTAL-ZKR-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkr0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKR-BADVERS %s
+// RV32-EXPERIMENTAL-ZKR-BADVERS: error: invalid arch name 'rv32izkr0p1'
+// RV32-EXPERIMENTAL-ZKR-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izkr0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKR-GOODVERS %s
+// RV32-EXPERIMENTAL-ZKR-GOODVERS: "-target-feature" "+experimental-zkr"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izks -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKS-NOFLAG %s
+// RV32-EXPERIMENTAL-ZKS-NOFLAG: error: invalid arch name 'rv32izks'
+// RV32-EXPERIMENTAL-ZKS-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izks -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKS-NOVERS %s
+// RV32-EXPERIMENTAL-ZKS-NOVERS: error: invalid arch name 'rv32izks'
+// RV32-EXPERIMENTAL-ZKS-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izks0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKS-BADVERS %s
+// RV32-EXPERIMENTAL-ZKS-BADVERS: error: invalid arch name 'rv32izks0p1'
+// RV32-EXPERIMENTAL-ZKS-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izks0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKS-GOODVERS %s
+// RV32-EXPERIMENTAL-ZKS-GOODVERS: "-target-feature" "+experimental-zks"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izksh -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKSH-NOFLAG %s
+// RV32-EXPERIMENTAL-ZKSH-NOFLAG: error: invalid arch name 'rv32izksh'
+// RV32-EXPERIMENTAL-ZKSH-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izksh -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKSH-NOVERS %s
+// RV32-EXPERIMENTAL-ZKSH-NOVERS: error: invalid arch name 'rv32izksh'
+// RV32-EXPERIMENTAL-ZKSH-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izksh0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKSH-BADVERS %s
+// RV32-EXPERIMENTAL-ZKSH-BADVERS: error: invalid arch name 'rv32izksh0p1'
+// RV32-EXPERIMENTAL-ZKSH-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izksh0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKSH-GOODVERS %s
+// RV32-EXPERIMENTAL-ZKSH-GOODVERS: "-target-feature" "+experimental-zksh"
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izksed -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKSED-NOFLAG %s
+// RV32-EXPERIMENTAL-ZKSED-NOFLAG: error: invalid arch name 'rv32izksed'
+// RV32-EXPERIMENTAL-ZKSED-NOFLAG: requires '-menable-experimental-extensions'
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izksed -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKSED-NOVERS %s
+// RV32-EXPERIMENTAL-ZKSED-NOVERS: error: invalid arch name 'rv32izksed'
+// RV32-EXPERIMENTAL-ZKSED-NOVERS: experimental extension requires explicit version number
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izksed0p1 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKSED-BADVERS %s
+// RV32-EXPERIMENTAL-ZKSED-BADVERS: error: invalid arch name 'rv32izksed0p1'
+// RV32-EXPERIMENTAL-ZKSED-BADVERS: unsupported version number 0.1 for experimental extension
+
+// RUN: %clang -target riscv32-unknown-elf -march=rv32izksed0p9 -menable-experimental-extensions -### %s -c 2>&1 | \
+// RUN:   FileCheck -check-prefix=RV32-EXPERIMENTAL-ZKSED-GOODVERS %s
+// RV32-EXPERIMENTAL-ZKSED-GOODVERS: "-target-feature" "+experimental-zksed"
