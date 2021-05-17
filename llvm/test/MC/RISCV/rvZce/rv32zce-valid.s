@@ -26,6 +26,15 @@ c.sext.b s0
 c.sext.h s0
 
 
+# CHECK-ASM-AND-OBJ: lwgp s0, 65532(gp)
+# CHECK-ASM: encoding: [0x07,0xb4,0xff,0x1f]
+lwgp s0, 65532(gp)
+
+# CHECK-ASM-AND-OBJ: swgp s0, 65532(gp)
+# CHECK-ASM: encoding: [0xa7,0xbf,0x8f,0x1e]
+swgp s0, 65532(gp)
+
+
 # CHECK-ASM-AND-OBJ: c.lbu a5, 10(a4)
 # CHECK-ASM: encoding: [0x3c,0x27]
 c.lbu a5, 10(a4)
