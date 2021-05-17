@@ -57,31 +57,33 @@ def uimm16_lsb00 : Operand<XLenVT>,
   }];
 }
 
-class RVInstZceI<bits<3> funct3_2, bits<3> funct3, bits<7> opcode, dag outs, dag ins,
-              string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
-  bits<17> imm;
-  bits<5> rd;
-  bits<5> rs1;
-
-  let Inst{31-29} = funct3_2;
-  let Inst{28-22} = imm{8-2};
-  let Inst{21-20} = imm{10-9};
-  let Inst{19-15} = imm{15-11};
-  let Inst{14-12} = funct3;
-  let Inst{11-7} = rd;
-  let Inst{6-0} = opcode;
+def uimm17_lsb000 : Operand<XLenVT>,
+                  ImmLeaf<XLenVT, [{return isShiftedUInt<14, 3>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<17, "Lsb000">;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeUImmOperand<17>";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return isShiftedUInt<14, 3>(Imm);
+  }];
 }
-
-
-let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-class RVZceload<bits<3> funct3_2, bits<3> funct3, string opcodestr, DAGOperand opnd>
-    : RVInstZceI<funct3_2, funct3, 0b0000111, (outs GPR:$rd), (ins GP:$rs1, opnd:$imm),
-              opcodestr, "$rd, ${imm}(${rs1})">;
 
 //===----------------------------------------------------------------------===//
 // Instruction Class Templates
 //===----------------------------------------------------------------------===//
+
+
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+class ZceGPLoad<bits<3> funct3_2, bits<3> funct3, string opcodestr, DAGOperand opnd>
+    : RVInstZceI<funct3_2, funct3, 0b0000111, (outs GPR:$rd), (ins GP:$rs1, opnd:$imm),
+              opcodestr, "$rd, ${imm}(${rs1})">;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+class ZceGPStore<bits<3> funct3_2, bits<3> funct3, string opcodestr, DAGOperand opnd>
+    : RVInstZceS<funct3_2, funct3, 0b0100111, (outs), (ins GPR:$rs2, GP:$rs1, opnd:$imm),
+              opcodestr, "$rs2, ${imm}(${rs1})">;
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 class ZceLoad_ri<bits<3> funct3, bits<2> opcode, string opcodestr,
@@ -99,6 +101,7 @@ class ZceStore_ri<bits<3> funct3, bits<2> opcode, string opcodestr,
 // Instructions
 //===----------------------------------------------------------------------===//
 
+// 6.1
 // echo "c.zext.b s0" | bin/llvm-mc -triple=riscv64 -mattr=+experimental-zce -show-encoding
 let Predicates = [HasStdExtZce] in {
 
@@ -114,17 +117,35 @@ def C_SEXT_H : RVZcecInst16<0b00, 0b101 , "c.sext.h">, Sched<[]>;
 
 }
 
-// 7.2
-let Predicates = [NotHasStdExtD, HasStdExtZce] in {
-  def LWGP :  RVZceload<0b000, 0b011, "lwgp", uimm16_lsb00>, Sched<[]>;
-}
-
 let Predicates = [HasStdExtZce, IsRV64] in
 def C_ZEXT_W : RVZcecInst16<0b00, 0b010 , "c.zext.w">, Sched<[]>;
 
-let Predicates = [HasStdExtZce] in {
+// 7.2. LWGP, SWGP, LDGP, SDGP
+let Predicates = [NotHasStdExtD, HasStdExtZce] in {
 
-def C_LBU: ZceLoad_ri<0b001, 0b00, "c.lbu", GPRC, uimm4>,
+def LWGP :  ZceGPLoad<0b000, 0b011, "lwgp", uimm16_lsb00>, Sched<[]>;
+def SWGP :  ZceGPStore<0b000, 0b011, "swgp", uimm16_lsb00>, Sched<[]>;
+
+}
+
+let Predicates = [NotHasStdExtD, HasStdExtZce, IsRV64] in {
+
+def LDGP :  ZceGPLoad<0b010, 0b011, "ldgp", uimm17_lsb000>, Sched<[]> {
+  bits<17> imm;
+  let Inst{22} = imm{16};
+}
+
+def SDGP :  ZceGPStore<0b010, 0b011, "sdgp", uimm17_lsb000>, Sched<[]> {
+  bits<17> imm;
+  let Inst{9} = imm{16};
+}
+
+}
+
+// 7.3. C.LBU, C.LHU, C.LB, C.LH, C.SB, C.SH
+let Predicates = [NotHasStdExtD, HasStdExtZce] in {
+
+def C_LBU : ZceLoad_ri<0b001, 0b00, "c.lbu", GPRC, uimm4>,
            Sched<[]> {
   bits<4> imm;
   let Inst{12} = 0;
@@ -132,7 +153,7 @@ def C_LBU: ZceLoad_ri<0b001, 0b00, "c.lbu", GPRC, uimm4>,
   let Inst{6-5} = imm{2-1};
 }
 
-def C_LHU: ZceLoad_ri<0b001, 0b00, "c.lhu", GPRC, uimm5_lsb0>,
+def C_LHU : ZceLoad_ri<0b001, 0b00, "c.lhu", GPRC, uimm5_lsb0>,
            Sched<[]> {
   bits<5> imm;
   let Inst{12} = 1;
@@ -140,7 +161,7 @@ def C_LHU: ZceLoad_ri<0b001, 0b00, "c.lhu", GPRC, uimm5_lsb0>,
   let Inst{6-5} = imm{2-1};
 }
 
-def C_LB: ZceLoad_ri<0b101, 0b10, "c.lb", GPRC, uimm4>,
+def C_LB : ZceLoad_ri<0b101, 0b10, "c.lb", GPRC, uimm4>,
           Sched<[]> {
   bits<4> imm;
   let Inst{12} = 0;
@@ -148,7 +169,7 @@ def C_LB: ZceLoad_ri<0b101, 0b10, "c.lb", GPRC, uimm4>,
   let Inst{6-5} = imm{2-1};
 }
 
-def C_LH: ZceLoad_ri<0b101, 0b10, "c.lh", GPRC, uimm5_lsb0>,
+def C_LH : ZceLoad_ri<0b101, 0b10, "c.lh", GPRC, uimm5_lsb0>,
           Sched<[]> {
   bits<5> imm;
   let Inst{12} = 1;
@@ -156,7 +177,7 @@ def C_LH: ZceLoad_ri<0b101, 0b10, "c.lh", GPRC, uimm5_lsb0>,
   let Inst{6-5} = imm{2-1};
 }
 
-def C_SB: ZceStore_ri<0b101, 0b00, "c.sb", GPRC, uimm4>,
+def C_SB : ZceStore_ri<0b101, 0b00, "c.sb", GPRC, uimm4>,
           Sched<[]> {
   bits<4> imm;
   let Inst{12} = 0;
@@ -164,7 +185,7 @@ def C_SB: ZceStore_ri<0b101, 0b00, "c.sb", GPRC, uimm4>,
   let Inst{6-5} = imm{2-1};
 }
 
-def C_SH: ZceStore_ri<0b101, 0b00, "c.sh", GPRC, uimm5_lsb0>,
+def C_SH : ZceStore_ri<0b101, 0b00, "c.sh", GPRC, uimm5_lsb0>,
           Sched<[]> {
   bits<5> imm;
   let Inst{12} = 1;

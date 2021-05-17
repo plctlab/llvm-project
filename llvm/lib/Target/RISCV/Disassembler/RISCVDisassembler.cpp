@@ -251,7 +251,8 @@ static DecodeStatus decodeVMaskReg(MCInst &Inst, uint64_t RegNo,
 // Add implied GP operand for instructions *GP zce instructions. The GP
 // operand isn't explicitly encoded in the instruction.
 static void addImplyGP(MCInst &Inst, int64_t Address, const void *Decoder) {
-  if (Inst.getOpcode() == RISCV::LWGP) {
+  if (Inst.getOpcode() == RISCV::LWGP || Inst.getOpcode() == RISCV::SWGP ||
+      Inst.getOpcode() == RISCV::LDGP || Inst.getOpcode() == RISCV::SDGP) {
     DecodeGPRRegisterClass(Inst, 3, Address, Decoder);
   }
 }
