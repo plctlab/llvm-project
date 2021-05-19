@@ -19,6 +19,10 @@
 ; RUN: llc -mtriple=riscv32 -mattr=+experimental-zbs %s -o - | FileCheck --check-prefix=RV32ZBS %s
 ; RUN: llc -mtriple=riscv32 -mattr=+experimental-zbt %s -o - | FileCheck --check-prefix=RV32ZBT %s
 ; RUN: llc -mtriple=riscv32 -mattr=+experimental-zbb,+experimental-zfh,+experimental-zvamo,+experimental-v,+f,+experimental-zvlsseg %s -o - | FileCheck --check-prefix=RV32COMBINED %s
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-zce %s -o - | FileCheck --check-prefix=RV32ZCE %s
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcea %s -o - | FileCheck --check-prefix=RV32ZCEA %s
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-zceb %s -o - | FileCheck --check-prefix=RV32ZCEB %s
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcee %s -o - | FileCheck --check-prefix=RV32ZCEE %s
 ; RUN: llc -mtriple=riscv64 -mattr=+m %s -o - | FileCheck --check-prefix=RV64M %s
 ; RUN: llc -mtriple=riscv64 -mattr=+a %s -o - | FileCheck --check-prefix=RV64A %s
 ; RUN: llc -mtriple=riscv64 -mattr=+f %s -o - | FileCheck --check-prefix=RV64F %s
@@ -38,6 +42,10 @@
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-zbs %s -o - | FileCheck --check-prefix=RV64ZBS %s
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-zbt %s -o - | FileCheck --check-prefix=RV64ZBT %s
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-zbb,+experimental-zfh,+experimental-zvamo,+experimental-v,+f,+experimental-zvlsseg %s -o - | FileCheck --check-prefix=RV64COMBINED %s
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-zce %s -o - | FileCheck --check-prefix=RV64ZCE %s
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcea %s -o - | FileCheck --check-prefix=RV64ZCEA %s
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-zceb %s -o - | FileCheck --check-prefix=RV64ZCEB %s
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcee %s -o - | FileCheck --check-prefix=RV64ZCEE %s
 
 ; RV32M: .attribute 5, "rv32i2p0_m2p0"
 ; RV32A: .attribute 5, "rv32i2p0_a2p0"
@@ -58,6 +66,10 @@
 ; RV32ZBS: .attribute 5, "rv32i2p0_zbs1p0"
 ; RV32ZBT: .attribute 5, "rv32i2p0_zbt0p93"
 ; RV32COMBINED: .attribute 5, "rv32i2p0_f2p0_v0p10_zfh0p1_zfhmin0p1_zbb1p0_zvamo0p10_zvlsseg0p10"
+; RV32ZCE: .attribute 5, "rv32i2p0_zce0p41_zcea0p41_zceb0p41_zcee0p41"
+; RV32ZCEA: .attribute 5, "rv32i2p0_zcea0p41_zcee0p41"
+; RV32ZCEB: .attribute 5, "rv32i2p0_zceb0p41"
+; RV32ZCEE: .attribute 5, "rv32i2p0_zcee0p41"
 
 ; RV64M: .attribute 5, "rv64i2p0_m2p0"
 ; RV64A: .attribute 5, "rv64i2p0_a2p0"
@@ -78,6 +90,10 @@
 ; RV64ZBT: .attribute 5, "rv64i2p0_zbt0p93"
 ; RV64V: .attribute 5, "rv64i2p0_v0p10_zvamo0p10_zvlsseg0p10"
 ; RV64COMBINED: .attribute 5, "rv64i2p0_f2p0_v0p10_zfh0p1_zfhmin0p1_zbb1p0_zvamo0p10_zvlsseg0p10"
+; RV64ZCE: .attribute 5, "rv64i2p0_zce0p41_zcea0p41_zceb0p41_zcee0p41"
+; RV64ZCEA: .attribute 5, "rv64i2p0_zcea0p41_zcee0p41"
+; RV64ZCEB: .attribute 5, "rv64i2p0_zceb0p41"
+; RV64ZCEE: .attribute 5, "rv64i2p0_zcee0p41"
 
 
 define i32 @addi(i32 %a) {

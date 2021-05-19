@@ -143,12 +143,33 @@ def HasStdExtZbbOrZbp
                                    "'Zbb' (Base 'B' Instructions) or "
                                    "'Zbp' (Permutation 'B' Instructions)">;
 
+def FeatureExtZcee
+    : SubtargetFeature<"experimental-zcee", "HasStdExtZcee", "true",
+                       "'Zcee' (high performance cores v0.41)">;
+def HasStdExtZcee : Predicate<"Subtarget->hasStdExtZcee()">,
+                           AssemblerPredicate<(all_of FeatureExtZcee),
+                           "'Zcee' (high performance cores v0.41)">;
+def FeatureExtZcea
+    : SubtargetFeature<"experimental-zcea", "HasStdExtZcea", "true",
+                       "'Zcea' (all existing standard extensions for small embedded cores v0.41)",
+                       [FeatureExtZcee]>;
+def HasStdExtZcea : Predicate<"Subtarget->hasStdExtZcea()">,
+                           AssemblerPredicate<(all_of FeatureExtZcea),
+                           "'Zcea' (all existing standard extensions for small embedded cores v0.41)">;
+def FeatureExtZceb
+    : SubtargetFeature<"experimental-zceb", "HasStdExtZceb", "true",
+                       "'Zceb' (all existing standard extensions for small embedded cores v0.41)">;
+def HasStdExtZceb : Predicate<"Subtarget->hasStdExtZceb()">,
+                           AssemblerPredicate<(all_of FeatureExtZceb),
+                           "'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41)">;
 def FeatureStdExtZce
     : SubtargetFeature<"experimental-zce", "HasStdExtZce", "true",
-                       "'Zce' (code-size reduction extension proposal v0.31)">;
+                       "'Zce' (code-size reduction extension proposal v0.41)",
+                       [FeatureExtZcea,
+                        FeatureExtZceb]>;
 def HasStdExtZce : Predicate<"Subtarget->hasStdExtZce()">,
                            AssemblerPredicate<(all_of FeatureStdExtZce),
-                           "'Zce' (code-size reduction extension proposal v0.31)">;
+                           "'Zce' (code-size reduction extension proposal v0.41.1)">;
 def NotHasStdExtD : Predicate<"!Subtarget->hasStdExtD()">;
 
 def FeatureNoRVCHints

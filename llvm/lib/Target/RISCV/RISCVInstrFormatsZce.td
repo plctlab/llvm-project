@@ -11,8 +11,8 @@
 //===----------------------------------------------------------------------===//
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-class RVZcecInst16<bits<2> funct2, bits<3> opcode, string opcodestr>
-    : RVInst16<(outs GPRC:$rs_wb), (ins GPRC:$rs), opcodestr, "$rs", [], InstFormatCR> {
+class RVZceArith_r<bits<2> funct2, bits<3> opcode, string opcodestr>
+    : RVInst16<(outs GPRC:$rs_wb), (ins GPRC:$rs), opcodestr, "$rs", [], InstFormatCB> {
   bits<3> rs;
   let Constraints = "$rs = $rs_wb";
 
@@ -25,11 +25,11 @@ class RVZcecInst16<bits<2> funct2, bits<3> opcode, string opcodestr>
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-class RVZcecInstC_MUL<bits<2> funct2, string opcodestr>
-    : RVInst16<(outs GPRC:$rs1_wb), (ins GPRC:$rs1, GPRC:$rs2), opcodestr, "$rs1, $rs2", [], InstFormatCR> {
+class RVZceArith_rr<bits<6> funct6,bits<2> funct2, bits<2> opcode, string opcodestr>
+    : RVInst16<(outs GPRC:$rs1_wb), (ins GPRC:$rs1, GPRC:$rs2), opcodestr, "$rs1, $rs2", [], InstFormatCB> {
   bits<3> rs1;
   bits<3> rs2;
-  let Constraints = "$rs1 = $rs_wb";
+  let Constraints = "$rs1 = $rs1_wb";
 
   let Inst{15-13} = 0b100;
   let Inst{12-10} = 0b001;
