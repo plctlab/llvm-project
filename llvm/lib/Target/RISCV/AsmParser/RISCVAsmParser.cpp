@@ -2102,6 +2102,11 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
     clearFeatureBits(RISCV::FeatureExtZbt, "experimental-zbt");
     clearFeatureBits(RISCV::FeatureExtZvamo, "experimental-zvamo");
     clearFeatureBits(RISCV::FeatureStdExtZvlsseg, "experimental-zvlsseg");
+    clearFeatureBits(RISCV::FeatureStdExtZce, "experimental-zce");
+    clearFeatureBits(RISCV::FeatureExtZcea, "experimental-zcea");
+    clearFeatureBits(RISCV::FeatureExtZceb, "experimental-zceb");
+    clearFeatureBits(RISCV::FeatureExtZcee, "experimental-zcee");
+
 
     while (!Arch.empty()) {
       bool DropFirst = true;
@@ -2162,6 +2167,15 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
           setFeatureBits(RISCV::FeatureExtZvamo, "experimental-zvamo");
         else if (Ext == "zvlsseg")
           setFeatureBits(RISCV::FeatureStdExtZvlsseg, "experimental-zvlsseg");
+        else if (Ext == "zce")
+          setFeatureBits(RISCV::FeatureStdExtZce, "experimental-zce");
+        else if (Ext == "zcea")
+          setFeatureBits(RISCV::FeatureExtZcea, "experimental-zcea");
+        else if (Ext == "zceb")
+          setFeatureBits(RISCV::FeatureExtZceb, "experimental-zceb");
+        else if (Ext == "zcee")
+          setFeatureBits(RISCV::FeatureExtZcee, "experimental-zcee");
+
         else
           return Error(ValueExprLoc, "bad arch string " + Ext);
         Arch = Arch.drop_until([](char c) { return ::isdigit(c) || c == '_'; });
@@ -2236,7 +2250,14 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
         formalArchStr = (Twine(formalArchStr) + "_zvamo0p10").str();
       if (getFeatureBits(RISCV::FeatureStdExtZvlsseg))
         formalArchStr = (Twine(formalArchStr) + "_zvlsseg0p10").str();
-
+      if (getFeatureBits(RISCV::FeatureStdExtZce))
+        formalArchStr = (Twine(formalArchStr) + "_zce0p41").str();
+      if (getFeatureBits(RISCV::FeatureExtZcea))
+        formalArchStr = (Twine(formalArchStr) + "_zcea0p41").str();
+      if (getFeatureBits(RISCV::FeatureExtZceb))
+        formalArchStr = (Twine(formalArchStr) + "_zceb0p41").str();
+      if (getFeatureBits(RISCV::FeatureExtZcee))
+        formalArchStr = (Twine(formalArchStr) + "_zcee0p41").str();
       getTargetStreamer().emitTextAttribute(Tag, formalArchStr);
     }
   }

@@ -92,7 +92,14 @@ void RISCVTargetStreamer::emitTargetAttributes(const MCSubtargetInfo &STI) {
     Arch += "_zvamo0p10";
   if (STI.hasFeature(RISCV::FeatureStdExtZvlsseg))
     Arch += "_zvlsseg0p10";
-
+  if (STI.hasFeature(RISCV::FeatureStdExtZce))
+    Arch += "_zce0p41";
+  if (STI.hasFeature(RISCV::FeatureExtZcea))
+    Arch += "_zcea0p41";
+  if (STI.hasFeature(RISCV::FeatureExtZceb))
+    Arch += "_zceb0p41";
+  if (STI.hasFeature(RISCV::FeatureExtZcee))
+    Arch += "_zcee0p41";
   emitTextAttribute(RISCVAttrs::ARCH, Arch);
 }
 
