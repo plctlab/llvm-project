@@ -125,8 +125,10 @@ def C_ZEXT_B : RVZceArith_r<0b00, 0b000 , "c.zext.b">, Sched<[]>;
 def C_SEXT_B : RVZceArith_r<0b00, 0b100 , "c.sext.b">, Sched<[]>;
 def C_ZEXT_H : RVZceArith_r<0b00, 0b001 , "c.zext.h">, Sched<[]>;
 def C_SEXT_H : RVZceArith_r<0b00, 0b101 , "c.sext.h">, Sched<[]>;
+
 // def C_NOT : RVZcecInst16<0b00, 0b110 , "c.not">, Sched<[]>;
 // def C_NEG : RVZcecInst16<0b00, 0b111 , "c.neg">, Sched<[]>;
+
 }
 
 let Predicates = [HasStdExtZcea] in {
