@@ -39,14 +39,14 @@ class RVZcecInstC_MUL<bits<2> funct2, string opcodestr>
   let Inst{1-0} = 0b00;
 }
 
-class RVInstZceI<bits<3> funct3_2, bits<3> funct3, bits<7> opcode, dag outs, dag ins,
-              string opcodestr, string argstr>
+class RVInstZceI<bits<3> funct3a, bits<3> funct3, bits<7> opcode, dag outs, dag ins,
+                 string opcodestr, string argstr>
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
   bits<17> imm;
   bits<5> rd;
   bits<5> rs1;
 
-  let Inst{31-29} = funct3_2;
+  let Inst{31-29} = funct3a;
   let Inst{28-22} = imm{8-2};
   let Inst{21-20} = imm{10-9};
   let Inst{19-15} = imm{15-11};
@@ -55,14 +55,14 @@ class RVInstZceI<bits<3> funct3_2, bits<3> funct3, bits<7> opcode, dag outs, dag
   let Inst{6-0} = opcode;
 }
 
-class RVInstZceS<bits<3> funct3_2, bits<3> funct3, bits<7> opcode, dag outs, dag ins,
-              string opcodestr, string argstr>
+class RVInstZceS<bits<3> funct3a, bits<3> funct3, bits<7> opcode, dag outs, dag ins,
+                 string opcodestr, string argstr>
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatS> {
   bits<17> imm;
   bits<5> rs1;
   bits<5> rs2;
 
-  let Inst{31-29} = funct3_2;
+  let Inst{31-29} = funct3a;
   let Inst{28-25} = imm{8-5};
   let Inst{24-20} = rs2;
   let Inst{19-15} = imm{15-11};

@@ -25,6 +25,9 @@ c.sext.b s0
 # CHECK-ASM: encoding: [0x14,0x84]
 c.sext.h s0
 
+# CHECK-ASM-AND-OBJ: muli s0, s1, 2
+# CHECK-ASM: encoding: [0x0b,0x94,0x24,0x00]
+muli s0, s1, 2
 
 # CHECK-ASM-AND-OBJ: lwgp s0, 65532(gp)
 # CHECK-ASM: encoding: [0x07,0xb4,0xff,0x1f]
