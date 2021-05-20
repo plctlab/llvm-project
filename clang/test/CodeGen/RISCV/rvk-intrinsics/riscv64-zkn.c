@@ -62,6 +62,10 @@ int64_t test_rv64_aes64esm(int64_t rs1, int64_t rs2){
     return _rv64_aes64esm(rs1,rs2);
 }
 
+// int64_t test_rv64_aes64ks1i(int64_t rs1, int rs2){
+//     return _rv64_aes64ks1i(rs1,rs2);
+// }
+
 // RV64ZKN-LABEL: i64 @test_rv64_aes64im(
 // RV64ZKN-NEXT:  entry:
 // RV64ZKN-NEXT:  [[RS1_ADDR:%.*]] = alloca i64, align 8
@@ -152,3 +156,11 @@ long test_rv_sm3p0(long rs1){
 long test_rv_sm3p1(long rs1){
     return _rv_sm3p1(rs1);
 }
+
+// long test_rv_sm4ks(long rs1, long rs2){
+//     return _rv_sm4ks(rs1, rs2, 0);
+// }
+
+// long test_rv_sm4ed (long rs1, long rs2, uint8_t bs){
+//     return _rv_sm4ed (rs1, rs2, 0);
+// }
