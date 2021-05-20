@@ -19,6 +19,20 @@ include "RISCVInstrFormatsZce.td"
 // Operand and SDNode transformation definitions.
 //===----------------------------------------------------------------------===//
 
+// def uimm7_lsb0nonzero : Operand<XLenVT>,
+//                         ImmLeaf<XLenVT,
+//                         [{return isShiftedUInt<6, 1>(Imm) && (Imm != 0);}]> {
+//   let ParserMatchClass = UImmAsmOperand<7, "Lsb0NonZero">;
+//   let EncoderMethod = "getImmOpValue";
+//   let DecoderMethod = "decodeUImmNonZeroOperand<7>";
+//   let MCOperandPredicate = [{
+//     int64_t Imm;
+//     if (!MCOp.evaluateAsConstantImm(Imm))
+//       return false;
+//     return isShiftedUInt<6, 1>(Imm) && (Imm != 0);
+//   }];
+// }
+
 def uimm4 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<4>;
   let EncoderMethod = "getImmOpValue";
@@ -101,6 +115,8 @@ class ZceStore_ri<bits<3> funct3, bits<2> opcode, string opcodestr,
 // Instructions
 //===----------------------------------------------------------------------===//
 
+// 6. Zcea
+
 // 6.1
 // echo "c.zext.b s0" | bin/llvm-mc -triple=riscv64 -mattr=+experimental-zce -show-encoding
 let Predicates = [HasStdExtZce] in {
@@ -120,26 +136,51 @@ def C_SEXT_H : RVZcecInst16<0b00, 0b101 , "c.sext.h">, Sched<[]>;
 let Predicates = [HasStdExtZce, IsRV64] in
 def C_ZEXT_W : RVZcecInst16<0b00, 0b010 , "c.zext.w">, Sched<[]>;
 
+// 6.4 MULI
+let Predicates = [HasStdExtZce],
+    hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def MULI : RVInstI<0b001, RISCVOpcode<0b0001011>, (outs GPR:$rd),
+                  (ins GPR:$rs1, simm12:$imm12), "muli", "$rd, $rs1, $imm12">,
+           Sched<[]>;
+
+// 7. Zceb
+
+// // 7.1 C.DECBNEZ, DECBNEZ
+// let Predicates = [NotHasStdExtD, HasStdExtZce] in
+// def C_DECBNEZ : RVInst16<(outs GPRC:$rd_wb),
+//                          (ins GPRC:$rd, uimm2:$scale, uimm7_lsb0nonzero:$nzuimm),
+//                          "c.decbnez", "$rd, $scale, -$nzuimm", [], InstFormatCB> {
+//   bits<3> rd;
+//   bits<7> nzuimm;
+//   bits<2> scale;
+//   let Constraints = "$rd = $rd_wb";
+//   let isBranch = 1;
+
+//   let Inst{15-13} = 0b101;
+//   let Inst{12-10} = nzuimm{6-4};
+//   let Inst{9-7} = rd;
+//   let Inst{6-4} = nzuimm{3-1};
+//   let Inst{3-2} = scale;
+//   let Inst{1-0} = 0b10;
+// }
+
 // 7.2. LWGP, SWGP, LDGP, SDGP
-let Predicates = [NotHasStdExtD, HasStdExtZce] in {
+let Predicates = [NotHasStdExtD, HasStdExtZce] in
+def LWGP : ZceGPLoad<0b000, 0b011, "lwgp", uimm16_lsb00>, Sched<[]>;
 
-def LWGP :  ZceGPLoad<0b000, 0b011, "lwgp", uimm16_lsb00>, Sched<[]>;
-def SWGP :  ZceGPStore<0b000, 0b011, "swgp", uimm16_lsb00>, Sched<[]>;
+let Predicates = [NotHasStdExtD, HasStdExtZce] in
+def SWGP : ZceGPStore<0b000, 0b011, "swgp", uimm16_lsb00>, Sched<[]>;
 
-}
-
-let Predicates = [NotHasStdExtD, HasStdExtZce, IsRV64] in {
-
-def LDGP :  ZceGPLoad<0b010, 0b011, "ldgp", uimm17_lsb000>, Sched<[]> {
+let Predicates = [NotHasStdExtD, HasStdExtZce, IsRV64] in
+def LDGP : ZceGPLoad<0b010, 0b011, "ldgp", uimm17_lsb000>, Sched<[]> {
   bits<17> imm;
   let Inst{22} = imm{16};
 }
 
-def SDGP :  ZceGPStore<0b010, 0b011, "sdgp", uimm17_lsb000>, Sched<[]> {
+let Predicates = [NotHasStdExtD, HasStdExtZce, IsRV64] in
+def SDGP : ZceGPStore<0b010, 0b011, "sdgp", uimm17_lsb000>, Sched<[]> {
   bits<17> imm;
   let Inst{9} = imm{16};
-}
-
 }
 
 // 7.3. C.LBU, C.LHU, C.LB, C.LH, C.SB, C.SH
