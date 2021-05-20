@@ -104,10 +104,10 @@ def _rvk_emu_aes_inv_mc_32 : EmulateIntr<"uint32_t",["uint32_t"]>{
 
 // RV32
 // === AES32: Zkn (RV32), Zknd, Zkne 
-// def aesdsi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
-// def aes32dsmi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
-// def aes32esi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
-// def aes32esmi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
+def aes32dsi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
+def aes32dsmi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
+def aes32esi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
+def aes32esmi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
 
 //	=== SHA512: Zkn (RV32), Zknh
 def sha512sig0l : RVK32Inst<["int32_t", "int32_t"], "int32_t" , "ZiZiZi">{
@@ -206,32 +206,32 @@ def aes64esm : RVK64Inst<["int64_t", "int64_t"], "int64_t", "WiWiWi">{
         return x;}];
 }
 
-// def aes64ks1i : RVK64Inst<["int64_t", "int"], "int64_t", "WiWii">{
-//     let EmulateDef = [{
-//         //	AES Round Constants
-//         const uint8_t aes_rcon[] = {
-//             0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36
-//         };
+def aes64ks1i : RVK64Inst<["int64_t", "int"], "int64_t", "WiWii">{
+    let EmulateDef = [{
+        //	AES Round Constants
+        const uint8_t aes_rcon[] = {
+            0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36
+        };
 
-//         uint32_t t, rc;
+        uint32_t t, rc;
 
-//         t = rs1 >> 32;							//	high word
-//         rc = 0;
+        t = rs1 >> 32;							//	high word
+        rc = 0;
 
-//         if (rcon < 10) {						//	10: don't do it
-//             t = _rv32_ror(t, 8);
-//             rc = aes_rcon[rcon];				//	round constant
-//         }
-//         //	SubWord
-//         t = ((uint32_t) _rvk_emu_aes_fwd_sbox[t & 0xFF]) |
-//             (((uint32_t) _rvk_emu_aes_fwd_sbox[(t >> 8) & 0xFF]) << 8) |
-//             (((uint32_t) _rvk_emu_aes_fwd_sbox[(t >> 16) & 0xFF]) << 16) |
-//             (((uint32_t) _rvk_emu_aes_fwd_sbox[(t >> 24) & 0xFF]) << 24);
+        if (rcon < 10) {						//	10: don't do it
+            t = _rv32_ror(t, 8);
+            rc = aes_rcon[rcon];				//	round constant
+        }
+        //	SubWord
+        t = ((uint32_t) _rvk_emu_aes_fwd_sbox[t & 0xFF]) |
+            (((uint32_t) _rvk_emu_aes_fwd_sbox[(t >> 8) & 0xFF]) << 8) |
+            (((uint32_t) _rvk_emu_aes_fwd_sbox[(t >> 16) & 0xFF]) << 16) |
+            (((uint32_t) _rvk_emu_aes_fwd_sbox[(t >> 24) & 0xFF]) << 24);
 
-//         t ^= rc;
+        t ^= rc;
 
-//         return ((int64_t) t) | (((int64_t) t) << 32);}];
-// }
+        return ((int64_t) t) | (((int64_t) t) << 32);}];
+}
 
 
 
@@ -283,37 +283,37 @@ def sm3p1 : RVKInst<["long"],"long","LiLi",[0,-1]>{
         return rs1 ^ _rv32_ror(rs1, 9) ^ _rv32_ror(rs1, 17);}];
 }
 //	=== SM4:	Zks (RV32, RV64), Zksed
-// def sm4ks : RVKInst<["long","long","uint8_t"],"long","LiLiLiUi">{
-//     let EmulateDef = [{
-//         uint32_t x;
+def sm4ks : RVKInst<["long","long","uint8_t"],"long","LiLiLiUi">{
+    let EmulateDef = [{
+        uint32_t x;
 
-//         bs = (bs & 3) << 3;						//	byte select
-//         x = (rs2 >> bs) & 0xFF;
-//         x = _rvk_emu_sm4_sbox[x];				//	SM4 s-box
+        bs = (bs & 3) << 3;						//	byte select
+        x = (rs2 >> bs) & 0xFF;
+        x = _rvk_emu_sm4_sbox[x];				//	SM4 s-box
 
-//         //	SM4 transform L' (key)
-//         x = x ^ ((x & 0x07) << 29) ^ ((x & 0xFE) << 7) ^
-//             ((x & 1) << 23) ^ ((x & 0xF8) << 13);
+        //	SM4 transform L' (key)
+        x = x ^ ((x & 0x07) << 29) ^ ((x & 0xFE) << 7) ^
+            ((x & 1) << 23) ^ ((x & 0xF8) << 13);
 
-//         return rs1 ^ _rv32_rol(x, bs);
-//     }];
-// }
-// def sm4ed : RVKInst<["long","long","uint8_t"],"long","LiLiLiUi">{
-//     let EmulateDef = [{
-//         uint32_t x;
+        return rs1 ^ _rv32_rol(x, bs);
+    }];
+}
+def sm4ed : RVKInst<["long","long","uint8_t"],"long","LiLiLiUi">{
+    let EmulateDef = [{
+        uint32_t x;
 
-//         bs = (bs & 3) << 3;						//	byte select
-//         x = (rs2 >> bs) & 0xFF;
-//         x = _rvk_emu_sm4_sbox[x];				//	SM4 s-box
+        bs = (bs & 3) << 3;						//	byte select
+        x = (rs2 >> bs) & 0xFF;
+        x = _rvk_emu_sm4_sbox[x];				//	SM4 s-box
 
-//         //	SM4 linear transform L
-//         x = x ^ (x << 8) ^ (x << 2) ^ (x << 18) ^
-//                 ((x & 0x3F) << 26) ^ ((x & 0xC0) << 10);
+        //	SM4 linear transform L
+        x = x ^ (x << 8) ^ (x << 2) ^ (x << 18) ^
+                ((x & 0x3F) << 26) ^ ((x & 0xC0) << 10);
 
-//         return rs1 ^ _rv32_rol(x, bs);
-//     }];
-// }
+        return rs1 ^ _rv32_rol(x, bs);
+    }];
+}
 
 //	===	Entropy source: Zkr (RV32, RV64)
-// def getnoise    : RVKInst<[],"long","Li">;
-// def pollentropy : RVKInst<[],"long","Li">;
+def getnoise    : RVKInst<[],"long","Li">;
+def pollentropy : RVKInst<[],"long","Li">;
