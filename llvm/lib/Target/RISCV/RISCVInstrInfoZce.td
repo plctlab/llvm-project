@@ -128,7 +128,10 @@ def C_SEXT_H  : RVZceArith_r<0b00, 0b011 , "c.sext.h">, Sched<[]>;
 
 let Predicates = [HasStdExtZcee, IsRV64] in{
 def C_ZEXT_W : RVZceArith_r<0b00, 0b100 , "c.zext.w">, Sched<[]>;
-def : InstAlias<"c.sext.w $rd", (C_ADDIW GPRNoX0:$rd, 0b0)>;
+}
+
+let Predicates = [HasStdExtC, HasStdExtZcee, IsRV64] in{
+def : InstAlias<"c.sext.w $rd", (C_ADDIW GPRC:$rd, 0)>;
 }
 
 let Predicates = [HasStdExtZcea] in {
