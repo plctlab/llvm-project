@@ -13,16 +13,16 @@
 # CHECK-ASM: encoding: [0x00,0x84]
 c.zext.b s0
 
-# CHECK-ASM-AND-OBJ: c.zext.h s0
-# CHECK-ASM: encoding: [0x04,0x84]
-c.zext.h s0
-
 # CHECK-ASM-AND-OBJ: c.sext.b s0
-# CHECK-ASM: encoding: [0x10,0x84]
+# CHECK-ASM: encoding: [0x04,0x84]
 c.sext.b s0
 
+# CHECK-ASM-AND-OBJ: c.zext.h s0
+# CHECK-ASM: encoding: [0x08,0x84]
+c.zext.h s0
+
 # CHECK-ASM-AND-OBJ: c.sext.h s0
-# CHECK-ASM: encoding: [0x14,0x84]
+# CHECK-ASM: encoding: [0x0c,0x84]
 c.sext.h s0
 
 # CHECK-ASM-AND-OBJ: muli s0, s1, 2
