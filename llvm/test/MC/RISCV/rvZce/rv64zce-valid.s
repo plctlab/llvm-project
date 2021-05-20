@@ -3,7 +3,6 @@
 # RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=experimental-zce < %s \
 # RUN:     | llvm-objdump --mattr=experimental-zce -M no-aliases -d -r - \
 # RUN:     | FileCheck --check-prefix=CHECK-ASM-AND-OBJ %s
-#
 # RUN: not llvm-mc -triple=riscv64 \
 # RUN:     -riscv-no-aliases -show-encoding < %s 2>&1 \
 # RUN:     | FileCheck --check-prefix=CHECK-NO-EXT %s
@@ -40,6 +39,16 @@ c.sext.h s0
 # CHECK-NO-RV64: error: instruction requires the following: RV64I Base Instruction Set
 # CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Zcee' (high performance cores v0.41), RV64I Base Instruction Set
 c.zext.w s0
+
+# CHECK-ASM-AND-OBJ: c.neg s0
+# CHECK-ASM: encoding: [0x18,0x84]
+# CHECK-NO-EXT: error: instruction requires the following: 'Zcea' (all existing standard extensions for small embedded cores v0.41)
+c.neg s0
+
+# CHECK-ASM-AND-OBJ: c.not s0
+# CHECK-ASM: encoding: [0x1c,0x84]
+# CHECK-NO-EXT: error: instruction requires the following: 'Zcea' (all existing standard extensions for small embedded cores v0.41)
+c.not s0
 
 # CHECK-ASM-AND-OBJ: ldgp s0, 65536(gp)
 # CHECK-ASM: encoding: [0x07,0x34,0x40,0x40]
