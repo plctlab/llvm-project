@@ -33,6 +33,10 @@ c.neg s0
 # CHECK-ASM: encoding: [0x1c,0x84]
 c.not s0
 
+# CHECK-ASM-AND-OBJ: c.mul s0, s1
+# CHECK-ASM: encoding: [0x45,0x9c]
+c.mul s0, s1
+
 # CHECK-ASM-AND-OBJ: muli s0, s1, 2
 # CHECK-ASM: encoding: [0x0b,0x94,0x24,0x00]
 muli s0, s1, 2

@@ -31,12 +31,11 @@ class RVZceArith_rr<bits<6> funct6,bits<2> funct2, bits<2> opcode, string opcode
   bits<3> rs2;
   let Constraints = "$rs1 = $rs1_wb";
 
-  let Inst{15-13} = 0b100;
-  let Inst{12-10} = 0b000;
+  let Inst{15-10} = funct6;
   let Inst{9-7} = rs1;
   let Inst{6-5} = funct2;
   let Inst{4-2} = rs2;
-  let Inst{1-0} = 0b00;
+  let Inst{1-0} = opcode;
 }
 
 class RVInstZceI<bits<3> funct3a, bits<3> funct3, bits<7> opcode, dag outs, dag ins,
