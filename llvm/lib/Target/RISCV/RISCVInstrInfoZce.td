@@ -137,7 +137,7 @@ def : InstAlias<"c.sext.w $rd", (C_ADDIW GPRC:$rd, 0)>;
 let Predicates = [HasStdExtZcea] in {
 def C_NEG_ZCE : RVZceArith_r<0b00, 0b110 , "c.neg">, Sched<[]>;
 def C_NOT_ZCE : RVZceArith_r<0b00, 0b111 , "c.not">, Sched<[]>;
-// def C_MUL : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
+def C_MUL     : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
 }
 
 // 6.4 MULI

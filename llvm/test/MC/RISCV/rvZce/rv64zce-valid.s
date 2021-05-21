@@ -50,6 +50,10 @@ c.neg s0
 # CHECK-NO-EXT: error: instruction requires the following: 'Zcea' (all existing standard extensions for small embedded cores v0.41)
 c.not s0
 
+# CHECK-ASM-AND-OBJ: c.mul s0, s1
+# CHECK-ASM: encoding: [0x45,0x9c]
+c.mul s0, s1
+
 # CHECK-ASM-AND-OBJ: ldgp s0, 65536(gp)
 # CHECK-ASM: encoding: [0x07,0x34,0x40,0x40]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zce' (code-size reduction extension proposal v0.41)
