@@ -158,26 +158,22 @@ void RISCVCryptoEmitter::createHeader(raw_ostream &OS) {
       }
       std::vector<StringRef> PT = def->getParamTypes();
       OS << "static inline " << def->getReturnType() << " " << def->getPrefix() << def->getName() << "(";
-      if(PT.size()>0){
-        int flag = 0;
-        for(auto param : PT){
-          if(flag++>0){
-            OS << ",";
-          }
-          OS << param << " rs" <<flag;
+      int flag = 0;
+      for(auto param : PT){
+        if(flag++>0){
+          OS << ",";
         }
-        OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
-        for (int i = 0; i < flag; i++)
-        {
-          if(i>0){
-            OS << ",";
-          }
-          OS <<"rs" <<i+1;
-        }
-        OS <<"); }\n";
-      }else{
-        OS << "...)" << " { __builtin_riscv_" << def->getName() << "(__VA_ARGS__) }\n";
+        OS << param << " rs" <<flag;
       }
+      OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
+      for (int i = 0; i < flag; i++)
+      {
+        if(i>0){
+          OS << ",";
+        }
+        OS <<"rs" <<i+1;
+      }
+      OS <<"); }\n";
     }
     OS << "#endif // RVINTRIN_RV32\n";
 
@@ -188,26 +184,22 @@ void RISCVCryptoEmitter::createHeader(raw_ostream &OS) {
       }
       std::vector<StringRef> PT = def->getParamTypes();
       OS << "static inline " << def->getReturnType() << " " << def->getPrefix() << def->getName() << "(";
-      if(PT.size()>0){
-        int flag = 0;
-        for(auto param : PT){
-          if(flag++>0){
-            OS << ",";
-          }
-          OS << param << " rs" <<flag;
+      int flag = 0;
+      for(auto param : PT){
+        if(flag++>0){
+          OS << ",";
         }
-        OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
-        for (int i = 0; i < flag; i++)
-        {
-          if(i>0){
-            OS << ",";
-          }
-          OS <<"rs" <<i+1;
-        }
-        OS <<"); }\n";
-      }else{
-        OS << "...)" << " { __builtin_riscv_" << def->getName() << "(__VA_ARGS__); }\n";
+        OS << param << " rs" <<flag;
       }
+      OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
+      for (int i = 0; i < flag; i++)
+      {
+        if(i>0){
+          OS << ",";
+        }
+        OS <<"rs" <<i+1;
+      }
+      OS <<"); }\n";
     }
     OS << "#endif // RVINTRIN_RV64\n";
 
@@ -217,26 +209,22 @@ void RISCVCryptoEmitter::createHeader(raw_ostream &OS) {
       }
       std::vector<StringRef> PT = def->getParamTypes();
       OS << "static inline " << def->getReturnType() << " " << def->getPrefix() << def->getName() << "(";
-      if(PT.size()>0){
-        int flag = 0;
-        for(auto param : PT){
-          if(flag++>0){
-            OS << ",";
-          }
-          OS << param << " rs" <<flag;
+      int flag = 0;
+      for(auto param : PT){
+        if(flag++>0){
+          OS << ",";
         }
-        OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
-        for (int i = 0; i < flag; i++)
-        {
-          if(i>0){
-            OS << ",";
-          }
-          OS <<"rs" <<i+1;
-        }
-        OS <<"); }\n";
-      }else{
-        OS << "...)" << " { __builtin_riscv_" << def->getName() << "(__VA_ARGS__); }\n";
+        OS << param << " rs" <<flag;
       }
+      OS <<")" << " { return __builtin_riscv_" << def->getName() << "(";
+      for (int i = 0; i < flag; i++)
+      {
+        if(i>0){
+          OS << ",";
+        }
+        OS <<"rs" <<i+1;
+      }
+      OS <<"); }\n";
     }
 
     OS << "#else\n";
