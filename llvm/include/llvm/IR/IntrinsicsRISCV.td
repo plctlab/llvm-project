@@ -1267,12 +1267,12 @@ def int_riscv_aes32esmi : ScalarCryptoByteSelect32;
 
 class ScalarCryptoByteSelectAny : Intrinsic<[llvm_anyint_ty],
                                             [LLVMMatchType<0>,
-                                              LLVMMatchType<0>,
-                                              llvm_anyint_ty],
+                                             LLVMMatchType<0>,
+                                             llvm_anyint_ty],
                                             [IntrNoMem, IntrSpeculatable,
-                                              IntrWillReturn,
-                                              ImmArg<ArgIndex<2>>,
-                                              Returned<ArgIndex<0>>]>;
+                                             IntrWillReturn,
+                                             ImmArg<ArgIndex<2>>,
+                                             Returned<ArgIndex<0>>]>;
 
 def int_riscv_sm4ks : ScalarCryptoByteSelectAny;
 def int_riscv_sm4ed : ScalarCryptoByteSelectAny;
