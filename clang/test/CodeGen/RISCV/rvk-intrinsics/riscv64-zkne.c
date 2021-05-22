@@ -39,7 +39,7 @@ int64_t test_rv64_aes64esm(int64_t rs1, int64_t rs2){
 // RV64ZKN-NEXT:  [[RS1_ADDR:%.*]] = alloca i64, align 8
 // RV64ZKN-NEXT:  store i64 [[RS1:%.*]], i64* [[RS1_ADDR]], align 8
 // RV64ZKN-NEXT:  [[TMP0:%.*]] = load i64, i64* [[RS1_ADDR]], align 8
-// RV64ZKN-NEXT:  [[CALL:%.*]] = call i64 @_rv64_aes64ks1i(i64 [[TMP0]], i64 0)
+// RV64ZKN-NEXT:  [[CALL:%.*]] = call i64 @_rv64_aes64ks1i(i64 [[TMP0]], i32 signext 0)
 // RV64ZKN-NEXT:  ret i64 [[CALL]]
 int64_t test_rv64_aes64ks1i(int64_t rs1){
     return _rv64_aes64ks1i(rs1,0);

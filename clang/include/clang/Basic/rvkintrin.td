@@ -284,7 +284,8 @@ def sm3p1 : RVKInst<["long"],"long","LiLi",[0,-1]>{
         return rs1 ^ _rv32_ror(rs1, 9) ^ _rv32_ror(rs1, 17);}];
 }
 //	=== SM4:	Zks (RV32, RV64), Zksed
-def sm4ks : RVKInst<["long","long","uint8_t"],"long","LiLiLiUi",[0,1,2,-1]>{
+// FixMe: uint8_t and Wi dosent match
+def sm4ks : RVKInst<["long","long","uint8_t"],"long","LiLiLiLi",[0,1,2,-1]>{
     let EmulateDef = [{
         uint32_t x;
 
@@ -299,7 +300,8 @@ def sm4ks : RVKInst<["long","long","uint8_t"],"long","LiLiLiUi",[0,1,2,-1]>{
         return rs1 ^ _rv32_rol(x, bs);
     }];
 }
-def sm4ed : RVKInst<["long","long","uint8_t"],"long","LiLiLiUi",[0,1,2,-1]>{
+// FixMe: uint8_t and Wi dosent match
+def sm4ed : RVKInst<["long","long","uint8_t"],"long","LiLiLiLi",[0,1,2,-1]>{
     let EmulateDef = [{
         uint32_t x;
 
