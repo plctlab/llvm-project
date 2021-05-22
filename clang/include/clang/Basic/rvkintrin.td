@@ -206,7 +206,8 @@ def aes64esm : RVK64Inst<["int64_t", "int64_t"], "int64_t", "WiWiWi">{
         return x;}];
 }
 
-def aes64ks1i : RVK64Inst<["int64_t", "int"], "int64_t", "WiWii">{
+// FixMe: int and Wi dosent match
+def aes64ks1i : RVK64Inst<["int64_t", "int"], "int64_t", "WiWiWi">{
     let EmulateDef = [{
         //	AES Round Constants
         const uint8_t aes_rcon[] = {

@@ -1,4 +1,4 @@
-// RUN: %clang_cc1 -triple riscv32 -target-feature +experimental-zksh -emit-llvm %s -o - \
+// RUN: %clang_cc1 -triple riscv32 -target-feature +experimental-k -emit-llvm %s -o - \
 // RUN:     | FileCheck %s  -check-prefix=RV32ZKN
 
 // Fixme: delete this line when rvintrin.h is available. 
