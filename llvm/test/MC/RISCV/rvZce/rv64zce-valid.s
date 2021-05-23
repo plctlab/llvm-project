@@ -56,14 +56,14 @@ c.mul s0, s1
 
 # CHECK-ASM-AND-OBJ: ldgp s0, 65536(gp)
 # CHECK-ASM: encoding: [0x07,0x34,0x40,0x40]
-# CHECK-NO-EXT: error: instruction requires the following: 'Zce' (code-size reduction extension proposal v0.41)
+# CHECK-NO-EXT: error: instruction requires the following: 'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41)
 # CHECK-NO-RV64: error: instruction requires the following: RV64I Base Instruction Set
-# CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Zce' (code-size reduction extension proposal v0.41), RV64I Base Instruction Set
+# CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41), RV64I Base Instruction Set
 ldgp s0, 65536(gp)
 
 # CHECK-ASM-AND-OBJ: sdgp s0, 65536(gp)
 # CHECK-ASM: encoding: [0x27,0x32,0x80,0x40]
-# CHECK-NO-EXT: error: instruction requires the following: 'Zce' (code-size reduction extension proposal v0.41)
+# CHECK-NO-EXT: error: instruction requires the following: 'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41)
 # CHECK-NO-RV64: error: instruction requires the following: RV64I Base Instruction Set
-# CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Zce' (code-size reduction extension proposal v0.41), RV64I Base Instruction Set
+# CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41), RV64I Base Instruction Set
 sdgp s0, 65536(gp)

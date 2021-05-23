@@ -1,13 +1,13 @@
-# RUN: llvm-mc %s -triple=riscv32 -mattr=experimental-zce -riscv-no-aliases -show-encoding \
+# RUN: llvm-mc %s -triple=riscv32 -mattr=experimental-zce -mattr=m -riscv-no-aliases -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK-ASM,CHECK-ASM-AND-OBJ %s
-# RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=experimental-zce < %s \
-# RUN:     | llvm-objdump --mattr=experimental-zce -M no-aliases -d -r - \
-# RUN:     | FileCheck --check-prefixes=CHECK-ASM-AND-OBJ %s
-# RUN: llvm-mc %s -triple=riscv64 -mattr=experimental-zce -riscv-no-aliases -show-encoding \
+# RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=experimental-zce -mattr=m < %s \
+# RUN:     | llvm-objdump --mattr=experimental-zce --mattr=m -M no-aliases -d -r - \
+# RUN:     | FileCheck --check-prefixes=CHECK-OBJ,CHECK-ASM-AND-OBJ %s
+# RUN: llvm-mc %s -triple=riscv64 -mattr=experimental-zce -mattr=m -riscv-no-aliases -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK-ASM,CHECK-ASM-AND-OBJ %s
-# RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=experimental-zce < %s \
-# RUN:     | llvm-objdump --mattr=experimental-zce -M no-aliases -d -r - \
-# RUN:     | FileCheck --check-prefix=CHECK-ASM-AND-OBJ %s
+# RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=experimental-zce -mattr=m < %s \
+# RUN:     | llvm-objdump --mattr=experimental-zce --mattr=m -M no-aliases -d -r - \
+# RUN:     | FileCheck --check-prefixes=CHECK-OBJ,CHECK-ASM-AND-OBJ %s
 
 # CHECK-ASM-AND-OBJ: c.zext.b s0
 # CHECK-ASM: encoding: [0x00,0x84]
@@ -36,6 +36,14 @@ c.not s0
 # CHECK-ASM-AND-OBJ: c.mul s0, s1
 # CHECK-ASM: encoding: [0x45,0x9c]
 c.mul s0, s1
+
+# CHECK-OBJ: beqi s0, 20, 0x34
+# CHECK-ASM: encoding: [0x63,0x24,0x44,0x03]
+beqi s0, 20, 40
+
+# CHECK-OBJ: bnei s0, 20, 0x38
+# CHECK-ASM: encoding: [0x63,0x34,0x44,0x03]
+bnei s0, 20, 40
 
 # CHECK-ASM-AND-OBJ: muli s0, s1, 2
 # CHECK-ASM: encoding: [0x0b,0x94,0x24,0x00]

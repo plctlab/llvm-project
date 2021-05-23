@@ -88,6 +88,20 @@ def uimm17_lsb000 : Operand<XLenVT>,
 // Instruction Class Templates
 //===----------------------------------------------------------------------===//
 
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class Branch_rii<bits<3> funct3, string opcodestr>
+    : RVInstB<funct3, OPC_BRANCH, (outs),
+              (ins GPR:$rs1, uimm5:$uimm, simm13_lsb0:$imm12),
+              opcodestr, "$rs1, $uimm, $imm12">,
+      Sched<[]> {
+  bits<12> imm12;
+  bits<5> uimm;
+  bits<5> rs1;
+  let isBranch = 1;
+  let isTerminator = 1;
+
+  let Inst{24-20} = uimm;
+}
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 class ZceGPLoad<bits<3> funct3_2, bits<3> funct3, string opcodestr, DAGOperand opnd>
@@ -141,11 +155,18 @@ def C_MUL     : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
 }
 
 // 6.4 MULI
-let Predicates = [HasStdExtZce],
+// TODO: requires M or *Zmmul*, waiting for Zmmul ext
+let Predicates = [HasStdExtZcea, HasStdExtM],
     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def MULI : RVInstI<0b001, RISCVOpcode<0b0001011>, (outs GPR:$rd),
                   (ins GPR:$rs1, simm12:$imm12), "muli", "$rd, $rs1, $imm12">,
            Sched<[]>;
+
+// 6.5 BEQI, BNEI
+let Predicates = [HasStdExtZcea] in {
+def BEQI : Branch_rii<0b010, "beqi">;
+def BNEI : Branch_rii<0b011, "bnei">;
+}
 
 // 7. Zceb
 
@@ -169,26 +190,26 @@ def MULI : RVInstI<0b001, RISCVOpcode<0b0001011>, (outs GPR:$rd),
 // }
 
 // 7.2. LWGP, SWGP, LDGP, SDGP
-let Predicates = [NotHasStdExtD, HasStdExtZce] in
+let Predicates = [NotHasStdExtD, HasStdExtZceb] in
 def LWGP : ZceGPLoad<0b000, 0b011, "lwgp", uimm16_lsb00>, Sched<[]>;
 
-let Predicates = [NotHasStdExtD, HasStdExtZce] in
+let Predicates = [NotHasStdExtD, HasStdExtZceb] in
 def SWGP : ZceGPStore<0b000, 0b011, "swgp", uimm16_lsb00>, Sched<[]>;
 
-let Predicates = [NotHasStdExtD, HasStdExtZce, IsRV64] in
+let Predicates = [NotHasStdExtD, HasStdExtZceb, IsRV64] in
 def LDGP : ZceGPLoad<0b010, 0b011, "ldgp", uimm17_lsb000>, Sched<[]> {
   bits<17> imm;
   let Inst{22} = imm{16};
 }
 
-let Predicates = [NotHasStdExtD, HasStdExtZce, IsRV64] in
+let Predicates = [NotHasStdExtD, HasStdExtZceb, IsRV64] in
 def SDGP : ZceGPStore<0b010, 0b011, "sdgp", uimm17_lsb000>, Sched<[]> {
   bits<17> imm;
   let Inst{9} = imm{16};
 }
 
 // 7.3. C.LBU, C.LHU, C.LB, C.LH, C.SB, C.SH
-let Predicates = [NotHasStdExtD, HasStdExtZce] in {
+let Predicates = [NotHasStdExtD, HasStdExtZceb] in {
 
 def C_LBU : ZceLoad_ri<0b001, 0b00, "c.lbu", GPRC, uimm4>,
            Sched<[]> {
