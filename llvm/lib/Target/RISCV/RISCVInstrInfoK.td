@@ -137,7 +137,7 @@ def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
 //===----------------------------------------------------------------------===//
 
 class PatGprGprByteSelect<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode GPR:$rs1, GPR:$rs2, uimm2:$imm),
+    : Pat<(OpNode GPR:$rs1, GPR:$rs2, i8:$imm),
           (Inst GPR:$rs1, GPR:$rs2, uimm2:$imm)>;
 
 let Predicates = [HasStdExtZkn, IsRV32] in {
