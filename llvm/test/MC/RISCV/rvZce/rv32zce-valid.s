@@ -37,11 +37,11 @@ c.not s0
 # CHECK-ASM: encoding: [0x45,0x9c]
 c.mul s0, s1
 
-# CHECK-OBJ: beqi s0, 20, 0x34
+# CHECK-OBJ: beqi s0, 20, 0x36
 # CHECK-ASM: encoding: [0x63,0x24,0x44,0x03]
 beqi s0, 20, 40
 
-# CHECK-OBJ: bnei s0, 20, 0x38
+# CHECK-OBJ: bnei s0, 20, 0x3a
 # CHECK-ASM: encoding: [0x63,0x34,0x44,0x03]
 bnei s0, 20, 40
 
