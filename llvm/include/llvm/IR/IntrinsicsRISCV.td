@@ -1298,7 +1298,7 @@ def int_riscv_aes64dsm : ScalarCryptoGprGprIntrinsic64;
 def int_riscv_aes64ks2 : ScalarCryptoGprGprIntrinsic64;
 def int_riscv_aes64esm : ScalarCryptoGprGprIntrinsic64;
 
-def int_riscv_aes64ks1i : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty],
+def int_riscv_aes64ks1i : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i32_ty],
                                     [IntrNoMem, IntrSpeculatable,
                                      IntrWillReturn, ImmArg<ArgIndex<1>>]>;
 

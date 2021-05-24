@@ -20,7 +20,7 @@ def RnumArg : AsmOperandClass {
   let DiagnosticType = "InvalidRnumArg";
 }
 
-def rcon : Operand<XLenVT>, TImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
+def rcon : Operand<i32>, TImmLeaf<i32, [{return isUInt<4>(Imm);}]> {
   let ParserMatchClass = RconArg;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeUImmOperand<4>";
@@ -172,7 +172,7 @@ def : PatGpr<int_riscv_aes64im, AES64IM>;
 let Predicates = [HasStdExtZkne, IsRV64] in {
 def : PatGprGpr<int_riscv_aes64es, AES64ES>;
 def : PatGprGpr<int_riscv_aes64esm, AES64ESM>;
-def : Pat<(XLenVT (int_riscv_aes64ks1i (XLenVT GPR:$rs1), rcon:$rcon)),
+def : Pat<(int_riscv_aes64ks1i GPR:$rs1, i32:$rcon),
           (AES64KS1I GPR:$rs1, rcon:$rcon)>;
 def : PatGprGpr<int_riscv_aes64ks2, AES64KS2>;
 }
