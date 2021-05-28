@@ -84,6 +84,41 @@ def simm17_lsb000 : Operand<XLenVT>,
   }];
 }
 
+def ScaleAsmOperand : AsmOperandClass {
+  let Name = "Scale";
+  let RenderMethod = "addScaleOperands";
+  let DiagnosticType = "InvalidScale";
+}
+
+def scale : Operand<XLenVT>,
+  ImmLeaf<XLenVT, [{ return Imm != 0 && (Imm & Imm - 1) == 0;}]> {
+  let ParserMatchClass = ScaleAsmOperand;
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (MCOp.evaluateAsConstantImm(Imm))
+      return Imm != 0 && (Imm & Imm - 1) == 0;
+    return MCOp.isBareSymbolRef();
+  }];
+}
+
+def NEGImm6AsmOperand : AsmOperandClass {
+  let Name = "NEGImm6";
+  let RenderMethod = "addNEGImm6Operands";
+  let DiagnosticType = "InvalidNEGImm6";
+}
+
+def negimm6 : Operand<XLenVT>,
+           ImmLeaf<XLenVT, [{return Imm < 0 && Imm > -(1 << 7 - 1); }]> {
+  let ParserMatchClass = NEGImm6AsmOperand;
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (MCOp.evaluateAsConstantImm(Imm))
+      return Imm > -(1 << 7 - 1) && Imm < 0;
+    return MCOp.isBareSymbolRef();
+  }];
+  let EncoderMethod = "getNEGImm6";
+}
+
 //===----------------------------------------------------------------------===//
 // Instruction Class Templates
 //===----------------------------------------------------------------------===//
@@ -171,30 +206,22 @@ def BNEI : Branch_rii<0b011, "bnei">;
 // 7. Zceb
 
 // // 7.1 C.DECBNEZ, DECBNEZ
-// let Predicates = [NotHasStdExtD, HasStdExtZce] in
-// def C_DECBNEZ : RVInst16<(outs GPRC:$rd_wb),
-//                          (ins GPRC:$rd, uimm2:$scale, uimm7_lsb0nonzero:$nzuimm),
-//                          "c.decbnez", "$rd, $scale, -$nzuimm", [], InstFormatCB> {
-//   bits<3> rd;
-//   bits<7> nzuimm;
-//   bits<2> scale;
-//   let Constraints = "$rd = $rd_wb";
-//   let isBranch = 1;
-
-//   let Inst{15-13} = 0b101;
-//   let Inst{12-10} = nzuimm{6-4};
-//   let Inst{9-7} = rd;
-//   let Inst{6-4} = nzuimm{3-1};
-//   let Inst{3-2} = scale;
-//   let Inst{1-0} = 0b10;
-// }
+let Predicates = [HasStdExtZceb],
+    hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def C_DECBNEZ : RVInst16CIW<0b101, 0b10, (outs GPRC:$rd),
+                            (ins scale:$scaleImm, negimm6:$imm), "decbnez", "$rd, $scaleImm, $imm">, Sched<[]> {
+  bits<2> scale;
+  let Inst{12-10} = imm{6-4};
+  let Inst{6-4} = imm{3-1};
+  let Inst{3-2} = scale;
+}
 
 // 7.2. LWGP, SWGP, LDGP, SDGP
 let Predicates = [HasStdExtZceb] in
-def LWGP : ZceGPLoad<0b000, 0b011, "lwgp", simm16_lsb00>, Sched<[]>;
+def LWGP :  ZceGPLoad<0b000, 0b011, "lwgp", simm16_lsb00>, Sched<[]>;
 
 let Predicates = [HasStdExtZceb] in
-def SWGP : ZceGPStore<0b000, 0b011, "swgp", simm16_lsb00>, Sched<[]>;
+def SWGP :  ZceGPStore<0b000, 0b011, "swgp", simm16_lsb00>, Sched<[]>;
 
 let Predicates = [HasStdExtZceb, IsRV64] in
 def LDGP : ZceGPLoad<0b010, 0b011, "ldgp", simm17_lsb000>, Sched<[]> {
