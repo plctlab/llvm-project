@@ -564,6 +564,26 @@ public:
     return IsConstantImm && isInt<5>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
+  bool isNEGImm6() const {
+    if (!isImm())
+      return false;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    int64_t Imm;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && Imm < 0 && Imm > -(2 << 7 - 1)
+      && VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
+  bool isScale() const {
+    if (!isImm())
+      return false;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    int64_t Imm;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && Imm != 0 && 
+          !(Imm & (Imm - 1)) && VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
   bool isSImm6() const {
     if (!isImm())
       return false;
@@ -941,6 +961,24 @@ public:
     Inst.addOperand(MCOperand::createImm(getVType()));
   }
 
+  void addScaleOperands(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
+    int64_t Imm = 0;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    bool IsConstant = evaluateConstantImm(getImm(), Imm, VK);
+    assert(IsConstant && "The scale operand must be a constant");
+    Inst.addOperand(MCOperand::createImm(Log2_64(Imm)));
+  }
+
+  void addNEGImm6Operands(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
+    int64_t Imm = 0;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    bool IsConstant = evaluateConstantImm(getImm(), Imm, VK);
+    assert(IsConstant && "The nzuimm operand must be a constant");
+    Inst.addOperand(MCOperand::createImm(Imm));
+  }
+
   // Returns the rounding mode represented by this RISCVOperand. Should only
   // be called after checking isFRMArg.
   RISCVFPRndMode::RoundingMode getRoundingMode() const {
@@ -1136,6 +1174,8 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
   case Match_InvalidSImm6:
     return generateImmOutOfRangeError(Operands, ErrorInfo, -(1 << 5),
                                       (1 << 5) - 1);
+  case Match_InvalidNEGImm6:
+    return generateImmOutOfRangeError(Operands, ErrorInfo, -((1 << 7) - 1), -1);
   case Match_InvalidSImm6NonZero:
     return generateImmOutOfRangeError(
         Operands, ErrorInfo, -(1 << 5), (1 << 5) - 1,
@@ -1251,6 +1291,10 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
         ErrorLoc,
         "operand must be "
         "e[8|16|32|64|128|256|512|1024],m[1|2|4|8|f2|f4|f8],[ta|tu],[ma|mu]");
+  }
+  case Match_InvalidScale: {
+    SMLoc ErrorLoc = ((RISCVOperand &)*Operands[ErrorInfo]).getStartLoc();
+    return Error(ErrorLoc, "operand must be 1, 2, 4, or 8");
   }
   case Match_InvalidVMaskRegister: {
     SMLoc ErrorLoc = ((RISCVOperand &)*Operands[ErrorInfo]).getStartLoc();

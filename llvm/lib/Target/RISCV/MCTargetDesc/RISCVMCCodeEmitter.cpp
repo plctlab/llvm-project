@@ -84,6 +84,10 @@ public:
                        SmallVectorImpl<MCFixup> &Fixups,
                        const MCSubtargetInfo &STI) const;
 
+  unsigned getNEGImm6(const MCInst &MI, unsigned OpNo,
+                      SmallVectorImpl<MCFixup> &Fixups,
+                      const MCSubtargetInfo &STI) const;
+
 private:
   FeatureBitset computeAvailableFeatures(const FeatureBitset &FB) const;
   void
@@ -403,6 +407,14 @@ unsigned RISCVMCCodeEmitter::getVMaskReg(const MCInst &MI, unsigned OpNo,
   case RISCV::NoRegister:
     return 1;
   }
+}
+
+unsigned RISCVMCCodeEmitter::getNEGImm6(const MCInst &MI, unsigned OpNo,
+                                        SmallVectorImpl<MCFixup> &Fixups,
+                                        const MCSubtargetInfo &STI) const {
+  MCOperand MO = MI.getOperand(OpNo);
+  assert((MO.isImm() && MO.getImm() < 0) && "NEGImm6 operand must be a negtive operand");
+  return -(MO.getImm());
 }
 
 #define ENABLE_INSTR_PREDICATE_VERIFIER
