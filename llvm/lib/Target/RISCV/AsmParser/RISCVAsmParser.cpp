@@ -564,13 +564,13 @@ public:
     return IsConstantImm && isInt<5>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
-  bool isNEGImm6() const {
+  bool isNEGImm7Lsb0NonZero() const {
     if (!isImm())
       return false;
     RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
     int64_t Imm;
     bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
-    return IsConstantImm && Imm < 0 && Imm > -(2 << 7 - 1)
+    return IsConstantImm && Imm != 0 && isShiftedUInt<6, 1>(-Imm)
       && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
@@ -580,7 +580,7 @@ public:
     RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
     int64_t Imm;
     bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
-    return IsConstantImm && Imm != 0 && 
+    return IsConstantImm && Imm != 0 &&
           !(Imm & (Imm - 1)) && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
@@ -970,7 +970,7 @@ public:
     Inst.addOperand(MCOperand::createImm(Log2_64(Imm)));
   }
 
-  void addNEGImm6Operands(MCInst &Inst, unsigned N) const {
+  void addNEGImm7Lsb0NonZeroOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     int64_t Imm = 0;
     RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
@@ -1174,8 +1174,10 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
   case Match_InvalidSImm6:
     return generateImmOutOfRangeError(Operands, ErrorInfo, -(1 << 5),
                                       (1 << 5) - 1);
-  case Match_InvalidNEGImm6:
-    return generateImmOutOfRangeError(Operands, ErrorInfo, -((1 << 7) - 1), -1);
+  case Match_InvalidNEGImm7Lsb0NonZero:
+    return generateImmOutOfRangeError(
+        Operands, ErrorInfo, -((1 << 7) - 1), -2,
+        "immediate must be a multiple of 2 bytes and non-zero in the range");
   case Match_InvalidSImm6NonZero:
     return generateImmOutOfRangeError(
         Operands, ErrorInfo, -(1 << 5), (1 << 5) - 1,
