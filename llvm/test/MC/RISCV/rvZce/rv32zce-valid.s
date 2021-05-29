@@ -57,7 +57,6 @@ lwgp s0, 65532(gp)
 # CHECK-ASM: encoding: [0xa7,0xbf,0x8f,0x1e]
 swgp s0, 65532(gp)
 
-
 # CHECK-ASM-AND-OBJ: c.lbu a5, 10(a4)
 # CHECK-ASM: encoding: [0x3c,0x27]
 c.lbu a5, 10(a4)
@@ -67,11 +66,11 @@ c.lbu a5, 10(a4)
 c.lhu a5, 10(a4)
 
 # CHECK-ASM-AND-OBJ: c.lb a5, 10(a4)
-# CHECK-ASM: encoding: [0x3e,0xa7]
+# CHECK-ASM: encoding: [0x3e,0x27]
 c.lb a5, 10(a4)
 
 # CHECK-ASM-AND-OBJ: c.lh a5, 10(a4)
-# CHECK-ASM: encoding: [0x3e,0xb7]
+# CHECK-ASM: encoding: [0x3e,0x37]
 c.lh a5, 10(a4)
 
 # CHECK-ASM-AND-OBJ: c.sb a5, 10(a4)
