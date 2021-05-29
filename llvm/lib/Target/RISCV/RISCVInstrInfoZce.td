@@ -190,26 +190,26 @@ def BNEI : Branch_rii<0b011, "bnei">;
 // }
 
 // 7.2. LWGP, SWGP, LDGP, SDGP
-let Predicates = [NotHasStdExtD, HasStdExtZceb] in
+let Predicates = [HasStdExtZceb] in
 def LWGP : ZceGPLoad<0b000, 0b011, "lwgp", uimm16_lsb00>, Sched<[]>;
 
-let Predicates = [NotHasStdExtD, HasStdExtZceb] in
+let Predicates = [HasStdExtZceb] in
 def SWGP : ZceGPStore<0b000, 0b011, "swgp", uimm16_lsb00>, Sched<[]>;
 
-let Predicates = [NotHasStdExtD, HasStdExtZceb, IsRV64] in
+let Predicates = [HasStdExtZceb, IsRV64] in
 def LDGP : ZceGPLoad<0b010, 0b011, "ldgp", uimm17_lsb000>, Sched<[]> {
   bits<17> imm;
   let Inst{22} = imm{16};
 }
 
-let Predicates = [NotHasStdExtD, HasStdExtZceb, IsRV64] in
+let Predicates = [HasStdExtZceb, IsRV64] in
 def SDGP : ZceGPStore<0b010, 0b011, "sdgp", uimm17_lsb000>, Sched<[]> {
   bits<17> imm;
   let Inst{9} = imm{16};
 }
 
 // 7.3. C.LBU, C.LHU, C.LB, C.LH, C.SB, C.SH
-let Predicates = [NotHasStdExtD, HasStdExtZceb] in {
+let Predicates = [HasStdExtZceb] in {
 
 def C_LBU : ZceLoad_ri<0b001, 0b00, "c.lbu", GPRC, uimm4>,
            Sched<[]> {
@@ -227,7 +227,7 @@ def C_LHU : ZceLoad_ri<0b001, 0b00, "c.lhu", GPRC, uimm5_lsb0>,
   let Inst{6-5} = imm{2-1};
 }
 
-def C_LB : ZceLoad_ri<0b101, 0b10, "c.lb", GPRC, uimm4>,
+def C_LB : ZceLoad_ri<0b001, 0b10, "c.lb", GPRC, uimm4>,
           Sched<[]> {
   bits<4> imm;
   let Inst{12} = 0;
@@ -235,7 +235,7 @@ def C_LB : ZceLoad_ri<0b101, 0b10, "c.lb", GPRC, uimm4>,
   let Inst{6-5} = imm{2-1};
 }
 
-def C_LH : ZceLoad_ri<0b101, 0b10, "c.lh", GPRC, uimm5_lsb0>,
+def C_LH : ZceLoad_ri<0b001, 0b10, "c.lh", GPRC, uimm5_lsb0>,
           Sched<[]> {
   bits<5> imm;
   let Inst{12} = 1;
