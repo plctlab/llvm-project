@@ -19,20 +19,6 @@ include "RISCVInstrFormatsZce.td"
 // Operand and SDNode transformation definitions.
 //===----------------------------------------------------------------------===//
 
-// def uimm7_lsb0nonzero : Operand<XLenVT>,
-//                         ImmLeaf<XLenVT,
-//                         [{return isShiftedUInt<6, 1>(Imm) && (Imm != 0);}]> {
-//   let ParserMatchClass = UImmAsmOperand<7, "Lsb0NonZero">;
-//   let EncoderMethod = "getImmOpValue";
-//   let DecoderMethod = "decodeUImmNonZeroOperand<7>";
-//   let MCOperandPredicate = [{
-//     int64_t Imm;
-//     if (!MCOp.evaluateAsConstantImm(Imm))
-//       return false;
-//     return isShiftedUInt<6, 1>(Imm) && (Imm != 0);
-//   }];
-// }
-
 def uimm4 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<4>;
   let EncoderMethod = "getImmOpValue";
@@ -91,32 +77,32 @@ def ScaleAsmOperand : AsmOperandClass {
 }
 
 def scale : Operand<XLenVT>,
-  ImmLeaf<XLenVT, [{ return Imm != 0 && (Imm & Imm - 1) == 0;}]> {
+  ImmLeaf<XLenVT, [{ return Imm != 0 && (Imm & (Imm - 1)) == 0;}]> {
   let ParserMatchClass = ScaleAsmOperand;
   let MCOperandPredicate = [{
     int64_t Imm;
     if (MCOp.evaluateAsConstantImm(Imm))
-      return Imm != 0 && (Imm & Imm - 1) == 0;
+      return Imm != 0 && (Imm & (Imm - 1)) == 0;
     return MCOp.isBareSymbolRef();
   }];
 }
 
-def NEGImm6AsmOperand : AsmOperandClass {
-  let Name = "NEGImm6";
-  let RenderMethod = "addNEGImm6Operands";
-  let DiagnosticType = "InvalidNEGImm6";
+def NEGImm7Lsb0NonZeroAsmOperand : AsmOperandClass {
+  let Name = "NEGImm7Lsb0NonZero";
+  let RenderMethod = "addNEGImm7Lsb0NonZeroOperands";
+  let DiagnosticType = "InvalidNEGImm7Lsb0NonZero";
 }
 
-def negimm6 : Operand<XLenVT>,
-           ImmLeaf<XLenVT, [{return Imm < 0 && Imm > -(1 << 7 - 1); }]> {
-  let ParserMatchClass = NEGImm6AsmOperand;
+def negimm7_lsb0nonzero : Operand<XLenVT>,
+           ImmLeaf<XLenVT, [{return Imm != 0 && isShiftedUInt<6, 1>(-Imm); }]> {
+  let ParserMatchClass = NEGImm7Lsb0NonZeroAsmOperand;
+  let EncoderMethod = "getNEGImm7Lsb0NonZero";
   let MCOperandPredicate = [{
     int64_t Imm;
     if (MCOp.evaluateAsConstantImm(Imm))
-      return Imm > -(1 << 7 - 1) && Imm < 0;
+      return Imm != 0 && isShiftedUInt<6, 1>(-Imm);
     return MCOp.isBareSymbolRef();
   }];
-  let EncoderMethod = "getNEGImm6";
 }
 
 //===----------------------------------------------------------------------===//
@@ -209,9 +195,13 @@ def BNEI : Branch_rii<0b011, "bnei">;
 let Predicates = [HasStdExtZceb],
     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def C_DECBNEZ : RVInst16CIW<0b101, 0b10, (outs GPRC:$rd),
-                            (ins scale:$scaleImm, negimm6:$imm), "decbnez", "$rd, $scaleImm, $imm">, Sched<[]> {
+                            (ins scale:$scale, negimm7_lsb0nonzero:$imm),
+                            "c.decbnez", "$rd, $scale, $imm">,
+                Sched<[]> {
+  bits<3> rd;
   bits<2> scale;
   let Inst{12-10} = imm{6-4};
+  let Inst{9-7} = rd;
   let Inst{6-4} = imm{3-1};
   let Inst{3-2} = scale;
 }

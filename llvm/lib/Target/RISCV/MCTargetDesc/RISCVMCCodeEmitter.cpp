@@ -84,7 +84,7 @@ public:
                        SmallVectorImpl<MCFixup> &Fixups,
                        const MCSubtargetInfo &STI) const;
 
-  unsigned getNEGImm6(const MCInst &MI, unsigned OpNo,
+  unsigned getNEGImm7Lsb0NonZero(const MCInst &MI, unsigned OpNo,
                       SmallVectorImpl<MCFixup> &Fixups,
                       const MCSubtargetInfo &STI) const;
 
@@ -409,11 +409,11 @@ unsigned RISCVMCCodeEmitter::getVMaskReg(const MCInst &MI, unsigned OpNo,
   }
 }
 
-unsigned RISCVMCCodeEmitter::getNEGImm6(const MCInst &MI, unsigned OpNo,
+unsigned RISCVMCCodeEmitter::getNEGImm7Lsb0NonZero(const MCInst &MI, unsigned OpNo,
                                         SmallVectorImpl<MCFixup> &Fixups,
                                         const MCSubtargetInfo &STI) const {
   MCOperand MO = MI.getOperand(OpNo);
-  assert((MO.isImm() && MO.getImm() < 0) && "NEGImm6 operand must be a negtive operand");
+  assert((MO.isImm() && MO.getImm() < 0) && "NEGImm7Lsb0NonZero operand must be a negtive non-zero operand");
   return -(MO.getImm());
 }
 
