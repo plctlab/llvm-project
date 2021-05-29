@@ -159,8 +159,8 @@ def HasStdExtZcea : Predicate<"Subtarget->hasStdExtZcea()">,
 def FeatureExtZceb
     : SubtargetFeature<"experimental-zceb", "HasStdExtZceb", "true",
                        "'Zceb' (all existing standard extensions for small embedded cores v0.41)">;
-def HasStdExtZceb : Predicate<"Subtarget->hasStdExtZceb()">,
-                           AssemblerPredicate<(all_of FeatureExtZceb),
+def HasStdExtZceb : Predicate<"Subtarget->hasStdExtZceb() && !Subtarget->hasStdExtD()">,
+                           AssemblerPredicate<(all_of FeatureExtZceb, (not FeatureStdExtD)),
                            "'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41)">;
 def FeatureStdExtZce
     : SubtargetFeature<"experimental-zce", "HasStdExtZce", "true",
