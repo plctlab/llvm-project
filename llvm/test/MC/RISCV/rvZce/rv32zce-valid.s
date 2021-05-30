@@ -49,13 +49,13 @@ bnei s0, 20, 40
 # CHECK-ASM: encoding: [0x0b,0x94,0x24,0x00]
 muli s0, s1, 2
 
-# CHECK-ASM-AND-OBJ: lwgp s0, 65532(gp)
-# CHECK-ASM: encoding: [0x07,0xb4,0xff,0x1f]
-lwgp s0, 65532(gp)
+# CHECK-ASM-AND-OBJ: lwgp s0, 32764(gp)
+# CHECK-ASM: encoding: [0x07,0xb4,0xf7,0x1f]
+lwgp s0, 32764(gp)
 
-# CHECK-ASM-AND-OBJ: swgp s0, 65532(gp)
-# CHECK-ASM: encoding: [0xa7,0xbf,0x8f,0x1e]
-swgp s0, 65532(gp)
+# CHECK-ASM-AND-OBJ: swgp s0, 32764(gp)
+# CHECK-ASM: encoding: [0xa7,0xbf,0x87,0x1e]
+swgp s0, 32764(gp)
 
 # CHECK-ASM-AND-OBJ: c.lbu a5, 10(a4)
 # CHECK-ASM: encoding: [0x3c,0x27]
