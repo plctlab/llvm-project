@@ -298,6 +298,7 @@ template <unsigned N>
 static DecodeStatus decodeSImmOperand(MCInst &Inst, uint64_t Imm,
                                       int64_t Address, const void *Decoder) {
   assert(isUInt<N>(Imm) && "Invalid immediate");
+  addImplyGP(Inst, Address, Decoder);
   addImplySP(Inst, Address, Decoder);
   // Sign-extend the number in the bottom N bits of Imm
   Inst.addOperand(MCOperand::createImm(SignExtend64<N>(Imm)));
