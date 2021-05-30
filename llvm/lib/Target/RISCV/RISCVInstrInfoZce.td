@@ -58,29 +58,29 @@ def uimm5_lsb0 : Operand<XLenVT>,
   }];
 }
 
-def uimm16_lsb00 : Operand<XLenVT>,
-                  ImmLeaf<XLenVT, [{return isShiftedUInt<14, 2>(Imm);}]> {
-  let ParserMatchClass = UImmAsmOperand<16, "Lsb00">;
+def simm16_lsb00 : Operand<XLenVT>,
+                  ImmLeaf<XLenVT, [{return isShiftedInt<14, 2>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<16, "Lsb00">;
   let EncoderMethod = "getImmOpValue";
-  let DecoderMethod = "decodeUImmOperand<16>";
+  let DecoderMethod = "decodeSImmOperand<16>";
   let MCOperandPredicate = [{
     int64_t Imm;
     if (!MCOp.evaluateAsConstantImm(Imm))
       return false;
-    return isShiftedUInt<14, 2>(Imm);
+    return isShiftedInt<14, 2>(Imm);
   }];
 }
 
-def uimm17_lsb000 : Operand<XLenVT>,
-                  ImmLeaf<XLenVT, [{return isShiftedUInt<14, 3>(Imm);}]> {
-  let ParserMatchClass = UImmAsmOperand<17, "Lsb000">;
+def simm17_lsb000 : Operand<XLenVT>,
+                  ImmLeaf<XLenVT, [{return isShiftedInt<14, 3>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<17, "Lsb000">;
   let EncoderMethod = "getImmOpValue";
-  let DecoderMethod = "decodeUImmOperand<17>";
+  let DecoderMethod = "decodeSImmOperand<17>";
   let MCOperandPredicate = [{
     int64_t Imm;
     if (!MCOp.evaluateAsConstantImm(Imm))
       return false;
-    return isShiftedUInt<14, 3>(Imm);
+    return isShiftedInt<14, 3>(Imm);
   }];
 }
 
@@ -191,19 +191,19 @@ def BNEI : Branch_rii<0b011, "bnei">;
 
 // 7.2. LWGP, SWGP, LDGP, SDGP
 let Predicates = [HasStdExtZceb] in
-def LWGP : ZceGPLoad<0b000, 0b011, "lwgp", uimm16_lsb00>, Sched<[]>;
+def LWGP : ZceGPLoad<0b000, 0b011, "lwgp", simm16_lsb00>, Sched<[]>;
 
 let Predicates = [HasStdExtZceb] in
-def SWGP : ZceGPStore<0b000, 0b011, "swgp", uimm16_lsb00>, Sched<[]>;
+def SWGP : ZceGPStore<0b000, 0b011, "swgp", simm16_lsb00>, Sched<[]>;
 
 let Predicates = [HasStdExtZceb, IsRV64] in
-def LDGP : ZceGPLoad<0b010, 0b011, "ldgp", uimm17_lsb000>, Sched<[]> {
+def LDGP : ZceGPLoad<0b010, 0b011, "ldgp", simm17_lsb000>, Sched<[]> {
   bits<17> imm;
   let Inst{22} = imm{16};
 }
 
 let Predicates = [HasStdExtZceb, IsRV64] in
-def SDGP : ZceGPStore<0b010, 0b011, "sdgp", uimm17_lsb000>, Sched<[]> {
+def SDGP : ZceGPStore<0b010, 0b011, "sdgp", simm17_lsb000>, Sched<[]> {
   bits<17> imm;
   let Inst{9} = imm{16};
 }
