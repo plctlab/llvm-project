@@ -54,16 +54,16 @@ c.not s0
 # CHECK-ASM: encoding: [0x45,0x9c]
 c.mul s0, s1
 
-# CHECK-ASM-AND-OBJ: ldgp s0, 65536(gp)
-# CHECK-ASM: encoding: [0x07,0x34,0x40,0x40]
+# CHECK-ASM-AND-OBJ: ldgp s0, 65528(gp)
+# CHECK-ASM: encoding: [0x07,0xb4,0xbf,0x5f]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41)
 # CHECK-NO-RV64: error: instruction requires the following: RV64I Base Instruction Set
 # CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41), RV64I Base Instruction Set
-ldgp s0, 65536(gp)
+ldgp s0, 65528(gp)
 
-# CHECK-ASM-AND-OBJ: sdgp s0, 65536(gp)
-# CHECK-ASM: encoding: [0x27,0x32,0x80,0x40]
+# CHECK-ASM-AND-OBJ: sdgp s0, 65528(gp)
+# CHECK-ASM: encoding: [0xa7,0xbd,0x8f,0x5e]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41)
 # CHECK-NO-RV64: error: instruction requires the following: RV64I Base Instruction Set
 # CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41), RV64I Base Instruction Set
-sdgp s0, 65536(gp)
+sdgp s0, 65528(gp)
