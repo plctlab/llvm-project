@@ -38,6 +38,18 @@ class RVZceArith_rr<bits<6> funct6,bits<2> funct2, bits<2> opcode, string opcode
   let Inst{1-0} = opcode;
 }
 
+class RVInstZceB<bits<3> funct3a, bits<3> funct3, bits<7> opcode, dag outs, dag ins,
+                 string opcodestr, string argstr>
+    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatB> {
+  bits<13> imm;
+  bits<5> rd;
+
+  let Inst{31-29} = funct3a;
+  let Inst{14-12} = funct3;
+  let Inst{11-7} = rd;
+  let Inst{6-0} = opcode;
+}
+
 class RVInstZceI<bits<3> funct3a, bits<3> funct3, bits<7> opcode, dag outs, dag ins,
                  string opcodestr, string argstr>
     : RVInst<outs, ins, opcodestr, argstr, [], InstFormatI> {
