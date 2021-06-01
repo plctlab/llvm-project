@@ -44,8 +44,23 @@ def uimm5_lsb0 : Operand<XLenVT>,
   }];
 }
 
+def simm13_lsb0_zce : Operand<XLenVT>,
+                      ImmLeaf<XLenVT, [{return isShiftedInt<12, 1>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<13, "Lsb0Zce">;
+  let PrintMethod = "printBranchOperand";
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeSImmOperand<13>";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (MCOp.evaluateAsConstantImm(Imm))
+      return isShiftedInt<12, 1>(Imm);
+    return MCOp.isBareSymbolRef();
+  }];
+  let OperandType = "OPERAND_PCREL";
+}
+
 def simm16_lsb00 : Operand<XLenVT>,
-                  ImmLeaf<XLenVT, [{return isShiftedInt<14, 2>(Imm);}]> {
+                   ImmLeaf<XLenVT, [{return isShiftedInt<14, 2>(Imm);}]> {
   let ParserMatchClass = SImmAsmOperand<16, "Lsb00">;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeSImmOperand<16>";
@@ -58,7 +73,7 @@ def simm16_lsb00 : Operand<XLenVT>,
 }
 
 def simm17_lsb000 : Operand<XLenVT>,
-                  ImmLeaf<XLenVT, [{return isShiftedInt<14, 3>(Imm);}]> {
+                    ImmLeaf<XLenVT, [{return isShiftedInt<14, 3>(Imm);}]> {
   let ParserMatchClass = SImmAsmOperand<17, "Lsb000">;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeSImmOperand<17>";
@@ -191,7 +206,7 @@ def BNEI : Branch_rii<0b011, "bnei">;
 
 // 7. Zceb
 
-// // 7.1 C.DECBNEZ, DECBNEZ
+// 7.1 C.DECBNEZ, DECBNEZ
 let Predicates = [HasStdExtZceb],
     DecoderNamespace = "RVZceb_",
     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
@@ -207,12 +222,25 @@ def C_DECBNEZ : RVInst16CIW<0b101, 0b10, (outs GPRC:$rd),
   let Inst{3-2} = scale;
 }
 
+let Predicates = [HasStdExtZceb],
+    hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def DECBNEZ : RVInstZceB<0b100, 0b011, 0b0000111, (outs GPR:$rd),
+                         (ins scale:$scale, simm13_lsb0_zce:$imm),
+                         "decbnez", "$rd, $scale, $imm">,
+              Sched<[]> {
+  bits<2> scale;
+
+  let Inst{28-20} = imm{8-2, 10-9};
+  let Inst{19-18} = scale;
+  let Inst{17-15} = imm{1, 12-11};
+}
+
 // 7.2. LWGP, SWGP, LDGP, SDGP
 let Predicates = [HasStdExtZceb] in
-def LWGP :  ZceGPLoad<0b000, 0b011, "lwgp", simm16_lsb00>, Sched<[]>;
+def LWGP : ZceGPLoad<0b000, 0b011, "lwgp", simm16_lsb00>, Sched<[]>;
 
 let Predicates = [HasStdExtZceb] in
-def SWGP :  ZceGPStore<0b000, 0b011, "swgp", simm16_lsb00>, Sched<[]>;
+def SWGP : ZceGPStore<0b000, 0b011, "swgp", simm16_lsb00>, Sched<[]>;
 
 let Predicates = [HasStdExtZceb, IsRV64] in
 def LDGP : ZceGPLoad<0b010, 0b011, "ldgp", simm17_lsb000>, Sched<[]> {
