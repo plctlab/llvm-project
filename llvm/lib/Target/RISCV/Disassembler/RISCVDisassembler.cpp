@@ -460,6 +460,19 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
       }
     }
 
+    if (STI.getFeatureBits()[RISCV::FeatureExtZceb]) {
+      LLVM_DEBUG(
+        dbgs() << "Trying RISCV32Zceb table (code-size reduction "
+                  "16-bit Instruction):\n");
+      // Calling the auto-generated decoder function.
+      Result = decodeInstruction(DecoderTableRVZceb_16, MI, Insn, Address,
+                                this, STI);
+      if (Result != MCDisassembler::Fail) {
+        Size = 2;
+        return Result;
+      }
+    }
+
     LLVM_DEBUG(dbgs() << "Trying RISCV_C table (16-bit Instruction):\n");
     // Calling the auto-generated decoder function.
     Result = decodeInstruction(DecoderTable16, MI, Insn, Address, this, STI);

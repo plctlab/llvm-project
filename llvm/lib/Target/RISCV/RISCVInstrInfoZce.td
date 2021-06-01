@@ -193,6 +193,7 @@ def BNEI : Branch_rii<0b011, "bnei">;
 
 // // 7.1 C.DECBNEZ, DECBNEZ
 let Predicates = [HasStdExtZceb],
+    DecoderNamespace = "RVZceb_",
     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def C_DECBNEZ : RVInst16CIW<0b101, 0b10, (outs GPRC:$rd),
                             (ins scale:$scale, negimm7_lsb0nonzero:$imm),
