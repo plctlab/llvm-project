@@ -49,6 +49,14 @@ bnei s0, 20, 40
 # CHECK-ASM: encoding: [0x0b,0x94,0x24,0x00]
 muli s0, s1, 2
 
+# CHECK-OBJ: c.decbnez s0, 0, 4
+# CHECK-ASM: encoding: [0x22,0xa0]
+c.decbnez s0, 1, -4
+
+# CHECK-OBJ: decbnez s0, 0, 0x20
+# CHECK-ASM: encoding: [0x07,0x34,0x40,0x80]
+decbnez s0, 1, 4
+
 # CHECK-ASM-AND-OBJ: lwgp s0, 32764(gp)
 # CHECK-ASM: encoding: [0x07,0xb4,0xf7,0x1f]
 lwgp s0, 32764(gp)
