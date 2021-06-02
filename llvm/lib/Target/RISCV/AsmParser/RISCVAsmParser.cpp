@@ -634,6 +634,42 @@ public:
            VK == RISCVMCExpr::VK_RISCV_None;
   }
 
+  bool isUImm8() const {
+    int64_t Imm;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    if (!isImm())
+      return false;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isUInt<8>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
+  bool isUImm8tbljalm() const {
+    int64_t Imm;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    if (!isUImm8())
+      return false;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isUInt<8>(Imm) && (uint64_t)Imm < UINT64_C(7) && VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
+  bool isUImm8tblj() const {
+    int64_t Imm;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    if (!isUImm8())
+      return false;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isUInt<8>(Imm) && (uint64_t)Imm <= UINT64_C(55) && VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
+  bool isUImm8tbljal() const {
+    int64_t Imm;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    if (!isUImm8())
+      return false;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isUInt<8>(Imm) && (uint64_t)Imm <= UINT64_C(191) && VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
   bool isUImm8Lsb00() const {
     if (!isImm())
       return false;
@@ -1204,6 +1240,12 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
     return generateImmOutOfRangeError(
         Operands, ErrorInfo, 0, (1 << 7) - 4,
         "immediate must be a multiple of 4 bytes in the range");
+  case Match_InvalidUImm8tbljalm:
+    return generateImmOutOfRangeError(Operands, ErrorInfo, 0, 6);
+  case Match_InvalidUImm8tblj:
+    return generateImmOutOfRangeError(Operands, ErrorInfo, 0, 55);
+  case Match_InvalidUImm8tbljal:
+    return generateImmOutOfRangeError(Operands, ErrorInfo, 0, 191);
   case Match_InvalidUImm8Lsb00:
     return generateImmOutOfRangeError(
         Operands, ErrorInfo, 0, (1 << 8) - 4,

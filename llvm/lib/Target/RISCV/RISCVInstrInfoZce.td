@@ -59,6 +59,54 @@ def simm13_lsb0_zce : Operand<XLenVT>,
   let OperandType = "OPERAND_PCREL";
 }
 
+class uimm8 : Operand<XLenVT>,
+                 ImmLeaf<XLenVT, [{return isUInt<8>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<8>;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeUImmOperand<8>";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return MCOp.isBareSymbolRef();
+  }];
+}
+
+def tbljalm_uimm8 : uimm8{
+  let ParserMatchClass = UImmAsmOperand<8,"tbljalm">;
+  let DecoderMethod = "decodeZceTableJump";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return MCOp.isBareSymbolRef();
+  }];
+}
+
+def tblj_uimm8 : uimm8{
+  let ParserMatchClass = UImmAsmOperand<8,"tblj">;
+  let EncoderMethod = "8+getImmOpValue";
+  let DecoderMethod = "decodeZceTableJump";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return MCOp.isBareSymbolRef();
+  }];
+}
+
+def tbljal_uimm8 : uimm8{
+  let ParserMatchClass = UImmAsmOperand<8,"tbljal">;
+  let EncoderMethod = "64+getImmOpValue";
+  let DecoderMethod = "decodeZceTableJump";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return MCOp.isBareSymbolRef();
+  }];
+}
+
 def simm16_lsb00 : Operand<XLenVT>,
                    ImmLeaf<XLenVT, [{return isShiftedInt<14, 2>(Imm);}]> {
   let ParserMatchClass = SImmAsmOperand<16, "Lsb00">;
@@ -202,6 +250,12 @@ def MULI : RVInstI<0b001, RISCVOpcode<0b0001011>, (outs GPR:$rd),
 let Predicates = [HasStdExtZcea] in {
 def BEQI : Branch_rii<0b010, "beqi">;
 def BNEI : Branch_rii<0b011, "bnei">;
+}
+
+let Predicates = [HasStdExtZce] in {
+def TBLJALM : RVInstZceTableJump_i<0b010,"tbljalm",tbljalm_uimm8>, Sched<[]>;
+def TBLJ    : RVInstZceTableJump_i<0b010,"tblj",tblj_uimm8>, Sched<[]>;
+def TBLJAL  : RVInstZceTableJump_i<0b010,"tbljal",tbljal_uimm8>, Sched<[]>;
 }
 
 // 7. Zceb
