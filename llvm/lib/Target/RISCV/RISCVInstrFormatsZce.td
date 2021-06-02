@@ -82,3 +82,13 @@ class RVInstZceS<bits<3> funct3a, bits<3> funct3, bits<7> opcode, dag outs, dag 
   let Inst{8-7} = imm{10-9};
   let Inst{6-0} = opcode;
 }
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+class RVInstZceTableJump_i<bits<3> funct3, string opcodestr, DAGOperand opnd>
+    : RVInst16CJ<0b100, 0b00, (outs),(ins opnd:$imm8), opcodestr, "$imm8"> {
+  bits<8> imm8;
+  let DecoderNamespace  = "Zce"#NAME;
+
+  let Inst{12-10} = funct3;
+  let Inst{9-2} = imm8;
+}
