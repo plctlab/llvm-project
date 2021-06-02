@@ -498,8 +498,9 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
       return Result;
     }
 
+    // handle TableJump Instructions of Zce Ext
+    LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
     unsigned imm = fieldFromInstruction(Insn, 2, 8);
-    LLVM_DEBUG(dbgs() << "Trying RISCV_C table (16-bit Instruction):\n");
     // Calling the auto-generated decoder function.
     if(imm<7){
       Result = decodeInstruction(DecoderTableZceTBLJALM16, MI, Insn, Address, this, STI);
