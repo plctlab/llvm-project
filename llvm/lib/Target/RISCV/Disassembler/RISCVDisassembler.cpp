@@ -22,7 +22,6 @@
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/TargetRegistry.h"
-#include <iostream>
 
 using namespace llvm;
 
