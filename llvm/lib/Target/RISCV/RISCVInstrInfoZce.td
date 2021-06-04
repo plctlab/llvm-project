@@ -60,7 +60,7 @@ def simm13_lsb0_zce : Operand<XLenVT>,
 }
 
 class uimm8 : Operand<XLenVT>,
-                 ImmLeaf<XLenVT, [{return isUInt<8>(Imm);}]> {
+              ImmLeaf<XLenVT, [{return isUInt<8>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<8>;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeUImmOperand<8>";
@@ -72,8 +72,8 @@ class uimm8 : Operand<XLenVT>,
   }];
 }
 
-def tbljalm_uimm8 : uimm8{
-  let ParserMatchClass = UImmAsmOperand<8,"tbljalm">;
+def tbljalm_uimm8 : uimm8 {
+  let ParserMatchClass = UImmAsmOperand<8, "tbljalm">;
   let DecoderMethod = "decodeZceTableJump";
   let MCOperandPredicate = [{
     int64_t Imm;
@@ -83,8 +83,8 @@ def tbljalm_uimm8 : uimm8{
   }];
 }
 
-def tblj_uimm8 : uimm8{
-  let ParserMatchClass = UImmAsmOperand<8,"tblj">;
+def tblj_uimm8 : uimm8 {
+  let ParserMatchClass = UImmAsmOperand<8, "tblj">;
   let EncoderMethod = "8+getImmOpValue";
   let DecoderMethod = "decodeZceTableJump";
   let MCOperandPredicate = [{
@@ -95,8 +95,8 @@ def tblj_uimm8 : uimm8{
   }];
 }
 
-def tbljal_uimm8 : uimm8{
-  let ParserMatchClass = UImmAsmOperand<8,"tbljal">;
+def tbljal_uimm8 : uimm8 {
+  let ParserMatchClass = UImmAsmOperand<8, "tbljal">;
   let EncoderMethod = "64+getImmOpValue";
   let DecoderMethod = "decodeZceTableJump";
   let MCOperandPredicate = [{
@@ -259,10 +259,10 @@ def BEQI : Branch_rii<0b010, "beqi">;
 def BNEI : Branch_rii<0b011, "bnei">;
 }
 
-let Predicates = [HasStdExtZce] in {
-def TBLJALM : RVInstZceTableJump_i<0b010,"tbljalm",tbljalm_uimm8>, Sched<[]>;
-def TBLJ    : RVInstZceTableJump_i<0b010,"tblj",tblj_uimm8>, Sched<[]>;
-def TBLJAL  : RVInstZceTableJump_i<0b010,"tbljal",tbljal_uimm8>, Sched<[]>;
+let Predicates = [HasStdExtZcea] in {
+def TBLJALM : RVInstZceTableJump_i<0b010, "tbljalm", tbljalm_uimm8>, Sched<[]>;
+def TBLJ    : RVInstZceTableJump_i<0b010, "tblj", tblj_uimm8>, Sched<[]>;
+def TBLJAL  : RVInstZceTableJump_i<0b010, "tbljal", tbljal_uimm8>, Sched<[]>;
 }
 
 // 7. Zceb
