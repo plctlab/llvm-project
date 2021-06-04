@@ -140,7 +140,7 @@ def ScaleAsmOperand : AsmOperandClass {
 }
 
 def scale : Operand<XLenVT>,
-  ImmLeaf<XLenVT, [{ return Imm != 0 && (Imm & (Imm - 1)) == 0;}]> {
+            ImmLeaf<XLenVT, [{ return Imm != 0 && (Imm & (Imm - 1)) == 0;}]> {
   let ParserMatchClass = ScaleAsmOperand;
   let MCOperandPredicate = [{
     int64_t Imm;
@@ -157,7 +157,7 @@ def NEGImm7Lsb0NonZeroAsmOperand : AsmOperandClass {
 }
 
 def negimm7_lsb0nonzero : Operand<XLenVT>,
-           ImmLeaf<XLenVT, [{return Imm != 0 && isShiftedUInt<6, 1>(-Imm); }]> {
+  ImmLeaf<XLenVT, [{return Imm != 0 && isShiftedUInt<6, 1>(-Imm); }]> {
   let ParserMatchClass = NEGImm7Lsb0NonZeroAsmOperand;
   let EncoderMethod = "getNEGImm7Lsb0NonZero";
   let MCOperandPredicate = [{
@@ -224,7 +224,7 @@ def C_ZEXT_H  : RVZceArith_r<0b00, 0b010 , "c.zext.h">, Sched<[]>;
 def C_SEXT_H  : RVZceArith_r<0b00, 0b011 , "c.sext.h">, Sched<[]>;
 }
 
-let Predicates = [HasStdExtZcee, IsRV64] in{
+let Predicates = [HasStdExtZcee, IsRV64] in {
 def C_ZEXT_W : RVZceArith_r<0b00, 0b100 , "c.zext.w">, Sched<[]>;
 }
 
@@ -237,6 +237,13 @@ def C_NEG_ZCE : RVZceArith_r<0b00, 0b110 , "c.neg">, Sched<[]>;
 def C_NOT_ZCE : RVZceArith_r<0b00, 0b111 , "c.not">, Sched<[]>;
 def C_MUL     : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
 }
+
+// 6.3 C.MVA01S07
+let Predicates = [HasStdExtZcea],
+    hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+def C_MVA01S07 : RVInst16CA<0b100111, 0b11, 0b01, (outs SR07:$rs1, SR07:$rs2),
+                            (ins), "c.mva01s07", "$rs1, $rs2">,
+                Sched<[]>;
 
 // 6.4 MULI
 // TODO: requires M or *Zmmul*, waiting for Zmmul ext

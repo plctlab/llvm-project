@@ -33,15 +33,19 @@ c.neg s0
 # CHECK-ASM: encoding: [0x1c,0x84]
 c.not s0
 
+# CHECK-ASM-AND-OBJ: c.mva01s07 s0, s1
+# CHECK-ASM: encoding: [0x65,0x9c]
+c.mva01s07 s0, s1
+
 # CHECK-ASM-AND-OBJ: c.mul s0, s1
 # CHECK-ASM: encoding: [0x45,0x9c]
 c.mul s0, s1
 
-# CHECK-OBJ: beqi s0, 20, 0x36
+# CHECK-OBJ: beqi s0, 20, 0x38
 # CHECK-ASM: encoding: [0x63,0x24,0x44,0x03]
 beqi s0, 20, 40
 
-# CHECK-OBJ: bnei s0, 20, 0x3a
+# CHECK-OBJ: bnei s0, 20, 0x3c
 # CHECK-ASM: encoding: [0x63,0x34,0x44,0x03]
 bnei s0, 20, 40
 
@@ -53,7 +57,7 @@ muli s0, s1, 2
 # CHECK-ASM: encoding: [0x22,0xa0]
 c.decbnez s0, 1, -4
 
-# CHECK-OBJ: decbnez s0, 0, 0x20
+# CHECK-OBJ: decbnez s0, 0, 0x22
 # CHECK-ASM: encoding: [0x07,0x34,0x40,0x80]
 decbnez s0, 1, 4
 
