@@ -679,7 +679,7 @@ public:
     if (!isUImm8())
       return false;
     bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
-    return IsConstantImm && isUInt<8>(Imm) && (uint64_t)Imm < UINT64_C(7) && VK == RISCVMCExpr::VK_RISCV_None;
+    return IsConstantImm && isUInt<8>(Imm) && (uint64_t)Imm < UINT64_C(8) && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
   bool isUImm8tblj() const {
@@ -1317,7 +1317,7 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
         Operands, ErrorInfo, 0, (1 << 7) - 4,
         "immediate must be a multiple of 4 bytes in the range");
   case Match_InvalidUImm8tbljalm:
-    return generateImmOutOfRangeError(Operands, ErrorInfo, 0, 6);
+    return generateImmOutOfRangeError(Operands, ErrorInfo, 0, 7);
   case Match_InvalidUImm8tblj:
     return generateImmOutOfRangeError(Operands, ErrorInfo, 0, 55);
   case Match_InvalidUImm8tbljal:
