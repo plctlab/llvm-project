@@ -175,5 +175,34 @@ void RISCVVType::printVType(unsigned VType, raw_ostream &OS) {
   else
     OS << ", mu";
 }
+// namespace RISCVZCE {
+// #define ALIST_PRINT(ENCODE, STR) \
+//   case (ENCODE): \
+//     OS << STR;
+void RISCVZCE::printAlist(unsigned AlistEncode, raw_ostream &OS) {
+  if (!AlistEncode)
+    return;
+}
+
+void RISCVZCE::printSlist(unsigned SlistEncode, raw_ostream &OS) {
+  switch (SlistEncode) {
+    case 0:
+      OS << "<ra>";
+      return;
+    case 1:
+      OS << "<ra, s0>";
+    case 2:
+      OS << "<ra, s0-s1>";
+      return;
+    case 3:
+      OS << "<ra, s0-s2>";
+      return;
+    case 4:
+      OS << "<ra, s0-s3>";
+      return;
+  }
+}
+// #undef ALIST_PRINT
+// }
 
 } // namespace llvm

@@ -18,6 +18,7 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/MC/MCInstrDesc.h"
 #include "llvm/MC/SubtargetFeature.h"
+#include "llvm/MC/MCRegister.h"
 
 namespace llvm {
 
@@ -378,6 +379,41 @@ inline static bool isMaskAgnostic(unsigned VType) { return VType & 0x80; }
 void printVType(unsigned VType, raw_ostream &OS);
 
 } // namespace RISCVVType
+
+namespace RISCVZCE {
+#define ENDREG_TO_ENCODE(ENDREG, ENCODE) \
+case RISCV::X##ENDREG:                 \
+  return ENCODE; 
+inline static unsigned encodeSlist(MCRegister EndReg) {                      
+  switch (EndReg) {
+  default: 
+    llvm_unreachable("Unexpected register");
+  ENDREG_TO_ENCODE(8, 1)
+  ENDREG_TO_ENCODE(9, 2)
+  ENDREG_TO_ENCODE(18, 3)
+  ENDREG_TO_ENCODE(19, 4)
+  ENDREG_TO_ENCODE(20, 5)
+  ENDREG_TO_ENCODE(21, 6)
+  ENDREG_TO_ENCODE(22, 7)
+  ENDREG_TO_ENCODE(23, 8)
+  ENDREG_TO_ENCODE(24, 9)
+  ENDREG_TO_ENCODE(25, 10)
+  ENDREG_TO_ENCODE(26, 11)
+  ENDREG_TO_ENCODE(27, 12)
+  case RISCV::NoRegister:
+    return 0;
+  }
+}
+#undef ENDREG_TO_ENCODE
+
+inline static unsigned encodeAlist(MCRegister EndReg) {
+  return EndReg == RISCV::NoRegister ? 0 : 1;
+}
+
+void printAlist(unsigned AlistEncode, raw_ostream &OS);
+void printSlist(unsigned AlistEncode, raw_ostream &OS);
+
+}
 
 } // namespace llvm
 
