@@ -139,6 +139,15 @@ def ScaleAsmOperand : AsmOperandClass {
   let DiagnosticType = "InvalidScale";
 }
 
+// def SpimmAsmOperand : AsmOperandClass {
+//   let Name = "Spimm";
+//   let RenderMethod = "addScaleOperands";
+// }
+
+// def spimm : Operand<XLenVT> {
+//   let ParserMatchClass = Spimm;
+// }
+
 def scale : Operand<XLenVT>,
             ImmLeaf<XLenVT, [{ return Imm != 0 && (Imm & (Imm - 1)) == 0;}]> {
   let ParserMatchClass = ScaleAsmOperand;
@@ -166,6 +175,28 @@ def negimm7_lsb0nonzero : Operand<XLenVT>,
       return Imm != 0 && isShiftedUInt<6, 1>(-Imm);
     return MCOp.isBareSymbolRef();
   }];
+}
+
+def AlistAsmOperand : AsmOperandClass {
+  let Name = "Alist";
+  let ParserMethod = "parseReglist";
+  let DiagnosticType = "InvalidAlist";
+}
+
+def SlistAsmOperand : AsmOperandClass {
+  let Name = "Slist";
+  let ParserMethod = "parseReglist";
+  let DiagnosticType = "InvalidSlist";
+}
+
+def alist : Operand<OtherVT> {
+  let ParserMatchClass = AlistAsmOperand;
+  let PrintMethod = "printAlist";
+}
+
+def slist : Operand<OtherVT> {
+  let ParserMatchClass = SlistAsmOperand;
+  let PrintMethod = "printSlist";
 }
 
 //===----------------------------------------------------------------------===//
@@ -263,6 +294,21 @@ let Predicates = [HasStdExtZcea] in {
 def TBLJALM : RVInstZceTableJump_i<0b010, "tbljalm", tbljalm_uimm8>, Sched<[]>;
 def TBLJ    : RVInstZceTableJump_i<0b010, "tblj", tblj_uimm8>, Sched<[]>;
 def TBLJAL  : RVInstZceTableJump_i<0b010, "tbljal", tbljal_uimm8>, Sched<[]>;
+}
+
+// 6.9 push, pop
+let Predicates = [HasStdExtZcea] in {
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
+def PUSH : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg, simm12:$imm), 
+    "push", "$sreg, $areg, $imm">, Sched<[]> {
+  bits<1> areg;
+  bits<4> sreg;
+  bits<12> imm;
+  let Inst{31-21} = 0b00000000000;
+  let Inst{20} = areg;
+  let Inst{11-7} = imm{8-4};
+  let Inst{19-16} = sreg;
+}
 }
 
 // 7. Zceb

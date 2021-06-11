@@ -164,6 +164,7 @@ class RISCVAsmParser : public MCTargetAsmParser {
   OperandMatchResultTy parseJALOffset(OperandVector &Operands);
   OperandMatchResultTy parseVTypeI(OperandVector &Operands);
   OperandMatchResultTy parseMaskReg(OperandVector &Operands);
+  OperandMatchResultTy parseReglist(OperandVector &Operands);
 
   bool parseOperand(OperandVector &Operands, StringRef Mnemonic);
 
@@ -262,6 +263,8 @@ struct RISCVOperand : public MCParsedAsmOperand {
     Immediate,
     SystemRegister,
     VType,
+    Alist,
+    Slist
   } Kind;
 
   bool IsRV64;
@@ -286,6 +289,14 @@ struct RISCVOperand : public MCParsedAsmOperand {
     unsigned Val;
   };
 
+  struct AlistOp {
+    unsigned Val;
+  };
+
+  struct SlistOp {
+    unsigned Val;
+  };
+
   SMLoc StartLoc, EndLoc;
   union {
     StringRef Tok;
@@ -293,6 +304,8 @@ struct RISCVOperand : public MCParsedAsmOperand {
     ImmOp Imm;
     struct SysRegOp SysReg;
     struct VTypeOp VType;
+    struct SlistOp Slist;
+    struct AlistOp Alist;
   };
 
   RISCVOperand(KindTy K) : MCParsedAsmOperand(), Kind(K) {}
@@ -319,6 +332,12 @@ public:
     case KindTy::VType:
       VType = o.VType;
       break;
+    case KindTy::Slist:
+      Slist = o.Slist;
+      break;
+    case KindTy::Alist:
+      Alist = o.Alist;
+      break;
     }
   }
 
@@ -331,6 +350,8 @@ public:
   bool isMem() const override { return false; }
   bool isSystemRegister() const { return Kind == KindTy::SystemRegister; }
   bool isVType() const { return Kind == KindTy::VType; }
+  bool isAlist() const { return Kind == KindTy::Alist; }
+  bool isSlist() const { return Kind == KindTy::Slist; }
 
   bool isGPR() const {
     return Kind == KindTy::Register &&
@@ -860,6 +881,15 @@ public:
       RISCVVType::printVType(getVType(), OS);
       OS << '>';
       break;
+    case KindTy::Alist:
+      OS << "<alist: ";
+      RISCVZCE::printAlist(Alist.Val, OS);
+      OS << '>';
+      break;
+    case KindTy::Slist:
+      OS << "<slist: ";
+      RISCVZCE::printSlist(Slist.Val, OS);
+      OS << '>';
     }
   }
 
@@ -908,6 +938,24 @@ public:
                                                    bool IsRV64) {
     auto Op = std::make_unique<RISCVOperand>(KindTy::VType);
     Op->VType.Val = VTypeI;
+    Op->StartLoc = S;
+    Op->IsRV64 = IsRV64;
+    return Op;
+  }
+
+  static std::unique_ptr<RISCVOperand> createAlist(unsigned AlistEncode, SMLoc S,
+                                                   bool IsRV64) {
+    auto Op = std::make_unique<RISCVOperand>(KindTy::Alist);
+    Op->Alist.Val = AlistEncode;
+    Op->StartLoc = S;
+    Op->IsRV64 = IsRV64;
+    return Op;
+  }
+
+  static std::unique_ptr<RISCVOperand> createSlist(unsigned SlistEncode, SMLoc S,
+                                                   bool IsRV64) {
+    auto Op = std::make_unique<RISCVOperand>(KindTy::Slist);
+    Op->Slist.Val = SlistEncode;
     Op->StartLoc = S;
     Op->IsRV64 = IsRV64;
     return Op;
@@ -965,6 +1013,16 @@ public:
     Inst.addOperand(MCOperand::createImm(getVType()));
   }
 
+  void addSlistOperands(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
+    Inst.addOperand(MCOperand::createImm(Slist.Val)); 
+  }
+
+  void addAlistOperands(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
+    Inst.addOperand(MCOperand::createImm(Alist.Val));
+  }
+
   void addScaleOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     int64_t Imm = 0;
@@ -972,6 +1030,15 @@ public:
     bool IsConstant = evaluateConstantImm(getImm(), Imm, VK);
     assert(IsConstant && "The scale operand must be a constant");
     Inst.addOperand(MCOperand::createImm(Log2_64(Imm)));
+  }
+
+  void addSpimmOperand(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
+    int64_t Imm = 0;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    bool IsConstant = evaluateConstantImm(getImm(), Imm, VK);
+    assert(IsConstant && "The scale operand must be a constant");
+    Inst.addOperand(MCOperand::createImm(Imm >> 4));
   }
 
   void addNEGImm7Lsb0NonZeroOperands(MCInst &Inst, unsigned N) const {
@@ -1872,6 +1939,59 @@ OperandMatchResultTy RISCVAsmParser::parseAtomicMemOp(OperandVector &Operands) {
   }
 
   return MatchOperand_Success;
+}
+
+OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
+  SMLoc S = getLoc();
+  if (getLexer().isNot(AsmToken::Less))
+    return MatchOperand_NoMatch;
+  SmallVector<AsmToken, 8> Tokens;
+  getLexer().Lex(); // eat '<'
+  Tokens.push_back(getLexer().getTok());
+
+  MCRegister RegNoStart = RISCV::NoRegister;
+  MCRegister RegNoEnd = RISCV::NoRegister;
+  StringRef StartName = getLexer().getTok().getIdentifier();
+  matchRegisterNameHelper(isRV32E(), RegNoStart, StartName);
+  getLexer().Lex();
+  bool isSlist = (RegNoStart == RISCV::X1);
+
+  // parse case like ,s1>
+  if (isSlist && getLexer().is(AsmToken::Comma)) {
+    getLexer().Lex();
+    if (getLexer().isNot(AsmToken::Identifier))
+      goto Match_fail;
+    MCRegister SRegStart;
+    if (matchRegisterNameHelper(isRV32E(), SRegStart, StartName))
+      goto Match_fail;
+    getLexer().Lex(); // eat reg
+  }
+
+  // parse case like -s1>
+  if (getLexer().is(AsmToken::Minus)) {
+    getLexer().Lex();
+    Tokens.push_back(getLexer().getTok());
+    StringRef EndName = getLexer().getTok().getIdentifier();
+    if (matchRegisterNameHelper(isRV32E(), RegNoEnd, EndName))
+      goto Match_fail;
+    getLexer().Lex();
+  } else if (getLexer().isNot(AsmToken::Greater))
+    goto Match_fail;
+
+  getLexer().Lex(); // eat '>'
+
+  if (RegNoStart == RISCV::X10)
+    Operands.push_back(RISCVOperand::createAlist(RISCVZCE::encodeAlist(RegNoEnd), S, isRV64()));
+  else 
+    Operands.push_back(RISCVOperand::createSlist(RISCVZCE::encodeSlist(RegNoEnd), S, isRV64()));
+  
+  return MatchOperand_Success;
+
+  Match_fail:
+    for (auto Token : Tokens) 
+      getLexer().UnLex(Token);
+    return MatchOperand_NoMatch;
+    
 }
 
 /// Looks at a token type and creates the relevant operand from this
