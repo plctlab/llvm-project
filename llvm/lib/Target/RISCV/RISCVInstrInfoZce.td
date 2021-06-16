@@ -59,6 +59,18 @@ def simm13_lsb0_zce : Operand<XLenVT>,
   let OperandType = "OPERAND_PCREL";
 }
 
+def simm8 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<8>(Imm);}]> {
+  let ParserMatchClass = SImmAsmOperand<8>;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeSImmOperand<8>";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (MCOp.evaluateAsConstantImm(Imm))
+      return isInt<8>(Imm);
+    return MCOp.isBareSymbolRef();
+  }];
+}
+
 class uimm8 : Operand<XLenVT>,
               ImmLeaf<XLenVT, [{return isUInt<8>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<8>;
@@ -243,6 +255,10 @@ def rlist2 : Operand<OtherVT> {
 def retval : Operand<OtherVT> {
   let ParserMatchClass = RetvalAsmOperand;
   let PrintMethod = "printRetval";
+}
+def rlist3 : Operand<OtherVT> {
+  let ParserMatchClass = RlistAsmOperand;
+  let PrintMethod = "printRlist";
 }
 
 def spimm : Operand<OtherVT> {
