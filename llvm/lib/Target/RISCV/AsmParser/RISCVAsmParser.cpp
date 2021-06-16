@@ -585,6 +585,15 @@ public:
     return IsConstantImm && isInt<5>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
+  bool isSImm9() const {
+    if (!isImm())
+      return false;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    int64_t Imm;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isInt<9>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
   bool isNEGImm7Lsb0NonZero() const {
     if (!isImm())
       return false;
@@ -1991,10 +2000,10 @@ OperandMatchResultTy RISCVAsmParser::parseAtomicMemOp(OperandVector &Operands) {
 
 OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
   SMLoc S = getLoc();
-  if (getLexer().isNot(AsmToken::Less))
+  if (getLexer().isNot(AsmToken::LCurly))
     return MatchOperand_NoMatch;
   SmallVector<AsmToken, 8> Tokens;
-  getLexer().Lex(); // eat '<'
+  getLexer().Lex(); // eat '{'
   Tokens.push_back(getLexer().getTok());
 
   MCRegister RegNoStart = RISCV::NoRegister;
@@ -2026,7 +2035,7 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
   } else if (getLexer().isNot(AsmToken::Greater))
     goto Match_fail;
 
-  getLexer().Lex(); // eat '>'
+  getLexer().Lex(); // eat '}'
 
   if (RegNoStart == RISCV::X10) {
     auto Slist = static_cast<RISCVOperand *>(Operands.back().get());

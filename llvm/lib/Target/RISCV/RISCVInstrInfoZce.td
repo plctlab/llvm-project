@@ -72,6 +72,19 @@ class uimm8 : Operand<XLenVT>,
   }];
 }
 
+def simm9 : Operand<XLenVT>,
+              ImmLeaf<XLenVT, [{return isSInt<9>(Imm)}]> {
+  let ParserMatchClass = SImmAsmOperand<9>;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeSImmOperand<9>";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return MCOp.isBareSymbolRef();
+  }];
+}
+
 def tbljalm_uimm8 : uimm8 {
   let ParserMatchClass = UImmAsmOperand<8, "tbljalm">;
   let DecoderMethod = "decodeZceTableJump";
@@ -299,7 +312,7 @@ def TBLJAL  : RVInstZceTableJump_i<0b010, "tbljal", tbljal_uimm8>, Sched<[]>;
 // 6.9 push, pop
 let Predicates = [HasStdExtZcea] in {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
-def PUSH : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg, simm12:$imm), 
+def PUSH : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg, simm9:$imm), 
     "push", "$sreg, $areg, $imm">, Sched<[]> {
   bits<1> areg;
   bits<4> sreg;

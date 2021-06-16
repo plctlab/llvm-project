@@ -211,22 +211,25 @@ void RISCVZCE::printAlist(unsigned AlistImm, unsigned SlistImm, raw_ostream &OS)
 }
 
 void RISCVZCE::printSlist(unsigned SlistEncode, raw_ostream &OS) {
+  OS << "{";
   switch (SlistEncode) {
     case 0:
-      OS << "<ra>";
-      return;
+      OS << "ra";
+      break;
     case 1:
-      OS << "<ra, s0>";
+      OS << "ra, s0";
+      break;
     case 2:
-      OS << "<ra, s0-s1>";
-      return;
+      OS << "ra, s0-s1";
+      break;
     case 3:
-      OS << "<ra, s0-s2>";
-      return;
+      OS << "ra, s0-s2";
+      break;
     case 4:
-      OS << "<ra, s0-s3>";
-      return;
+      OS << "ra, s0-s3";
+      break;
   }
+  OS << "}";
 }
 // #undef ALIST_PRINT
 // }
