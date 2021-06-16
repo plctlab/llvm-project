@@ -179,9 +179,35 @@ void RISCVVType::printVType(unsigned VType, raw_ostream &OS) {
 // #define ALIST_PRINT(ENCODE, STR) \
 //   case (ENCODE): \
 //     OS << STR;
-void RISCVZCE::printAlist(unsigned AlistEncode, raw_ostream &OS) {
-  if (!AlistEncode)
+void RISCVZCE::printAlist(unsigned AlistImm, unsigned SlistImm, raw_ostream &OS) {
+  if (AlistImm == 0)
     return;
+  OS << "{";
+  switch (SlistImm) {
+    case 0:
+      break;
+    case 1:
+      OS << "a0";
+      break;
+    case 2:
+      OS << "a0-a1";
+      break;
+    case 3:
+      OS << "a0-a2";
+      break;
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+      OS << "a0-a3";
+      break;
+  }
+  OS << "}";
 }
 
 void RISCVZCE::printSlist(unsigned SlistEncode, raw_ostream &OS) {

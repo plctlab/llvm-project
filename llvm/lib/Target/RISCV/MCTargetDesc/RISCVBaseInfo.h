@@ -381,6 +381,20 @@ void printVType(unsigned VType, raw_ostream &OS);
 } // namespace RISCVVType
 
 namespace RISCVZCE {
+// enum class SLISTENCODE {
+//   RA = 0,
+//   RA_S0_S1,
+//   RA_S0_S2,
+//   RA_S0_S3,
+//   RA_S0_S4,
+//   RA_S0_S5,
+//   RA_S0_S6,
+//   RA_S0_S7,
+//   RA_S0_S8,
+//   RA_S0_S9,
+//   RA_S0_S10,
+//   RA_S0_S11
+// }
 #define ENDREG_TO_ENCODE(ENDREG, ENCODE) \
 case RISCV::X##ENDREG:                 \
   return ENCODE; 
@@ -406,11 +420,36 @@ inline static unsigned encodeSlist(MCRegister EndReg) {
 }
 #undef ENDREG_TO_ENCODE
 
-inline static unsigned encodeAlist(MCRegister EndReg) {
-  return EndReg == RISCV::NoRegister ? 0 : 1;
+inline static bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
+  switch (SlistEncode) {
+    case 0:
+      return EndReg == RISCV::NoRegister;
+    case 1:
+      return EndReg == RISCV::X10;
+    case 2:
+      return EndReg == RISCV::X11;
+    case 3:
+      return EndReg == RISCV::X12;
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+      return EndReg == RISCV::X13;
+    default:
+      llvm_unreachable("Unexpected slist encode!");
+  }
 }
 
-void printAlist(unsigned AlistEncode, raw_ostream &OS);
+inline static unsigned encodeAlist(MCRegister EndReg, unsigned SlistEncode) {
+  return  (SlistEncode != 0 && EndReg == RISCV::NoRegister) ? 0 : 1;
+}
+
+void printAlist(unsigned AlistEncode, unsigned SlistEncode, raw_ostream &OS);
 void printSlist(unsigned AlistEncode, raw_ostream &OS);
 
 }

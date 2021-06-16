@@ -183,8 +183,9 @@ void RISCVInstPrinter::printVTypeI(const MCInst *MI, unsigned OpNo,
 
 void RISCVInstPrinter::printAlist(const MCInst *MI, unsigned OpNo,
                                   const MCSubtargetInfo &STI, raw_ostream &O) {
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  RISCVZCE::printAlist(Imm, O);
+  unsigned SlistImm = MI->getOperand(OpNo - 1).getImm();
+  unsigned AlistImm = MI->getOperand(OpNo).getImm();
+  RISCVZCE::printAlist(AlistImm, SlistImm, O);
 }
 
 void RISCVInstPrinter::printSlist(const MCInst *MI, unsigned OpNo,

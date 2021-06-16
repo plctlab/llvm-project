@@ -913,11 +913,11 @@ public:
       RISCVVType::printVType(getVType(), OS);
       OS << '>';
       break;
-    case KindTy::Alist:
-      OS << "<alist: ";
-      RISCVZCE::printAlist(Alist.Val, OS);
-      OS << '>';
-      break;
+    // case KindTy::Alist:
+    //   OS << "<alist: ";
+    //   RISCVZCE::printAlist(Alist.Val, OS);
+    //   OS << '>';
+    //   break;
     case KindTy::Slist:
       OS << "<slist: ";
       RISCVZCE::printSlist(Slist.Val, OS);
@@ -2028,8 +2028,18 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
 
   getLexer().Lex(); // eat '>'
 
-  if (RegNoStart == RISCV::X10)
-    Operands.push_back(RISCVOperand::createAlist(RISCVZCE::encodeAlist(RegNoEnd), S, isRV64()));
+  if (RegNoStart == RISCV::X10) {
+    auto Slist = static_cast<RISCVOperand *>(Operands.back().get());
+    if (Slist->Kind != RISCVOperand::KindTy::Slist) {
+      Error(getLoc(), "Cann't parse alist if without a slist parsed ahead");
+      goto Match_fail;
+    }
+    if (!RISCVZCE::isValidAlist(RegNoEnd, Slist->Slist.Val)) {
+      Error(getLoc(), "Invalid Alist encode");
+      goto Match_fail;
+    }
+    Operands.push_back(RISCVOperand::createAlist(RISCVZCE::encodeAlist(RegNoEnd, Slist->Slist.Val), S, isRV64()));
+  }
   else 
     Operands.push_back(RISCVOperand::createSlist(RISCVZCE::encodeSlist(RegNoEnd), S, isRV64()));
   
