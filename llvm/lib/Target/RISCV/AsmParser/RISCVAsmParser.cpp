@@ -268,6 +268,7 @@ struct RISCVOperand : public MCParsedAsmOperand {
     VType,
     Alist,
     Slist,
+    Rlist,
     Retval,
     Alist16,
     Slist16,
@@ -1042,6 +1043,15 @@ public:
     Op->IsRV64 = IsRV64;
     return Op;
   }
+  
+  static std::unique_ptr<RISCVOperand> createRlist(unsigned RlistEncode, SMLoc S,
+                                                   bool IsRV64) {
+    auto Op = std::make_unique<RISCVOperand>(KindTy::Rlist);
+    Op->Slist.Val = RlistEncode;
+    Op->StartLoc = S;
+    Op->IsRV64 = IsRV64;
+    return Op;
+  }
 
   static std::unique_ptr<RISCVOperand> createAlist16(unsigned Alist16Encode, SMLoc S,
                                                    bool IsRV64) {
@@ -1137,7 +1147,6 @@ public:
     Inst.addOperand(MCOperand::createImm(Retval.Val));
   }
   
-  void addSlist16Operands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     Inst.addOperand(MCOperand::createImm(Slist16.Val));
   }
@@ -1146,11 +1155,6 @@ public:
     assert(N == 1 && "Invalid number of operands!");
     Inst.addOperand(MCOperand::createImm(Alist16.Val));
   }
-
-  void addScaleOperands(MCInst &Inst, unsigned N) const {
-    assert(N == 1 && "Invalid number of operands!");
-    int64_t Imm = 0;
-    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
     bool IsConstant = evaluateConstantImm(getImm(), Imm, VK);
     assert(IsConstant && "The scale operand must be a constant");
     Inst.addOperand(MCOperand::createImm(Log2_64(Imm)));
