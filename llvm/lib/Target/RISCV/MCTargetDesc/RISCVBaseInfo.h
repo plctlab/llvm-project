@@ -381,64 +381,68 @@ void printVType(unsigned VType, raw_ostream &OS);
 } // namespace RISCVVType
 
 namespace RISCVZCE {
-// enum class SLISTENCODE {
-//   RA = 0,
-//   RA_S0_S1,
-//   RA_S0_S2,
-//   RA_S0_S3,
-//   RA_S0_S4,
-//   RA_S0_S5,
-//   RA_S0_S6,
-//   RA_S0_S7,
-//   RA_S0_S8,
-//   RA_S0_S9,
-//   RA_S0_S10,
-//   RA_S0_S11
-// }
+enum class SLISTENCODE {
+  RA = 0,
+  RA_S0,
+  RA_S0_S1,
+  RA_S0_S2,
+  RA_S0_S3,
+  RA_S0_S4,
+  RA_S0_S5,
+  RA_S0_S6,
+  RA_S0_S7,
+  RA_S0_S8,
+  RA_S0_S9,
+  RA_S0_S10,
+  RA_S0_S11
+};
+
+// Encode slist, the EndReg is the end of the register of the slist,
+// 
 #define ENDREG_TO_ENCODE(ENDREG, ENCODE) \
 case RISCV::X##ENDREG:                 \
-  return ENCODE; 
-inline static unsigned encodeSlist(MCRegister EndReg) {                      
+  return SLISTENCODE::ENCODE; 
+inline static SLISTENCODE encodeSlist(MCRegister EndReg) {                      
   switch (EndReg) {
   default: 
     llvm_unreachable("Unexpected register");
-  ENDREG_TO_ENCODE(8, 1)
-  ENDREG_TO_ENCODE(9, 2)
-  ENDREG_TO_ENCODE(18, 3)
-  ENDREG_TO_ENCODE(19, 4)
-  ENDREG_TO_ENCODE(20, 5)
-  ENDREG_TO_ENCODE(21, 6)
-  ENDREG_TO_ENCODE(22, 7)
-  ENDREG_TO_ENCODE(23, 8)
-  ENDREG_TO_ENCODE(24, 9)
-  ENDREG_TO_ENCODE(25, 10)
-  ENDREG_TO_ENCODE(26, 11)
-  ENDREG_TO_ENCODE(27, 12)
+  ENDREG_TO_ENCODE(8, RA_S0)
+  ENDREG_TO_ENCODE(9, RA_S0_S1)
+  ENDREG_TO_ENCODE(18, RA_S0_S2)
+  ENDREG_TO_ENCODE(19, RA_S0_S3)
+  ENDREG_TO_ENCODE(20, RA_S0_S4)
+  ENDREG_TO_ENCODE(21, RA_S0_S5)
+  ENDREG_TO_ENCODE(22, RA_S0_S6)
+  ENDREG_TO_ENCODE(23, RA_S0_S7)
+  ENDREG_TO_ENCODE(24, RA_S0_S8)
+  ENDREG_TO_ENCODE(25, RA_S0_S9)
+  ENDREG_TO_ENCODE(26, RA_S0_S10)
+  ENDREG_TO_ENCODE(27, RA_S0_S11)
   case RISCV::NoRegister:
-    return 0;
+    return SLISTENCODE::RA;
   }
 }
 #undef ENDREG_TO_ENCODE
 
 inline static bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
-  switch (SlistEncode) {
-    case 0:
+  switch (static_cast<SLISTENCODE>(SlistEncode)) {
+    case SLISTENCODE::RA:
       return EndReg == RISCV::NoRegister;
-    case 1:
+    case SLISTENCODE::RA_S0:
       return EndReg == RISCV::X10;
-    case 2:
+    case SLISTENCODE::RA_S0_S1:
       return EndReg == RISCV::X11;
-    case 3:
+    case SLISTENCODE::RA_S0_S2:
       return EndReg == RISCV::X12;
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
+    case SLISTENCODE::RA_S0_S3:
+    case SLISTENCODE::RA_S0_S4:
+    case SLISTENCODE::RA_S0_S5:
+    case SLISTENCODE::RA_S0_S6:
+    case SLISTENCODE::RA_S0_S7:
+    case SLISTENCODE::RA_S0_S8:
+    case SLISTENCODE::RA_S0_S9:
+    case SLISTENCODE::RA_S0_S10:
+    case SLISTENCODE::RA_S0_S11:
       return EndReg == RISCV::X13;
     default:
       llvm_unreachable("Unexpected slist encode!");

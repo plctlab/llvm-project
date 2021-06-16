@@ -2047,10 +2047,12 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
       Error(getLoc(), "Invalid Alist encode");
       goto Match_fail;
     }
-    Operands.push_back(RISCVOperand::createAlist(RISCVZCE::encodeAlist(RegNoEnd, Slist->Slist.Val), S, isRV64()));
+    Operands.push_back(RISCVOperand::createAlist(
+      RISCVZCE::encodeAlist(RegNoEnd, Slist->Slist.Val), S, isRV64()));
   }
   else 
-    Operands.push_back(RISCVOperand::createSlist(RISCVZCE::encodeSlist(RegNoEnd), S, isRV64()));
+    Operands.push_back(RISCVOperand::createSlist(
+      static_cast<unsigned>(RISCVZCE::encodeSlist(RegNoEnd)), S, isRV64()));
   
   return MatchOperand_Success;
 
