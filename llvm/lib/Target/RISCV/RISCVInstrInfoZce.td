@@ -73,7 +73,7 @@ class uimm8 : Operand<XLenVT>,
 }
 
 def simm9 : Operand<XLenVT>,
-              ImmLeaf<XLenVT, [{return isSInt<9>(Imm)}]> {
+              ImmLeaf<XLenVT, [{return isInt<9>(Imm); }]> {
   let ParserMatchClass = SImmAsmOperand<9>;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeSImmOperand<9>";
