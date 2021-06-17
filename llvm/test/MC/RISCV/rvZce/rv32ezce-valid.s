@@ -4,6 +4,22 @@
 # RUN:     | llvm-objdump --mattr=experimental-zce --mattr=e -M no-aliases -d -r - \
 # RUN:     | FileCheck --check-prefixes=CHECK-ASM-AND-OBJ %s
 
+# CHECK-ASM-AND-OBJ: pop.e {ra, s0-s2}, {}, 16
+# CHECK-ASM: encoding: [0x2b,0x50,0x0d,0x00]
+pop.e {ra, s0-s2}, {}, 16
+
+# CHECK-ASM-AND-OBJ: popret.e {ra, s0-s2}, {}, 16
+# CHECK-ASM: encoding: [0x2b,0x60,0x0d,0x00]
+popret.e {ra, s0-s2}, {}, 16
+
+# CHECK-ASM-AND-OBJ: push.e {ra, s0-s2}, {a0-a2}, -16
+# CHECK-ASM: encoding: [0x2b,0x40,0x1d,0x00]
+push.e {ra, s0-s2}, {a0-a2}, -16
+
+# CHECK-ASM-AND-OBJ: push.e {ra, s0-s4}, {a0-a3}, -528
+# CHECK-ASM: encoding: [0xab,0x4f,0x1f,0x00]
+push.e {ra, s0-s4}, {a0-a3}, -528
+
 # CHECK-ASM-AND-OBJ: c.popret   {ra}, {}, 16
 # CHECK-ASM: encoding: [0x00,0x8c]
 c.popret.e {ra}, {}, 16

@@ -435,8 +435,11 @@ enum class RLIST2ENCODE {
 
 enum class SPIMMINST {
   PUSH,
+  PUSH_E,
   POP,
+  POP_E,
   POPRET,
+  POPRET_E,
   C_POPRET,
   C_POP,
   C_PUSH,
@@ -459,7 +462,18 @@ enum class BINARYVALUE_OF_SPIMM {
 #define ENDREG_TO_ENCODE(ENDREG, ENCODE) \
 case RISCV::X##ENDREG:                 \
   return SLISTENCODE::ENCODE;
-inline static SLISTENCODE encodeSlist(MCRegister EndReg) {
+inline static SLISTENCODE encodeSlist(MCRegister EndReg,bool isRV32E) {
+  if (isRV32E)
+  {
+    switch (EndReg) {
+    default:
+      break;
+    ENDREG_TO_ENCODE(18, RA_S0_S2_E)
+    ENDREG_TO_ENCODE(19, RA_S0_S3_E)
+    ENDREG_TO_ENCODE(20, RA_S0_S4_E)
+    }
+  }
+  
   switch (EndReg) {
   default:
     llvm_unreachable("Unexpected register");
@@ -541,6 +555,7 @@ inline static bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
     case SLISTENCODE::RA_S0_S1:
       return EndReg == RISCV::X11;
     case SLISTENCODE::RA_S0_S2:
+    case SLISTENCODE::RA_S0_S2_E:
       return EndReg == RISCV::X12;
     case SLISTENCODE::RA_S0_S3:
     case SLISTENCODE::RA_S0_S4:
@@ -551,6 +566,8 @@ inline static bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
     case SLISTENCODE::RA_S0_S9:
     case SLISTENCODE::RA_S0_S10:
     case SLISTENCODE::RA_S0_S11:
+    case SLISTENCODE::RA_S0_S3_E:
+    case SLISTENCODE::RA_S0_S4_E:
       return EndReg == RISCV::X13;
     default:
       llvm_unreachable("Unexpected slist encode!");
@@ -642,7 +659,9 @@ inline static bool getSpimm(SPIMMINST Inst, unsigned rlistVal, unsigned &spimmVa
   }
   RLIST3ENCODE rlist = (RLIST3ENCODE)rlistVal;
   SLISTENCODE slist = (SLISTENCODE)rlistVal;
-  if(Inst == SPIMMINST::PUSH || Inst == SPIMMINST::POP || Inst == SPIMMINST::POPRET){
+  if (Inst == SPIMMINST::PUSH || Inst == SPIMMINST::PUSH_E ||
+      Inst == SPIMMINST::POP || Inst == SPIMMINST::POP_E ||
+      Inst == SPIMMINST::POPRET || Inst == SPIMMINST::POPRET_E){
     switch (slist)
     {
     case SLISTENCODE::RA:
@@ -651,10 +670,13 @@ inline static bool getSpimm(SPIMMINST Inst, unsigned rlistVal, unsigned &spimmVa
       return true;
     case SLISTENCODE::RA_S0_S1:
     case SLISTENCODE::RA_S0_S2:
+    case SLISTENCODE::RA_S0_S2_E:
       ENCODE_SPIMM(31,16,32)
       return true;
     case SLISTENCODE::RA_S0_S3:
     case SLISTENCODE::RA_S0_S4:
+    case SLISTENCODE::RA_S0_S3_E:
+    case SLISTENCODE::RA_S0_S4_E:
       ENCODE_SPIMM(31,32,48)
       return true;
     case SLISTENCODE::RA_S0_S5:

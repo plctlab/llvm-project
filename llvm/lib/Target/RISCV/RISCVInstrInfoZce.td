@@ -59,18 +59,6 @@ def simm13_lsb0_zce : Operand<XLenVT>,
   let OperandType = "OPERAND_PCREL";
 }
 
-def simm8 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<8>(Imm);}]> {
-  let ParserMatchClass = SImmAsmOperand<8>;
-  let EncoderMethod = "getImmOpValue";
-  let DecoderMethod = "decodeSImmOperand<8>";
-  let MCOperandPredicate = [{
-    int64_t Imm;
-    if (MCOp.evaluateAsConstantImm(Imm))
-      return isInt<8>(Imm);
-    return MCOp.isBareSymbolRef();
-  }];
-}
-
 class uimm8 : Operand<XLenVT>,
               ImmLeaf<XLenVT, [{return isUInt<8>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<8>;
@@ -256,9 +244,11 @@ def retval : Operand<OtherVT> {
   let ParserMatchClass = RetvalAsmOperand;
   let PrintMethod = "printRetval";
 }
-def rlist3 : Operand<OtherVT> {
-  let ParserMatchClass = RlistAsmOperand;
-  let PrintMethod = "printRlist";
+
+def spimm : Operand<OtherVT> {
+  let ParserMatchClass = SpimmAsmOperand;
+  let PrintMethod = "printSpimm";
+  let DecoderMethod = "decodeZceSpimm";
 }
 
 def spimm : Operand<OtherVT> {
@@ -372,6 +362,7 @@ def PUSH : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg, spimm:$imm
   bits<1> areg;
   bits<4> sreg;
   bits<16> imm;
+  let DecoderNamespace  = "ZcePUSH_POP_POPRET";
   let Inst{20} = areg;
   let Inst{11-7} = imm{8-4};
   let Inst{19-16} = sreg;
@@ -383,6 +374,7 @@ def POP : RVInstZcePPP<0b101, (outs), (ins slist:$sreg, retval:$retval, spimm:$i
   bits<2> retval;
   bits<4> sreg;
   bits<16> imm;
+  let DecoderNamespace  = "ZcePUSH_POP_POPRET";
   let Inst{21-20} = retval;
   let Inst{11-7} = imm{8-4};
   let Inst{19-16} = sreg;
@@ -394,41 +386,47 @@ def POPRET : RVInstZcePPP<0b110, (outs), (ins slist:$sreg, retval:$retval, spimm
   bits<2> retval;
   bits<4> sreg;
   bits<16> imm;
+  let DecoderNamespace  = "ZcePUSH_POP_POPRET";
   let Inst{21-20} = retval;
   let Inst{11-7} = imm{8-4};
   let Inst{19-16} = sreg;
 }
 
-// let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
-// def PUSH_E : RVInstZcePPP<0b100, (outs), (ins slist_e:$sreg, alist:$areg,
-//              simm9:$imm), "push.e", "$sreg, $areg, $imm">, Sched<[]> {
-//   bits<1> areg;
-//   bits<4> sreg;
-//   bits<12> imm;
-//   let Inst{20} = areg;
-//   let Inst{11-7} = imm{8-4};
-//   let Inst{19-16} = sreg;
-// }
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+def PUSH_E : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg,
+             spimm:$imm), "push.e", "$sreg, $areg, $imm">, Sched<[]> {
+  bits<1> areg;
+  bits<4> sreg;
+  bits<12> imm;
+  let DecoderNamespace  = "ZcePUSH_POP_POPRET_E";
+  let Inst{20} = areg;
+  let Inst{11-7} = imm{8-4};
+  let Inst{19-16} = sreg;
+}
 
-// let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-// def POP_E : RVInstZcePPP<0b101, (outs), (ins slist_e:$sreg, retval:$retval,
-//             simm9:$imm), "pop.e", "$sreg, $retval, $imm">, Sched<[]> {
-//   bits<2> retval;
-//   bits<4> sreg;
-//   let Inst{21-20} = retval;
-//   let Inst{11-7} = imm{8-4};
-//   let Inst{19-16} = sreg;
-// }
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def POP_E : RVInstZcePPP<0b101, (outs), (ins slist:$sreg, retval:$retval,
+            spimm:$imm), "pop.e", "$sreg, $retval, $imm">, Sched<[]> {
+  bits<2> retval;
+  bits<4> sreg;
+  bits<12> imm;
+  let DecoderNamespace  = "ZcePUSH_POP_POPRET_E";
+  let Inst{21-20} = retval;
+  let Inst{11-7} = imm{8-4};
+  let Inst{19-16} = sreg;
+}
 
-// let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-// def POPRET_E : RVInstZcePPP<0b110, (outs), (ins slist_e:$sreg, retval:$retval,
-//             simm9:$imm), "popret.e", "$sreg, $retval, $imm">, Sched<[]> {
-//   bits<2> retval;
-//   bits<4> sreg;
-//   let Inst{21-20} = retval;
-//   let Inst{11-7} = imm{8-4};
-//   let Inst{19-16} = sreg;
-// }
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def POPRET_E : RVInstZcePPP<0b110, (outs), (ins slist:$sreg, retval:$retval,
+            spimm:$imm), "popret.e", "$sreg, $retval, $imm">, Sched<[]> {
+  bits<2> retval;
+  bits<4> sreg;
+  bits<12> imm;
+  let DecoderNamespace  = "ZcePUSH_POP_POPRET_E";
+  let Inst{21-20} = retval;
+  let Inst{11-7} = imm{8-4};
+  let Inst{19-16} = sreg;
+}
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
 def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$slist, alist16:$areg, spimm:$spimm), 
@@ -437,7 +435,7 @@ def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$slist, alist16:$areg, spimm:$spi
   bits<1> areg;
   bits<16> spimm;
 
-  let DecoderNamespace  = "ZceC_PUSH";
+  let DecoderNamespace  = "ZcePUSH";
   let Inst{9-7} = spimm{6-4};
   let Inst{6-5} = 0b10;
   let Inst{4-2} = slist;
@@ -503,7 +501,7 @@ def C_PUSH_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, alist16:$areg, spimm:$
     "c.push.e", "{$rlist2}, {$areg}, $spimm">, Sched<[]> {
   bits<2> rlist2;
   bits<16> spimm;
-  let DecoderNamespace  = "ZceC_PUSH_E";
+  let DecoderNamespace  = "ZcePUSH_E";
   let Inst{9-8} = 0b11;
   let Inst{7} = spimm{4};
   let Inst{6} = 0b1;

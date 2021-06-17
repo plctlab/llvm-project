@@ -232,7 +232,9 @@ void RISCVInstPrinter::printSpimm(const MCInst *MI, unsigned OpNo,
   bool isRV64 = STI.getFeatureBits()[RISCV::Feature64Bit];
   int64_t spimm = 0;
 
-  if (opcode == RISCV::PUSH || opcode == RISCV::POP || opcode == RISCV::POPRET){
+  if (opcode == RISCV::PUSH || opcode == RISCV::PUSH_E ||
+      opcode == RISCV::POP || opcode == RISCV::POP_E ||
+      opcode == RISCV::POPRET || opcode == RISCV::POPRET_E){
     switch ((RISCVZCE::SLISTENCODE)MI->getOperand(0).getImm())
     {
     default:
@@ -243,10 +245,13 @@ void RISCVInstPrinter::printSpimm(const MCInst *MI, unsigned OpNo,
       break;
     case RISCVZCE::SLISTENCODE::RA_S0_S1:
     case RISCVZCE::SLISTENCODE::RA_S0_S2:
+    case RISCVZCE::SLISTENCODE::RA_S0_S2_E:
       DECODE_SPIMM(31,16,32)
       break;
     case RISCVZCE::SLISTENCODE::RA_S0_S3:
     case RISCVZCE::SLISTENCODE::RA_S0_S4:
+    case RISCVZCE::SLISTENCODE::RA_S0_S3_E:
+    case RISCVZCE::SLISTENCODE::RA_S0_S4_E:
       DECODE_SPIMM(31,32,48)
       break;
     case RISCVZCE::SLISTENCODE::RA_S0_S5:
@@ -352,7 +357,7 @@ void RISCVInstPrinter::printSpimm(const MCInst *MI, unsigned OpNo,
     }
   }
 
-  if(opcode == RISCV::PUSH || opcode == RISCV::C_PUSH || opcode == RISCV::C_PUSH_E){
+  if(opcode == RISCV::PUSH || opcode == RISCV::PUSH_E || opcode == RISCV::C_PUSH || opcode == RISCV::C_PUSH_E){
     spimm *= -1;
   }
 

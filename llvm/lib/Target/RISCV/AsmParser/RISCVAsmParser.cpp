@@ -274,7 +274,6 @@ struct RISCVOperand : public MCParsedAsmOperand {
     VType,
     Alist,
     Slist,
-    Rlist,
     Retval,
     Alist16,
     Slist16,
@@ -1077,11 +1076,29 @@ public:
     Op->IsRV64 = IsRV64;
     return Op;
   }
-  
-  static std::unique_ptr<RISCVOperand> createRlist(unsigned RlistEncode, SMLoc S,
+
+  static std::unique_ptr<RISCVOperand> createAlist16(unsigned Alist16Encode, SMLoc S,
                                                    bool IsRV64) {
-    auto Op = std::make_unique<RISCVOperand>(KindTy::Rlist);
-    Op->Slist.Val = RlistEncode;
+    auto Op = std::make_unique<RISCVOperand>(KindTy::Alist16);
+    Op->Alist16.Val = Alist16Encode;
+    Op->StartLoc = S;
+    Op->IsRV64 = IsRV64;
+    return Op;
+  }
+
+  static std::unique_ptr<RISCVOperand> createSlist16(unsigned Slist16Encode, SMLoc S,
+                                                   bool IsRV64) {
+    auto Op = std::make_unique<RISCVOperand>(KindTy::Slist16);
+    Op->Slist16.Val = Slist16Encode;
+    Op->StartLoc = S;
+    Op->IsRV64 = IsRV64;
+    return Op;
+  }
+
+  static std::unique_ptr<RISCVOperand> createSpimm(unsigned spimm, SMLoc S,
+                                                   bool IsRV64) {
+    auto Op = std::make_unique<RISCVOperand>(KindTy::Spimm);
+    Op->Spimm.Val = spimm;
     Op->StartLoc = S;
     Op->IsRV64 = IsRV64;
     return Op;
@@ -1189,8 +1206,14 @@ public:
     Inst.addOperand(MCOperand::createImm(Retval.Val));
   }
   
+  void addSlist16Operands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     Inst.addOperand(MCOperand::createImm(Slist16.Val));
+  }
+
+  void addAlist16Operands(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
+    Inst.addOperand(MCOperand::createImm(Alist16.Val));
   }
 
   void addAlist16Operands(MCInst &Inst, unsigned N) const {
@@ -2135,7 +2158,10 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
   StringRef StartName = getLexer().getTok().getIdentifier();
   matchRegisterNameHelper(isRV32E(), RegNoStart, StartName);
   getLexer().Lex();
+  StringRef Memonic = 
+    static_cast<RISCVOperand *>(Operands.front().get())->getToken();
   bool isSlist = (RegNoStart == RISCV::X1);
+  bool isEndWithE = Memonic.endswith(".e");
 
   // parse case like ,s1>
   if (isSlist && getLexer().is(AsmToken::Comma)) {
@@ -2143,7 +2169,8 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     if (getLexer().isNot(AsmToken::Identifier))
       goto Match_fail;
     MCRegister SRegStart;
-    if (matchRegisterNameHelper(isRV32E(), SRegStart, StartName))
+    // FixMe: the implemention of EUBI on matchRegisterNameHelper has some thing wrong
+    if (matchRegisterNameHelper(/*isRV32E()*/false, SRegStart, StartName))
       goto Match_fail;
     getLexer().Lex(); // eat reg
   }
@@ -2153,7 +2180,8 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     getLexer().Lex();
     Tokens.push_back(getLexer().getTok());
     StringRef EndName = getLexer().getTok().getIdentifier();
-    if (matchRegisterNameHelper(isRV32E(), RegNoEnd, EndName))
+    // FixMe: the implemention of EUBI on matchRegisterNameHelper has some thing wrong
+    if (matchRegisterNameHelper(/*isRV32E()*/false, RegNoEnd, EndName))
       goto Match_fail;
     getLexer().Lex();
   } else if (getLexer().isNot(AsmToken::RCurly))
@@ -2176,7 +2204,7 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
   }
   else
     Operands.push_back(RISCVOperand::createSlist(
-      static_cast<unsigned>(RISCVZCE::encodeSlist(RegNoEnd)), S, isRV64()));
+      static_cast<unsigned>(RISCVZCE::encodeSlist(RegNoEnd,isRV32E()||isEndWithE)), S, isRV64()));
 
   return MatchOperand_Success;
 
@@ -2253,7 +2281,8 @@ OperandMatchResultTy RISCVAsmParser::parseReglist16(OperandVector &Operands){
         getLexer().Lex();
       }
       if(getLexer().is(AsmToken::Identifier)){
-        matchRegisterNameHelper(false, RegSecondEnd, getLexer().getTok().getIdentifier());
+        // FixMe: the implemention of EUBI on matchRegisterNameHelper has some thing wrong
+        matchRegisterNameHelper(/*isRV32E()*/false, RegSecondEnd, getLexer().getTok().getIdentifier());
         if(RISCVZCE::encodeRlist(RegSecondEnd,isRlist2) == -1)
           return MatchOperand_NoMatch;
         getLexer().Lex();
@@ -2319,11 +2348,20 @@ OperandMatchResultTy RISCVAsmParser::parseZceSpimm(OperandVector &Operands){
   if (Memonic.compare("push") == 0){
     if(!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::PUSH, rlistVal, spimm, stackAdjustment, isRV64()))
       return MatchOperand_NoMatch;
+  } else if (Memonic.compare("push.e") == 0){
+    if(!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::PUSH_E, rlistVal, spimm, stackAdjustment, isRV64()))
+      return MatchOperand_NoMatch;
   } else if (Memonic.compare("popret") == 0){
     if(!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::POPRET, rlistVal, spimm, stackAdjustment, isRV64()))
       return MatchOperand_NoMatch;
+  } else if (Memonic.compare("popret.e") == 0){
+    if(!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::POPRET_E, rlistVal, spimm, stackAdjustment, isRV64()))
+      return MatchOperand_NoMatch;
   } else if (Memonic.compare("pop") == 0){
     if(!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::POP, rlistVal, spimm, stackAdjustment, isRV64()))
+      return MatchOperand_NoMatch;
+  } else if (Memonic.compare("pop.e") == 0){
+    if(!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::POP_E, rlistVal, spimm, stackAdjustment, isRV64()))
       return MatchOperand_NoMatch;
   } else if (Memonic.compare("c.popret") == 0){
     if(!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::C_POPRET, rlistVal, spimm, stackAdjustment, isRV64()))
@@ -3266,6 +3304,39 @@ bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
     }
     emitToStreamer(Out, MCInstBuilder(Opc)
                               .addImm(rlist2)
+                              .addOperand(Inst.getOperand(1))
+                              .addOperand(Inst.getOperand(2)));
+    return false;
+  }
+  case RISCV::POPRET:{
+    unsigned Opc = Inst.getOpcode();
+    if(isRV32E()){
+      Opc = RISCV::POPRET_E;
+    }
+    emitToStreamer(Out, MCInstBuilder(Opc)
+                              .addOperand(Inst.getOperand(0))
+                              .addOperand(Inst.getOperand(1))
+                              .addOperand(Inst.getOperand(2)));
+    return false;
+  }
+  case RISCV::POP:{
+    unsigned Opc = Inst.getOpcode();
+    if(isRV32E()){
+      Opc = RISCV::POP_E;
+    }
+    emitToStreamer(Out, MCInstBuilder(Opc)
+                              .addOperand(Inst.getOperand(0))
+                              .addOperand(Inst.getOperand(1))
+                              .addOperand(Inst.getOperand(2)));
+    return false;
+  }
+  case RISCV::PUSH:{
+    unsigned Opc = Inst.getOpcode();
+    if(isRV32E()){
+      Opc = RISCV::PUSH_E;
+    }
+    emitToStreamer(Out, MCInstBuilder(Opc)
+                              .addOperand(Inst.getOperand(0))
                               .addOperand(Inst.getOperand(1))
                               .addOperand(Inst.getOperand(2)));
     return false;

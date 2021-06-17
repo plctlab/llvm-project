@@ -62,25 +62,45 @@ tbljal 190
 
 # CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {a0-a1}, -16
 # CHECK-ASM: encoding: [0x2b,0x40,0x12,0x00]
- push {ra, s0-s1}, {a0-a1}, -16
+push {ra, s0-s1}, {a0-a1}, -16
  
 # CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {a0-a1}, -128
 # CHECK-ASM: encoding: [0xab,0x43,0x12,0x00]
- push {ra, s0-s1}, {a0-a1}, -128
+push {ra, s0-s1}, {a0-a1}, -128
  
 # CHECK-ASM-AND-OBJ: pop {ra, s0-s1}, {0}, 128
 # CHECK-ASM: encoding: [0xab,0x53,0x12,0x00]
- pop {ra, s0-s1}, {0}, 128
+pop {ra, s0-s1}, {0}, 128
+
+# CHECK-ASM: pop.e {ra, s0-s2}, {}, 16
+# CHECK-OBJ: pop {ra, s0-s2}, {}, 16
+# CHECK-ASM: encoding: [0x2b,0x50,0x0d,0x00]
+pop.e {ra, s0-s2}, {}, 16
  
 # CHECK-ASM-AND-OBJ: popret {ra, s0-s1}, {0}, 128
 # CHECK-ASM: encoding: [0xab,0x63,0x12,0x00]
- popret {ra, s0-s1}, {0}, 128
+popret {ra, s0-s1}, {0}, 128
+
+# CHECK-ASM: popret.e {ra, s0-s2}, {}, 16
+# CHECK-OBJ: popret {ra, s0-s2}, {}, 16
+# CHECK-ASM: encoding: [0x2b,0x60,0x0d,0x00]
+popret.e {ra, s0-s2}, {}, 16
+
+# CHECK-ASM: push.e {ra, s0-s2}, {a0-a2}, -16
+# CHECK-OBJ: push {ra, s0-s2}, {a0-a2}, -16
+# CHECK-ASM: encoding: [0x2b,0x40,0x1d,0x00]
+push.e {ra, s0-s2}, {a0-a2}, -16
+
+# CHECK-ASM: push.e {ra, s0-s4}, {a0-a3}, -528
+# CHECK-OBJ: push {ra, s0-s4}, {a0-a3}, -528
+# CHECK-ASM: encoding: [0xab,0x4f,0x1f,0x00]
+push.e {ra, s0-s4}, {a0-a3}, -528
 
 # CHECK-OBJ: c.decbnez s0, 0, 4
 # CHECK-ASM: encoding: [0x22,0xa0]
 c.decbnez s0, 1, -4
 
-# CHECK-OBJ: decbnez s0, 0, 0x38
+# CHECK-OBJ: decbnez s0, 0, 0x48
 # CHECK-ASM: encoding: [0x07,0x34,0x40,0x80]
 decbnez s0, 1, 4
 
@@ -118,15 +138,15 @@ c.popret {ra, s0-s3}, {0}, 112
 
 # CHECK-ASM-AND-OBJ: c.popret   {ra, s0-s5}, {0}, 112
 # CHECK-ASM: encoding: [0xb4,0x8e]
- c.popret {ra, s0-s5}, {0}, 112
+c.popret {ra, s0-s5}, {0}, 112
 
 # CHECK-ASM-AND-OBJ: c.popret   {ra, s0-s7}, {0}, 128
 # CHECK-ASM: encoding: [0xb8,0x8e]
- c.popret {ra, s0-s7}, {0}, 128
+c.popret {ra, s0-s7}, {0}, 128
 
 # CHECK-ASM-AND-OBJ: c.popret   {ra, s0-s11}, {0}, 144
 # CHECK-ASM: encoding: [0xbc,0x8e]
- c.popret {ra, s0-s11}, {0}, 144
+c.popret {ra, s0-s11}, {0}, 144
 
 # CHECK-ASM-AND-OBJ: c.pop  {ra}, {}, 16
 # CHECK-ASM: encoding: [0x00,0x8f]

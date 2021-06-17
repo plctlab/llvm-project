@@ -181,7 +181,7 @@ void RISCVVType::printVType(unsigned VType, raw_ostream &OS) {
 //     OS << STR;
 void RISCVZCE::printAlist(unsigned opcode, unsigned SlistImm, raw_ostream &OS) {
   OS << "{";
-  if(opcode == RISCV::C_PUSH || opcode == RISCV::PUSH){
+  if(opcode == RISCV::C_PUSH || opcode == RISCV::PUSH || opcode == RISCV::PUSH_E){
     switch ((SLISTENCODE)SlistImm)
     {
     default:
