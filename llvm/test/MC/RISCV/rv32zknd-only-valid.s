@@ -33,12 +33,12 @@
 
 # CHECK-INST: aes32dsi a0, a1, a2, 3
 # CHECK-ENCODING: [0x33,0x85,0xc5,0xfa]
-# CHECK-ERROR: instruction requires the following: 'Zknd'(NIST AES Decryption Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknd' (NIST AES Decryption Instructions)
 # CHECK-UNKNOWN: 33 85 c5 fa <unknown>
 aes32dsi a0, a1, a2, 3
 
 # CHECK-INST: aes32dsmi a0, a1, a2, 3
 # CHECK-ENCODING: [0x33,0x85,0xc5,0xfe]
-# CHECK-ERROR: instruction requires the following: 'Zknd'(NIST AES Decryption Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknd' (NIST AES Decryption Instructions)
 # CHECK-UNKNOWN: 33 85 c5 fe <unknown>
 aes32dsmi a0, a1, a2, 3

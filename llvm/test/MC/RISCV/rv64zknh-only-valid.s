@@ -33,24 +33,24 @@
 
 # CHECK-INST: sha512sig0 a0, a1
 # CHECK-ENCODING: [0x13,0x95,0x65,0x10]
-# CHECK-ERROR: instruction requires the following: 'Zknh'(NIST SHA2 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknh' (NIST SHA2 Hash function instructions)
 # CHECK-UNKNOWN: 13 95 65 10 <unknown>
 sha512sig0 a0, a1
 
 # CHECK-INST: sha512sig1 a0, a1
 # CHECK-ENCODING: [0x13,0x95,0x75,0x10]
-# CHECK-ERROR: instruction requires the following: 'Zknh'(NIST SHA2 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknh' (NIST SHA2 Hash function instructions)
 # CHECK-UNKNOWN: 13 95 75 10 <unknown>
 sha512sig1 a0, a1
 
 # CHECK-INST: sha512sum0 a0, a1
 # CHECK-ENCODING: [0x13,0x95,0x45,0x10]
-# CHECK-ERROR: instruction requires the following: 'Zknh'(NIST SHA2 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknh' (NIST SHA2 Hash function instructions)
 # CHECK-UNKNOWN: 13 95 45 10 <unknown>
 sha512sum0 a0, a1
 
 # CHECK-INST: sha512sum1 a0, a1
 # CHECK-ENCODING: [0x13,0x95,0x55,0x10]
-# CHECK-ERROR: instruction requires the following: 'Zknh'(NIST SHA2 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknh' (NIST SHA2 Hash function instructions)
 # CHECK-UNKNOWN: 13 95 55 10 <unknown>
 sha512sum1 a0, a1

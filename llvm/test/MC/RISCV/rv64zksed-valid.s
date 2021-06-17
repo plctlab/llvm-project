@@ -23,12 +23,12 @@
 
 # CHECK-INST: sm4ed a0, a1, a2, 3
 # CHECK-ENCODING: [0x33,0x85,0xc5,0xf0]
-# CHECK-ERROR: instruction requires the following: 'Zksed'(SM4 Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zksed' (SM4 Instructions)
 # CHECK-UNKNOWN: 33 85 c5 f0 <unknown>
 sm4ed a0, a1, a2, 3
 
 # CHECK-INST: sm4ks a0, a1, a2, 3
 # CHECK-ENCODING: [0x33,0x85,0xc5,0xf4]
-# CHECK-ERROR: instruction requires the following: 'Zksed'(SM4 Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zksed' (SM4 Instructions)
 # CHECK-UNKNOWN: 33 85 c5 f4 <unknown>
 sm4ks a0, a1, a2, 3

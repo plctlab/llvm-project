@@ -33,18 +33,18 @@
 
 # CHECK-INST: aes64ds a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x3a]
-# CHECK-ERROR: instruction requires the following: 'Zknd'(NIST AES Decryption Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknd' (NIST AES Decryption Instructions)
 # CHECK-UNKNOWN: 33 85 c5 3a <unknown>
 aes64ds a0, a1, a2
 
 # CHECK-INST: aes64dsm a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x3e]
-# CHECK-ERROR: instruction requires the following: 'Zknd'(NIST AES Decryption Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknd' (NIST AES Decryption Instructions)
 # CHECK-UNKNOWN: 33 85 c5 3e <unknown>
 aes64dsm a0, a1, a2
 
 # CHECK-INST: aes64im a0, a1
 # CHECK-ENCODING: [0x13,0x95,0x05,0x30]
-# CHECK-ERROR: instruction requires the following: 'Zknd'(NIST AES Decryption Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknd' (NIST AES Decryption Instructions)
 # CHECK-UNKNOWN: 13 95 05 30 <unknown>
 aes64im a0, a1

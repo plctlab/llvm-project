@@ -23,12 +23,12 @@
 
 # CHECK-INST: sm3p0 a0, a1
 # CHECK-ENCODING: [0x13,0x95,0x85,0x10]
-# CHECK-ERROR: instruction requires the following: 'Zksh'(SM3 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zksh' (SM3 Hash function instructions)
 # CHECK-UNKNOWN: 13 95 85 10 <unknown>
 sm3p0 a0, a1
 
 # CHECK-INST: sm3p1 a0, a1
 # CHECK-ENCODING: [0x13,0x95,0x95,0x10]
-# CHECK-ERROR: instruction requires the following: 'Zksh'(SM3 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zksh' (SM3 Hash function instructions)
 # CHECK-UNKNOWN: 13 95 95 10 <unknown>
 sm3p1 a0, a1

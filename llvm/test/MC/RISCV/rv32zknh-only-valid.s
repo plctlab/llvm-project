@@ -33,36 +33,36 @@
 
 # CHECK-INST: sha512sig0h a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x5c]
-# CHECK-ERROR: instruction requires the following: 'Zknh'(NIST SHA2 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknh' (NIST SHA2 Hash function instructions)
 # CHECK-UNKNOWN: 33 85 c5 5c <unknown>
 sha512sig0h a0, a1, a2
 
 # CHECK-INST: sha512sig1h a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x5e]
-# CHECK-ERROR: instruction requires the following: 'Zknh'(NIST SHA2 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknh' (NIST SHA2 Hash function instructions)
 # CHECK-UNKNOWN: 33 85 c5 5e <unknown>
 sha512sig1h a0, a1, a2
 
 # CHECK-INST: sha512sig0l a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x54]
-# CHECK-ERROR: instruction requires the following: 'Zknh'(NIST SHA2 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknh' (NIST SHA2 Hash function instructions)
 # CHECK-UNKNOWN: 33 85 c5 54 <unknown>
 sha512sig0l a0, a1, a2
 
 # CHECK-INST: sha512sig1l a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x56]
-# CHECK-ERROR: instruction requires the following: 'Zknh'(NIST SHA2 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknh' (NIST SHA2 Hash function instructions)
 # CHECK-UNKNOWN: 33 85 c5 56 <unknown>
 sha512sig1l a0, a1, a2
 
 # CHECK-INST: sha512sum0r a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x50]
-# CHECK-ERROR: instruction requires the following: 'Zknh'(NIST SHA2 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknh' (NIST SHA2 Hash function instructions)
 # CHECK-UNKNOWN: 33 85 c5 50 <unknown>
 sha512sum0r a0, a1, a2
 
 # CHECK-INST: sha512sum1r a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x52]
-# CHECK-ERROR: instruction requires the following: 'Zknh'(NIST SHA2 Hash function instructions)
+# CHECK-ERROR: instruction requires the following: 'Zknh' (NIST SHA2 Hash function instructions)
 # CHECK-UNKNOWN: 33 85 c5 52 <unknown>
 sha512sum1r a0, a1, a2

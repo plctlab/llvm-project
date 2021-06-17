@@ -22,12 +22,12 @@
 
 # CHECK-INST: csrr a0, mnoise 
 # CHECK-ENCODING: [0x73,0x25,0x90,0x7a]
-# CHECK-ERROR: instruction requires the following: 'Zkr'(Entropy source for seeding random number generators)
+# CHECK-ERROR: instruction requires the following: 'Zkr' (Entropy source for seeding random number generators)
 # CHECK-UNKNOWN: 73 25 90 7a
 getnoise a0
 
 # CHECK-INST: csrr a0, mentropy
 # CHECK-ENCODING: [0x73,0x25,0x50,0xf1]
-# CHECK-ERROR: instruction requires the following: 'Zkr'(Entropy source for seeding random number generators)
+# CHECK-ERROR: instruction requires the following: 'Zkr' (Entropy source for seeding random number generators)
 # CHECK-UNKNOWN: 73 25 50 f1
 pollentropy a0
