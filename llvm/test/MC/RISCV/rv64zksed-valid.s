@@ -21,14 +21,14 @@
 # RUN:      | llvm-objdump -d - | FileCheck %s --check-prefix=CHECK-UNKNOWN
 
 
-# CHECK-INST: sm4ed t0, a2, 3
-# CHECK-ENCODING: [0x33,0x80,0xc2,0xf0]
+# CHECK-INST: sm4ed a0, a1, a2, 3
+# CHECK-ENCODING: [0x33,0x85,0xc5,0xf0]
 # CHECK-ERROR: instruction requires the following: 'Zksed'(SM4 Instructions)
-# CHECK-UNKNOWN: 33 80 c2 f0 <unknown>
-sm4ed t0, a2, 3
+# CHECK-UNKNOWN: 33 85 c5 f0 <unknown>
+sm4ed a0, a1, a2, 3
 
-# CHECK-INST: sm4ks t0, a2, 3
-# CHECK-ENCODING: [0x33,0x80,0xc2,0xf4]
+# CHECK-INST: sm4ks a0, a1, a2, 3
+# CHECK-ENCODING: [0x33,0x85,0xc5,0xf4]
 # CHECK-ERROR: instruction requires the following: 'Zksed'(SM4 Instructions)
-# CHECK-UNKNOWN: 33 80 c2 f4 <unknown>
-sm4ks t0, a2, 3
+# CHECK-UNKNOWN: 33 85 c5 f4 <unknown>
+sm4ks a0, a1, a2, 3
