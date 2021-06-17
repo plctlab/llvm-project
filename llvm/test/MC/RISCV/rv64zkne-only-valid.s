@@ -33,24 +33,24 @@
 
 # CHECK-INST: aes64esm a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x36]
-# CHECK-ERROR: instruction requires the following: 'Zkne'(NIST AES Encryption Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zkne' (NIST AES Encryption Instructions)
 # CHECK-UNKNOWN: 33 85 c5 36 <unknown>
 aes64esm a0, a1, a2
 
 # CHECK-INST: aes64es a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x32]
-# CHECK-ERROR: instruction requires the following: 'Zkne'(NIST AES Encryption Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zkne' (NIST AES Encryption Instructions)
 # CHECK-UNKNOWN: 33 85 c5 32 <unknown>
 aes64es a0, a1, a2
 
 # CHECK-INST: aes64ks1i a0, a1, 5
 # CHECK-ENCODING: [0x13,0x95,0x55,0x31]
-# CHECK-ERROR: instruction requires the following: 'Zkne'(NIST AES Encryption Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zkne' (NIST AES Encryption Instructions)
 # CHECK-UNKNOWN: 13 95 55 31 <unknown>
 aes64ks1i a0, a1, 5
 
 # CHECK-INST: aes64ks2 a0, a1, a2
 # CHECK-ENCODING: [0x33,0x85,0xc5,0x7e]
-# CHECK-ERROR: instruction requires the following: 'Zkne'(NIST AES Encryption Instructions)
+# CHECK-ERROR: instruction requires the following: 'Zkne' (NIST AES Encryption Instructions)
 # CHECK-UNKNOWN: 33 85 c5 7e <unknown>
 aes64ks2 a0, a1, a2
