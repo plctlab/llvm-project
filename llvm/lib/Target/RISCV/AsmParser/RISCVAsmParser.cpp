@@ -715,7 +715,7 @@ public:
            VK == RISCVMCExpr::VK_RISCV_None;
   }
 
-  bool isRconArg() const {
+  bool isRnumArg() const {
     int64_t Imm;
     RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
     if (!isImm())
@@ -1195,7 +1195,7 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                       (1 << 4),
                                       "immediate must be in the range");
   }
-  case Match_InvalidRconArg: {
+  case Match_InvalidRnumArg: {
     return generateImmOutOfRangeError(Operands, ErrorInfo, 0, (1 << 4) - 6);
   }
   }

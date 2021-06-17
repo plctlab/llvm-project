@@ -7,21 +7,21 @@
 //===----------------------------------------------------------------------===//
 ///
 /// This file describes the RISC-V instructions from the standard 'K' 
-/// scalar cryptography extension, version 0.9.0. 
+/// scalar cryptography extension, version 0.9.2.
 /// 
 /// This version is still experimental as the 'K' extension hasn't been
 /// ratified yet.
 ///
 //===----------------------------------------------------------------------===//
 
-def RconArg : AsmOperandClass {
-  let Name = "RconArg";
+def RnumArg : AsmOperandClass {
+  let Name = "RnumArg";
   let RenderMethod = "addImmOperands";
-  let DiagnosticType = "InvalidRconArg";
+  let DiagnosticType = "InvalidRnumArg";
 }
 
-def rcon : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<4>(Imm);}]> {
-  let ParserMatchClass = RconArg;
+def rnum : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<4>(Imm);}]> {
+  let ParserMatchClass = RnumArg;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeUImmOperand<4>";
   let OperandType = "OPERAND_UIMM4";
@@ -34,7 +34,7 @@ def rcon : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isInt<4>(Imm);}]> {
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class RVKUnary<bits<7> funct7, bits<5> funct5, bits<3> funct3, string opcodestr>
-    : RVInstR<funct7, funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1), opcodestr, "$rd, $rs1">{
+    : RVInstR<funct7, funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1), opcodestr, "$rd, $rs1"> {
         let Inst{24-20} = funct5;
     }
 
@@ -45,27 +45,21 @@ class RVKBinary<bits<7> funct7, bits<3> funct3, string opcodestr>
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class RVKByteSelect<bits<5> funct5, string opcodestr>
-    : RVInstS<0b000, OPC_OP, (outs GPR:$rt), (ins GPR:$rs1, GPR:$rs2, uimm2:$bs),
-            opcodestr, "$rt, $rs2, $bs">{
+    : RVInstR<{0b00, funct5}, 0b000, OPC_OP, (outs GPR:$rd), (ins GPR:$rs1, GPR:$rs2, uimm2:$bs),
+            opcodestr, "$rd, $rs1, $rs2, $bs"> {
         bits<2> bs;
-        bits<5> rt;
-
-        let Constraints = "$rt = $rs1";
         let Inst{31-30}=bs;
-        let Inst{29-25}=funct5;
-        let Inst{19-15}=rt;
-        let Inst{11-7}=0b00000;
     }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-class RVKUnary_rcon<bits<7> funct7, bits<3> funct3, string opcodestr>
-    : RVInstI<funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1, rcon:$rcon),
-            opcodestr, "$rd, $rs1, $rcon"> {
-    bits<4> rcon;
+class RVKUnary_rnum<bits<7> funct7, bits<3> funct3, string opcodestr>
+    : RVInstI<funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1, rnum:$rnum),
+            opcodestr, "$rd, $rs1, $rnum"> {
+    bits<4> rnum;
     
     let Inst{31-25} = funct7;
     let Inst{24} = 1;
-    let Inst{23-20} = rcon;
+    let Inst{23-20} = rnum;
 }
 
 //===----------------------------------------------------------------------===//
@@ -87,7 +81,7 @@ let Predicates = [HasStdExtZkne, IsRV64] in {
 def AES64ES : RVKBinary<0b0011001, 0b000, "aes64es">;
 def AES64ESM : RVKBinary<0b0011011, 0b000, "aes64esm">;
 def AES64KS2 : RVKBinary<0b0111111, 0b000, "aes64ks2">;
-def AES64KS1I : RVKUnary_rcon<0b0011000, 0b001, "aes64ks1i">;
+def AES64KS1I : RVKUnary_rnum<0b0011000, 0b001, "aes64ks1i">;
 } // Predicates = [HasStdExtZkne, IsRV64]
 
 let Predicates = [HasStdExtZknd, IsRV32] in {

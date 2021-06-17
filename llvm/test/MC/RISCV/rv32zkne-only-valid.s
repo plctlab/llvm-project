@@ -31,14 +31,14 @@
 # RUN: llvm-mc -triple=riscv32 -filetype=obj --mattr=+experimental-zkne %s \
 # RUN:      | llvm-objdump -d - | FileCheck %s --check-prefix=CHECK-UNKNOWN
 
-# CHECK-INST: aes32esi t0, a2, 3
-# CHECK-ENCODING: [0x33,0x80,0xc2,0xf2]
+# CHECK-INST: aes32esi a0, a1, a2, 3
+# CHECK-ENCODING: [0x33,0x85,0xc5,0xf2]
 # CHECK-ERROR: instruction requires the following: 'Zkne'(NIST AES Encryption Instructions)
-# CHECK-UNKNOWN: 33 80 c2 f2 <unknown>
-aes32esi t0, a2, 3
+# CHECK-UNKNOWN: 33 85 c5 f2 <unknown>
+aes32esi a0, a1, a2, 3
 
-# CHECK-INST: aes32esmi t0, a2, 3
-# CHECK-ENCODING: [0x33,0x80,0xc2,0xf6]
+# CHECK-INST: aes32esmi a0, a1, a2, 3
+# CHECK-ENCODING: [0x33,0x85,0xc5,0xf6]
 # CHECK-ERROR: instruction requires the following: 'Zkne'(NIST AES Encryption Instructions)
-# CHECK-UNKNOWN: 33 80 c2 f6 <unknown>
-aes32esmi t0, a2, 3
+# CHECK-UNKNOWN: 33 85 c5 f6 <unknown>
+aes32esmi a0, a1, a2, 3

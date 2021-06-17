@@ -31,14 +31,14 @@
 # RUN: llvm-mc -triple=riscv32 -filetype=obj --mattr=+experimental-zknd %s \
 # RUN:      | llvm-objdump -d - | FileCheck %s --check-prefix=CHECK-UNKNOWN
 
-# CHECK-INST: aes32dsi t0, a2, 3
-# CHECK-ENCODING: [0x33,0x80,0xc2,0xfa]
+# CHECK-INST: aes32dsi a0, a1, a2, 3
+# CHECK-ENCODING: [0x33,0x85,0xc5,0xfa]
 # CHECK-ERROR: instruction requires the following: 'Zknd'(NIST AES Decryption Instructions)
-# CHECK-UNKNOWN: 33 80 c2 fa <unknown>
-aes32dsi t0, a2, 3
+# CHECK-UNKNOWN: 33 85 c5 fa <unknown>
+aes32dsi a0, a1, a2, 3
 
-# CHECK-INST: aes32dsmi t0, a2, 3
-# CHECK-ENCODING: [0x33,0x80,0xc2,0xfe]
+# CHECK-INST: aes32dsmi a0, a1, a2, 3
+# CHECK-ENCODING: [0x33,0x85,0xc5,0xfe]
 # CHECK-ERROR: instruction requires the following: 'Zknd'(NIST AES Decryption Instructions)
-# CHECK-UNKNOWN: 33 80 c2 fe <unknown>
-aes32dsmi t0, a2, 3
+# CHECK-UNKNOWN: 33 85 c5 fe <unknown>
+aes32dsmi a0, a1, a2, 3
