@@ -216,14 +216,14 @@ def HasStdExtZksed : Predicate<"Subtarget->hasStdExtZksed()">,
                               "'Zksed' (SM4 Instructions)">;
 def FeatureExtZks
     : SubtargetFeature<"experimental-zks", "HasStdExtZks", "true",
-                       "'Zks'(ShangMi  (SM) algorithm suite)",
+                       "'Zks' (ShangMi (SM) algorithm suite)",
                        [FeatureExtZksed,
                         FeatureExtZksh,
                         FeatureExtZkg,
                         FeatureExtZkb]>;
 def HasStdExtZks : Predicate<"Subtarget->hasStdExtZks()">,
                               AssemblerPredicate<(all_of FeatureExtZks),
-                              "'Zks'(ShangMi  (SM) algorithm suite)">;
+                              "'Zks' (ShangMi (SM) algorithm suite)">;
 def FeatureExtZknh
     : SubtargetFeature<"experimental-zknh", "HasStdExtZknh", "true",
                        "'Zknh' (NIST SHA2 Hash function instructions)">;
