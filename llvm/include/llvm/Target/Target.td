@@ -8,7 +8,6 @@
 //
 // This file defines the target-independent interfaces which should be
 // implemented by each target which is using a TableGen based code generator.
-//
 //===----------------------------------------------------------------------===//
 
 // Include all information about LLVM intrinsics.
