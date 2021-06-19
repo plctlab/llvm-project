@@ -165,6 +165,7 @@ class RISCVAsmParser : public MCTargetAsmParser {
   OperandMatchResultTy parseVTypeI(OperandVector &Operands);
   OperandMatchResultTy parseMaskReg(OperandVector &Operands);
   OperandMatchResultTy parseReglist(OperandVector &Operands);
+  OperandMatchResultTy parseZceRet(OperandVector &Operands);
 
   bool parseOperand(OperandVector &Operands, StringRef Mnemonic);
 
@@ -264,7 +265,8 @@ struct RISCVOperand : public MCParsedAsmOperand {
     SystemRegister,
     VType,
     Alist,
-    Slist
+    Slist,
+    ZceRet
   } Kind;
 
   bool IsRV64;
@@ -297,6 +299,10 @@ struct RISCVOperand : public MCParsedAsmOperand {
     unsigned Val;
   };
 
+  struct ZceRetOp {
+    unsigned Val;
+  };
+
   SMLoc StartLoc, EndLoc;
   union {
     StringRef Tok;
@@ -306,6 +312,7 @@ struct RISCVOperand : public MCParsedAsmOperand {
     struct VTypeOp VType;
     struct SlistOp Slist;
     struct AlistOp Alist;
+    struct ZceRetOp ZceRet;
   };
 
   RISCVOperand(KindTy K) : MCParsedAsmOperand(), Kind(K) {}
@@ -338,6 +345,9 @@ public:
     case KindTy::Alist:
       Alist = o.Alist;
       break;
+    case KindTy::ZceRet:
+      ZceRet = o.ZceRet;
+      break;
     }
   }
 
@@ -352,6 +362,7 @@ public:
   bool isVType() const { return Kind == KindTy::VType; }
   bool isAlist() const { return Kind == KindTy::Alist; }
   bool isSlist() const { return Kind == KindTy::Slist; }
+  bool isZceRet() const { return Kind == KindTy::ZceRet; }
 
   bool isGPR() const {
     return Kind == KindTy::Register &&
@@ -890,15 +901,21 @@ public:
       RISCVVType::printVType(getVType(), OS);
       OS << '>';
       break;
-    // case KindTy::Alist:
+    case KindTy::Alist:
     //   OS << "<alist: ";
     //   RISCVZCE::printAlist(Alist.Val, OS);
     //   OS << '>';
-    //   break;
+      break;
     case KindTy::Slist:
       OS << "<slist: ";
       RISCVZCE::printSlist(Slist.Val, OS);
       OS << '>';
+      break;
+    case KindTy::ZceRet:
+      OS << "{ZceRet: ";
+      RISCVZCE::printZceRet(ZceRet.Val, OS);
+      OS << '}';
+      break;
     }
   }
 
@@ -970,6 +987,15 @@ public:
     return Op;
   }
 
+  static std::unique_ptr<RISCVOperand> createZceRet(unsigned ZceRetEncode, SMLoc S,
+                                                   bool IsRV64) {
+    auto Op = std::make_unique<RISCVOperand>(KindTy::ZceRet);
+    Op->ZceRet.Val = ZceRetEncode;
+    Op->StartLoc = S;
+    Op->IsRV64 = IsRV64;
+    return Op;
+  }
+
   void addExpr(MCInst &Inst, const MCExpr *Expr) const {
     assert(Expr && "Expr shouldn't be null!");
     int64_t Imm = 0;
@@ -1030,6 +1056,11 @@ public:
   void addAlistOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     Inst.addOperand(MCOperand::createImm(Alist.Val));
+  }
+
+  void addZceRetOperands(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
+    Inst.addOperand(MCOperand::createImm(ZceRet.Val));
   }
 
   void addScaleOperands(MCInst &Inst, unsigned N) const {
@@ -2013,6 +2044,34 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
       getLexer().UnLex(Token);
     return MatchOperand_NoMatch;
     
+}
+
+OperandMatchResultTy RISCVAsmParser::parseZceRet(OperandVector &Operands){
+  SMLoc S = getLoc();
+  if (getLexer().isNot(AsmToken::LCurly))
+    return MatchOperand_NoMatch;
+  SmallVector<AsmToken, 8> Tokens;
+  getLexer().Lex(); // eat '{'
+  Tokens.push_back(getLexer().getTok());
+
+  // process the ret0 of c.popret
+  if(getLexer().is(AsmToken::Integer)){
+    signed int retValue = getLexer().getTok().getIntVal();
+    if(-1 >= retValue && retValue <= 1)
+      Operands.push_back(RISCVOperand::createZceRet(retValue, S, isRV64()));
+    else
+      return MatchOperand_NoMatch;
+    getLexer().Lex();
+    return MatchOperand_Success; 
+  }
+  else if(getLexer().is(AsmToken::RCurly)) {
+    Operands.push_back(RISCVOperand::createZceRet(0, S, isRV64()));    
+  }
+  else{
+    return MatchOperand_NoMatch;
+  }
+  getLexer().Lex();
+  return MatchOperand_Success; 
 }
 
 /// Looks at a token type and creates the relevant operand from this
