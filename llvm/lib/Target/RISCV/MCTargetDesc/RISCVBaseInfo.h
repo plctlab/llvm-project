@@ -398,13 +398,13 @@ enum class SLISTENCODE {
 };
 
 // Encode slist, the EndReg is the end of the register of the slist,
-// 
+//
 #define ENDREG_TO_ENCODE(ENDREG, ENCODE) \
 case RISCV::X##ENDREG:                 \
-  return SLISTENCODE::ENCODE; 
-inline static SLISTENCODE encodeSlist(MCRegister EndReg) {                      
+  return SLISTENCODE::ENCODE;
+inline static SLISTENCODE encodeSlist(MCRegister EndReg) {
   switch (EndReg) {
-  default: 
+  default:
     llvm_unreachable("Unexpected register");
   ENDREG_TO_ENCODE(8, RA_S0)
   ENDREG_TO_ENCODE(9, RA_S0_S1)
@@ -450,12 +450,16 @@ inline static bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
 }
 
 inline static unsigned encodeAlist(MCRegister EndReg, unsigned SlistEncode) {
-  return  (SlistEncode != 0 && EndReg == RISCV::NoRegister) ? 0 : 1;
+  return (SlistEncode != 0 && EndReg == RISCV::NoRegister) ? 0 : 1;
+}
+
+inline static unsigned encodeRetval(int Retval) {
+  return Retval == -1 ? 3 : (Retval + 1);
 }
 
 void printAlist(unsigned AlistEncode, unsigned SlistEncode, raw_ostream &OS);
-void printSlist(unsigned AlistEncode, raw_ostream &OS);
-void printZceRet(unsigned ZceRetEncode, raw_ostream &OS);
+void printSlist(unsigned SlistEncode, raw_ostream &OS);
+void printRetval(unsigned RetvalEncode, raw_ostream &OS);
 
 }
 

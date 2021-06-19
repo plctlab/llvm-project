@@ -212,6 +212,17 @@ def slist : Operand<OtherVT> {
   let PrintMethod = "printSlist";
 }
 
+def RetvalAsmOperand : AsmOperandClass {
+  let Name = "Retval";
+  let ParserMethod = "parseRetval";
+  let DiagnosticType = "InvalidRetval";
+}
+
+def retval : Operand<OtherVT> {
+  let ParserMatchClass = RetvalAsmOperand;
+  let PrintMethod = "printRetval";
+}
+
 //===----------------------------------------------------------------------===//
 // Instruction Class Templates
 //===----------------------------------------------------------------------===//
@@ -311,17 +322,70 @@ def TBLJAL  : RVInstZceTableJump_i<0b010, "tbljal", tbljal_uimm8>, Sched<[]>;
 
 // 6.9 push, pop
 let Predicates = [HasStdExtZcea] in {
-let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
-def PUSH : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg, simm9:$imm), 
-    "push", "$sreg, $areg, $imm">, Sched<[]> {
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+def PUSH : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg, simm9:$imm),
+           "push", "$sreg, $areg, $imm">, Sched<[]> {
   bits<1> areg;
   bits<4> sreg;
   bits<12> imm;
-  let Inst{31-21} = 0b00000000000;
   let Inst{20} = areg;
   let Inst{11-7} = imm{8-4};
   let Inst{19-16} = sreg;
 }
+
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def POP : RVInstZcePPP<0b101, (outs), (ins slist:$sreg, retval:$retval, simm9:$imm),
+          "pop", "$sreg, $retval, $imm">, Sched<[]> {
+  bits<2> retval;
+  bits<4> sreg;
+  bits<12> imm;
+  let Inst{21-20} = retval;
+  let Inst{11-7} = imm{8-4};
+  let Inst{19-16} = sreg;
+}
+
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def POPRET : RVInstZcePPP<0b110, (outs), (ins slist:$sreg, retval:$retval, simm9:$imm),
+          "popret", "$sreg, $retval, $imm">, Sched<[]> {
+  bits<2> retval;
+  bits<4> sreg;
+  bits<12> imm;
+  let Inst{21-20} = retval;
+  let Inst{11-7} = imm{8-4};
+  let Inst{19-16} = sreg;
+}
+
+// let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+// def PUSH_E : RVInstZcePPP<0b100, (outs), (ins slist_e:$sreg, alist:$areg,
+//              simm9:$imm), "push.e", "$sreg, $areg, $imm">, Sched<[]> {
+//   bits<1> areg;
+//   bits<4> sreg;
+//   bits<12> imm;
+//   let Inst{20} = areg;
+//   let Inst{11-7} = imm{8-4};
+//   let Inst{19-16} = sreg;
+// }
+
+// let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+// def POP_E : RVInstZcePPP<0b101, (outs), (ins slist_e:$sreg, retval:$retval,
+//             simm9:$imm), "pop.e", "$sreg, $retval, $imm">, Sched<[]> {
+//   bits<2> retval;
+//   bits<4> sreg;
+//   let Inst{21-20} = retval;
+//   let Inst{11-7} = imm{8-4};
+//   let Inst{19-16} = sreg;
+// }
+
+// let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+// def POPRET_E : RVInstZcePPP<0b110, (outs), (ins slist_e:$sreg, retval:$retval,
+//             simm9:$imm), "popret.e", "$sreg, $retval, $imm">, Sched<[]> {
+//   bits<2> retval;
+//   bits<4> sreg;
+//   let Inst{21-20} = retval;
+//   let Inst{11-7} = imm{8-4};
+//   let Inst{19-16} = sreg;
+// }
+
 }
 
 // 7. Zceb

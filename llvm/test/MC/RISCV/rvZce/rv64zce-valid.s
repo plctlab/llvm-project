@@ -67,9 +67,3 @@ ldgp s0, 65528(gp)
 # CHECK-NO-RV64: error: instruction requires the following: RV64I Base Instruction Set
 # CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Zceb' (reuses encoding from the D-extension, incompatible with D v0.41), RV64I Base Instruction Set
 sdgp s0, 65528(gp)
-
-# CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {a0-a1}, -128
-# CHECK-ASM: encoding: [0x2b,0x4c,0x12,0x00]
-push {ra, s0-s1}, {a0-a1}, -128
-
-

@@ -223,26 +223,61 @@ void RISCVZCE::printSlist(unsigned SlistEncode, raw_ostream &OS) {
       OS << "ra, s0-s1";
       break;
     case 3:
+    case 13:
       OS << "ra, s0-s2";
       break;
     case 4:
+    case 14:
       OS << "ra, s0-s3";
+      break;
+    case 5:
+    case 15:
+      OS << "ra, s0-s4";
+      break;
+    case 6:
+      OS << "ra, s0-s5";
+      break;
+    case 7:
+      OS << "ra, s0-s6";
+      break;
+    case 8:
+      OS << "ra, s0-s7";
+      break;
+    case 9:
+      OS << "ra, s0-s8";
+      break;
+    case 10:
+      OS << "ra, s0-s9";
+      break;
+    case 11:
+      OS << "ra, s0-s10";
+      break;
+    case 12:
+      OS << "ra, s0-s11";
       break;
   }
   OS << "}";
 }
 
-void RISCVZCE::printZceRet(unsigned ZceRetEncode, raw_ostream &OS) {
-  switch (ZceRetEncode) {
-  case 0:
-    OS << "{}";
-    return;
-  case 1:
-    OS << "{0}";
-    return;
-  }
-}
 // #undef ALIST_PRINT
 // }
+
+void RISCVZCE::printRetval(unsigned RetvalEncode, raw_ostream &OS) {
+  OS << '{';
+  switch (RetvalEncode) {
+    default:
+      break;
+    case 1:
+      OS << '0';
+      break;
+    case 2:
+      OS << '1';
+      break;
+    case 3:
+      OS << "-1";
+      break;
+  }
+  OS << '}';
+}
 
 } // namespace llvm

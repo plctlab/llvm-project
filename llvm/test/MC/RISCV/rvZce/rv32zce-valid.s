@@ -33,33 +33,25 @@ c.neg s0
 # CHECK-ASM: encoding: [0x1c,0x84]
 c.not s0
 
-# CHECK-ASM-AND-OBJ: c.mva01s07 s0, s1
-# CHECK-ASM: encoding: [0x65,0x9c]
-c.mva01s07 s0, s1
-
 # CHECK-ASM-AND-OBJ: c.mul s0, s1
 # CHECK-ASM: encoding: [0x45,0x9c]
 c.mul s0, s1
 
-# CHECK-OBJ: beqi s0, 20, 0x38
-# CHECK-ASM: encoding: [0x63,0x24,0x44,0x03]
-beqi s0, 20, 40
-
-# CHECK-OBJ: bnei s0, 20, 0x3c
-# CHECK-ASM: encoding: [0x63,0x34,0x44,0x03]
-bnei s0, 20, 40
+# CHECK-ASM-AND-OBJ: c.mva01s07 s0, s1
+# CHECK-ASM: encoding: [0x65,0x9c]
+c.mva01s07 s0, s1
 
 # CHECK-ASM-AND-OBJ: muli s0, s1, 2
 # CHECK-ASM: encoding: [0x0b,0x94,0x24,0x00]
 muli s0, s1, 2
 
-# CHECK-OBJ: c.decbnez s0, 0, 4
-# CHECK-ASM: encoding: [0x22,0xa0]
-c.decbnez s0, 1, -4
+# CHECK-OBJ: beqi s0, 20, 0x3c
+# CHECK-ASM: encoding: [0x63,0x24,0x44,0x03]
+beqi s0, 20, 40
 
-# CHECK-OBJ: decbnez s0, 0, 0x22
-# CHECK-ASM: encoding: [0x07,0x34,0x40,0x80]
-decbnez s0, 1, 4
+# CHECK-OBJ: bnei s0, 20, 0x40
+# CHECK-ASM: encoding: [0x63,0x34,0x44,0x03]
+bnei s0, 20, 40
 
 # CHECK-ASM-AND-OBJ: tbljalm 6
 # CHECK-ASM: encoding: [0x18,0x88]
@@ -72,6 +64,26 @@ tblj 40
 # CHECK-ASM-AND-OBJ: tbljal 190
 # CHECK-ASM: encoding: [0xf8,0x8b]
 tbljal 190
+
+# CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {a0-a1}, -128
+# CHECK-ASM: encoding: [0x2b,0x4c,0x12,0x00]
+push {ra, s0-s1}, {a0-a1}, -128
+
+# CHECK-ASM-AND-OBJ: pop {ra, s0-s1}, {0}, 128
+# CHECK-ASM: encoding: [0x2b,0x54,0x12,0x00]
+pop {ra, s0-s1}, {0}, 128
+
+# CHECK-ASM-AND-OBJ: popret {ra, s0-s1}, {0}, 128
+# CHECK-ASM: encoding: [0x2b,0x64,0x12,0x00]
+popret {ra, s0-s1}, {0}, 128
+
+# CHECK-OBJ: c.decbnez s0, 0, 4
+# CHECK-ASM: encoding: [0x22,0xa0]
+c.decbnez s0, 1, -4
+
+# CHECK-OBJ: decbnez s0, 0, 0x34
+# CHECK-ASM: encoding: [0x07,0x34,0x40,0x80]
+decbnez s0, 1, 4
 
 # CHECK-ASM-AND-OBJ: lwgp s0, 32764(gp)
 # CHECK-ASM: encoding: [0x07,0xb4,0xf7,0x1f]
