@@ -455,6 +455,7 @@ inline static unsigned encodeAlist(MCRegister EndReg, unsigned SlistEncode) {
 
 void printAlist(unsigned AlistEncode, unsigned SlistEncode, raw_ostream &OS);
 void printSlist(unsigned AlistEncode, raw_ostream &OS);
+void printZceRet(unsigned ZceRetEncode, raw_ostream &OS);
 
 }
 

@@ -231,6 +231,17 @@ void RISCVZCE::printSlist(unsigned SlistEncode, raw_ostream &OS) {
   }
   OS << "}";
 }
+
+void RISCVZCE::printZceRet(unsigned ZceRetEncode, raw_ostream &OS) {
+  switch (ZceRetEncode) {
+  case 0:
+    OS << "{}";
+    return;
+  case 1:
+    OS << "{0}";
+    return;
+  }
+}
 // #undef ALIST_PRINT
 // }
 
