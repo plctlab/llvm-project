@@ -28,6 +28,13 @@ def rcon : Operand<i32>, TImmLeaf<i32, [{return isUInt<4>(Imm);}]> {
   let OperandNamespace = "RISCVOp";
 }
 
+def byteselect : Operand<i8>, TImmLeaf<i8, [{return isUInt<2>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<2>;
+  let DecoderMethod = "decodeUImmOperand<2>";
+  let OperandType = "OPERAND_UIMM2";
+  let OperandNamespace = "RISCVOp";
+}
+
 //===----------------------------------------------------------------------===//
 // Instruction class templates
 //===----------------------------------------------------------------------===//
@@ -45,8 +52,9 @@ class RVKBinary<bits<7> funct7, bits<3> funct3, string opcodestr>
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class RVKByteSelect<bits<5> funct5, string opcodestr>
-    : RVInstS<0b000, OPC_OP, (outs GPR:$rt), (ins GPR:$rs1, GPR:$rs2, uimm2:$bs),
-            opcodestr, "$rt, $rs2, $bs">{
+    : RVInstR<{0b00, funct5}, 0b000, OPC_OP, (outs GPR:$rd),
+              (ins GPR:$rs1, GPR:$rs2, byteselect:$bs), opcodestr,
+              "$rd, $rs1, $rs2, $bs"> {
         bits<2> bs;
         bits<5> rt;
 
@@ -138,7 +146,7 @@ def SM3P1 : RVKUnary<0b0001000, 0b01001, 0b001, "sm3p1">;
 
 class PatGprGprByteSelect<SDPatternOperator OpNode, RVInst Inst>
     : Pat<(OpNode GPR:$rs1, GPR:$rs2, i8:$imm),
-          (Inst GPR:$rs1, GPR:$rs2, uimm2:$imm)>;
+          (Inst GPR:$rs1, GPR:$rs2, byteselect:$imm)>;
 
 let Predicates = [HasStdExtZkn, IsRV32] in {
 def : PatGprGprByteSelect<int_riscv_aes32dsi, AES32DSI>;

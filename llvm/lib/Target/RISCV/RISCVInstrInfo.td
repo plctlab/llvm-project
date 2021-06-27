@@ -153,7 +153,7 @@ def uimmlog2xlen : Operand<XLenVT>, ImmLeaf<XLenVT, [{
   let OperandNamespace = "RISCVOp";
 }
 
-def uimm2 : Operand<i8>, TImmLeaf<i8, [{return isUInt<2>(Imm);}]>{
+def uimm2 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<2>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<2>;
   let DecoderMethod = "decodeUImmOperand<2>";
   let OperandType = "OPERAND_UIMM2";

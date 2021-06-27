@@ -6,7 +6,7 @@ declare i32 @llvm.riscv.aes32dsi(i32, i32, i8);
 define i32 @aes32dsi(i32 %a, i32 %b) nounwind {
 ; RV32IK-LABEL: aes32dsi
 ; RV32IK: # %bb.0:
-; RV32IK-NEXT: aes32dsi a{{[0-9]+}}, a{{[0-9]+}}, 0
+; RV32IK-NEXT: aes32dsi a{{[0-9]+}}, a{{[0-9]+}}, a{{[0-9]+}}, 0
 ; RV32IK-NEXT: ret
     %val = call i32 @llvm.riscv.aes32dsi(i32 %a, i32 %b, i8 0)
     ret i32 %val
@@ -17,7 +17,7 @@ declare i32 @llvm.riscv.aes32dsmi(i32, i32, i8);
 define i32 @aes32dsmi(i32 %a, i32 %b) nounwind {
 ; RV32IK-LABEL: aes32dsmi
 ; RV32IK: # %bb.0:
-; RV32IK-NEXT: aes32dsmi a{{[0-9]+}}, a{{[0-9]+}}, 1
+; RV32IK-NEXT: aes32dsmi a{{[0-9]+}}, a{{[0-9]+}}, a{{[0-9]+}}, 1
 ; RV32IK-NEXT: ret
     %val = call i32 @llvm.riscv.aes32dsmi(i32 %a, i32 %b, i8 1)
     ret i32 %val
@@ -28,7 +28,7 @@ declare i32 @llvm.riscv.aes32esi(i32, i32, i8);
 define i32 @aes32esi(i32 %a, i32 %b) nounwind {
 ; RV32IK-LABEL: aes32esi
 ; RV32IK: # %bb.0:
-; RV32IK-NEXT: aes32esi a{{[0-9]+}}, a{{[0-9]+}}, 2
+; RV32IK-NEXT: aes32esi a{{[0-9]+}}, a{{[0-9]+}}, a{{[0-9]+}}, 2
 ; RV32IK-NEXT: ret
     %val = call i32 @llvm.riscv.aes32esi(i32 %a, i32 %b, i8 2)
     ret i32 %val
@@ -39,7 +39,7 @@ declare i32 @llvm.riscv.aes32esmi(i32, i32, i8);
 define i32 @aes32esmi(i32 %a, i32 %b) nounwind {
 ; RV32IK-LABEL: aes32esmi
 ; RV32IK: # %bb.0:
-; RV32IK-NEXT: aes32esmi a{{[0-9]+}}, a{{[0-9]+}}, 3
+; RV32IK-NEXT: aes32esmi a{{[0-9]+}}, a{{[0-9]+}}, a{{[0-9]+}}, 3
 ; RV32IK-NEXT: ret
     %val = call i32 @llvm.riscv.aes32esmi(i32 %a, i32 %b, i8 3)
     ret i32 %val
