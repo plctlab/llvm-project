@@ -27,3 +27,5 @@ c.sb a5, 16(a4)
 
 # CHECK-ERROR: error: immediate must be a multiple of 2 bytes in the range [0, 30]
 c.sh a5, 31(a4)
+
+c.popret {ra}, {0}, 33

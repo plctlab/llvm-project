@@ -105,3 +105,10 @@ class RVInstZcePPP<bits<3> funct3, dag outs, dag ins, string opcodestr, string a
   let Inst{11-7} = spimm;
   let Inst{6-0} = 0b0101011;
 }
+
+class RVInstZceCPPP<dag outs, dag ins, string opcodestr, string argstr>
+    : RVInst16<outs, ins, opcodestr, argstr, [], InstFormatOther> {
+
+      let Inst{1-0} = 0b00;
+      let Inst{15-10} = 0b100011;
+}
