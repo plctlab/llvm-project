@@ -251,12 +251,6 @@ def spimm : Operand<OtherVT> {
   let DecoderMethod = "decodeZceSpimm";
 }
 
-def spimm : Operand<OtherVT> {
-  let ParserMatchClass = SpimmAsmOperand;
-  let PrintMethod = "printSpimm";
-  let DecoderMethod = "decodeZceSpimm";
-}
-
 //===----------------------------------------------------------------------===//
 // Instruction Class Templates
 //===----------------------------------------------------------------------===//

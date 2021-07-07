@@ -1043,15 +1043,6 @@ public:
     return Op;
   }
 
-  static std::unique_ptr<RISCVOperand> createAlist16(unsigned Alist16Encode, SMLoc S,
-                                                   bool IsRV64) {
-    auto Op = std::make_unique<RISCVOperand>(KindTy::Alist16);
-    Op->Alist16.Val = Alist16Encode;
-    Op->StartLoc = S;
-    Op->IsRV64 = IsRV64;
-    return Op;
-  }
-
   static std::unique_ptr<RISCVOperand> createSlist16(unsigned Slist16Encode, SMLoc S,
                                                    bool IsRV64) {
     auto Op = std::make_unique<RISCVOperand>(KindTy::Slist16);
@@ -1074,24 +1065,6 @@ public:
                                                    bool IsRV64) {
     auto Op = std::make_unique<RISCVOperand>(KindTy::Alist16);
     Op->Alist16.Val = Alist16Encode;
-    Op->StartLoc = S;
-    Op->IsRV64 = IsRV64;
-    return Op;
-  }
-
-  static std::unique_ptr<RISCVOperand> createSlist16(unsigned Slist16Encode, SMLoc S,
-                                                   bool IsRV64) {
-    auto Op = std::make_unique<RISCVOperand>(KindTy::Slist16);
-    Op->Slist16.Val = Slist16Encode;
-    Op->StartLoc = S;
-    Op->IsRV64 = IsRV64;
-    return Op;
-  }
-
-  static std::unique_ptr<RISCVOperand> createSpimm(unsigned spimm, SMLoc S,
-                                                   bool IsRV64) {
-    auto Op = std::make_unique<RISCVOperand>(KindTy::Spimm);
-    Op->Spimm.Val = spimm;
     Op->StartLoc = S;
     Op->IsRV64 = IsRV64;
     return Op;
@@ -1174,10 +1147,10 @@ public:
     Inst.addOperand(MCOperand::createImm(Alist16.Val));
   }
 
-  void addAlist16Operands(MCInst &Inst, unsigned N) const {
+  void addScaleOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
-    Inst.addOperand(MCOperand::createImm(Alist16.Val));
-  }
+    int64_t Imm = 0;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
     bool IsConstant = evaluateConstantImm(getImm(), Imm, VK);
     assert(IsConstant && "The scale operand must be a constant");
     Inst.addOperand(MCOperand::createImm(Log2_64(Imm)));
