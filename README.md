@@ -9,6 +9,32 @@ For more information on how to contribute to the LLVM project, please
 take a look at the
 [Contributing to LLVM](https://llvm.org/docs/Contributing.html) guide.
 
+## Testing RISC-V Zce Extension Branch
+
+This branch is currently implementing supports for code-size-reduction
+extension for LLVM according to the version 0.41.8 of [specification](https://github.com/riscv/riscv-code-size-reduction/blob/master/ISA%20proposals/Huawei/Zce_spec.adoc).
+
+Currently, we are implementing the MC (Machine Code) layer of this extension and the majority work is done under `llvm/lib/Target/RISCV` directory.  There are also some test files in `llvm/test/MC/RISCV/rvk` directory. 
+
+There may be some missing, so if you find them, please submit an issue to let us know.
+
+To run automated tests, run the following commands under this path:
+```bash
+# Update files 
+git fetch origin
+git checkout origin/riscv-k-extension
+
+# Build LLVM project
+cd llvm
+mkdir build
+cd build
+cmake ..
+make
+
+# Run checks
+make check-llvm-mc-riscv-rvZce
+```
+
 ## Getting Started with the LLVM System
 
 Taken from https://llvm.org/docs/GettingStarted.html.
