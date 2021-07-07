@@ -381,6 +381,18 @@ static DecodeStatus decodeZceTableJump(MCInst &Inst, unsigned Imm,
                                            uint64_t Address,
                                            const void *Decoder);
 
+static DecodeStatus decodeZceRlist3(MCInst &Inst, unsigned Imm,
+                                           uint64_t Address,
+                                           const void *Decoder);
+
+static DecodeStatus decodeZceRlist2(MCInst &Inst, unsigned Imm,
+                                           uint64_t Address,
+                                           const void *Decoder);
+
+static DecodeStatus decodeZceSpimm(MCInst &Inst, unsigned Imm,
+                                           uint64_t Address,
+                                           const void *Decoder);
+
 #include "RISCVGenDisassemblerTables.inc"
 
 static DecodeStatus decodeRVCInstrSImm(MCInst &Inst, unsigned Insn,
@@ -450,6 +462,56 @@ static DecodeStatus decodeZceTableJump(MCInst &Inst, unsigned Imm,
   return MCDisassembler::Success;
 }
 
+static DecodeStatus decodeZceRlist3(MCInst &Inst, unsigned Imm,
+                                           uint64_t Address,
+                                           const void *Decoder) {  
+  // Sign-extend the number in the bottom N bits of Imm
+  if(Imm<=7)
+    Inst.addOperand(MCOperand::createImm(Imm));
+  else
+    return MCDisassembler::Fail;
+  if(Inst.getOpcode() == RISCV::C_POP)
+    Inst.addOperand(MCOperand::createImm(0));
+  if(Inst.getOpcode() == RISCV::C_PUSH)
+    Inst.addOperand(MCOperand::createImm(1));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus decodeZceRlist2(MCInst &Inst, unsigned Imm,
+                                           uint64_t Address,
+                                           const void *Decoder) {  
+  // Sign-extend the number in the bottom N bits of Imm
+  if(Imm<=3)
+    Inst.addOperand(MCOperand::createImm(Imm));
+  else
+    return MCDisassembler::Fail;
+  if(Inst.getOpcode() == RISCV::C_POP_E)
+    Inst.addOperand(MCOperand::createImm(0));
+  if(Inst.getOpcode() == RISCV::C_PUSH_E)
+    Inst.addOperand(MCOperand::createImm(1));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus decodeZceSpimm(MCInst &Inst, unsigned Imm,
+                                           uint64_t Address,
+                                           const void *Decoder){
+  assert(isInt<16>(Imm) && "Invalid immediate");
+
+  unsigned ImmChecker = Imm >> 4;
+  if (Inst.getOpcode() == RISCV::C_PUSH_E || Inst.getOpcode() == RISCV::C_PUSH ||
+     Inst.getOpcode() == RISCV::C_POPRET || Inst.getOpcode() == RISCV::C_POPRET_E){
+    if(ImmChecker > 5)
+      return MCDisassembler::Fail;
+  } 
+  else if (Inst.getOpcode() == RISCV::C_POP || Inst.getOpcode() == RISCV::C_POP_E){
+    if(ImmChecker > 1)
+      return MCDisassembler::Fail;
+  }
+
+  Inst.addOperand(MCOperand::createImm(Imm));
+  return MCDisassembler::Success;
+}
+
 DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
                                                ArrayRef<uint8_t> Bytes,
                                                uint64_t Address,
@@ -488,19 +550,6 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
       }
     }
 
-    if (STI.getFeatureBits()[RISCV::FeatureExtZceb]) {
-      LLVM_DEBUG(
-        dbgs() << "Trying RISCV32Zceb table (code-size reduction "
-                  "16-bit Instruction):\n");
-      // Calling the auto-generated decoder function.
-      Result = decodeInstruction(DecoderTableRVZceb_16, MI, Insn, Address,
-                                this, STI);
-      if (Result != MCDisassembler::Fail) {
-        Size = 2;
-        return Result;
-      }
-    }
-
     LLVM_DEBUG(dbgs() << "Trying RISCV_C table (16-bit Instruction):\n");
     // Calling the auto-generated decoder function.
     Result = decodeInstruction(DecoderTable16, MI, Insn, Address, this, STI);
@@ -509,19 +558,64 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
       return Result;
     }
 
-    // handle TableJump Instructions of Zce Ext
-    LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
-    unsigned imm = fieldFromInstruction(Insn, 2, 8);
-    // Calling the auto-generated decoder function.
-    if(imm<7){
-      Result = decodeInstruction(DecoderTableZceTBLJALM16, MI, Insn, Address, this, STI);
-    }else if (imm>=8&&imm<64){
-      Result = decodeInstruction(DecoderTableZceTBLJ16, MI, Insn, Address, this, STI);
+    if (STI.getFeatureBits()[RISCV::FeatureStdExtZce]) {
+      if (STI.getFeatureBits()[RISCV::FeatureExtZceb]) {
+        LLVM_DEBUG(
+          dbgs() << "Trying RISCV32Zceb table (code-size reduction "
+                    "16-bit Instruction):\n");
+        // Calling the auto-generated decoder function.
+        Result = decodeInstruction(DecoderTableRVZceb_16, MI, Insn, Address,
+                                  this, STI);
+        if (Result != MCDisassembler::Fail) {
+          Size = 2;
+          return Result;
+        }
+      }
+
+    // handle c.popret[.e] Instructions of Zce Ext
+      LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
+      // Calling the auto-generated decoder function.
+      Result = decodeInstruction(DecoderTableZcePOPRET16, MI, Insn, Address, this, STI);
+      if (Result != MCDisassembler::Fail) {
+        Size = 2;
+        return Result;
+      }
+
+      // handle c.push Instructions of Zce Ext
+      LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
+      // Calling the auto-generated decoder function.
+      Result = decodeInstruction(DecoderTableZceC_PUSH16, MI, Insn, Address, this, STI);
+      if (Result != MCDisassembler::Fail) {
+        Size = 2;
+        return Result;
+      }
+
+      // handle c.push.e Instructions of Zce Ext
+      LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
+      // Calling the auto-generated decoder function.
+      Result = decodeInstruction(DecoderTableZceC_PUSH_E16, MI, Insn, Address, this, STI);
+      if (Result != MCDisassembler::Fail) {
+        Size = 2;
+        return Result;
+      }
+
+      // handle TableJump Instructions of Zce Ext
+      LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
+      unsigned imm = fieldFromInstruction(Insn, 2, 8);
+      // Calling the auto-generated decoder function.
+      if(imm<7){
+        Result = decodeInstruction(DecoderTableZceTBLJALM16, MI, Insn, Address, this, STI);
+      }else if (imm>=8&&imm<64){
+        Result = decodeInstruction(DecoderTableZceTBLJ16, MI, Insn, Address, this, STI);
+      }
+      else if (imm>=64){
+        Result = decodeInstruction(DecoderTableZceTBLJAL16, MI, Insn, Address, this, STI);
+      }
+      if (Result != MCDisassembler::Fail) {
+        Size = 2;
+        return Result;
+      }
     }
-    else if (imm>=64){
-      Result = decodeInstruction(DecoderTableZceTBLJAL16, MI, Insn, Address, this, STI);
-    }
-    Size = 2;
   }
 
   return Result;

@@ -179,33 +179,50 @@ void RISCVVType::printVType(unsigned VType, raw_ostream &OS) {
 // #define ALIST_PRINT(ENCODE, STR) \
 //   case (ENCODE): \
 //     OS << STR;
-void RISCVZCE::printAlist(unsigned AlistImm, unsigned SlistImm, raw_ostream &OS) {
-  if (AlistImm == 0)
-    return;
+void RISCVZCE::printAlist(unsigned opcode, unsigned SlistImm, raw_ostream &OS) {
   OS << "{";
-  switch (SlistImm) {
-    case 0:
+  if(opcode == RISCV::C_PUSH || opcode == RISCV::PUSH){
+    switch ((SLISTENCODE)SlistImm)
+    {
+    default:
       break;
-    case 1:
+    case SLISTENCODE::RA:
+      break;
+    case SLISTENCODE::RA_S0:
       OS << "a0";
       break;
-    case 2:
+    case SLISTENCODE::RA_S0_S1:
       OS << "a0-a1";
       break;
-    case 3:
+    case SLISTENCODE::RA_S0_S2:
+    case SLISTENCODE::RA_S0_S2_E:
       OS << "a0-a2";
       break;
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-    case 12:
+    case SLISTENCODE::RA_S0_S3:
+    case SLISTENCODE::RA_S0_S4:
+    case SLISTENCODE::RA_S0_S5:
+    case SLISTENCODE::RA_S0_S6:
+    case SLISTENCODE::RA_S0_S7:
+    case SLISTENCODE::RA_S0_S8:
+    case SLISTENCODE::RA_S0_S9:
+    case SLISTENCODE::RA_S0_S10:
+    case SLISTENCODE::RA_S0_S11:
+    case SLISTENCODE::RA_S0_S3_E:
+    case SLISTENCODE::RA_S0_S4_E:
       OS << "a0-a3";
       break;
+    }
+  }
+  else {
+    switch (SlistImm) {
+      case 0:
+        OS << "a0-a2";
+        break;
+      case 1:
+      case 2:
+        OS << "a0-a3";
+        break;
+    }
   }
   OS << "}";
 }
@@ -259,6 +276,90 @@ void RISCVZCE::printSlist(unsigned SlistEncode, raw_ostream &OS) {
   OS << "}";
 }
 
+void RISCVZCE::printSlist16(unsigned RlistEncode, raw_ostream &OS) {
+  switch ((SLIST16ENCODE)RlistEncode) {
+    case SLIST16ENCODE::RA:
+      OS << "{ra}";
+      return;
+    case SLIST16ENCODE::RA_S0:
+      OS << "{ra, s0}";
+      return;
+    case SLIST16ENCODE::RA_S0_S1:
+      OS << "{ra, s0-s1}";
+      return;
+    case SLIST16ENCODE::RA_S0_S2:
+      OS << "{ra, s0-s2}";
+      return;
+    case SLIST16ENCODE::RA_S0_S3:
+      OS << "{ra, s0-s3}";
+      return;
+    case SLIST16ENCODE::RA_S0_S5:
+      OS << "{ra, s0-s5}";
+      return;
+    case SLIST16ENCODE::RA_S0_S7:
+      OS << "{ra, s0-s7}";
+      return;
+    case SLIST16ENCODE::RA_S0_S11:
+      OS << "{ra, s0-s11}";
+      return;
+  }
+}
+
+void RISCVZCE::printRlist3(unsigned RlistEncode, raw_ostream &OS) {
+  switch ((RLIST3ENCODE)RlistEncode) {
+    case RLIST3ENCODE::NO_MATCH:
+      return;
+    case RLIST3ENCODE::RA:
+      OS << "{ra}";
+      return;
+    case RLIST3ENCODE::RA_S0:
+      OS << "{ra, s0}";
+      return;
+    case RLIST3ENCODE::RA_S0_S1:
+      OS << "{ra, s0-s1}";
+      return;
+    case RLIST3ENCODE::RA_S0_S2:
+      OS << "{ra, s0-s2}";
+      return;
+    case RLIST3ENCODE::RA_S0_S3:
+      OS << "{ra, s0-s3}";
+      return;
+    case RLIST3ENCODE::RA_S0_S5:
+      OS << "{ra, s0-s5}";
+      return;
+    case RLIST3ENCODE::RA_S0_S7:
+      OS << "{ra, s0-s7}";
+      return;
+    case RLIST3ENCODE::RA_S0_S11:
+      OS << "{ra, s0-s11}";
+      return;
+  }
+}
+
+void RISCVZCE::printRlist2(unsigned RlistEncode, raw_ostream &OS) {
+  switch ((RLIST2ENCODE)RlistEncode) {
+    case RLIST2ENCODE::NO_MATCH:
+      return;
+    case RLIST2ENCODE::RA_S0_S2:
+      OS << "{ra, s0-s2}";
+      return;
+    case RLIST2ENCODE::RA_S0_S3:
+      OS << "{ra, s0-s3}";
+      return;
+    case RLIST2ENCODE::RA_S0_S4:
+      OS << "{ra, s0-s4}";
+      return;
+    case RLIST2ENCODE::RA:
+      OS << "{ra}";
+      return;
+    case RLIST2ENCODE::RA_S0:
+      OS << "{ra, s0}";
+      return;
+    case RLIST2ENCODE::RA_S0_S1:
+      OS << "{ra, s0-s1}";
+      return;
+  }
+}
 // #undef ALIST_PRINT
 // }
 
@@ -278,6 +379,10 @@ void RISCVZCE::printRetval(unsigned RetvalEncode, raw_ostream &OS) {
       break;
   }
   OS << '}';
+}
+
+void RISCVZCE::printSpimm(int64_t Spimm, raw_ostream &OS){
+  OS << Spimm;
 }
 
 } // namespace llvm
