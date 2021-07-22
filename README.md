@@ -22,7 +22,7 @@ To run automated tests, run the following commands under this path:
 ```bash
 # Update files 
 git fetch origin
-git checkout origin/riscv-k-extension
+git checkout origin/riscv-zce-extension
 
 # Build LLVM project
 cd llvm
