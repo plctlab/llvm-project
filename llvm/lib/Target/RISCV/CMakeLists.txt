@@ -39,6 +39,7 @@ add_llvm_target(RISCVCodeGen
   RISCVTargetMachine.cpp
   RISCVTargetObjectFile.cpp
   RISCVTargetTransformInfo.cpp
+  RISCVZceInstOpt.cpp
 
   LINK_COMPONENTS
   Analysis
