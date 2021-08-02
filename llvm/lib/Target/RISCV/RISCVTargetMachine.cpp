@@ -32,6 +32,11 @@
 #include "llvm/Target/TargetOptions.h"
 using namespace llvm;
 
+static cl::opt<bool> EnableMovOpt("riscv-enable-mov-opt",
+                                        cl::desc("Enable the compressed move"
+                                                 " optimization pass"),
+                                        cl::init(true), cl::Hidden);
+
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeRISCVTarget() {
   RegisterTargetMachine<RISCVTargetMachine> X(getTheRISCV32Target());
   RegisterTargetMachine<RISCVTargetMachine> Y(getTheRISCV64Target());
@@ -41,6 +46,7 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeRISCVTarget() {
   initializeRISCVMergeBaseOffsetOptPass(*PR);
   initializeRISCVExpandPseudoPass(*PR);
   initializeRISCVInsertVSETVLIPass(*PR);
+  initializeRISCVMoveOptPass(*PR);
 }
 
 static StringRef computeDataLayout(const Triple &TT) {
@@ -187,6 +193,8 @@ void RISCVPassConfig::addPreSched2() {}
 void RISCVPassConfig::addPreEmitPass() { addPass(&BranchRelaxationPassID); }
 
 void RISCVPassConfig::addPreEmitPass2() {
+  if(EnableMovOpt)
+    addPass(createRISCVMoveOptimizationPass());
   addPass(createRISCVExpandPseudoPass());
   // Schedule the expansion of AMOs at the last possible moment, avoiding the
   // possibility for other passes to break the requirements for forward

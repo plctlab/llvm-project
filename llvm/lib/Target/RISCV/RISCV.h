@@ -55,6 +55,9 @@ void initializeRISCVInsertVSETVLIPass(PassRegistry &);
 FunctionPass *createRISCVZceInstOptPass();
 void initializeRISCVZceInstOptPass(PassRegistry &);
 
+FunctionPass *createRISCVMoveOptimizationPass();
+void initializeRISCVMoveOptPass(PassRegistry&);
+
 InstructionSelector *createRISCVInstructionSelector(const RISCVTargetMachine &,
                                                     RISCVSubtarget &,
                                                     RISCVRegisterBankInfo &);
