@@ -191,8 +191,8 @@ void RISCVPassConfig::addPreEmitPass2() {
   // Schedule the expansion of AMOs at the last possible moment, avoiding the
   // possibility for other passes to break the requirements for forward
   // progress in the LR/SC block.
-  addPass(createRISCVZceInstOptPass());
   addPass(createRISCVExpandAtomicPseudoPass());
+  addPass(createRISCVZceInstOptPass());
 }
 
 void RISCVPassConfig::addPreRegAlloc() {
