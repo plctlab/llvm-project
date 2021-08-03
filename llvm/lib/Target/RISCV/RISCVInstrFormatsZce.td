@@ -17,7 +17,7 @@ class RVZceArith_r<bits<2> funct2, bits<3> opcode, string opcodestr>
   let Constraints = "$rs = $rs_wb";
 
   let Inst{15-13} = 0b100;
-  let Inst{12-10} = 0b001;
+  let Inst{12-10} = 0b000;
   let Inst{9-7} = rs;
   let Inst{6-5} = funct2;
   let Inst{4-2} = opcode;
