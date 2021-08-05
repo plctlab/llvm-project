@@ -5,27 +5,27 @@
 # RUN:     | FileCheck --check-prefixes=CHECK-OBJ,CHECK-ASM-AND-OBJ %s
 
 # CHECK-ASM-AND-OBJ: c.zext.b s0
-# CHECK-ASM: encoding: [0x00,0x84]
+# CHECK-ASM: encoding: [0x00,0x80]
 c.zext.b s0
 
 # CHECK-ASM-AND-OBJ: c.sext.b s0
-# CHECK-ASM: encoding: [0x04,0x84]
+# CHECK-ASM: encoding: [0x04,0x80]
 c.sext.b s0
 
 # CHECK-ASM-AND-OBJ: c.zext.h s0
-# CHECK-ASM: encoding: [0x08,0x84]
+# CHECK-ASM: encoding: [0x08,0x80]
 c.zext.h s0
 
 # CHECK-ASM-AND-OBJ: c.sext.h s0
-# CHECK-ASM: encoding: [0x0c,0x84]
+# CHECK-ASM: encoding: [0x0c,0x80]
 c.sext.h s0
 
 # CHECK-ASM-AND-OBJ: c.neg s0
-# CHECK-ASM: encoding: [0x18,0x84]
+# CHECK-ASM: encoding: [0x18,0x80]
 c.neg s0
 
 # CHECK-ASM-AND-OBJ: c.not s0
-# CHECK-ASM: encoding: [0x1c,0x84]
+# CHECK-ASM: encoding: [0x1c,0x80]
 c.not s0
 
 # CHECK-ASM-AND-OBJ: c.mul s0, s1
@@ -63,11 +63,11 @@ tbljal 190
 # CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {a0-a1}, -16
 # CHECK-ASM: encoding: [0x2b,0x40,0x12,0x00]
 push {ra, s0-s1}, {a0-a1}, -16
- 
+
 # CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {a0-a1}, -128
 # CHECK-ASM: encoding: [0xab,0x43,0x12,0x00]
 push {ra, s0-s1}, {a0-a1}, -128
- 
+
 # CHECK-ASM-AND-OBJ: pop {ra, s0-s1}, {0}, 128
 # CHECK-ASM: encoding: [0xab,0x53,0x12,0x00]
 pop {ra, s0-s1}, {0}, 128
@@ -76,7 +76,7 @@ pop {ra, s0-s1}, {0}, 128
 # CHECK-OBJ: pop {ra, s0-s2}, {}, 16
 # CHECK-ASM: encoding: [0x2b,0x50,0x0d,0x00]
 pop.e {ra, s0-s2}, {}, 16
- 
+
 # CHECK-ASM-AND-OBJ: popret {ra, s0-s1}, {0}, 128
 # CHECK-ASM: encoding: [0xab,0x63,0x12,0x00]
 popret {ra, s0-s1}, {0}, 128
@@ -183,7 +183,7 @@ c.pop {ra, s0-s11}, {}, 64
 # CHECK-ASM-AND-OBJ: c.push {ra}, {}, -16
 # CHECK-ASM: encoding: [0x40,0x8c]
 c.push {ra}, {}, -16
- 
+
 # CHECK-ASM-AND-OBJ: c.push {ra, s0}, {a0}, -32
 # CHECK-ASM: encoding: [0xc4,0x8c]
 c.push {ra, s0}, {a0}, -32
@@ -199,15 +199,15 @@ c.push {ra, s0-s3}, {a0-a3}, -112
 # CHECK-ASM-AND-OBJ: c.push {ra, s0-s7}, {a0-a3}, -80
 # CHECK-ASM: encoding: [0x58,0x8d]
 c.push {ra, s0-s7}, {a0-a3}, -80
- 
+
 # CHECK-ASM-AND-OBJ: c.push {ra, s0-s7}, {a0-a3}, -128
 # CHECK-ASM: encoding: [0xd8,0x8e]
 c.push {ra, s0-s7}, {a0-a3}, -128
- 
+
 # CHECK-ASM-AND-OBJ: c.push {ra, s0-s11}, {a0-a3}, -112
 # CHECK-ASM: encoding: [0xdc,0x8d]
 c.push {ra, s0-s11}, {a0-a3}, -112
- 
+
 # CHECK-ASM-AND-OBJ: c.push {ra, s0-s11}, {a0-a3}, -144
 # CHECK-ASM: encoding: [0xdc,0x8e]
 c.push {ra, s0-s11}, {a0-a3}, -144
