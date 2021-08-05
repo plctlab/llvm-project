@@ -202,7 +202,12 @@ enum OperandType : unsigned {
 
 // Describes the predecessor/successor bits used in the FENCE instruction.
 namespace RISCVFenceField {
-enum FenceField { I = 8, O = 4, R = 2, W = 1 };
+enum FenceField {
+  I = 8,
+  O = 4,
+  R = 2,
+  W = 1,
+};
 }
 
 // Describes the supported floating point rounding mode encodings.
@@ -214,7 +219,7 @@ enum RoundingMode {
   RUP = 3,
   RMM = 4,
   DYN = 7,
-  Invalid
+  Invalid,
 };
 
 inline StringRef roundingModeToString(RoundingMode RndMode) {
@@ -305,7 +310,7 @@ enum ABI {
   ABI_LP64,
   ABI_LP64F,
   ABI_LP64D,
-  ABI_Unknown
+  ABI_Unknown,
 };
 
 // Returns the target ABI, or else a StringError if the requested ABIName is
@@ -570,8 +575,8 @@ inline bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
 }
 
 inline bool isValidAlist16(MCRegister EndReg, unsigned Slist16Encode,
-                           bool isRlist2) {
-  if (isRlist2) {
+                           bool IsEABI) {
+  if (IsEABI) {
     switch (static_cast<RLIST2ENCODE>(Slist16Encode)) {
     case RLIST2ENCODE::RA_S0_S2:
       return EndReg == RISCV::X12;

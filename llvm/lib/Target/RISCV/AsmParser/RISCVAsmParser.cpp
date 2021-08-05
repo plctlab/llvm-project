@@ -170,7 +170,6 @@ class RISCVAsmParser : public MCTargetAsmParser {
   OperandMatchResultTy parseVTypeI(OperandVector &Operands);
   OperandMatchResultTy parseMaskReg(OperandVector &Operands);
   OperandMatchResultTy parseReglist(OperandVector &Operands);
-  OperandMatchResultTy parseReglist16(OperandVector &Operands);
   OperandMatchResultTy parseRetval(OperandVector &Operands);
   OperandMatchResultTy parseZceSpimm(OperandVector &Operands);
 
@@ -1549,6 +1548,10 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                       (1 << 4),
                                       "immediate must be in the range");
   }
+  case Match_InvalidAlist: {
+    SMLoc ErrorLoc = ((RISCVOperand &)*Operands[ErrorInfo]).getStartLoc();
+    return Error(ErrorLoc, "operand must be {}, {a0}, or {a0-a[1|2|3]}");
+  }
   case Match_InvalidRetval: {
     SMLoc ErrorLoc = ((RISCVOperand &)*Operands[ErrorInfo]).getStartLoc();
     return Error(ErrorLoc, "operand must be {}, {0}, {1}, or {-1}");
@@ -1576,7 +1579,6 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
 // x16-x31 will be rejected.
 static bool matchRegisterNameHelper(bool IsEABI, MCRegister &RegNo,
                                     StringRef Name) {
-  // TODO: For EABI, use another register mapping
   RegNo = MatchRegisterName(Name);
   // The 16-/32- and 64-bit FPRs have the same asm name. Check that the initial
   // match always matches the 64-bit variant, and not the 16/32-bit one.
@@ -2126,32 +2128,38 @@ OperandMatchResultTy RISCVAsmParser::parseAtomicMemOp(OperandVector &Operands) {
 }
 
 OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
+  // Slist grammar: {ra[, s0[-sN]]} (UABI)
+  // Alist grammar: {[a0[-aN]]}
   SMLoc S = getLoc();
   if (getLexer().isNot(AsmToken::LCurly))
     return MatchOperand_NoMatch;
   getLexer().Lex(); // eat '{'
+  bool IsEmptyList = getLexer().is(AsmToken::RCurly);
 
   StringRef Memonic =
       static_cast<RISCVOperand *>(Operands.front().get())->getToken();
+  bool Is16Bit = Memonic.startswith("c.");
   bool IsEABI = Memonic.endswith(".e");
 
-  StringRef StartName = getLexer().getTok().getIdentifier();
-  MCRegister RegNoStart = RISCV::NoRegister;
-  MCRegister RegNoEnd = RISCV::NoRegister;
-  matchRegisterNameHelper(IsEABI, RegNoStart, StartName);
-  bool IsSlist = (RegNoStart == RISCV::X1);
-  getLexer().Lex();
+  MCRegister RegStart = RISCV::NoRegister;
+  MCRegister RegEnd = RISCV::NoRegister;
+  bool IsSlist = false;
+  if (!IsEmptyList) {
+    StringRef RegName = getLexer().getTok().getIdentifier();
+    matchRegisterNameHelper(IsEABI, RegStart, RegName);
+    IsSlist = (RegStart == RISCV::X1); // start with ra
+    getLexer().Lex();
+  }
 
   // parse case like ,s1>
   if (IsSlist && getLexer().is(AsmToken::Comma)) {
     getLexer().Lex();
     if (getLexer().isNot(AsmToken::Identifier))
       return MatchOperand_NoMatch;
-    MCRegister SRegStart;
+    StringRef RegName = getLexer().getTok().getIdentifier();
     // FixMe: the register mapping and checks of EABI is wrong
-    if (matchRegisterNameHelper(/*IsEABI*/ false, SRegStart, StartName))
+    if (matchRegisterNameHelper(/*IsEABI*/ false, RegStart, RegName))
       return MatchOperand_NoMatch;
-    // TODO: check validity of SRegStart
     getLexer().Lex(); // eat reg
   }
 
@@ -2160,7 +2168,7 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     getLexer().Lex();
     StringRef EndName = getLexer().getTok().getIdentifier();
     // FixMe: the register mapping and checks of EABI is wrong
-    if (matchRegisterNameHelper(/*IsEABI*/ false, RegNoEnd, EndName))
+    if (matchRegisterNameHelper(/*IsEABI*/ false, RegEnd, EndName))
       return MatchOperand_NoMatch;
     getLexer().Lex();
   }
@@ -2169,23 +2177,49 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     return MatchOperand_NoMatch;
   getLexer().Lex(); // eat '}'
 
+  // TODO: change the logic of encodeRlist, isValidAlist16, encodeAlist
+  //  to eliminate this if statement
+  if (Is16Bit && RegEnd == RISCV::NoRegister)
+    RegEnd = RegStart;
+
   if (IsSlist) {
-    auto Encode =
-        static_cast<unsigned>(RISCVZCE::encodeSlist(RegNoEnd, IsEABI));
-    Operands.push_back(RISCVOperand::createSlist(Encode, S, isRV64()));
-  } else {
+    if (Is16Bit) {
+      // TODO: check RegStart and RegEnd
+      auto Encode = RISCVZCE::encodeRlist(RegEnd, IsEABI);
+      Operands.push_back(RISCVOperand::createSlist16(Encode, S, isRV64()));
+    } else { // is 32-bit
+      // TODO: check RegStart and RegEnd
+      auto Encode =
+          static_cast<unsigned>(RISCVZCE::encodeSlist(RegEnd, IsEABI));
+      Operands.push_back(RISCVOperand::createSlist(Encode, S, isRV64()));
+    }
+  } else { // is Alist
     auto Slist = static_cast<RISCVOperand *>(Operands.back().get());
-    if (Slist->Kind != RISCVOperand::KindTy::Slist) {
-      Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
-      return MatchOperand_NoMatch;
+    if(Is16Bit){
+      if (Slist->Kind != RISCVOperand::KindTy::Slist16) {
+        Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
+        return MatchOperand_NoMatch;
+      }
+      // TODO: check RegStart
+      if (!RISCVZCE::isValidAlist16(RegEnd, Slist->Slist.Val, IsEABI)) {
+        Error(getLoc(), "Invalid Alist encode");
+        return MatchOperand_NoMatch;
+      }
+      auto Encode = RISCVZCE::encodeAlist(RegEnd, Slist->Slist.Val);
+      Operands.push_back(RISCVOperand::createAlist16(Encode, S, isRV64()));
+    }else{
+      if (Slist->Kind != RISCVOperand::KindTy::Slist) {
+        Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
+        return MatchOperand_NoMatch;
+      }
+      // TODO: check RegStart
+      if (!RISCVZCE::isValidAlist(RegEnd, Slist->Slist.Val)) {
+        Error(getLoc(), "Invalid Alist encode");
+        return MatchOperand_NoMatch;
+      }
+      auto Encode = RISCVZCE::encodeAlist(RegEnd, Slist->Slist.Val);
+      Operands.push_back(RISCVOperand::createAlist(Encode, S, isRV64()));
     }
-    // TODO: check validity of RegNoStart (== ARegStart)
-    if (!RISCVZCE::isValidAlist(RegNoEnd, Slist->Slist.Val)) {
-      Error(getLoc(), "Invalid Alist encode");
-      return MatchOperand_NoMatch;
-    }
-    auto Encode = RISCVZCE::encodeAlist(RegNoEnd, Slist->Slist.Val);
-    Operands.push_back(RISCVOperand::createAlist(Encode, S, isRV64()));
   }
 
   return MatchOperand_Success;
@@ -2215,97 +2249,6 @@ OperandMatchResultTy RISCVAsmParser::parseRetval(OperandVector &Operands) {
   } else
     return MatchOperand_NoMatch;
   getLexer().Lex(); // eat '}'
-  return MatchOperand_Success;
-}
-
-OperandMatchResultTy RISCVAsmParser::parseReglist16(OperandVector &Operands) {
-  SMLoc S = getLoc();
-  if (getLexer().isNot(AsmToken::LCurly))
-    return MatchOperand_NoMatch;
-  SmallVector<AsmToken, 8> Tokens;
-
-  getLexer().Lex(); // eat '{'
-  Tokens.push_back(getLexer().getTok());
-
-  bool isEmptyRegList = getLexer().is(AsmToken::RCurly);
-
-  MCRegister RegFirst = RISCV::NoRegister;
-  StringRef StartName;
-  if (!isEmptyRegList) {
-    StartName = getLexer().getTok().getIdentifier();
-    matchRegisterNameHelper(isRV32E(), RegFirst, StartName);
-    getLexer().Lex();
-  }
-  StringRef Memonic =
-      static_cast<RISCVOperand *>(Operands.front().get())->getToken();
-  bool isRlist2 = Memonic.endswith(".e");
-
-  if (RegFirst == RISCV::X1) {             // if oprend is Slist.
-    if (getLexer().is(AsmToken::RCurly)) { // if is {ra}.
-      Operands.push_back(RISCVOperand::createSlist16(
-          RISCVZCE::encodeRlist(RegFirst, isRlist2), S, isRV64()));
-    } else if (getLexer().is(AsmToken::Comma)) { // if is {ra,s0*}.
-      MCRegister RegSecondStart = RISCV::NoRegister;
-      MCRegister RegSecondEnd = RISCV::NoRegister;
-      getLexer().Lex();
-      matchRegisterNameHelper(isRV32E(), RegSecondStart,
-                              getLexer().getTok().getIdentifier());
-      if (RegSecondStart != RISCV::X8) // if second part is not start with s0
-        return MatchOperand_NoMatch;
-      getLexer().Lex();
-      if (getLexer().is(AsmToken::Minus)) { // if {ra,s0-*}.
-        getLexer().Lex();
-      }
-      if (getLexer().is(AsmToken::Identifier)) {
-        // FixMe: the implemention of EUBI on matchRegisterNameHelper has
-        //        something wrong
-        matchRegisterNameHelper(/*isRV32E()*/ false, RegSecondEnd,
-                                getLexer().getTok().getIdentifier());
-        if (RISCVZCE::encodeRlist(RegSecondEnd, isRlist2) == -1)
-          return MatchOperand_NoMatch;
-        getLexer().Lex();
-      }
-      if (RegSecondEnd == RISCV::NoRegister)
-        Operands.push_back(RISCVOperand::createSlist16(
-            RISCVZCE::encodeRlist(RegSecondStart, isRlist2), S, isRV64()));
-      else
-        Operands.push_back(RISCVOperand::createSlist16(
-            RISCVZCE::encodeRlist(RegSecondEnd, isRlist2), S, isRV64()));
-    }
-    getLexer().Lex();                                    // eat '>'
-  } else if (isEmptyRegList || RegFirst == RISCV::X10) { // if oprend is Alist.
-    auto Slist = static_cast<RISCVOperand *>(Operands.back().get());
-
-    if (Slist->Kind != RISCVOperand::KindTy::Slist16) {
-      Error(getLoc(), "Cann't parse alist if without a slist parsed ahead");
-      return MatchOperand_NoMatch;
-    }
-
-    MCRegister RegSecond = RISCV::NoRegister;
-    if (!isEmptyRegList && RegFirst == RISCV::X10) {
-      if (getLexer().is(AsmToken::Minus))
-        getLexer().Lex();
-
-      if (getLexer().isNot(AsmToken::RCurly)) {
-        matchRegisterNameHelper(isRV32E(), RegSecond,
-                                getLexer().getTok().getIdentifier());
-        getLexer().Lex();
-      } else {
-        RegSecond = RegFirst;
-      }
-    }
-
-    if (!RISCVZCE::isValidAlist16(RegSecond, Slist->Slist.Val, isRlist2)) {
-      Error(getLoc(), "Invalid Alist encode");
-      return MatchOperand_NoMatch;
-    }
-
-    Operands.push_back(RISCVOperand::createAlist16(
-        RISCVZCE::encodeAlist(RegSecond, Slist->Slist.Val), S, isRV64()));
-    getLexer().Lex();
-  } else {
-    return MatchOperand_NoMatch;
-  }
   return MatchOperand_Success;
 }
 

@@ -185,7 +185,7 @@ def AlistAsmOperand : AsmOperandClass {
 
 def AlistAsmOperand16 : AsmOperandClass {
   let Name = "Alist16";
-  let ParserMethod = "parseReglist16";
+  let ParserMethod = "parseReglist";
   let DiagnosticType = "InvalidAlist";
 }
 
@@ -197,7 +197,7 @@ def SlistAsmOperand : AsmOperandClass {
 
 def SlistAsmOperand16 : AsmOperandClass {
   let Name = "Slist16";
-  let ParserMethod = "parseReglist16";
+  let ParserMethod = "parseReglist";
   let DiagnosticType = "InvalidSlist";
 }
 
