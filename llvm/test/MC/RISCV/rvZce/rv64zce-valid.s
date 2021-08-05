@@ -14,39 +14,39 @@
 # RUN:     | FileCheck --check-prefix=CHECK-NO-RV64-AND-EXT %s
 
 # CHECK-ASM-AND-OBJ: c.zext.b s0
-# CHECK-ASM: encoding: [0x00,0x84]
+# CHECK-ASM: encoding: [0x00,0x80]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zcee' (high performance cores v0.41)
 c.zext.b s0
 
 # CHECK-ASM-AND-OBJ: c.sext.b s0
-# CHECK-ASM: encoding: [0x04,0x84]
+# CHECK-ASM: encoding: [0x04,0x80]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zcee' (high performance cores v0.41)
 c.sext.b s0
 
 # CHECK-ASM-AND-OBJ: c.zext.h s0
-# CHECK-ASM: encoding: [0x08,0x84]
+# CHECK-ASM: encoding: [0x08,0x80]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zcee' (high performance cores v0.41)
 c.zext.h s0
 
 # CHECK-ASM-AND-OBJ: c.sext.h s0
-# CHECK-ASM: encoding: [0x0c,0x84]
+# CHECK-ASM: encoding: [0x0c,0x80]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zcee' (high performance cores v0.41)
 c.sext.h s0
 
 # CHECK-ASM-AND-OBJ: c.zext.w s0
-# CHECK-ASM: encoding: [0x10,0x84]
+# CHECK-ASM: encoding: [0x10,0x80]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zcee' (high performance cores v0.41)
 # CHECK-NO-RV64: error: instruction requires the following: RV64I Base Instruction Set
 # CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Zcee' (high performance cores v0.41), RV64I Base Instruction Set
 c.zext.w s0
 
 # CHECK-ASM-AND-OBJ: c.neg s0
-# CHECK-ASM: encoding: [0x18,0x84]
+# CHECK-ASM: encoding: [0x18,0x80]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zcea' (all existing standard extensions for small embedded cores v0.41)
 c.neg s0
 
 # CHECK-ASM-AND-OBJ: c.not s0
-# CHECK-ASM: encoding: [0x1c,0x84]
+# CHECK-ASM: encoding: [0x1c,0x80]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zcea' (all existing standard extensions for small embedded cores v0.41)
 c.not s0
 
@@ -143,7 +143,7 @@ c.pop {ra, s0-s11}, {}, 112
 # CHECK-ASM-AND-OBJ: c.push {ra}, {}, -16
 # CHECK-ASM: encoding: [0x40,0x8c]
  c.push {ra}, {}, -16
- 
+
 # CHECK-ASM-AND-OBJ: c.push {ra, s0}, {a0}, -32
 # CHECK-ASM: encoding: [0xc4,0x8c]
 c.push {ra, s0}, {a0}, -32
@@ -159,15 +159,15 @@ c.push {ra, s0-s1}, {a0-a1}, -96
 # CHECK-ASM-AND-OBJ: c.push {ra, s0-s7}, {a0-a3}, -80
 # CHECK-ASM: encoding: [0x58,0x8c]
 c.push {ra, s0-s7}, {a0-a3}, -80
- 
+
 # CHECK-ASM-AND-OBJ: c.push {ra, s0-s7}, {a0-a3}, -128
 # CHECK-ASM: encoding: [0xd8,0x8d]
  c.push {ra, s0-s7}, {a0-a3}, -128
- 
+
 # CHECK-ASM-AND-OBJ: c.push {ra, s0-s11}, {a0-a3}, -112
 # CHECK-ASM: encoding: [0x5c,0x8c]
 c.push {ra, s0-s11}, {a0-a3}, -112
- 
+
 # CHECK-ASM-AND-OBJ: c.push {ra, s0-s11}, {a0-a3}, -144
 # CHECK-ASM: encoding: [0x5c,0x8d]
 c.push {ra, s0-s11}, {a0-a3}, -144
