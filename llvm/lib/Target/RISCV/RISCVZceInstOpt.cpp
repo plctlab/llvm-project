@@ -53,6 +53,7 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF){
                 case RISCV::SEXTB:
                 case RISCV::SEXTH:
                 case RISCV::MUL:
+                case RISCV::ANDI:
                     if(STI->hasStdExtZcee())
                         Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
                     break;
@@ -108,14 +109,29 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(MachineBasicBlock &MBB,
             }
             break;
         case RISCV::MUL:
-            Register DestReg = MBBI->getOperand(0).getReg();
-            Register SourceReg1 = MBBI->getOperand(1).getReg();
-            Register SourceReg2 = MBBI->getOperand(2).getReg();
-            DebugLoc DL = MBBI->getDebugLoc();
-            if(SourceReg1 == DestReg && (DestReg >= RISCV::X8 || DestReg <= RISCV::X15)){
-                BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_MUL), DestReg).addReg(SourceReg1).addReg(SourceReg2);
-                MBBI->removeFromBundle();
-                Modified = true;
+            {
+                Register DestReg = MBBI->getOperand(0).getReg();
+                Register SourceReg1 = MBBI->getOperand(1).getReg();
+                Register SourceReg2 = MBBI->getOperand(2).getReg();
+                DebugLoc DL = MBBI->getDebugLoc();
+                if(SourceReg1 == DestReg && (DestReg >= RISCV::X8 || DestReg <= RISCV::X15)){
+                    BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_MUL), DestReg).addReg(SourceReg1).addReg(SourceReg2);
+                    MBBI->removeFromBundle();
+                    Modified = true;
+                }
+            }
+            break;
+        case RISCV::ANDI:
+            {
+                Register DestReg = MBBI->getOperand(0).getReg();
+                Register SourceReg1 = MBBI->getOperand(1).getReg();
+                Register SourceImm = MBBI->getOperand(2).getImm();
+                DebugLoc DL = MBBI->getDebugLoc();
+                if(SourceReg1 == DestReg && (DestReg >= RISCV::X8 || DestReg <= RISCV::X15) && SourceImm == 255){
+                    BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_ZEXT_B), DestReg).addReg(SourceReg1);
+                    MBBI->removeFromBundle();
+                    Modified = true;
+                }
             }
             break;
     }
