@@ -458,40 +458,52 @@ enum class BINARYVALUE_OF_SPIMM {
   B101,
 };
 
-// Encode slist, the EndReg is the end of the register of the slist,
-#define ENDREG_TO_ENCODE(ENDREG, ENCODE)                                       \
-  case RISCV::X##ENDREG:                                                       \
-    return SLISTENCODE::ENCODE;
-
-inline SLISTENCODE encodeSlist(MCRegister EndReg, bool IsEABI) {
-  if (IsEABI) {
-    switch (EndReg) {
-    default:
-      break;
-      ENDREG_TO_ENCODE(18, RA_S0_S2_E)
-      ENDREG_TO_ENCODE(19, RA_S0_S3_E)
-      ENDREG_TO_ENCODE(20, RA_S0_S4_E)
+inline unsigned encodeSlist(MCRegister EndReg, bool IsEABI) {
+  auto SlistEncode = [=] {
+    if (IsEABI) {
+      switch (EndReg) {
+      case RISCV::X18:
+        return SLISTENCODE::RA_S0_S2_E;
+      case RISCV::X19:
+        return SLISTENCODE::RA_S0_S3_E;
+      case RISCV::X20:
+        return SLISTENCODE::RA_S0_S4_E;
+      default:
+        llvm_unreachable("Unexpected register");
+      }
     }
-  }
-
-  switch (EndReg) {
-  default:
-    llvm_unreachable("Unexpected register");
-    ENDREG_TO_ENCODE(8, RA_S0)
-    ENDREG_TO_ENCODE(9, RA_S0_S1)
-    ENDREG_TO_ENCODE(18, RA_S0_S2)
-    ENDREG_TO_ENCODE(19, RA_S0_S3)
-    ENDREG_TO_ENCODE(20, RA_S0_S4)
-    ENDREG_TO_ENCODE(21, RA_S0_S5)
-    ENDREG_TO_ENCODE(22, RA_S0_S6)
-    ENDREG_TO_ENCODE(23, RA_S0_S7)
-    ENDREG_TO_ENCODE(24, RA_S0_S8)
-    ENDREG_TO_ENCODE(25, RA_S0_S9)
-    ENDREG_TO_ENCODE(26, RA_S0_S10)
-    ENDREG_TO_ENCODE(27, RA_S0_S11)
-  case RISCV::NoRegister:
-    return SLISTENCODE::RA;
-  }
+    switch (EndReg) {
+    case RISCV::X1:
+      return SLISTENCODE::RA;
+    case RISCV::X8:
+      return SLISTENCODE::RA_S0;
+    case RISCV::X9:
+      return SLISTENCODE::RA_S0_S1;
+    case RISCV::X18:
+      return SLISTENCODE::RA_S0_S2;
+    case RISCV::X19:
+      return SLISTENCODE::RA_S0_S3;
+    case RISCV::X20:
+      return SLISTENCODE::RA_S0_S4;
+    case RISCV::X21:
+      return SLISTENCODE::RA_S0_S5;
+    case RISCV::X22:
+      return SLISTENCODE::RA_S0_S6;
+    case RISCV::X23:
+      return SLISTENCODE::RA_S0_S7;
+    case RISCV::X24:
+      return SLISTENCODE::RA_S0_S8;
+    case RISCV::X25:
+      return SLISTENCODE::RA_S0_S9;
+    case RISCV::X26:
+      return SLISTENCODE::RA_S0_S10;
+    case RISCV::X27:
+      return SLISTENCODE::RA_S0_S11;
+    default:
+      llvm_unreachable("Unexpected register");
+    }
+  }();
+  return static_cast<unsigned>(SlistEncode);
 }
 
 inline RLIST2ENCODE encodeRlist2(MCRegister EndReg) {
@@ -533,18 +545,15 @@ inline RLIST3ENCODE encodeRlist3(MCRegister EndReg) {
     return RLIST3ENCODE::RA_S0_S7;
   case RISCV::X27:
     return RLIST3ENCODE::RA_S0_S11;
-  case RISCV::NoRegister:
-    return RLIST3ENCODE::RA;
   }
 }
 
-inline unsigned encodeRlist(MCRegister EndReg, bool IsEABI) {
+inline unsigned encodeSlist16(MCRegister EndReg, bool IsEABI) {
   if (IsEABI)
     return static_cast<unsigned>(encodeRlist2(EndReg));
   else
     return static_cast<unsigned>(encodeRlist3(EndReg));
 }
-#undef ENDREG_TO_ENCODE
 
 inline bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
   switch (static_cast<SLISTENCODE>(SlistEncode)) {
@@ -788,16 +797,12 @@ convertRlist2ToRlist3(RISCVZCE::RLIST2ENCODE rlist2) {
   switch ((RISCVZCE::RLIST2ENCODE)rlist2) {
   case RISCVZCE::RLIST2ENCODE::RA:
     return RISCVZCE::RLIST3ENCODE::RA;
-    break;
   case RISCVZCE::RLIST2ENCODE::RA_S0:
     return RISCVZCE::RLIST3ENCODE::RA_S0;
-    break;
   case RISCVZCE::RLIST2ENCODE::RA_S0_S1:
     return RISCVZCE::RLIST3ENCODE::RA_S0_S1;
-    break;
   default:
     return RISCVZCE::RLIST3ENCODE::NO_MATCH;
-    break;
   }
 }
 

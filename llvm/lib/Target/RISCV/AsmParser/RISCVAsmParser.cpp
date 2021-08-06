@@ -2160,6 +2160,8 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     // FixMe: the register mapping and checks of EABI is wrong
     if (matchRegisterNameHelper(/*IsEABI*/ false, RegStart, RegName))
       return MatchOperand_NoMatch;
+    if (RegStart != RISCV::X8)
+      return MatchOperand_NoMatch;
     getLexer().Lex(); // eat reg
   }
 
@@ -2177,30 +2179,28 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     return MatchOperand_NoMatch;
   getLexer().Lex(); // eat '}'
 
-  // TODO: change the logic of encodeRlist, isValidAlist16, encodeAlist
-  //  to eliminate this if statement
-  if (Is16Bit && RegEnd == RISCV::NoRegister)
+  if (RegEnd == RISCV::NoRegister)
     RegEnd = RegStart;
 
   if (IsSlist) {
     if (Is16Bit) {
-      // TODO: check RegStart and RegEnd
-      auto Encode = RISCVZCE::encodeRlist(RegEnd, IsEABI);
+      auto Encode = RISCVZCE::encodeSlist16(RegEnd, IsEABI);
+      if (Encode == -1u) // no match
+        return MatchOperand_NoMatch;
       Operands.push_back(RISCVOperand::createSlist16(Encode, S, isRV64()));
     } else { // is 32-bit
-      // TODO: check RegStart and RegEnd
-      auto Encode =
-          static_cast<unsigned>(RISCVZCE::encodeSlist(RegEnd, IsEABI));
+      auto Encode = RISCVZCE::encodeSlist(RegEnd, IsEABI);
       Operands.push_back(RISCVOperand::createSlist(Encode, S, isRV64()));
     }
   } else { // is Alist
+    if (!IsEmptyList && RegStart != RISCV::X10)
+      return MatchOperand_NoMatch;
     auto Slist = static_cast<RISCVOperand *>(Operands.back().get());
     if (Is16Bit) {
       if (Slist->Kind != RISCVOperand::KindTy::Slist16) {
         Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
         return MatchOperand_NoMatch;
       }
-      // TODO: check RegStart
       if (!RISCVZCE::isValidAlist16(RegEnd, Slist->Slist.Val, IsEABI)) {
         Error(getLoc(), "Invalid Alist encode");
         return MatchOperand_NoMatch;
@@ -2212,7 +2212,6 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
         Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
         return MatchOperand_NoMatch;
       }
-      // TODO: check RegStart
       if (!RISCVZCE::isValidAlist(RegEnd, Slist->Slist.Val)) {
         Error(getLoc(), "Invalid Alist encode");
         return MatchOperand_NoMatch;
