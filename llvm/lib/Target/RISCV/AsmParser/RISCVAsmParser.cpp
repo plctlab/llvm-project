@@ -16,7 +16,6 @@
 #include "TargetInfo/RISCVTargetInfo.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallBitVector.h"
-#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/MC/MCAssembler.h"
@@ -39,6 +38,7 @@
 #include "llvm/Support/RISCVISAInfo.h"
 
 #include <limits>
+#include <tuple>
 
 using namespace llvm;
 
@@ -2195,7 +2195,7 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     }
   } else { // is Alist
     auto Slist = static_cast<RISCVOperand *>(Operands.back().get());
-    if(Is16Bit){
+    if (Is16Bit) {
       if (Slist->Kind != RISCVOperand::KindTy::Slist16) {
         Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
         return MatchOperand_NoMatch;
@@ -2207,7 +2207,7 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
       }
       auto Encode = RISCVZCE::encodeAlist(RegEnd, Slist->Slist.Val);
       Operands.push_back(RISCVOperand::createAlist16(Encode, S, isRV64()));
-    }else{
+    } else {
       if (Slist->Kind != RISCVOperand::KindTy::Slist) {
         Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
         return MatchOperand_NoMatch;
@@ -2229,9 +2229,7 @@ OperandMatchResultTy RISCVAsmParser::parseRetval(OperandVector &Operands) {
   SMLoc S = getLoc();
   if (getLexer().isNot(AsmToken::LCurly))
     return MatchOperand_NoMatch;
-  SmallVector<AsmToken, 8> Tokens;
   getLexer().Lex(); // eat '{'
-  Tokens.push_back(getLexer().getTok());
 
   // process the ret0 of c.popret
   if (getLexer().is(AsmToken::Integer)) {
@@ -2257,69 +2255,41 @@ OperandMatchResultTy RISCVAsmParser::parseZceSpimm(OperandVector &Operands) {
     getLexer().Lex();
 
   SMLoc S = getLoc();
-  SmallVector<AsmToken, 8> Tokens;
-  Tokens.push_back(getLexer().getTok());
 
   StringRef Memonic =
       static_cast<RISCVOperand *>(Operands.front().get())->getToken();
-  int64_t stackAdjustment = getLexer().getTok().getIntVal();
-  unsigned spimm = 0;
+  int64_t StackAdjustment = getLexer().getTok().getIntVal();
+  unsigned Spimm = 0;
+  unsigned RlistVal =
+      static_cast<RISCVOperand *>(Operands[1].get())->Slist16.Val;
 
-  int rlistVal = static_cast<RISCVOperand *>(Operands[1].get())->Slist16.Val;
-
-  if (Memonic.compare("push") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::PUSH, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("push.e") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::PUSH_E, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("popret") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::POPRET, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("popret.e") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::POPRET_E, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("pop") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::POP, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("pop.e") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::POP_E, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("c.popret") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::C_POPRET, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("c.pop") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::C_POP, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("c.push") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::C_PUSH, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("c.popret.e") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::C_POPRET_E, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("c.pop.e") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::C_POP_E, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else if (Memonic.compare("c.push.e") == 0) {
-    if (!RISCVZCE::getSpimm(RISCVZCE::SPIMMINST::C_PUSH_E, rlistVal, spimm,
-                            stackAdjustment, isRV64()))
-      return MatchOperand_NoMatch;
-  } else {
-    return MatchOperand_NoMatch;
+  constexpr std::tuple<const char *, RISCVZCE::SPIMMINST> Instrs[] = {
+      {"push", RISCVZCE::SPIMMINST::PUSH},
+      {"push.e", RISCVZCE::SPIMMINST::PUSH_E},
+      {"popret", RISCVZCE::SPIMMINST::POPRET},
+      {"popret.e", RISCVZCE::SPIMMINST::POPRET_E},
+      {"pop", RISCVZCE::SPIMMINST::POP},
+      {"pop.e", RISCVZCE::SPIMMINST::POP_E},
+      {"c.push", RISCVZCE::SPIMMINST::C_PUSH},
+      {"c.push.e", RISCVZCE::SPIMMINST::C_PUSH_E},
+      {"c.popret", RISCVZCE::SPIMMINST::C_POPRET},
+      {"c.popret.e", RISCVZCE::SPIMMINST::C_POPRET_E},
+      {"c.pop", RISCVZCE::SPIMMINST::C_POP},
+      {"c.pop.e", RISCVZCE::SPIMMINST::C_POP_E},
+  };
+  bool HasMatch = false;
+  for (auto Tuple : Instrs) {
+    if (Memonic == std::get<0>(Tuple)) {
+      if (!RISCVZCE::getSpimm(std::get<1>(Tuple), RlistVal, Spimm,
+                              StackAdjustment, isRV64()))
+        return MatchOperand_NoMatch;
+      HasMatch = true;
+    }
   }
+  if (!HasMatch)
+    return MatchOperand_NoMatch;
 
-  Operands.push_back(RISCVOperand::createSpimm(spimm << 4, S, isRV64()));
+  Operands.push_back(RISCVOperand::createSpimm(Spimm << 4, S, isRV64()));
   getLexer().Lex();
   return MatchOperand_Success;
 }
