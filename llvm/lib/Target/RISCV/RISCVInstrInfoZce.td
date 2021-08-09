@@ -322,10 +322,10 @@ def C_MUL     : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
 }
 
 // 6.3 C.MVA01S07
-let Predicates = [HasStdExtZcea],
+let Predicates = [HasStdExtZcea], Defs = [X10, X11],
     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-def C_MVA01S07 : RVInst16CA<0b100111, 0b11, 0b01, (outs SR07:$rs1, SR07:$rs2),
-                            (ins), "c.mva01s07", "$rs1, $rs2">,
+def C_MVA01S07 : RVInst16CA<0b100111, 0b11, 0b01, (outs),
+                            (ins SR07:$rs1, SR07:$rs2), "c.mva01s07", "$rs1, $rs2">,
                 Sched<[]>;
 
 // 6.4 MULI
