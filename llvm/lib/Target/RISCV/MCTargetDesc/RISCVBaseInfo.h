@@ -458,9 +458,9 @@ enum class BINARYVALUE_OF_SPIMM {
   B101,
 };
 
-inline unsigned encodeSlist(MCRegister EndReg, bool IsEABI) {
+inline unsigned encodeSlist(MCRegister EndReg, bool IsRV32E) {
   auto SlistEncode = [=] {
-    if (IsEABI) {
+    if (IsRV32E) {
       switch (EndReg) {
       case RISCV::X18:
         return SLISTENCODE::RA_S0_S2_E;
@@ -548,8 +548,8 @@ inline RLIST3ENCODE encodeRlist3(MCRegister EndReg) {
   }
 }
 
-inline unsigned encodeSlist16(MCRegister EndReg, bool IsEABI) {
-  if (IsEABI)
+inline unsigned encodeSlist16(MCRegister EndReg, bool IsRV32E) {
+  if (IsRV32E)
     return static_cast<unsigned>(encodeRlist2(EndReg));
   else
     return static_cast<unsigned>(encodeRlist3(EndReg));
@@ -584,8 +584,8 @@ inline bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
 }
 
 inline bool isValidAlist16(MCRegister EndReg, unsigned Slist16Encode,
-                           bool IsEABI) {
-  if (IsEABI) {
+                           bool IsRV32E) {
+  if (IsRV32E) {
     switch (static_cast<RLIST2ENCODE>(Slist16Encode)) {
     case RLIST2ENCODE::RA_S0_S2:
       return EndReg == RISCV::X12;

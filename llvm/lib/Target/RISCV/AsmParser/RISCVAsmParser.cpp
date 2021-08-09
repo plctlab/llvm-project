@@ -1577,7 +1577,7 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
 // alternative ABI names), setting RegNo to the matching register. Upon
 // failure, returns true and sets RegNo to 0. If IsRV32E then registers
 // x16-x31 will be rejected.
-static bool matchRegisterNameHelper(bool IsEABI, MCRegister &RegNo,
+static bool matchRegisterNameHelper(bool IsRV32E, MCRegister &RegNo,
                                     StringRef Name) {
   RegNo = MatchRegisterName(Name);
   // The 16-/32- and 64-bit FPRs have the same asm name. Check that the initial
@@ -1589,7 +1589,7 @@ static bool matchRegisterNameHelper(bool IsEABI, MCRegister &RegNo,
   static_assert(RISCV::F0_D < RISCV::F0_F, "FPR matching must be updated");
   if (RegNo == RISCV::NoRegister)
     RegNo = MatchRegisterAltName(Name);
-  if (IsEABI && RegNo >= RISCV::X16 && RegNo <= RISCV::X31)
+  if (IsRV32E && RegNo >= RISCV::X16 && RegNo <= RISCV::X31)
     RegNo = RISCV::NoRegister;
   return RegNo == RISCV::NoRegister;
 }
@@ -2139,7 +2139,7 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
   StringRef Memonic =
       static_cast<RISCVOperand *>(Operands.front().get())->getToken();
   bool Is16Bit = Memonic.startswith("c.");
-  bool IsEABI = Memonic.endswith(".e");
+  bool IsEABI = isRV32E() || Memonic.endswith(".e");
 
   MCRegister RegStart = RISCV::NoRegister;
   MCRegister RegEnd = RISCV::NoRegister;
