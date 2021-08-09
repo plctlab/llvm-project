@@ -222,7 +222,7 @@ enum RoundingMode {
   Invalid,
 };
 
-inline StringRef roundingModeToString(RoundingMode RndMode) {
+inline static StringRef roundingModeToString(RoundingMode RndMode) {
   switch (RndMode) {
   default:
     llvm_unreachable("Unknown floating point rounding mode");
@@ -241,7 +241,7 @@ inline StringRef roundingModeToString(RoundingMode RndMode) {
   }
 }
 
-inline RoundingMode stringToRoundingMode(StringRef Str) {
+inline static RoundingMode stringToRoundingMode(StringRef Str) {
   return StringSwitch<RoundingMode>(Str)
       .Case("rne", RISCVFPRndMode::RNE)
       .Case("rtz", RISCVFPRndMode::RTZ)
@@ -252,7 +252,7 @@ inline RoundingMode stringToRoundingMode(StringRef Str) {
       .Default(RISCVFPRndMode::Invalid);
 }
 
-inline bool isValidRoundingMode(unsigned Mode) {
+inline static bool isValidRoundingMode(unsigned Mode) {
   switch (Mode) {
   default:
     return false;
@@ -342,12 +342,12 @@ void toFeatureVector(std::vector<std::string> &FeatureVector,
 
 namespace RISCVVType {
 // Is this a SEW value that can be encoded into the VTYPE format.
-inline bool isValidSEW(unsigned SEW) {
+inline static bool isValidSEW(unsigned SEW) {
   return isPowerOf2_32(SEW) && SEW >= 8 && SEW <= 1024;
 }
 
 // Is this a LMUL value that can be encoded into the VTYPE format.
-inline bool isValidLMUL(unsigned LMUL, bool Fractional) {
+inline static bool isValidLMUL(unsigned LMUL, bool Fractional) {
   return isPowerOf2_32(LMUL) && LMUL <= 8 && (!Fractional || LMUL != 1);
 }
 
@@ -372,9 +372,9 @@ inline static unsigned getSEW(unsigned VType) {
   return decodeVSEW(VSEW);
 }
 
-inline bool isTailAgnostic(unsigned VType) { return VType & 0x40; }
+inline static bool isTailAgnostic(unsigned VType) { return VType & 0x40; }
 
-inline bool isMaskAgnostic(unsigned VType) { return VType & 0x80; }
+inline static bool isMaskAgnostic(unsigned VType) { return VType & 0x80; }
 
 void printVType(unsigned VType, raw_ostream &OS);
 
@@ -506,7 +506,7 @@ inline unsigned encodeSlist(MCRegister EndReg, bool IsRV32E) {
   return static_cast<unsigned>(SlistEncode);
 }
 
-inline RLIST2ENCODE encodeRlist2(MCRegister EndReg) {
+inline static RLIST2ENCODE encodeRlist2(MCRegister EndReg) {
   switch (EndReg) {
   default:
     return RLIST2ENCODE::NO_MATCH;
@@ -525,7 +525,7 @@ inline RLIST2ENCODE encodeRlist2(MCRegister EndReg) {
   }
 }
 
-inline RLIST3ENCODE encodeRlist3(MCRegister EndReg) {
+inline static RLIST3ENCODE encodeRlist3(MCRegister EndReg) {
   switch (EndReg) {
   default:
     return RLIST3ENCODE::NO_MATCH;
@@ -548,14 +548,14 @@ inline RLIST3ENCODE encodeRlist3(MCRegister EndReg) {
   }
 }
 
-inline unsigned encodeSlist16(MCRegister EndReg, bool IsRV32E) {
+inline static unsigned encodeSlist16(MCRegister EndReg, bool IsRV32E) {
   if (IsRV32E)
     return static_cast<unsigned>(encodeRlist2(EndReg));
   else
     return static_cast<unsigned>(encodeRlist3(EndReg));
 }
 
-inline bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
+inline static bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
   switch (static_cast<SLISTENCODE>(SlistEncode)) {
   case SLISTENCODE::RA:
     return EndReg == RISCV::NoRegister;
@@ -583,8 +583,8 @@ inline bool isValidAlist(MCRegister EndReg, unsigned SlistEncode) {
   }
 }
 
-inline bool isValidAlist16(MCRegister EndReg, unsigned Slist16Encode,
-                           bool IsRV32E) {
+inline static bool isValidAlist16(MCRegister EndReg, unsigned Slist16Encode,
+                                  bool IsRV32E) {
   if (IsRV32E) {
     switch (static_cast<RLIST2ENCODE>(Slist16Encode)) {
     case RLIST2ENCODE::RA_S0_S2:
@@ -626,8 +626,9 @@ inline bool isValidAlist16(MCRegister EndReg, unsigned Slist16Encode,
   if ((isRV64 && VAL64 == 0) || (!isRV64 && VAL == 0) || spimmVal > MAX_SPIMM) \
     return false;
 
-inline bool getSpimm(SPIMMINST Inst, unsigned rlistVal, unsigned &spimmVal,
-                     int64_t stackAdjustment, bool isRV64) {
+inline static bool getSpimm(SPIMMINST Inst, unsigned rlistVal,
+                            unsigned &spimmVal, int64_t stackAdjustment,
+                            bool isRV64) {
   if (Inst >= SPIMMINST::C_POPRET_E) { // use rlist
     RLIST2ENCODE rlist = (RLIST2ENCODE)rlistVal;
     if (Inst == SPIMMINST::C_PUSH_E || Inst == SPIMMINST::C_POPRET_E) {
@@ -784,15 +785,15 @@ inline bool getSpimm(SPIMMINST Inst, unsigned rlistVal, unsigned &spimmVal,
   }
 }
 
-inline unsigned encodeAlist(MCRegister EndReg, unsigned SlistEncode) {
+inline static unsigned encodeAlist(MCRegister EndReg, unsigned SlistEncode) {
   return (SlistEncode != 0 && EndReg == RISCV::NoRegister) ? 0 : 1;
 }
 
-inline unsigned encodeRetval(int Retval) {
+inline static unsigned encodeRetval(int Retval) {
   return Retval == -1 ? 3 : (Retval + 1);
 }
 
-inline RISCVZCE::RLIST3ENCODE
+inline static RISCVZCE::RLIST3ENCODE
 convertRlist2ToRlist3(RISCVZCE::RLIST2ENCODE rlist2) {
   switch ((RISCVZCE::RLIST2ENCODE)rlist2) {
   case RISCVZCE::RLIST2ENCODE::RA:
