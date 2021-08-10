@@ -1,16 +1,16 @@
-image: ubuntu:16.04
+image: ubuntu:20.04
 
 before_script:
 
 build:
   stage: build
   tags:
-    - rvv-llvm
+    - llvm
 
   script:
     - mkdir build
     - cd build
     - cmake -DLLVM_TARGETS_TO_BUILD="X86;RISCV" -DLLVM_ENABLE_PROJECTS="clang" -G Ninja ../llvm
-    - ninja
-    - ninja check
+    - ninja -j 32
+    - ninja check -j 32
 
