@@ -1,0 +1,16 @@
+image: ubuntu:20.04
+
+before_script:
+
+build:
+  stage: build
+  tags:
+    - llvm
+
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DLLVM_PARALLEL_LINK_JOBS=4 -DLLVM_TARGETS_TO_BUILD="X86;RISCV" -DLLVM_ENABLE_PROJECTS="clang" -G Ninja ../llvm
+    - ninja -j 32
+    - ninja check -j 32
+
