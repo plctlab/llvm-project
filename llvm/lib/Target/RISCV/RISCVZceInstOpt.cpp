@@ -77,7 +77,7 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(MachineBasicBlock &MBB,
                 Register DestReg = MBBI->getOperand(0).getReg();
                 Register SourceReg = MBBI->getOperand(1).getReg();
                 DebugLoc DL = MBBI->getDebugLoc();
-                if(SourceReg == DestReg && (DestReg >= RISCV::X8 || DestReg <= RISCV::X15)){
+                if(SourceReg == DestReg && (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)){
                     BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_ZEXT_H), DestReg).addReg(SourceReg);
                     MBBI->removeFromBundle();
                     Modified = true;
@@ -89,7 +89,7 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(MachineBasicBlock &MBB,
                 Register DestReg = MBBI->getOperand(0).getReg();
                 Register SourceReg = MBBI->getOperand(1).getReg();
                 DebugLoc DL = MBBI->getDebugLoc();
-                if(SourceReg == DestReg && (DestReg >= RISCV::X8 || DestReg <= RISCV::X15)){
+                if(SourceReg == DestReg && (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)){
                     BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_SEXT_B), DestReg).addReg(SourceReg);
                     MBBI->removeFromBundle();
                     Modified = true;
@@ -101,7 +101,7 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(MachineBasicBlock &MBB,
                 Register DestReg = MBBI->getOperand(0).getReg();
                 Register SourceReg = MBBI->getOperand(1).getReg();
                 DebugLoc DL = MBBI->getDebugLoc();
-                if(SourceReg == DestReg && (DestReg >= RISCV::X8 || DestReg <= RISCV::X15)){
+                if(SourceReg == DestReg && (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)){
                     BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_SEXT_H), DestReg).addReg(SourceReg);
                     MBBI->removeFromBundle();
                     Modified = true;
@@ -114,7 +114,7 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(MachineBasicBlock &MBB,
                 Register SourceReg1 = MBBI->getOperand(1).getReg();
                 Register SourceReg2 = MBBI->getOperand(2).getReg();
                 DebugLoc DL = MBBI->getDebugLoc();
-                if(SourceReg1 == DestReg && (DestReg >= RISCV::X8 || DestReg <= RISCV::X15)){
+                if(SourceReg1 == DestReg && (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)){
                     BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_MUL), DestReg).addReg(SourceReg1).addReg(SourceReg2);
                     MBBI->removeFromBundle();
                     Modified = true;
@@ -127,7 +127,7 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(MachineBasicBlock &MBB,
                 Register SourceReg1 = MBBI->getOperand(1).getReg();
                 Register SourceImm = MBBI->getOperand(2).getImm();
                 DebugLoc DL = MBBI->getDebugLoc();
-                if(SourceReg1 == DestReg && (DestReg >= RISCV::X8 || DestReg <= RISCV::X15) && SourceImm == 255){
+                if(SourceReg1 == DestReg && (DestReg >= RISCV::X8 && DestReg <= RISCV::X15) && SourceImm == 255){
                     BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_ZEXT_B), DestReg).addReg(SourceReg1);
                     MBBI->removeFromBundle();
                     Modified = true;
