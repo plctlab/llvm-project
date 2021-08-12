@@ -274,8 +274,6 @@ struct RISCVOperand : public MCParsedAsmOperand {
     Alist,
     Slist,
     Retval,
-    Alist16,
-    Slist16,
     Spimm,
   } Kind;
 
@@ -302,22 +300,16 @@ struct RISCVOperand : public MCParsedAsmOperand {
   };
 
   struct AlistOp {
-    unsigned Val;
-  };
-
-  struct Alist16Op {
+    bool isCInst;
     unsigned Val;
   };
 
   struct SlistOp {
+    bool isCInst;
     unsigned Val;
   };
 
   struct RetvalOp {
-    unsigned Val;
-  };
-
-  struct Slist16Op {
     unsigned Val;
   };
 
@@ -335,8 +327,6 @@ struct RISCVOperand : public MCParsedAsmOperand {
     struct SlistOp Slist;
     struct AlistOp Alist;
     struct RetvalOp Retval;
-    struct Slist16Op Slist16;
-    struct Alist16Op Alist16;
     struct SpimmOp Spimm;
   };
 
@@ -373,12 +363,6 @@ public:
     case KindTy::Retval:
       Retval = o.Retval;
       break;
-    case KindTy::Slist16:
-      Slist16 = o.Slist16;
-      break;
-    case KindTy::Alist16:
-      Alist16 = o.Alist16;
-      break;
     case KindTy::Spimm:
       Spimm = o.Spimm;
       break;
@@ -397,8 +381,6 @@ public:
   bool isAlist() const { return Kind == KindTy::Alist; }
   bool isSlist() const { return Kind == KindTy::Slist; }
   bool isRetval() const { return Kind == KindTy::Retval; }
-  bool isAlist16() const { return Kind == KindTy::Alist16; }
-  bool isSlist16() const { return Kind == KindTy::Slist16; }
   bool isSpimm() const { return Kind == KindTy::Spimm; }
 
   bool isGPR() const {
@@ -982,16 +964,6 @@ public:
       RISCVZCE::printRetval(Retval.Val, OS);
       OS << '>';
       break;
-    case KindTy::Alist16:
-      // OS << "<alist: ";
-      // RISCVZCE::printAlist16(Alist16.Val, OS);
-      // OS << '>';
-      break;
-    case KindTy::Slist16:
-      OS << "{Slist: ";
-      RISCVZCE::printSlist16(Slist16.Val, OS);
-      OS << '}';
-      break;
     case KindTy::Spimm:
       OS << "{Spimm: ";
       RISCVZCE::printSpimm(Spimm.Val, OS);
@@ -1053,18 +1025,20 @@ public:
   }
 
   static std::unique_ptr<RISCVOperand> createAlist(unsigned AlistEncode,
-                                                   SMLoc S, bool IsRV64) {
+                                                   SMLoc S, bool IsRV64, bool isCInst) {
     auto Op = std::make_unique<RISCVOperand>(KindTy::Alist);
     Op->Alist.Val = AlistEncode;
+    Op->Alist.isCInst = isCInst;
     Op->StartLoc = S;
     Op->IsRV64 = IsRV64;
     return Op;
   }
 
   static std::unique_ptr<RISCVOperand> createSlist(unsigned SlistEncode,
-                                                   SMLoc S, bool IsRV64) {
+                                                   SMLoc S, bool IsRV64, bool isCInst) {
     auto Op = std::make_unique<RISCVOperand>(KindTy::Slist);
     Op->Slist.Val = SlistEncode;
+    Op->Slist.isCInst = isCInst;
     Op->StartLoc = S;
     Op->IsRV64 = IsRV64;
     return Op;
@@ -1079,28 +1053,10 @@ public:
     return Op;
   }
 
-  static std::unique_ptr<RISCVOperand> createSlist16(unsigned Slist16Encode,
-                                                     SMLoc S, bool IsRV64) {
-    auto Op = std::make_unique<RISCVOperand>(KindTy::Slist16);
-    Op->Slist16.Val = Slist16Encode;
-    Op->StartLoc = S;
-    Op->IsRV64 = IsRV64;
-    return Op;
-  }
-
   static std::unique_ptr<RISCVOperand> createSpimm(unsigned spimm, SMLoc S,
                                                    bool IsRV64) {
     auto Op = std::make_unique<RISCVOperand>(KindTy::Spimm);
     Op->Spimm.Val = spimm;
-    Op->StartLoc = S;
-    Op->IsRV64 = IsRV64;
-    return Op;
-  }
-
-  static std::unique_ptr<RISCVOperand> createAlist16(unsigned Alist16Encode,
-                                                     SMLoc S, bool IsRV64) {
-    auto Op = std::make_unique<RISCVOperand>(KindTy::Alist16);
-    Op->Alist16.Val = Alist16Encode;
     Op->StartLoc = S;
     Op->IsRV64 = IsRV64;
     return Op;
@@ -1179,16 +1135,6 @@ public:
   void addRetvalOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     Inst.addOperand(MCOperand::createImm(Retval.Val));
-  }
-
-  void addSlist16Operands(MCInst &Inst, unsigned N) const {
-    assert(N == 1 && "Invalid number of operands!");
-    Inst.addOperand(MCOperand::createImm(Slist16.Val));
-  }
-
-  void addAlist16Operands(MCInst &Inst, unsigned N) const {
-    assert(N == 1 && "Invalid number of operands!");
-    Inst.addOperand(MCOperand::createImm(Alist16.Val));
   }
 
   void addScaleOperands(MCInst &Inst, unsigned N) const {
@@ -2183,42 +2129,22 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     RegEnd = RegStart;
 
   if (IsSlist) {
-    if (Is16Bit) {
-      auto Encode = RISCVZCE::encodeSlist16(RegEnd, IsEABI);
-      if (Encode == -1u) // no match
-        return MatchOperand_NoMatch;
-      Operands.push_back(RISCVOperand::createSlist16(Encode, S, isRV64()));
-    } else { // is 32-bit
-      auto Encode = RISCVZCE::encodeSlist(RegEnd, IsEABI);
-      Operands.push_back(RISCVOperand::createSlist(Encode, S, isRV64()));
-    }
+    auto Encode = RISCVZCE::encodeSlist(RegEnd, Is16Bit, IsEABI);
+    Operands.push_back(RISCVOperand::createSlist(Encode, S, isRV64(), Is16Bit));
   } else { // is Alist
     if (!IsEmptyList && RegStart != RISCV::X10)
       return MatchOperand_NoMatch;
     auto Slist = static_cast<RISCVOperand *>(Operands.back().get());
-    if (Is16Bit) {
-      if (Slist->Kind != RISCVOperand::KindTy::Slist16) {
-        Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
-        return MatchOperand_NoMatch;
-      }
-      if (!RISCVZCE::isValidAlist16(RegEnd, Slist->Slist.Val, IsEABI)) {
-        Error(getLoc(), "Invalid Alist encode");
-        return MatchOperand_NoMatch;
-      }
-      auto Encode = RISCVZCE::encodeAlist(RegEnd, Slist->Slist.Val);
-      Operands.push_back(RISCVOperand::createAlist16(Encode, S, isRV64()));
-    } else {
-      if (Slist->Kind != RISCVOperand::KindTy::Slist) {
-        Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
-        return MatchOperand_NoMatch;
-      }
-      if (!RISCVZCE::isValidAlist(RegEnd, Slist->Slist.Val)) {
-        Error(getLoc(), "Invalid Alist encode");
-        return MatchOperand_NoMatch;
-      }
-      auto Encode = RISCVZCE::encodeAlist(RegEnd, Slist->Slist.Val);
-      Operands.push_back(RISCVOperand::createAlist(Encode, S, isRV64()));
+    if (Slist->Kind != RISCVOperand::KindTy::Slist) {
+      Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
+      return MatchOperand_NoMatch;
     }
+    if (!RISCVZCE::isValidAlist(RegEnd, Slist->Slist.Val, Slist->Slist.isCInst, IsEABI)) {
+      Error(getLoc(), "Invalid Alist encode");
+      return MatchOperand_NoMatch;
+    }
+    auto Encode = RISCVZCE::encodeAlist(RegEnd, Slist->Slist.Val);
+    Operands.push_back(RISCVOperand::createAlist(Encode, S, isRV64(), Is16Bit));
   }
 
   return MatchOperand_Success;
@@ -2260,7 +2186,7 @@ OperandMatchResultTy RISCVAsmParser::parseZceSpimm(OperandVector &Operands) {
   int64_t StackAdjustment = getLexer().getTok().getIntVal();
   unsigned Spimm = 0;
   unsigned RlistVal =
-      static_cast<RISCVOperand *>(Operands[1].get())->Slist16.Val;
+      static_cast<RISCVOperand *>(Operands[1].get())->Slist.Val;
 
   constexpr std::tuple<const char *, RISCVZCE::SPIMMINST> Instrs[] = {
       {"push", RISCVZCE::SPIMMINST::PUSH},

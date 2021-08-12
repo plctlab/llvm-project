@@ -276,35 +276,6 @@ void RISCVZCE::printSlist(unsigned SlistEncode, raw_ostream &OS) {
   OS << "}";
 }
 
-void RISCVZCE::printSlist16(unsigned RlistEncode, raw_ostream &OS) {
-  switch ((SLIST16ENCODE)RlistEncode) {
-    case SLIST16ENCODE::RA:
-      OS << "{ra}";
-      return;
-    case SLIST16ENCODE::RA_S0:
-      OS << "{ra, s0}";
-      return;
-    case SLIST16ENCODE::RA_S0_S1:
-      OS << "{ra, s0-s1}";
-      return;
-    case SLIST16ENCODE::RA_S0_S2:
-      OS << "{ra, s0-s2}";
-      return;
-    case SLIST16ENCODE::RA_S0_S3:
-      OS << "{ra, s0-s3}";
-      return;
-    case SLIST16ENCODE::RA_S0_S5:
-      OS << "{ra, s0-s5}";
-      return;
-    case SLIST16ENCODE::RA_S0_S7:
-      OS << "{ra, s0-s7}";
-      return;
-    case SLIST16ENCODE::RA_S0_S11:
-      OS << "{ra, s0-s11}";
-      return;
-  }
-}
-
 void RISCVZCE::printRlist3(unsigned RlistEncode, raw_ostream &OS) {
   switch ((RLIST3ENCODE)RlistEncode) {
     case RLIST3ENCODE::NO_MATCH:

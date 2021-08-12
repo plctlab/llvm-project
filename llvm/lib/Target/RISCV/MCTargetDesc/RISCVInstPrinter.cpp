@@ -200,12 +200,6 @@ void RISCVInstPrinter::printRetval(const MCInst *MI, unsigned OpNo,
   RISCVZCE::printRetval(Imm, O);
 }
 
-void RISCVInstPrinter::printSlist16(const MCInst *MI, unsigned OpNo,
-                                  const MCSubtargetInfo &STI, raw_ostream &O) {
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  RISCVZCE::printSlist16(Imm, O);
-}
-
 void RISCVInstPrinter::printRlist2(const MCInst *MI, unsigned OpNo,
                                   const MCSubtargetInfo &STI, raw_ostream &O) {
   unsigned Imm = MI->getOperand(OpNo).getImm();

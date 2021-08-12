@@ -183,20 +183,8 @@ def AlistAsmOperand : AsmOperandClass {
   let DiagnosticType = "InvalidAlist";
 }
 
-def AlistAsmOperand16 : AsmOperandClass {
-  let Name = "Alist16";
-  let ParserMethod = "parseReglist";
-  let DiagnosticType = "InvalidAlist";
-}
-
 def SlistAsmOperand : AsmOperandClass {
   let Name = "Slist";
-  let ParserMethod = "parseReglist";
-  let DiagnosticType = "InvalidSlist";
-}
-
-def SlistAsmOperand16 : AsmOperandClass {
-  let Name = "Slist16";
   let ParserMethod = "parseReglist";
   let DiagnosticType = "InvalidSlist";
 }
@@ -223,19 +211,14 @@ def slist : Operand<OtherVT> {
   let PrintMethod = "printSlist";
 }
 
-def alist16 : Operand<OtherVT> {
-  let ParserMatchClass = AlistAsmOperand16;
-  let PrintMethod = "printAlist";
-}
-
 def rlist3 : Operand<OtherVT> {
-  let ParserMatchClass = SlistAsmOperand16;
+  let ParserMatchClass = SlistAsmOperand;
   let PrintMethod = "printRlist3";
   let DecoderMethod = "decodeZceRlist3";
 }
 
 def rlist2 : Operand<OtherVT> {
-  let ParserMatchClass = SlistAsmOperand16;
+  let ParserMatchClass = SlistAsmOperand;
   let PrintMethod = "printRlist2";
   let DecoderMethod = "decodeZceRlist2";
 }
@@ -423,7 +406,7 @@ def POPRET_E : RVInstZcePPP<0b110, (outs), (ins slist:$sreg, retval:$retval,
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
-def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$slist, alist16:$areg, spimm:$spimm), 
+def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$slist, alist:$areg, spimm:$spimm), 
     "c.push", "{$slist}, {$areg}, $spimm">, Sched<[]> {
   bits<3> slist;
   bits<1> areg;
@@ -491,7 +474,7 @@ def C_POPRET_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, retval:$ret0, spimm:
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
-def C_PUSH_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, alist16:$areg, spimm:$spimm), 
+def C_PUSH_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, alist:$areg, spimm:$spimm), 
     "c.push.e", "{$rlist2}, {$areg}, $spimm">, Sched<[]> {
   bits<2> rlist2;
   bits<16> spimm;
