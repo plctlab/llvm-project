@@ -521,8 +521,8 @@ inline unsigned encodeSlist(MCRegister EndReg, bool isCInst , bool IsRV32E = fal
         return SLISTENCODE::RA_S0_S3_E;
       case RISCV::X20:
         return SLISTENCODE::RA_S0_S4_E;
-      default:
-        llvm_unreachable("Unexpected register");
+      // default:
+        // llvm_unreachable("Unexpected register");
       }
     }
 
@@ -565,7 +565,7 @@ inline unsigned encodeSlist(MCRegister EndReg, bool isCInst , bool IsRV32E = fal
 inline static bool isValidAlist(MCRegister EndReg, unsigned SlistEncode, bool isCInst, bool isRV32E = false) {
   // process the Instructions with out c.
   // pop/push/popret[.e]
-  if(!isCInst){   
+  if(!isCInst){
     switch (static_cast<SLISTENCODE>(SlistEncode)) {
     case SLISTENCODE::RA:
       return EndReg == RISCV::NoRegister;
