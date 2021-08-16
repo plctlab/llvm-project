@@ -53,6 +53,7 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
       case RISCV::SEXTH:
       case RISCV::MUL:
       case RISCV::ANDI:
+      case RISCV::ADDUW:
         if (STI->hasStdExtZcee())
           Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
         break;
@@ -140,6 +141,20 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(
       Modified = true;
     }
   } break;
+  case RISCV::ADDUW:
+    if (STI->hasStdExtZba() && STI->is64Bit()) {
+      Register DestReg = MBBI->getOperand(0).getReg();
+      Register SourceReg = MBBI->getOperand(1).getReg();
+      DebugLoc DL = MBBI->getDebugLoc();
+      if (SourceReg == DestReg &&
+          (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)) {
+        BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_ZEXT_W), DestReg)
+            .addReg(SourceReg);
+        MBBI->removeFromBundle();
+        Modified = true;
+      }
+    }
+    break;
   }
 
   return Modified;
