@@ -52,8 +52,8 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
       case RISCV::SEXTB:
       case RISCV::SEXTH:
       case RISCV::MUL:
-      case RISCV::ANDI:
-      case RISCV::ADDUW:
+      case RISCV::ANDI:   // zext.b
+      case RISCV::ADDUW:  // zext.w
         if (STI->hasStdExtZcee())
           Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
         break;
