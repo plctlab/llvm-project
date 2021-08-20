@@ -565,7 +565,9 @@ inline unsigned encodeSlist(MCRegister EndReg, bool isCInst , bool IsRV32E = fal
 inline static bool isValidAlist(MCRegister EndReg, unsigned SlistEncode, bool isCInst, bool isRV32E = false) {
   // process the Instructions with out c.
   // pop/push/popret[.e]
-  if(!isCInst){
+  if (EndReg == RISCV::NoRegister && !isCInst)
+    return true;
+  if (!isCInst){
     switch (static_cast<SLISTENCODE>(SlistEncode)) {
     case SLISTENCODE::RA:
       return EndReg == RISCV::NoRegister;
@@ -820,7 +822,7 @@ convertRlist2ToRlist3(RISCVZCE::RLIST2ENCODE rlist2) {
   }
 }
 
-void printAlist(unsigned opcode, unsigned SlistEncode, raw_ostream &OS);
+void printAlist(unsigned opcode, unsigned SlistEncode, unsigned areg, raw_ostream &OS);
 void printSlist(unsigned SlistEncode, raw_ostream &OS);
 void printRetval(unsigned RetvalEncode, raw_ostream &OS);
 void printRlist3(unsigned RlistEncode, raw_ostream &OS);

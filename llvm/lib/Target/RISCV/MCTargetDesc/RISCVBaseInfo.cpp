@@ -179,49 +179,51 @@ void RISCVVType::printVType(unsigned VType, raw_ostream &OS) {
 // #define ALIST_PRINT(ENCODE, STR) \
 //   case (ENCODE): \
 //     OS << STR;
-void RISCVZCE::printAlist(unsigned opcode, unsigned SlistImm, raw_ostream &OS) {
+void RISCVZCE::printAlist(unsigned opcode, unsigned SlistEncode,
+                          unsigned areg, raw_ostream &OS) {
   OS << "{";
-  if(opcode == RISCV::C_PUSH || opcode == RISCV::PUSH || opcode == RISCV::PUSH_E){
-    switch ((SLISTENCODE)SlistImm)
-    {
-    default:
-      break;
-    case SLISTENCODE::RA:
-      break;
-    case SLISTENCODE::RA_S0:
-      OS << "a0";
-      break;
-    case SLISTENCODE::RA_S0_S1:
-      OS << "a0-a1";
-      break;
-    case SLISTENCODE::RA_S0_S2:
-    case SLISTENCODE::RA_S0_S2_E:
-      OS << "a0-a2";
-      break;
-    case SLISTENCODE::RA_S0_S3:
-    case SLISTENCODE::RA_S0_S4:
-    case SLISTENCODE::RA_S0_S5:
-    case SLISTENCODE::RA_S0_S6:
-    case SLISTENCODE::RA_S0_S7:
-    case SLISTENCODE::RA_S0_S8:
-    case SLISTENCODE::RA_S0_S9:
-    case SLISTENCODE::RA_S0_S10:
-    case SLISTENCODE::RA_S0_S11:
-    case SLISTENCODE::RA_S0_S3_E:
-    case SLISTENCODE::RA_S0_S4_E:
-      OS << "a0-a3";
-      break;
-    }
-  }
-  else {
-    switch (SlistImm) {
-      case 0:
+  if (areg != 0) {
+    if (opcode == RISCV::C_PUSH
+            || opcode == RISCV::PUSH || opcode == RISCV::PUSH_E) {
+      switch ((SLISTENCODE)SlistEncode) {
+      default:
+        break;
+      case SLISTENCODE::RA:
+        break;
+      case SLISTENCODE::RA_S0:
+        OS << "a0";
+        break;
+      case SLISTENCODE::RA_S0_S1:
+        OS << "a0-a1";
+        break;
+      case SLISTENCODE::RA_S0_S2:
+      case SLISTENCODE::RA_S0_S2_E:
         OS << "a0-a2";
         break;
-      case 1:
-      case 2:
+      case SLISTENCODE::RA_S0_S3:
+      case SLISTENCODE::RA_S0_S4:
+      case SLISTENCODE::RA_S0_S5:
+      case SLISTENCODE::RA_S0_S6:
+      case SLISTENCODE::RA_S0_S7:
+      case SLISTENCODE::RA_S0_S8:
+      case SLISTENCODE::RA_S0_S9:
+      case SLISTENCODE::RA_S0_S10:
+      case SLISTENCODE::RA_S0_S11:
+      case SLISTENCODE::RA_S0_S3_E:
+      case SLISTENCODE::RA_S0_S4_E:
         OS << "a0-a3";
         break;
+      }
+    } else {
+      switch (SlistEncode) {
+        case 0:
+          OS << "a0-a2";
+          break;
+        case 1:
+        case 2:
+          OS << "a0-a3";
+          break;
+      }
     }
   }
   OS << "}";

@@ -2074,7 +2074,7 @@ OperandMatchResultTy RISCVAsmParser::parseAtomicMemOp(OperandVector &Operands) {
 }
 
 OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
-  // Slist grammar: {ra[, s0[-sN]]} (UABI)
+  // Slist grammar: {ra [, s0[-sN]]} (UABI)
   // Alist grammar: {[a0[-aN]]}
   SMLoc S = getLoc();
   if (getLexer().isNot(AsmToken::LCurly))
@@ -2097,7 +2097,7 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     getLexer().Lex();
   }
 
-  // parse case like ,s1>
+  // parse case like ,s0
   if (IsSlist && getLexer().is(AsmToken::Comma)) {
     getLexer().Lex();
     if (getLexer().isNot(AsmToken::Identifier))
@@ -2111,7 +2111,7 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     getLexer().Lex(); // eat reg
   }
 
-  // parse case like -s1>
+  // parse case like -s1
   if (getLexer().is(AsmToken::Minus)) {
     getLexer().Lex();
     StringRef EndName = getLexer().getTok().getIdentifier();
