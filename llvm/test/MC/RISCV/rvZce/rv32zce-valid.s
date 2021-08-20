@@ -256,6 +256,15 @@ c.push.e {ra, s0-s3}, {a0-a3}, -32
 # CHECK-ASM: encoding: [0xe8,0x8f]
 c.push.e {ra, s0-s4}, {a0-a3}, -112
 
+# CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {}, -16
+# CHECK-ASM: encoding: [0x2b,0x40,0x02,0x00]
+push {ra, s0-s1}, {}, -16
+
+# CHECK-ASM: push.e {ra, s0-s2}, {}, -16
+# CHECK-OBJ: push {ra, s0-s2}, {}, -16
+# CHECK-ASM: encoding: [0x2b,0x40,0x0d,0x00]
+push.e {ra, s0-s2}, {}, -16
+
 # CHECK-ASM-AND-OBJ: c.lbu a5, 10(a4)
 # CHECK-ASM: encoding: [0x3c,0x27]
 c.lbu a5, 10(a4)
