@@ -24,6 +24,9 @@ public:
   bool optimiseZceeInstruction(MachineBasicBlock &MBB,
                                MachineBasicBlock::iterator MBBI,
                                MachineBasicBlock::iterator &NextMBBI);
+  bool optimiseZcebInstruction(MachineBasicBlock &MBB,
+                               MachineBasicBlock::iterator MBBI,
+                               MachineBasicBlock::iterator &NextMBBI);
 };
 
 char RISCVZceInstOpt::ID = 0;
@@ -34,7 +37,8 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
   TII = static_cast<const RISCVInstrInfo *>(MF.getSubtarget().getInstrInfo());
   bool Modified = false;
 
-  if (!STI->hasStdExtZce())
+  if (!(STI->hasStdExtZce() || STI->hasStdExtZcee() || STI->hasStdExtZcea() ||
+        STI->hasStdExtZceb()))
     return Modified;
 
   for (auto &MBB : MF) {
@@ -52,10 +56,14 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
       case RISCV::SEXTB:
       case RISCV::SEXTH:
       case RISCV::MUL:
-      case RISCV::ANDI:   // zext.b
-      case RISCV::ADDUW:  // zext.w
+      case RISCV::ANDI:  // zext.b
+      case RISCV::ADDUW: // zext.w
         if (STI->hasStdExtZcee())
           Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
+        break;
+      case RISCV::LBU:
+        if (STI->hasStdExtZceb())
+          Modified |= optimiseZcebInstruction(MBB, MBBI, NMBBI);
         break;
       }
       MBBI = NMBBI;
@@ -150,6 +158,34 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(
           (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)) {
         BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_ZEXT_W), DestReg)
             .addReg(SourceReg);
+        MBBI->removeFromBundle();
+        Modified = true;
+      }
+    }
+    break;
+  }
+
+  return Modified;
+}
+
+bool RISCVZceInstOpt::optimiseZcebInstruction(
+    MachineBasicBlock &MBB, MachineBasicBlock::iterator MBBI,
+    MachineBasicBlock::iterator &NextMBBI) {
+  bool Modified = false;
+  switch (MBBI->getOpcode()) {
+  default:
+    break;
+  case RISCV::LBU:
+    if (!STI->isRV32E()) {
+      Register DestReg = MBBI->getOperand(0).getReg();
+      Register SourceReg = MBBI->getOperand(1).getReg();
+      int64_t imm = MBBI->getOperand(2).getImm();
+      DebugLoc DL = MBBI->getDebugLoc();
+      if ((DestReg >= RISCV::X8 && DestReg <= RISCV::X15) &&
+          (SourceReg >= RISCV::X8 && SourceReg <= RISCV::X15)) {
+        BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_LBU), DestReg)
+            .addReg(SourceReg)
+            .addImm(imm);
         MBBI->removeFromBundle();
         Modified = true;
       }
