@@ -36,6 +36,20 @@ csrrs t1, pmpcfg3, zero
 # uimm12
 csrrs t2, 0x3A3, zero
 
+# mseccfgh
+# name
+# CHECK-INST: csrrs t1, mseccfgh, zero
+# CHECK-ENC:  encoding: [0x73,0x23,0x70,0x75]
+# CHECK-INST-ALIAS: csrr t1, mseccfgh
+# uimm12
+# CHECK-INST: csrrs t2, mseccfgh, zero
+# CHECK-ENC:  encoding: [0xf3,0x23,0x70,0x75]
+# CHECK-INST-ALIAS: csrr t2, mseccfgh
+# name
+csrrs t1, mseccfgh, zero
+# uimm12
+csrrs t2, 0x757, zero
+
 ######################################
 # Machine Counter and Timers
 ######################################

@@ -25,6 +25,13 @@ csrrs t2, 0x3A1, zero
 # CHECK-INST-ALIAS: csrr t2, 931
 csrrs t2, 0x3A3, zero
 
+# mseccfgh
+# uimm12
+# CHECK-INST: csrrs t2, 1879, zero
+# CHECK-ENC:  encoding: [0xf3,0x23,0x70,0x75]
+# CHECK-INST-ALIAS: csrr t2, 1879
+csrrs t2, 0x757, zero
+
 ######################################
 # Machine Counter and Timers
 ######################################

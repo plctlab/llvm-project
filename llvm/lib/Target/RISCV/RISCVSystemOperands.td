@@ -251,6 +251,9 @@ def : SysReg<"pmpaddr13", 0x3BD>;
 def : SysReg<"pmpaddr14", 0x3BE>;
 def : SysReg<"pmpaddr15", 0x3BF>;
 
+def : SysReg<"mseccfg", 0x747>;
+let isRV32Only = 1 in
+def : SysReg<"mseccfgh", 0x757>;
 
 //===--------------------------
 // Machine Counter and Timers
