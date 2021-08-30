@@ -7,27 +7,48 @@
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-zceb -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV64IZce %s
 
-define dso_local i32 @lbu(i8 *%a) nounwind {
-; RV32I-LABEL: lbu:
+define dso_local i32 @lb(i8 *%a) nounwind {
+; RV32I-LABEL: lb:
 ; RV32I:       # %bb.0:
-; RV32I-NEXT:    lbu a1, 4(a0)
-; RV32I-NEXT:    lbu a0, 0(a0)
-; RV32I-NEXT:    add a0, a1, a0
+; RV32I-NEXT:    lb a1, 1(a0)
+; RV32I-NEXT:    lb a0, 0(a0)
+; RV32I-NEXT:    mv a0, a1
 ; RV32I-NEXT:    ret
 ;
-; RV32IZce-LABEL: lbu:
+; RV32IZce-LABEL: lb:
 ; RV32IZce:       # %bb.0:
-; RV32IZce-NEXT:    c.lbu a1, 4(a0)
-; RV32IZce-NEXT:    c.lbu a0, 0(a0)
-; RV32IZce-NEXT:    add a0, a1, a0
+; RV32IZce-NEXT:    c.lb a1, 1(a0)
+; RV32IZce-NEXT:    c.lb a0, 0(a0)
+; RV32IZce-NEXT:    mv a0, a1
 ; RV32IZce-NEXT:    ret
-  %1 = getelementptr i8, i8* %a, i32 4
+  %1 = getelementptr i8, i8* %a, i32 1
   %2 = load i8, i8* %1
-  %3 = zext i8 %2 to i32
+  %3 = sext i8 %2 to i32
+  ; the unused load will produce an anyext for selection
   %4 = load volatile i8, i8* %a
-  %5 = zext i8 %4 to i32
-  %6 = add i32 %3, %5
-  ret i32 %6
+  ret i32 %3
+}
+
+define dso_local i64 @lb64(i8 *%a) nounwind {
+; RV64I-LABEL: lb64:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    lb a1, 1(a0)
+; RV64I-NEXT:    lb a0, 0(a0)
+; RV64I-NEXT:    mv a0, a1
+; RV64I-NEXT:    ret
+;
+; RV64IZce-LABEL: lb64:
+; RV64IZce:       # %bb.0:
+; RV64IZce-NEXT:    c.lb a1, 1(a0)
+; RV64IZce-NEXT:    c.lb a0, 0(a0)
+; RV64IZce-NEXT:    mv a0, a1
+; RV64IZce-NEXT:    ret
+  %1 = getelementptr i8, i8* %a, i32 1
+  %2 = load i8, i8* %1
+  %3 = sext i8 %2 to i64
+  ; the unused load will produce an anyext for selection
+  %4 = load volatile i8, i8* %a
+  ret i64 %3
 }
 
 define dso_local i64 @lbu64(i8 *%a) nounwind {
