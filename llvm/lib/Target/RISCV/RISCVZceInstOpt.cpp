@@ -62,9 +62,6 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
     MachineBasicBlock::iterator MBBI = MBB.begin(), E = MBB.end();
     while (MBBI != E) {
       MachineBasicBlock::iterator NMBBI = std::next(MBBI);
-      // std::cout<<"SEXTB:"<<RISCV::SEXTB<<std::endl;
-      // std::cout<<MBBI->getOpcode()<<" is SEXTB:"<<(MBBI->getOpcode() ==
-      // RISCV::SEXTB)<<std::endl;
       switch (MBBI->getOpcode()) {
       default:
         break;
@@ -113,7 +110,7 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(
           (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)) {
         BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
             .addReg(SourceReg);
-        MBBI->removeFromBundle();
+        MBBI->eraseFromParent();
         Modified = true;
       }
     }
@@ -128,7 +125,7 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(
       BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
           .addReg(SourceReg1)
           .addReg(SourceReg2);
-      MBBI->removeFromBundle();
+      MBBI->eraseFromParent();
       Modified = true;
     }
   } break;
@@ -141,7 +138,7 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(
         (DestReg >= RISCV::X8 && DestReg <= RISCV::X15) && SourceImm == 255) {
       BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
           .addReg(SourceReg1);
-      MBBI->removeFromBundle();
+      MBBI->eraseFromParent();
       Modified = true;
     }
   } break;
@@ -154,7 +151,7 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(
           (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)) {
         BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_ZEXT_W), DestReg)
             .addReg(SourceReg);
-        MBBI->removeFromBundle();
+        MBBI->eraseFromParent();
         Modified = true;
       }
     }
@@ -175,8 +172,6 @@ bool RISCVZceInstOpt::optimiseZcebInstruction(
   case RISCV::LHU:
   case RISCV::LB:
   case RISCV::LH:
-  case RISCV::SB:
-  case RISCV::SH:
     if (!STI->isRV32E()) {
       Register DestReg = MBBI->getOperand(0).getReg();
       Register SourceReg = MBBI->getOperand(1).getReg();
@@ -187,7 +182,25 @@ bool RISCVZceInstOpt::optimiseZcebInstruction(
         BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
             .addReg(SourceReg)
             .addImm(imm);
-        MBBI->removeFromBundle();
+        MBBI->eraseFromParent();
+        Modified = true;
+      }
+    }
+    break;
+  case RISCV::SB:
+  case RISCV::SH:
+    if (!STI->isRV32E()) {
+      Register DestReg = MBBI->getOperand(0).getReg();
+      Register SourceReg = MBBI->getOperand(1).getReg();
+      int64_t imm = MBBI->getOperand(2).getImm();
+      DebugLoc DL = MBBI->getDebugLoc();
+      if ((DestReg >= RISCV::X8 && DestReg <= RISCV::X15) &&
+          (SourceReg >= RISCV::X8 && SourceReg <= RISCV::X15)) {
+        BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]))
+            .addReg(DestReg)
+            .addReg(SourceReg)
+            .addImm(imm);
+        MBBI->eraseFromParent();
         Modified = true;
       }
     }
