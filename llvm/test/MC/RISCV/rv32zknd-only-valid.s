@@ -32,13 +32,13 @@
 # RUN:      | llvm-objdump -d - | FileCheck %s --check-prefix=CHECK-UNKNOWN
 
 # CHECK-INST: aes32dsi a0, a1, a2, 3
-# CHECK-ENCODING: [0x33,0x85,0xc5,0xfa]
+# CHECK-ENCODING: [0x33,0x85,0xc5,0xea]
 # CHECK-ERROR: instruction requires the following: 'Zknd' (NIST AES Decryption Instructions)
-# CHECK-UNKNOWN: 33 85 c5 fa <unknown>
+# CHECK-UNKNOWN: 33 85 c5 ea <unknown>
 aes32dsi a0, a1, a2, 3
 
 # CHECK-INST: aes32dsmi a0, a1, a2, 3
-# CHECK-ENCODING: [0x33,0x85,0xc5,0xfe]
+# CHECK-ENCODING: [0x33,0x85,0xc5,0xee]
 # CHECK-ERROR: instruction requires the following: 'Zknd' (NIST AES Decryption Instructions)
-# CHECK-UNKNOWN: 33 85 c5 fe <unknown>
+# CHECK-UNKNOWN: 33 85 c5 ee <unknown>
 aes32dsmi a0, a1, a2, 3

@@ -73,8 +73,8 @@ def : InstAlias<"pollentropy $rd", (CSRRS GPR:$rd, MENTROPY.Encoding, X0)>;
 }// Predicates = [HasStdExtZkr]
 
 let Predicates = [HasStdExtZkne, IsRV32] in {
-def AES32ESI : RVKByteSelect<0b11001, "aes32esi">;
-def AES32ESMI : RVKByteSelect<0b11011, "aes32esmi">;
+def AES32ESI : RVKByteSelect<0b10001, "aes32esi">;
+def AES32ESMI : RVKByteSelect<0b10011, "aes32esmi">;
 } // Predicates = [HasStdExtZkne, IsRV32]
 
 let Predicates = [HasStdExtZkne, IsRV64] in {
@@ -85,8 +85,8 @@ def AES64KS1I : RVKUnary_rnum<0b0011000, 0b001, "aes64ks1i">;
 } // Predicates = [HasStdExtZkne, IsRV64]
 
 let Predicates = [HasStdExtZknd, IsRV32] in {
-def AES32DSI : RVKByteSelect<0b11101, "aes32dsi">;
-def AES32DSMI : RVKByteSelect<0b11111, "aes32dsmi">;
+def AES32DSI : RVKByteSelect<0b10101, "aes32dsi">;
+def AES32DSMI : RVKByteSelect<0b10111, "aes32dsmi">;
 } // Predicates = [HasStdExtZknd, IsRV32]
 
 let Predicates = [HasStdExtZknd, IsRV64] in {
