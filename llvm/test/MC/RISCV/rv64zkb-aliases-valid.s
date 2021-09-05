@@ -4,7 +4,7 @@
 # RUN: llvm-mc %s -triple=riscv64 -mattr=+experimental-k \
 # RUN:     | FileCheck -check-prefixes=CHECK-S-OBJ %s
 # RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+experimental-k < %s \
-# RUN:     | llvm-objdump -d -r --riscv-no-aliases --mattr=+experimental-k - \
+# RUN:     | llvm-objdump -d -r -M no-aliases --mattr=+experimental-k - \
 # RUN:     | FileCheck -check-prefixes=CHECK-S-OBJ-NOALIAS %s
 # RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+experimental-k < %s \
 # RUN:     | llvm-objdump -d -r --mattr=+experimental-k - \
@@ -16,7 +16,7 @@
 # RUN: llvm-mc %s -triple=riscv64 -mattr=+experimental-zkn \
 # RUN:     | FileCheck -check-prefixes=CHECK-S-OBJ %s
 # RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+experimental-zkn < %s \
-# RUN:     | llvm-objdump -d -r --riscv-no-aliases --mattr=+experimental-zkn - \
+# RUN:     | llvm-objdump -d -r -M no-aliases --mattr=+experimental-zkn - \
 # RUN:     | FileCheck -check-prefixes=CHECK-S-OBJ-NOALIAS %s
 # RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+experimental-zkn < %s \
 # RUN:     | llvm-objdump -d -r --mattr=+experimental-zkn - \
@@ -28,7 +28,7 @@
 # RUN: llvm-mc %s -triple=riscv64 -mattr=+experimental-zks \
 # RUN:     | FileCheck -check-prefixes=CHECK-S-OBJ %s
 # RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+experimental-zks < %s \
-# RUN:     | llvm-objdump -d -r --riscv-no-aliases --mattr=+experimental-zks - \
+# RUN:     | llvm-objdump -d -r -M no-aliases --mattr=+experimental-zks - \
 # RUN:     | FileCheck -check-prefixes=CHECK-S-OBJ-NOALIAS %s
 # RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+experimental-zks < %s \
 # RUN:     | llvm-objdump -d -r --mattr=+experimental-zks - \
@@ -40,7 +40,7 @@
 # RUN: llvm-mc %s -triple=riscv64 -mattr=+experimental-zkb \
 # RUN:     | FileCheck -check-prefixes=CHECK-S-OBJ %s
 # RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+experimental-zkb < %s \
-# RUN:     | llvm-objdump -d -r --riscv-no-aliases --mattr=+experimental-zkb - \
+# RUN:     | llvm-objdump -d -r -M no-aliases --mattr=+experimental-zkb - \
 # RUN:     | FileCheck -check-prefixes=CHECK-S-OBJ-NOALIAS %s
 # RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+experimental-zkb < %s \
 # RUN:     | llvm-objdump -d -r --mattr=+experimental-zkb - \
