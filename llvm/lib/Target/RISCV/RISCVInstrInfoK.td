@@ -6,9 +6,9 @@
 //
 //===----------------------------------------------------------------------===//
 ///
-/// This file describes the RISC-V instructions from the standard 'K' 
+/// This file describes the RISC-V instructions from the standard 'K'
 /// scalar cryptography extension, version 0.9.2.
-/// 
+///
 /// This version is still experimental as the 'K' extension hasn't been
 /// ratified yet.
 ///
@@ -20,8 +20,8 @@ def RnumArg : AsmOperandClass {
   let DiagnosticType = "InvalidRnumArg";
 }
 
-def rcon : Operand<i32>, TImmLeaf<i32, [{return isUInt<4>(Imm);}]> {
-  let ParserMatchClass = RconArg;
+def rnum : Operand<i32>, TImmLeaf<i32, [{return isInt<4>(Imm);}]> {
+  let ParserMatchClass = RnumArg;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeUImmOperand<4>";
   let OperandType = "OPERAND_UIMM4";
@@ -56,9 +56,6 @@ class RVKByteSelect<bits<5> funct5, string opcodestr>
               (ins GPR:$rs1, GPR:$rs2, byteselect:$bs), opcodestr,
               "$rd, $rs1, $rs2, $bs"> {
         bits<2> bs;
-        bits<5> rt;
-
-        let Constraints = "$rt = $rs1";
         let Inst{31-30}=bs;
     }
 
@@ -67,7 +64,7 @@ class RVKUnary_rnum<bits<7> funct7, bits<3> funct3, string opcodestr>
     : RVInstI<funct3, OPC_OP_IMM, (outs GPR:$rd), (ins GPR:$rs1, rnum:$rnum),
             opcodestr, "$rd, $rs1, $rnum"> {
     bits<4> rnum;
-    
+
     let Inst{31-25} = funct7;
     let Inst{24} = 1;
     let Inst{23-20} = rnum;
@@ -180,8 +177,8 @@ def : PatGpr<int_riscv_aes64im, AES64IM>;
 let Predicates = [HasStdExtZkne, IsRV64] in {
 def : PatGprGpr<int_riscv_aes64es, AES64ES>;
 def : PatGprGpr<int_riscv_aes64esm, AES64ESM>;
-def : Pat<(int_riscv_aes64ks1i GPR:$rs1, i32:$rcon),
-          (AES64KS1I GPR:$rs1, rcon:$rcon)>;
+def : Pat<(int_riscv_aes64ks1i GPR:$rs1, i32:$rnum),
+          (AES64KS1I GPR:$rs1, rnum:$rnum)>;
 def : PatGprGpr<int_riscv_aes64ks2, AES64KS2>;
 }
 
