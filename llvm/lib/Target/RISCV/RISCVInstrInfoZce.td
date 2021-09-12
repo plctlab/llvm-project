@@ -288,6 +288,7 @@ def C_ZEXT_B  : RVZceArith_r<0b00, 0b000 , "c.zext.b">, Sched<[]>;
 def C_SEXT_B  : RVZceArith_r<0b00, 0b001 , "c.sext.b">, Sched<[]>;
 def C_ZEXT_H  : RVZceArith_r<0b00, 0b010 , "c.zext.h">, Sched<[]>;
 def C_SEXT_H  : RVZceArith_r<0b00, 0b011 , "c.sext.h">, Sched<[]>;
+def C_MUL     : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
 }
 
 let Predicates = [HasStdExtZcee, IsRV64] in {
@@ -301,7 +302,6 @@ def : InstAlias<"c.sext.w $rd", (C_ADDIW GPRC:$rd, 0)>;
 let Predicates = [HasStdExtZcea] in {
 def C_NEG_ZCE : RVZceArith_r<0b00, 0b110 , "c.neg">, Sched<[]>;
 def C_NOT_ZCE : RVZceArith_r<0b00, 0b111 , "c.not">, Sched<[]>;
-def C_MUL     : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
 }
 
 // 6.3 C.MVA01S07
