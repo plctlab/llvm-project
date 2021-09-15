@@ -807,7 +807,7 @@ void CompressInstEmitter::emitCompressInstEmitter(raw_ostream &o,
           CondStream.indent(6)
               << TargetName
               << "ValidateMachineOperand(MachineOperand::CreateImm("
-              << DestOperandMap[OpNo].Data.Imm << "), SubTarget, " << Entry
+              << DestOperandMap[OpNo].Data.Imm << "), Subtarget, " << Entry
               << ") &&\n";
         }
         if (CompressOrUncompress)
