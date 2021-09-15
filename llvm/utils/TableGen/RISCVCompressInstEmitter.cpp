@@ -791,7 +791,7 @@ void RISCVCompressInstEmitter::emitCompressInstEmitter(raw_ostream &o,
           CondStream.indent(6)
               << Namespace
               << "ValidateMachineOperand(MachineOperand::CreateImm("
-              << DestOperandMap[OpNo].Data.Imm << "), SubTarget, " << Entry
+              << DestOperandMap[OpNo].Data.Imm << "), Subtarget, " << Entry
               << ") &&\n";
         }
         if (CompressOrUncompress)
