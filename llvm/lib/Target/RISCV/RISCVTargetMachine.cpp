@@ -36,6 +36,7 @@ static cl::opt<bool> EnableMovOpt("mzce-cmva01s07",
                                         cl::desc("Enable the compressed move"
                                                  " optimization pass"),
                                         cl::init(true), cl::Hidden);
+extern cl::opt<bool> EnablePushPop;
 
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeRISCVTarget() {
   RegisterTargetMachine<RISCVTargetMachine> X(getTheRISCV32Target());
@@ -46,6 +47,7 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeRISCVTarget() {
   initializeRISCVExpandPseudoPass(*PR);
   initializeRISCVCleanupVSETVLIPass(*PR);
   initializeRISCVMoveOptPass(*PR);
+  initializeRISCVPushPopOptPass(*PR);
 }
 
 static StringRef computeDataLayout(const Triple &TT) {
@@ -191,6 +193,10 @@ void RISCVPassConfig::addPreEmitPass() { addPass(&BranchRelaxationPassID); }
 void RISCVPassConfig::addPreEmitPass2() {
   if(EnableMovOpt)
     addPass(createRISCVMoveOptimizationPass());
+  if(EnablePushPop)
+    // Schedule PushPop Optimization before expansion of Pseudo instruction,
+    // ensuring return instruction is detected correctly.
+    addPass(createRISCVPushPopOptimizationPass());
   addPass(createRISCVExpandPseudoPass());
   // Schedule the expansion of AMOs at the last possible moment, avoiding the
   // possibility for other passes to break the requirements for forward
