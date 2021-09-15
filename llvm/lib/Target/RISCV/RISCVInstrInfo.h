@@ -103,10 +103,6 @@ public:
 
   bool isAsCheapAsAMove(const MachineInstr &MI) const override;
 
-  // If the instruction can be transformed into C.MOV, return register
-  // pair. Return none otherwise.
-  Optional<DestSourcePair> getCMovReg(MachineInstr &MI) const;
-
   Optional<DestSourcePair>
   isCopyInstrImpl(const MachineInstr &MI) const override;
 

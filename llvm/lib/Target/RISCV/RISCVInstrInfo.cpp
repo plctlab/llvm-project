@@ -1073,48 +1073,21 @@ bool RISCVInstrInfo::isAsCheapAsAMove(const MachineInstr &MI) const {
 }
 
 Optional<DestSourcePair>
-RISCVInstrInfo::getCMovReg(MachineInstr &MI) const{
-  switch(MI.getOpcode()) {
-  default:
-    return None;
-  case RISCV::ADD:{
-    MachineOperand *Op0 = &MI.getOperand(0);
-    MachineOperand *Op1 = &MI.getOperand(1);
-    MachineOperand *Op2 = &MI.getOperand(2);
-
-    if (!Op0->isReg() || !Op1->isReg() || !Op2->isReg() || 
-        (Op0->getReg() == RISCV::X0)) 
-      return None;
-
-    if ((Op1->getReg() == RISCV::X0) && (Op2->getReg() != RISCV::X0))
-      return DestSourcePair{*Op0, *Op2};
-
-    if ((Op1->getReg() != RISCV::X0) && (Op2->getReg() == RISCV::X0))
-      return DestSourcePair{*Op0, *Op1};
-
-    return None;
-  }
-  case RISCV::ADDI:{
-    MachineOperand *Op0 = &MI.getOperand(0);
-    MachineOperand *Op1 = &MI.getOperand(1);
-    MachineOperand *Op2 = &MI.getOperand(2);
-    if (Op0->isReg() && Op1->isReg() && Op2->isImm() &&
-       (Op0->getReg() != RISCV::X0) &&
-       (Op1->getReg() != RISCV::X0) && 
-       (Op2->getImm() == 0))
-      return DestSourcePair{*Op0, *Op1};
-    
-    return None;
-  }
-  }
-}
-
-Optional<DestSourcePair>
 RISCVInstrInfo::isCopyInstrImpl(const MachineInstr &MI) const {
   if (MI.isMoveReg())
     return DestSourcePair{MI.getOperand(0), MI.getOperand(1)};
   switch (MI.getOpcode()) {
   default:
+    break;
+  case RISCV::ADD:
+    if (!MI.getOperand(1).isReg() || !MI.getOperand(2).isReg())
+      break;
+    if ((MI.getOperand(1).getReg() == RISCV::X0) 
+        && (MI.getOperand(2).getReg() != RISCV::X0))
+      return DestSourcePair{MI.getOperand(0), MI.getOperand(2)};
+    if ((MI.getOperand(1).getReg() != RISCV::X0) 
+        && (MI.getOperand(2).getReg() == RISCV::X0))
+      return DestSourcePair{MI.getOperand(0), MI.getOperand(1)};
     break;
   case RISCV::ADDI:
     // Operand 1 can be a frameindex but callers expect registers
