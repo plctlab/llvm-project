@@ -32,7 +32,7 @@
 #include "llvm/Target/TargetOptions.h"
 using namespace llvm;
 
-static cl::opt<bool> EnableMovOpt("riscv-enable-mov-opt",
+static cl::opt<bool> EnableMovOpt("mzce-cmva01s07",
                                         cl::desc("Enable the compressed move"
                                                  " optimization pass"),
                                         cl::init(true), cl::Hidden);
