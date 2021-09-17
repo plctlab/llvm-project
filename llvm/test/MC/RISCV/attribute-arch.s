@@ -78,4 +78,4 @@
 # CHECK: attribute      5, "rv32i2p0_v0p10_zvamo0p10_zvlsseg0p10"
 
 .attribute arch, "rv32izce"
-# CHECK: attribute      5, "rv32i2p0_zce0p41_zcea0p41_zceb0p41_zcee0p41"
+# CHECK: attribute      5, "rv32i2p0_zce0p50_zcea0p50_zceb0p50_zcee0p50"
