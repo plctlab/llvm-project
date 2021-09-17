@@ -2655,13 +2655,13 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
       if (getFeatureBits(RISCV::FeatureStdExtZvlsseg))
         formalArchStr = (Twine(formalArchStr) + "_zvlsseg0p10").str();
       if (getFeatureBits(RISCV::FeatureStdExtZce))
-        formalArchStr = (Twine(formalArchStr) + "_zce0p41").str();
+        formalArchStr = (Twine(formalArchStr) + "_zce0p50").str();
       if (getFeatureBits(RISCV::FeatureExtZcea))
-        formalArchStr = (Twine(formalArchStr) + "_zcea0p41").str();
+        formalArchStr = (Twine(formalArchStr) + "_zcea0p50").str();
       if (getFeatureBits(RISCV::FeatureExtZceb))
-        formalArchStr = (Twine(formalArchStr) + "_zceb0p41").str();
+        formalArchStr = (Twine(formalArchStr) + "_zceb0p50").str();
       if (getFeatureBits(RISCV::FeatureExtZcee))
-        formalArchStr = (Twine(formalArchStr) + "_zcee0p41").str();
+        formalArchStr = (Twine(formalArchStr) + "_zcee0p50").str();
       getTargetStreamer().emitTextAttribute(Tag, formalArchStr);
     }
   }
