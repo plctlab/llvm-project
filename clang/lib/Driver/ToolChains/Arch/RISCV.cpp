@@ -260,6 +260,16 @@ static void getExtensionFeatures(const Driver &D,
         << MArch << Error << Ext;
       return;
     }
+    if(Ext == "zce" || Ext == "zceb"){
+      for(auto feature : Features){
+        if(feature.equals("+d")){
+          std::string Error = "you can't enable these two ext at the same time, 'd' and";
+          D.Diag(diag::err_drv_invalid_riscv_ext_arch_name)
+            << MArch << Error << Ext;
+          return;
+        }
+      }
+    }
     if (Ext == "zvamo" || Ext == "zvlsseg") {
       Features.push_back("+experimental-v");
       Features.push_back("+experimental-zvamo");
