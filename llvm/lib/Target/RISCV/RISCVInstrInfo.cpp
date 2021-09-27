@@ -1073,6 +1073,24 @@ bool RISCVInstrInfo::isAsCheapAsAMove(const MachineInstr &MI) const {
 }
 
 Optional<DestSourcePair>
+RISCVInstrInfo::isLoadImmImpl(const MachineInstr &MI) const{
+  if (MI.isMoveImmediate())
+    return DestSourcePair{MI.getOperand(0), MI.getOperand(2)};
+  switch (MI.getOpcode()) {
+  default:
+    break;
+  case RISCV::ADDIW:
+  case RISCV::ADDI:
+    // Operand 1 can be a frameindex but callers expect registers
+    if (MI.getOperand(1).isReg() && MI.getOperand(2).isImm() &&
+        MI.getOperand(1).getReg() == RISCV::X0)
+      return DestSourcePair{MI.getOperand(0), MI.getOperand(2)};
+    break;
+  }
+  return None;
+}
+
+Optional<DestSourcePair>
 RISCVInstrInfo::isCopyInstrImpl(const MachineInstr &MI) const {
   if (MI.isMoveReg())
     return DestSourcePair{MI.getOperand(0), MI.getOperand(1)};

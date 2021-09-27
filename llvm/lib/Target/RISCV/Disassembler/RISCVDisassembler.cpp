@@ -467,7 +467,21 @@ static DecodeStatus decodeZceRlist3(MCInst &Inst, unsigned Imm,
                                            const void *Decoder) {  
   // Sign-extend the number in the bottom N bits of Imm
   if(Imm<=7)
-    Inst.addOperand(MCOperand::createImm(Imm));
+    switch (Imm)
+    {
+    default:
+      Inst.addOperand(MCOperand::createImm(Imm));
+      break;
+    case 5: 
+      Inst.addOperand(MCOperand::createImm(6));
+      break;
+    case 6: 
+      Inst.addOperand(MCOperand::createImm(8));
+      break;
+    case 7: 
+      Inst.addOperand(MCOperand::createImm(12));
+      break;
+    }
   else
     return MCDisassembler::Fail;
   if(Inst.getOpcode() == RISCV::C_POP)

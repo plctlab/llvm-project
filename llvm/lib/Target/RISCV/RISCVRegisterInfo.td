@@ -211,6 +211,15 @@ def SR07 : RegisterClass<"RISCV", [XLenVT], 32, (add
   let RegInfos = XLenRI;
 }
 
+// Registers saveable by PUSH instruction in Zce extension
+def PGPR : RegisterClass<"RISCV", [XLenVT], 32, (add
+    (sequence "X%u", 8, 9),
+    (sequence "X%u", 18, 27),
+    X1
+  )> {
+  let RegInfos = XLenRI;
+}
+
 // Floating point registers
 let RegAltNameIndices = [ABIRegAltName] in {
   def F0_H  : RISCVReg16<0, "f0", ["ft0"]>, DwarfRegNum<[32]>;

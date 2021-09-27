@@ -201,21 +201,41 @@ def SpimmAsmOperand : AsmOperandClass {
   let DiagnosticType = "InvalidSpimm";
 }
 
-def alist : Operand<OtherVT> {
-  let ParserMatchClass = AlistAsmOperand;
-  let PrintMethod = "printAlist";
-}
+def alist : Operand<OtherVT>, ImmLeaf<OtherVT, [{return isUInt<1>(Imm);}]> {
+   let ParserMatchClass = AlistAsmOperand;
+   let PrintMethod = "printAlist";
+   let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return isUInt<1>(Imm);
+  }];
+ }
 
-def slist : Operand<OtherVT> {
-  let ParserMatchClass = SlistAsmOperand;
-  let PrintMethod = "printSlist";
-}
+def slist : Operand<OtherVT>, ImmLeaf<OtherVT, [{return isUInt<4>(Imm);}]> {
+   let ParserMatchClass = SlistAsmOperand;
+   let PrintMethod = "printSlist";
+   let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return isUInt<4>(Imm);
+  }];
+ }
 
-def rlist3 : Operand<OtherVT> {
-  let ParserMatchClass = SlistAsmOperand;
-  let PrintMethod = "printRlist3";
-  let DecoderMethod = "decodeZceRlist3";
-}
+def rlist3 : Operand<OtherVT>,  ImmLeaf<OtherVT, [{return Imm <= 12;}]> {
+   let ParserMatchClass = SlistAsmOperand;
+   let PrintMethod = "printRlist3";
+   let DecoderMethod = "decodeZceRlist3";
+    let EncoderMethod = "getRlist3OpValue";
+   let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return (Imm <= 4) || (Imm == 6) || 
+           (Imm == 8) || (Imm == 12);
+  }];
+ }
 
 def rlist2 : Operand<OtherVT> {
   let ParserMatchClass = SlistAsmOperand;
@@ -223,15 +243,62 @@ def rlist2 : Operand<OtherVT> {
   let DecoderMethod = "decodeZceRlist2";
 }
 
-def retval : Operand<OtherVT> {
+def retval : Operand<OtherVT>, ImmLeaf<OtherVT, [{return  isUInt<2>(Imm);}]>{
   let ParserMatchClass = RetvalAsmOperand;
   let PrintMethod = "printRetval";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return  isUInt<2>(Imm);
+  }];
 }
 
-def spimm : Operand<OtherVT> {
+def retval1 : Operand<OtherVT>, ImmLeaf<OtherVT, [{return  isUInt<1>(Imm);}]>{
+  let ParserMatchClass = RetvalAsmOperand;
+  let PrintMethod = "printRetval";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return  isUInt<1>(Imm);
+  }];
+}
+
+def spimm : Operand<OtherVT>, ImmLeaf<OtherVT, [{return  isShiftedUInt<5, 4>(Imm);}]>{
   let ParserMatchClass = SpimmAsmOperand;
   let PrintMethod = "printSpimm";
   let DecoderMethod = "decodeZceSpimm";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return  isShiftedUInt<5, 4>(Imm);
+  }];
+}
+
+def spimm0_5 : Operand<OtherVT>, ImmLeaf<OtherVT, [{return (Imm < (0b110<<4)) && isShiftedUInt<3, 4>(Imm);}]>  {
+  let ParserMatchClass = SpimmAsmOperand;
+  let PrintMethod = "printSpimm";
+  let DecoderMethod = "decodeZceSpimm";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return (Imm < (0b110<<4)) && isShiftedUInt<3, 4>(Imm);
+  }];
+}
+
+def spimm1 : Operand<OtherVT>, ImmLeaf<OtherVT, [{return  isShiftedUInt<1, 4>(Imm);}]>  {
+  let ParserMatchClass = SpimmAsmOperand;
+  let PrintMethod = "printSpimm";
+  let DecoderMethod = "decodeZceSpimm";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return  isShiftedUInt<1, 4>(Imm);
+  }];
 }
 
 //===----------------------------------------------------------------------===//
@@ -406,35 +473,35 @@ def POPRET_E : RVInstZcePPP<0b110, (outs), (ins slist:$sreg, retval:$retval,
 }
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
-def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$slist, alist:$areg, spimm:$spimm), 
-    "c.push", "{$slist}, {$areg}, $spimm">, Sched<[]> {
-  bits<3> slist;
+def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, alist:$areg, spimm0_5:$spimm), 
+    "c.push", "{$rlist3}, {$areg}, $spimm">, Sched<[]> {
+  bits<3> rlist3;
   bits<1> areg;
   bits<16> spimm;
 
   let DecoderNamespace  = "ZcePUSH";
   let Inst{9-7} = spimm{6-4};
   let Inst{6-5} = 0b10;
-  let Inst{4-2} = slist;
+  let Inst{4-2} = rlist3;
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
-def C_POPRET : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval:$ret0, spimm:$spimm), 
-    "c.popret", "{$rlist3}, {$ret0}, $spimm">, Sched<[]> {
+def C_POPRET : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval1:$ret, spimm0_5:$spimm), 
+    "c.popret", "{$rlist3}, {$ret}, $spimm">, Sched<[]> {
   bits<3> rlist3;
-  bits<1> ret0;
+  bits<1> ret;
   bits<16> spimm;
 
   let DecoderNamespace  = "ZcePOPRET";
   let Inst{9-7} = spimm{6-4};
   let Inst{6} = 0b0;
-  let Inst{5} = ret0;
+  let Inst{5} = ret;
   let Inst{4-2} = rlist3;
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
-def C_POP : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval:$ret0, spimm:$spimm), 
-    "c.pop", "{$rlist3}, {$ret0}, $spimm">, Sched<[]> {
+def C_POP : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval:$ret, spimm1:$spimm), 
+    "c.pop", "{$rlist3}, {$ret}, $spimm">, Sched<[]> {
   bits<3> rlist3;
   bits<16> spimm;
 
@@ -589,3 +656,12 @@ def C_SH : ZceStore_ri<0b101, 0b00, "c.sh", GPRC, uimm5_lsb0>,
 }
 
 }
+
+let Predicates = [HasStdExtZcea] in{
+def : CompressPat<(PUSH rlist3:$slist, alist:$areg, spimm0_5:$spimm),
+                  (C_PUSH rlist3:$slist, alist:$areg, spimm0_5:$spimm)>;
+def : CompressPat<(POP rlist3:$slist, 0, spimm1:$spimm),
+                  (C_POP rlist3:$slist, 0, spimm1:$spimm)>;
+def : CompressPat<(POPRET rlist3:$slist, retval1:$ret, spimm0_5:$spimm),
+                  (C_POPRET rlist3:$slist, retval1:$ret, spimm0_5:$spimm)>;
+} //Predicates = [HasStdExtZcea]

@@ -60,9 +60,9 @@ tblj 40
 # CHECK-ASM: encoding: [0xf8,0x8b]
 tbljal 190
 
-# CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {a0-a1}, -16
-# CHECK-ASM: encoding: [0x2b,0x40,0x12,0x00]
-push {ra, s0-s1}, {a0-a1}, -16
+# CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {a0-a1}, -144
+# CHECK-ASM: encoding: [0x2b,0x44,0x12,0x00]
+push {ra, s0-s1}, {a0-a1}, -144
 
 # CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {a0-a1}, -128
 # CHECK-ASM: encoding: [0xab,0x43,0x12,0x00]
@@ -256,9 +256,9 @@ c.push.e {ra, s0-s3}, {a0-a3}, -32
 # CHECK-ASM: encoding: [0xe8,0x8f]
 c.push.e {ra, s0-s4}, {a0-a3}, -112
 
-# CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {}, -16
-# CHECK-ASM: encoding: [0x2b,0x40,0x02,0x00]
-push {ra, s0-s1}, {}, -16
+# CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {}, -112
+# CHECK-ASM: encoding: [0x2b,0x43,0x02,0x00]
+push {ra, s0-s1}, {}, -112
 
 # CHECK-ASM: push.e {ra, s0-s2}, {}, -16
 # CHECK-OBJ: push {ra, s0-s2}, {}, -16

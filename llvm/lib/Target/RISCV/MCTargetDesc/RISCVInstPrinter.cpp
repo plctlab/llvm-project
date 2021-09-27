@@ -307,7 +307,7 @@ void RISCVInstPrinter::printSpimm(const MCInst *MI, unsigned OpNo,
       DECODE_SPIMM(1,16,32)
       break;
     case RISCVZCE::RLIST3ENCODE::RA_S0_S3:
-      DECODE_SPIMM(1,0,48)
+      DECODE_SPIMM(1,32,48)
       break;
     case RISCVZCE::RLIST3ENCODE::RA_S0_S5:
       DECODE_SPIMM(1,32,64)

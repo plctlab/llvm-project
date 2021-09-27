@@ -63,7 +63,8 @@ public:
     // function uses a varargs save area, or is an interrupt handler.
     return MF.getSubtarget<RISCVSubtarget>().enableSaveRestore() &&
            VarArgsSaveSize == 0 && !MF.getFrameInfo().hasTailCall() &&
-           !MF.getFunction().hasFnAttribute("interrupt");
+           !MF.getFunction().hasFnAttribute("interrupt") && 
+           !MF.getSubtarget<RISCVSubtarget>().hasStdExtZcea();
   }
 
   uint64_t getRVVStackSize() const { return RVVStackSize; }

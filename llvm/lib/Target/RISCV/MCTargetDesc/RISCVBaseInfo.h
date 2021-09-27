@@ -407,9 +407,9 @@ enum class SLIST16ENCODE {
   RA_S0_S1,
   RA_S0_S2,
   RA_S0_S3,
-  RA_S0_S5,
-  RA_S0_S7,
-  RA_S0_S11,
+  RA_S0_S5 = 6,
+  RA_S0_S7 = 8,
+  RA_S0_S11 = 12,
 };
 
 enum class RLIST3ENCODE {
@@ -419,9 +419,9 @@ enum class RLIST3ENCODE {
   RA_S0_S1,
   RA_S0_S2,
   RA_S0_S3,
-  RA_S0_S5,
-  RA_S0_S7,
-  RA_S0_S11,
+  RA_S0_S5 = 6,
+  RA_S0_S7 = 8,
+  RA_S0_S11 = 12,
 };
 
 enum class RLIST2ENCODE {

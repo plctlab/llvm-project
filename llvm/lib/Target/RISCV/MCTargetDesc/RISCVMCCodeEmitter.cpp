@@ -87,6 +87,10 @@ public:
   unsigned getNEGImm7Lsb0NonZero(const MCInst &MI, unsigned OpNo,
                       SmallVectorImpl<MCFixup> &Fixups,
                       const MCSubtargetInfo &STI) const;
+  
+  unsigned getRlist3OpValue(const MCInst &MI, unsigned OpNo,
+                         SmallVectorImpl<MCFixup> &Fixups,
+                         const MCSubtargetInfo &STI) const;
 
 private:
   FeatureBitset computeAvailableFeatures(const FeatureBitset &FB) const;
@@ -415,6 +419,31 @@ unsigned RISCVMCCodeEmitter::getNEGImm7Lsb0NonZero(const MCInst &MI, unsigned Op
   MCOperand MO = MI.getOperand(OpNo);
   assert((MO.isImm() && MO.getImm() < 0) && "NEGImm7Lsb0NonZero operand must be a negtive non-zero operand");
   return -(MO.getImm());
+}
+
+unsigned RISCVMCCodeEmitter::getRlist3OpValue(const MCInst &MI, unsigned OpNo,
+                         SmallVectorImpl<MCFixup> &Fixups,
+                         const MCSubtargetInfo &STI) const{
+  MCOperand MO = MI.getOperand(OpNo);
+  assert(MO.isImm() && "Rlist3 operand must be immidiate");
+  auto Imm = MO.getImm();
+  if(Imm <=4)
+    return Imm;
+  else
+    switch (Imm)
+    {
+    default:
+      assert(false && "Rlist3 operand has invalid value");
+      return 0;
+    case 6:
+      return 5;
+    case 8:
+      return 6;
+    case 12:
+      return 7;
+    
+    }
+
 }
 
 #define ENABLE_INSTR_PREDICATE_VERIFIER
