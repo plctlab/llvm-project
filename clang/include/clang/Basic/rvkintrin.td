@@ -104,10 +104,51 @@ def _rvk_emu_aes_inv_mc_32 : EmulateIntr<"uint32_t",["uint32_t"]>{
 
 // RV32
 // === AES32: Zkn (RV32), Zknd, Zkne 
-def aes32dsi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
-def aes32dsmi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
-def aes32esi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
-def aes32esmi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUi">;
+def aes32dsi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUc">{
+    let EmulateDef = [{
+        int32_t x;
+
+	    rs3 = (rs3 & 3) << 3;						//	byte select
+	    x = (rs2 >> rs3) & 0xFF;
+	    x = _rvk_emu_aes_inv_sbox[x];			//	AES inverse s-box
+
+	    return rs1 ^ _rv32_rol(x, rs3);}];
+}
+
+def aes32dsmi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUc">{
+    let EmulateDef = [{
+        int32_t x;
+
+	    rs3 = (rs3 & 3) << 3;						//	byte select
+	    x = (rs2 >> rs3) & 0xFF;
+	    x = _rvk_emu_aes_inv_sbox[x];			//	AES inverse s-box
+	    x = _rvk_emu_aes_inv_mc_8(x);			//	inverse MixColumns
+
+	    return rs1 ^ _rv32_rol(x, rs3);}];
+}
+
+def aes32esi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUc">{
+    let EmulateDef = [{
+        int32_t x;
+
+	    rs3 = (rs3 & 3) << 3;						//	byte select
+	    x = (rs2 >> rs3) & 0xFF;
+	    x = _rvk_emu_aes_fwd_sbox[x];			//	AES forward s-box
+
+	    return rs1 ^ _rv32_rol(x, rs3);}];
+}
+
+def aes32esmi : RVK32Inst<["int32_t", "int32_t", "uint8_t"], "int32_t" , "ZiZiZiUc">{
+    let EmulateDef = [{
+        uint32_t x;
+
+	    rs3 = (rs3 & 3) << 3;						//	byte select
+	    x = (rs2 >> rs3) & 0xFF;
+	    x = _rvk_emu_aes_fwd_sbox[x];			//	AES forward s-box
+	    x = _rvk_emu_aes_fwd_mc_8(x);			//	forward MixColumns
+
+	    return rs1 ^ _rv32_rol(x, rs3);}];
+}
 
 //	=== SHA512: Zkn (RV32), Zknh
 def sha512sig0l : RVK32Inst<["int32_t", "int32_t"], "int32_t" , "ZiZiZi">{
@@ -206,8 +247,8 @@ def aes64esm : RVK64Inst<["int64_t", "int64_t"], "int64_t", "WiWiWi">{
         return x;}];
 }
 
-// FixMe: int and Wi dosent match
-def aes64ks1i : RVK64Inst<["int64_t", "int"], "int64_t", "WiWiWi">{
+
+def aes64ks1i : RVK64Inst<["int64_t", "int"], "int64_t", "WiWiUi">{
     let EmulateDef = [{
         //	AES Round Constants
         const uint8_t aes_rcon[] = {
@@ -284,36 +325,35 @@ def sm3p1 : RVKInst<["long"],"long","LiLi",[0,-1]>{
         return rs1 ^ _rv32_ror(rs1, 9) ^ _rv32_ror(rs1, 17);}];
 }
 //	=== SM4:	Zks (RV32, RV64), Zksed
-// FixMe: uint8_t and Wi dosent match
-def sm4ks : RVKInst<["long","long","uint8_t"],"long","LiLiLiLi",[0,1,2,-1]>{
+def sm4ks : RVKInst<["long","long","uint8_t"],"long","LiLiLiUc",[0,1,2,-1]>{
     let EmulateDef = [{
         uint32_t x;
 
-        bs = (bs & 3) << 3;						//	byte select
-        x = (rs2 >> bs) & 0xFF;
+        rs3 = (rs3 & 3) << 3;						//	byte select
+        x = (rs2 >> rs3) & 0xFF;
         x = _rvk_emu_sm4_sbox[x];				//	SM4 s-box
 
         //	SM4 transform L' (key)
         x = x ^ ((x & 0x07) << 29) ^ ((x & 0xFE) << 7) ^
             ((x & 1) << 23) ^ ((x & 0xF8) << 13);
 
-        return rs1 ^ _rv32_rol(x, bs);
+        return rs1 ^ _rv32_rol(x, rs3);
     }];
 }
-// FixMe: uint8_t and Wi dosent match
-def sm4ed : RVKInst<["long","long","uint8_t"],"long","LiLiLiLi",[0,1,2,-1]>{
+
+def sm4ed : RVKInst<["long","long","uint8_t"],"long","LiLiLiUc",[0,1,2,-1]>{
     let EmulateDef = [{
         uint32_t x;
 
-        bs = (bs & 3) << 3;						//	byte select
-        x = (rs2 >> bs) & 0xFF;
+        rs3 = (rs3 & 3) << 3;						//	byte select
+        x = (rs2 >> rs3) & 0xFF;
         x = _rvk_emu_sm4_sbox[x];				//	SM4 s-box
 
         //	SM4 linear transform L
         x = x ^ (x << 8) ^ (x << 2) ^ (x << 18) ^
                 ((x & 0x3F) << 26) ^ ((x & 0xC0) << 10);
 
-        return rs1 ^ _rv32_rol(x, bs);
+        return rs1 ^ _rv32_rol(x, rs3);
     }];
 }
 
