@@ -149,6 +149,12 @@ void riscv::getRISCVTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   else
     Features.push_back("-save-restore");
 
+  //  -mno-zce-cdecbnez is default, unless -mzce-cdecbnez is specified.
+  if (Args.hasFlag(options::OPT_mzce_cdecbnez, options::OPT_mno_zce_cdecbnez, false))
+    Features.push_back("+zce-cdecbnez");
+  else
+    Features.push_back("-zce-cdecbnez");
+
   // Now add any that the user explicitly requested on the command line,
   // which may override the defaults.
   handleTargetFeaturesGroup(Args, Features, options::OPT_m_riscv_Features_Group);

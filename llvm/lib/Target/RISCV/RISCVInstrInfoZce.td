@@ -557,7 +557,7 @@ def C_PUSH_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, alist:$areg, spimm:$sp
 // 7. Zceb
 
 // 7.1 C.DECBNEZ, DECBNEZ
-let Predicates = [HasStdExtZceb],
+let Predicates = [EnableZceCDecbnez],
     DecoderNamespace = "RVZceb_",
     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def C_DECBNEZ : RVInst16CIW<0b101, 0b10, (outs GPRC:$rd),

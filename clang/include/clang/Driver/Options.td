@@ -3268,9 +3268,16 @@ def mrelax : Flag<["-"], "mrelax">, Group<m_Group>,
   HelpText<"Enable linker relaxation">;
 def mno_relax : Flag<["-"], "mno-relax">, Group<m_Group>,
   HelpText<"Disable linker relaxation">;
+
 def msmall_data_limit_EQ : Joined<["-"], "msmall-data-limit=">, Group<m_Group>,
   Alias<G>,
   HelpText<"Put global and static data smaller than the limit into a special section">;
+
+def mzce_cdecbnez : Flag<["-"], "mzce-cdecbnez">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
+  HelpText<"Enable zce cdecbnez">;
+def mno_zce_cdecbnez : Flag<["-"], "mno-zce-cdecbnez">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
+  HelpText<"Disable zce cdecbnez">;
+
 def msave_restore : Flag<["-"], "msave-restore">, Group<m_riscv_Features_Group>,
   HelpText<"Enable using library calls for save and restore">;
 def mno_save_restore : Flag<["-"], "mno-save-restore">, Group<m_riscv_Features_Group>,

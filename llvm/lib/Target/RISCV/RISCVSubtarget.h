@@ -63,6 +63,7 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   bool EnableLinkerRelax = false;
   bool EnableRVCHintInstrs = true;
   bool EnableSaveRestore = false;
+  bool EnableZceCDecbnez = false;
   unsigned XLen = 32;
   MVT XLenVT = MVT::i32;
   uint8_t MaxInterleaveFactor = 2;
@@ -134,6 +135,7 @@ public:
   bool enableLinkerRelax() const { return EnableLinkerRelax; }
   bool enableRVCHintInstrs() const { return EnableRVCHintInstrs; }
   bool enableSaveRestore() const { return EnableSaveRestore; }
+  bool enableZceCDecbnez() const { return EnableZceCDecbnez; }
   MVT getXLenVT() const { return XLenVT; }
   unsigned getXLen() const { return XLen; }
   RISCVABI::ABI getTargetABI() const { return TargetABI; }
