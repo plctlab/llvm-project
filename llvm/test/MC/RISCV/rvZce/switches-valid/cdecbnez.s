@@ -8,4 +8,3 @@
 # CHECK-OBJ: c.decbnez s0, 0, 4
 # CHECK-ASM: encoding: [0x22,0xa0]
 c.decbnez s0, 1, -4
-

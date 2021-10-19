@@ -350,29 +350,38 @@ class ZceStore_ri<bits<3> funct3, bits<2> opcode, string opcodestr,
 
 // 6.1
 // echo "c.zext.b s0" | bin/llvm-mc -triple=riscv64 -mattr=+experimental-zce -show-encoding
-let Predicates = [HasStdExtZcee] in {
+let Predicates = [EnableZceZext] in {
 def C_ZEXT_B  : RVZceArith_r<0b00, 0b000 , "c.zext.b">, Sched<[]>;
-def C_SEXT_B  : RVZceArith_r<0b00, 0b001 , "c.sext.b">, Sched<[]>;
 def C_ZEXT_H  : RVZceArith_r<0b00, 0b010 , "c.zext.h">, Sched<[]>;
-def C_SEXT_H  : RVZceArith_r<0b00, 0b011 , "c.sext.h">, Sched<[]>;
-def C_MUL     : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
 }
 
-let Predicates = [HasStdExtZcee, IsRV64] in {
+let Predicates = [EnableZceZext, IsRV64] in {
 def C_ZEXT_W : RVZceArith_r<0b00, 0b100 , "c.zext.w">, Sched<[]>;
 }
 
-let Predicates = [HasStdExtC, HasStdExtZcee, IsRV64] in{
+let Predicates = [EnableZceSext] in {
+def C_SEXT_B  : RVZceArith_r<0b00, 0b001 , "c.sext.b">, Sched<[]>;
+def C_SEXT_H  : RVZceArith_r<0b00, 0b011 , "c.sext.h">, Sched<[]>;
+}
+
+let Predicates = [HasStdExtC, EnableZceSext, IsRV64] in{
 def : InstAlias<"c.sext.w $rd", (C_ADDIW GPRC:$rd, 0)>;
 }
 
-let Predicates = [HasStdExtZcea] in {
+let Predicates = [EnableZceCMul] in {
+def C_MUL     : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
+}
+
+let Predicates = [EnableZceCNeg] in {
 def C_NEG_ZCE : RVZceArith_r<0b00, 0b110 , "c.neg">, Sched<[]>;
+}
+
+let Predicates = [EnableZceCNot] in {
 def C_NOT_ZCE : RVZceArith_r<0b00, 0b111 , "c.not">, Sched<[]>;
 }
 
 // 6.3 C.MVA01S07
-let Predicates = [HasStdExtZcea], Defs = [X10, X11],
+let Predicates = [EnableZceCMva01s07], Defs = [X10, X11],
     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def C_MVA01S07 : RVInst16CA<0b100111, 0b11, 0b01, (outs),
                             (ins SR07:$rs1, SR07:$rs2), "c.mva01s07", "$rs1, $rs2">,
@@ -380,26 +389,29 @@ def C_MVA01S07 : RVInst16CA<0b100111, 0b11, 0b01, (outs),
 
 // 6.4 MULI
 // TODO: requires M or *Zmmul*, waiting for Zmmul ext
-let Predicates = [HasStdExtZcea, HasStdExtM],
+let Predicates = [EnableZceMuli, HasStdExtM],
     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def MULI : RVInstI<0b001, RISCVOpcode<0b0001011>, (outs GPR:$rd),
                   (ins GPR:$rs1, simm12:$imm12), "muli", "$rd, $rs1, $imm12">,
            Sched<[]>;
 
 // 6.5 BEQI, BNEI
-let Predicates = [HasStdExtZcea] in {
+let Predicates = [EnableZceBeqi] in {
 def BEQI : Branch_rii<0b010, "beqi">;
+}
+
+let Predicates = [EnableZceBnei] in {
 def BNEI : Branch_rii<0b011, "bnei">;
 }
 
-let Predicates = [HasStdExtZcea] in {
+let Predicates = [EnableZceTbljal] in {
 def TBLJALM : RVInstZceTableJump_i<0b010, "tbljalm", tbljalm_uimm8>, Sched<[]>;
 def TBLJ    : RVInstZceTableJump_i<0b010, "tblj", tblj_uimm8>, Sched<[]>;
 def TBLJAL  : RVInstZceTableJump_i<0b010, "tbljal", tbljal_uimm8>, Sched<[]>;
 }
 
 // 6.9 push, pop
-let Predicates = [HasStdExtZcea] in {
+let Predicates = [EnableZcePushPop] in {
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 def PUSH : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg, spimm:$imm),
            "push", "$sreg, $areg, $imm">, Sched<[]> {
@@ -436,6 +448,10 @@ def POPRET : RVInstZcePPP<0b110, (outs), (ins slist:$sreg, retval:$retval, spimm
   let Inst{19-16} = sreg;
 }
 
+}
+
+let Predicates = [EnableZcePushEPopE] in {
+
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 def PUSH_E : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg,
              spimm:$imm), "push.e", "$sreg, $areg, $imm">, Sched<[]> {
@@ -471,6 +487,10 @@ def POPRET_E : RVInstZcePPP<0b110, (outs), (ins slist:$sreg, retval:$retval,
   let Inst{11-7} = imm{8-4};
   let Inst{19-16} = sreg;
 }
+
+}
+
+let Predicates = [EnableZceCPushCPop] in {
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
 def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, alist:$areg, spimm0_5:$spimm), 
@@ -510,9 +530,10 @@ def C_POP : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval:$ret, spimm1:$spim
   let Inst{6-5} = 0b00;
   let Inst{4-2} = rlist3;
 }
+
 }
 
-let Predicates = [HasStdExtZcea, IsRV32] in {
+let Predicates = [EnableZceCPushECPopE, IsRV32] in {
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
 def C_POP_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, retval:$ret0, spimm:$spimm), 
     "c.pop.e", "{$rlist2}, {$ret0}, $spimm">, Sched<[]> {
@@ -552,6 +573,7 @@ def C_PUSH_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, alist:$areg, spimm:$sp
   let Inst{5-4} = spimm{6-5};
   let Inst{3-2} = rlist2;
 }
+
 }
 
 // 7. Zceb
@@ -572,7 +594,7 @@ def C_DECBNEZ : RVInst16CIW<0b101, 0b10, (outs GPRC:$rd),
   let Inst{3-2} = scale;
 }
 
-let Predicates = [HasStdExtZceb],
+let Predicates = [EnableZceDecbnez],
     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 def DECBNEZ : RVInstZceB<0b100, 0b011, 0b0000111, (outs GPR:$rd),
                          (ins scale:$scale, simm13_lsb0_zce:$imm),
@@ -586,26 +608,26 @@ def DECBNEZ : RVInstZceB<0b100, 0b011, 0b0000111, (outs GPR:$rd),
 }
 
 // 7.2. LWGP, SWGP, LDGP, SDGP
-let Predicates = [HasStdExtZceb] in
+let Predicates = [EnableZceLsgp] in
 def LWGP : ZceGPLoad<0b000, 0b011, "lwgp", simm16_lsb00>, Sched<[]>;
 
-let Predicates = [HasStdExtZceb] in
+let Predicates = [EnableZceLsgp] in
 def SWGP : ZceGPStore<0b000, 0b011, "swgp", simm16_lsb00>, Sched<[]>;
 
-let Predicates = [HasStdExtZceb, IsRV64] in
+let Predicates = [EnableZceLsgp, IsRV64] in
 def LDGP : ZceGPLoad<0b010, 0b011, "ldgp", simm17_lsb000>, Sched<[]> {
   bits<17> imm;
   let Inst{22} = imm{16};
 }
 
-let Predicates = [HasStdExtZceb, IsRV64] in
+let Predicates = [EnableZceLsgp, IsRV64] in
 def SDGP : ZceGPStore<0b010, 0b011, "sdgp", simm17_lsb000>, Sched<[]> {
   bits<17> imm;
   let Inst{9} = imm{16};
 }
 
 // 7.3. C.LBU, C.LHU, C.LB, C.LH, C.SB, C.SH
-let Predicates = [HasStdExtZceb] in {
+let Predicates = [EnableZceClbhu] in {
 
 def C_LBU : ZceLoad_ri<0b001, 0b00, "c.lbu", GPRC, uimm4>,
            Sched<[]> {
@@ -623,6 +645,10 @@ def C_LHU : ZceLoad_ri<0b001, 0b00, "c.lhu", GPRC, uimm5_lsb0>,
   let Inst{6-5} = imm{2-1};
 }
 
+}
+
+let Predicates = [EnableZceClbh] in {
+
 def C_LB : ZceLoad_ri<0b001, 0b10, "c.lb", GPRC, uimm4>,
           Sched<[]> {
   bits<4> imm;
@@ -638,6 +664,10 @@ def C_LH : ZceLoad_ri<0b001, 0b10, "c.lh", GPRC, uimm5_lsb0>,
   let Inst{11-10} = imm{4-3};
   let Inst{6-5} = imm{2-1};
 }
+
+}
+
+let Predicates = [EnableZceCsbh] in {
 
 def C_SB : ZceStore_ri<0b101, 0b00, "c.sb", GPRC, uimm4>,
           Sched<[]> {

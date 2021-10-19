@@ -1,0 +1,6 @@
+// RUN: %clang --target=riscv32-unknown-elf -mzce-decbnez -c %s -o %t
+// RUN: llvm-objdump -d --mattr=+experimental-zce %t | FileCheck %s
+
+nop
+decbnez s0, 1, -4
+// CHECK: decbnez s0, 0, 0x2
