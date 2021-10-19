@@ -63,7 +63,27 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   bool EnableLinkerRelax = false;
   bool EnableRVCHintInstrs = true;
   bool EnableSaveRestore = false;
+  bool EnableZceCPushCPop = false;
+  bool EnableZcePushPop = false;
+  bool EnableZceCPushECPopE = false;
+  bool EnableZcePushEPopE = false;
+  bool EnableZceTbljal = false;
+  bool EnableZceClbhu = false;
+  bool EnableZceClbh = false;
+  bool EnableZceCsbh = false;
+  bool EnableZceLsgp = false;
+  bool EnableZceMuli = false;
+  bool EnableZceCMul = false;
+  bool EnableZceSext = false;
+  bool EnableZceZext = false;
+  bool EnableZceBeqi = false;
+  bool EnableZceBnei = false;
+  bool EnableZceCNot = false;
+  bool EnableZceCNeg = false;
+  bool EnableZceCMva01s07 = false;
   bool EnableZceCDecbnez = false;
+  bool EnableZceDecbnez = false;
+
   unsigned XLen = 32;
   MVT XLenVT = MVT::i32;
   uint8_t MaxInterleaveFactor = 2;
@@ -135,7 +155,26 @@ public:
   bool enableLinkerRelax() const { return EnableLinkerRelax; }
   bool enableRVCHintInstrs() const { return EnableRVCHintInstrs; }
   bool enableSaveRestore() const { return EnableSaveRestore; }
+  bool enableZceCPushCPop() const { return EnableZceCPushCPop; }
+  bool enableZcePushPop() const { return EnableZcePushPop; }
+  bool enableZceCPushECPopE() const { return EnableZceCPushECPopE; }
+  bool enableZcePushEPopE() const { return EnableZcePushEPopE; }
+  bool enableZceTbljal() const { return EnableZceTbljal; }
+  bool enableZceClbhu() const { return EnableZceClbhu; }
+  bool enableZceClbh() const { return EnableZceClbh; }
+  bool enableZceCsbh() const { return EnableZceCsbh; }
+  bool enableZceLsgp() const { return EnableZceLsgp; }
+  bool enableZceMuli() const { return EnableZceMuli; }
+  bool enableZceCMul() const { return EnableZceCMul; }
+  bool enableZceSext() const { return EnableZceSext; }
+  bool enableZceZext() const { return EnableZceZext; }
+  bool enableZceBeqi() const { return EnableZceBeqi; }
+  bool enableZceBnei() const { return EnableZceBnei; }
+  bool enableZceCNot() const { return EnableZceCNot; }
+  bool enableZceCNeg() const { return EnableZceCNeg; }
+  bool enableZceCMva01s07() const { return EnableZceCMva01s07; }
   bool enableZceCDecbnez() const { return EnableZceCDecbnez; }
+  bool enableZceDecbnez() const { return EnableZceDecbnez; }
   MVT getXLenVT() const { return XLenVT; }
   unsigned getXLen() const { return XLen; }
   RISCVABI::ABI getTargetABI() const { return TargetABI; }

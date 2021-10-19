@@ -149,11 +149,114 @@ void riscv::getRISCVTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   else
     Features.push_back("-save-restore");
 
+  //  -mno-zce-cpush-cpop is default, unless -mzce-cpush-cpop is specified.
+  if (Args.hasFlag(options::OPT_mzce_cpush_cpop,
+                   options::OPT_mno_zce_cpush_cpop, false))
+    Features.push_back("+zce-cpush-cpop");
+  else
+    Features.push_back("-zce-cpush-cpop");
+  //  -mno-zce-push-pop is default, unless -mzce-push-pop is specified.
+  if (Args.hasFlag(options::OPT_mzce_push_pop, options::OPT_mno_zce_push_pop,
+                   false))
+    Features.push_back("+zce-push-pop");
+  else
+    Features.push_back("-zce-push-pop");
+  //  -mno-zce-cpushe-cpope is default, unless -mzce-cpushe-cpope is specified.
+  if (Args.hasFlag(options::OPT_mzce_cpushe_cpope,
+                   options::OPT_mno_zce_cpushe_cpope, false))
+    Features.push_back("+zce-cpushe-cpope");
+  else
+    Features.push_back("-zce-cpushe-cpope");
+  //  -mno-zce-pushe-pope is default, unless -mzce-pushe-pope is specified.
+  if (Args.hasFlag(options::OPT_mzce_pushe_pope,
+                   options::OPT_mno_zce_pushe_pope, false))
+    Features.push_back("+zce-pushe-pope");
+  else
+    Features.push_back("-zce-pushe-pope");
+  //  -mno-zce-tbljal is default, unless -mzce-tbljal is specified.
+  if (Args.hasFlag(options::OPT_mzce_tbljal, options::OPT_mno_zce_tbljal,
+                   false))
+    Features.push_back("+zce-tbljal");
+  else
+    Features.push_back("-zce-tbljal");
+  //  -mno-zce-clbhu is default, unless -mzce-clbhu is specified.
+  if (Args.hasFlag(options::OPT_mzce_clbhu, options::OPT_mno_zce_clbhu, false))
+    Features.push_back("+zce-clbhu");
+  else
+    Features.push_back("-zce-clbhu");
+  //  -mno-zce-clbh is default, unless -mzce-clbh is specified.
+  if (Args.hasFlag(options::OPT_mzce_clbh, options::OPT_mno_zce_clbh, false))
+    Features.push_back("+zce-clbh");
+  else
+    Features.push_back("-zce-clbh");
+  //  -mno-zce-csbh is default, unless -mzce-csbh is specified.
+  if (Args.hasFlag(options::OPT_mzce_csbh, options::OPT_mno_zce_csbh, false))
+    Features.push_back("+zce-csbh");
+  else
+    Features.push_back("-zce-csbh");
+  //  -mno-zce-lsgp is default, unless -mzce-lsgp is specified.
+  if (Args.hasFlag(options::OPT_mzce_lsgp, options::OPT_mno_zce_lsgp, false))
+    Features.push_back("+zce-lsgp");
+  else
+    Features.push_back("-zce-lsgp");
+  //  -mno-zce-muli is default, unless -mzce-muli is specified.
+  if (Args.hasFlag(options::OPT_mzce_muli, options::OPT_mno_zce_muli, false))
+    Features.push_back("+zce-muli");
+  else
+    Features.push_back("-zce-muli");
+  //  -mno-zce-cmul is default, unless -mzce-cmul is specified.
+  if (Args.hasFlag(options::OPT_mzce_cmul, options::OPT_mno_zce_cmul, false))
+    Features.push_back("+zce-cmul");
+  else
+    Features.push_back("-zce-cmul");
+  //  -mno-zce-sext is default, unless -mzce-sext is specified.
+  if (Args.hasFlag(options::OPT_mzce_sext, options::OPT_mno_zce_sext, false))
+    Features.push_back("+zce-sext");
+  else
+    Features.push_back("-zce-sext");
+  //  -mno-zce-zext is default, unless -mzce-zext is specified.
+  if (Args.hasFlag(options::OPT_mzce_zext, options::OPT_mno_zce_zext, false))
+    Features.push_back("+zce-zext");
+  else
+    Features.push_back("-zce-zext");
+  //  -mno-zce-beqi is default, unless -mzce-beqi is specified.
+  if (Args.hasFlag(options::OPT_mzce_beqi, options::OPT_mno_zce_beqi, false))
+    Features.push_back("+zce-beqi");
+  else
+    Features.push_back("-zce-beqi");
+  //  -mno-zce-bnei is default, unless -mzce-bnei is specified.
+  if (Args.hasFlag(options::OPT_mzce_bnei, options::OPT_mno_zce_bnei, false))
+    Features.push_back("+zce-bnei");
+  else
+    Features.push_back("-zce-bnei");
+  //  -mno-zce-cnot is default, unless -mzce-cnot is specified.
+  if (Args.hasFlag(options::OPT_mzce_cnot, options::OPT_mno_zce_cnot, false))
+    Features.push_back("+zce-cnot");
+  else
+    Features.push_back("-zce-cnot");
+  //  -mno-zce-cneg is default, unless -mzce-cneg is specified.
+  if (Args.hasFlag(options::OPT_mzce_cneg, options::OPT_mno_zce_cneg, false))
+    Features.push_back("+zce-cneg");
+  else
+    Features.push_back("-zce-cneg");
+  //  -mno-zce-cmva01s07 is default, unless -mzce-cmva01s07 is specified.
+  if (Args.hasFlag(options::OPT_mzce_cmva01s07, options::OPT_mno_zce_cmva01s07,
+                   false))
+    Features.push_back("+zce-cmva01s07");
+  else
+    Features.push_back("-zce-cmva01s07");
   //  -mno-zce-cdecbnez is default, unless -mzce-cdecbnez is specified.
-  if (Args.hasFlag(options::OPT_mzce_cdecbnez, options::OPT_mno_zce_cdecbnez, false))
+  if (Args.hasFlag(options::OPT_mzce_cdecbnez, options::OPT_mno_zce_cdecbnez,
+                   false))
     Features.push_back("+zce-cdecbnez");
   else
     Features.push_back("-zce-cdecbnez");
+  //  -mno-zce-decbnez is default, unless -mzce-decbnez is specified.
+  if (Args.hasFlag(options::OPT_mzce_decbnez, options::OPT_mno_zce_decbnez,
+                   false))
+    Features.push_back("+zce-decbnez");
+  else
+    Features.push_back("-zce-decbnez");
 
   // Now add any that the user explicitly requested on the command line,
   // which may override the defaults.
