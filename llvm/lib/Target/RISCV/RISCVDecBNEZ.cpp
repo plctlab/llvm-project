@@ -33,9 +33,11 @@
 #include "RISCVSubtarget.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
+#include "llvm/Support/Debug.h"
 
 using namespace llvm;
 
+#define DEBUG_TYPE "riscv-decbnez"
 #define RISCV_DECBNEZ_NAME "RISCVDecbnez"
 namespace {
 
@@ -71,7 +73,7 @@ bool RISCVDecbnez::runOnMachineFunction(MachineFunction &MF) {
   bool Modified = false;
 
   if (!STI->hasStdExtZce()){
-    dbgs() << "no hasStdExtZce. returning \n";
+    LLVM_DEBUG(dbgs() << "no hasStdExtZce. returning \n");
     return Modified;
   }
   
