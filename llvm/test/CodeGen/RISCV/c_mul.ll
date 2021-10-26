@@ -330,7 +330,7 @@ define i32 @mulhs_negative_constant(i32 %a) nounwind {
 ; RV64IMZce-NEXT:    sext.w a0, a0
 ; RV64IMZce-NEXT:    slli a1, a0, 2
 ; RV64IMZce-NEXT:    add a0, a1, a0
-; RV64IMZce-NEXT:    neg a0, a0
+; RV64IMZce-NEXT:    c.neg a0
 ; RV64IMZce-NEXT:    srli a0, a0, 32
 ; RV64IMZce-NEXT:    ret
   %1 = sext i32 %a to i64
@@ -645,7 +645,7 @@ define i32 @muli32_m65(i32 %a) nounwind {
 ; RV32IMZce:       # %bb.0:
 ; RV32IMZce-NEXT:    slli a1, a0, 6
 ; RV32IMZce-NEXT:    add a0, a1, a0
-; RV32IMZce-NEXT:    neg a0, a0
+; RV32IMZce-NEXT:    c.neg a0
 ; RV32IMZce-NEXT:    ret
 ;
 ; RV64I-LABEL: muli32_m65:
@@ -732,7 +732,7 @@ define i64 @muli64_m65(i64 %a) nounwind {
 ; RV32IMZce-NEXT:    sub a1, a2, a1
 ; RV32IMZce-NEXT:    slli a2, a0, 6
 ; RV32IMZce-NEXT:    add a0, a2, a0
-; RV32IMZce-NEXT:    neg a0, a0
+; RV32IMZce-NEXT:    c.neg a0
 ; RV32IMZce-NEXT:    ret
 ;
 ; RV64I-LABEL: muli64_m65:
@@ -746,7 +746,7 @@ define i64 @muli64_m65(i64 %a) nounwind {
 ; RV64IMZce:       # %bb.0:
 ; RV64IMZce-NEXT:    slli a1, a0, 6
 ; RV64IMZce-NEXT:    add a0, a1, a0
-; RV64IMZce-NEXT:    neg a0, a0
+; RV64IMZce-NEXT:    c.neg a0
 ; RV64IMZce-NEXT:    ret
   %1 = mul i64 %a, -65
   ret i64 %1
