@@ -28,6 +28,9 @@ public:
     optimisItionMap[RISCV::MUL] = RISCV::C_MUL;
     optimisItionMap[RISCV::ANDI] = RISCV::C_ZEXT_B;
     optimisItionMap[RISCV::ADDUW] = RISCV::C_ZEXT_W;
+    // zcea
+    optimisItionMap[RISCV::XORI] = RISCV::C_NOT;
+    optimisItionMap[RISCV::SUB] = RISCV::C_NEG;
     //zceb
     optimisItionMap[RISCV::LBU] = RISCV::C_LBU;
     optimisItionMap[RISCV::LHU] = RISCV::C_LHU;
@@ -39,6 +42,9 @@ public:
 
   bool runOnMachineFunction(MachineFunction &MF) override;
   bool optimiseZceeInstruction(MachineBasicBlock &MBB,
+                               MachineBasicBlock::iterator MBBI,
+                               MachineBasicBlock::iterator &NextMBBI);
+  bool optimiseZceaInstruction(MachineBasicBlock &MBB,
                                MachineBasicBlock::iterator MBBI,
                                MachineBasicBlock::iterator &NextMBBI);
   bool optimiseZcebInstruction(MachineBasicBlock &MBB,
@@ -74,6 +80,11 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
       case RISCV::ADDUW: // zext.w
         if (STI->hasStdExtZcee())
           Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
+        break;
+      case RISCV::XORI: // c.not
+      case RISCV::SUB:  // c.neg
+        if (STI->hasStdExtZcea())
+          Modified |= optimiseZceaInstruction(MBB, MBBI, NMBBI);
         break;
       case RISCV::LBU:
       case RISCV::LHU:
@@ -157,6 +168,51 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(
     }
     break;
   }
+  return Modified;
+}
+
+bool RISCVZceInstOpt::optimiseZceaInstruction(
+    MachineBasicBlock &MBB, MachineBasicBlock::iterator MBBI,
+    MachineBasicBlock::iterator &NextMBBI) {
+  
+  bool Modified = false;
+  switch (MBBI->getOpcode()) {
+  default:
+    break;
+  case RISCV::XORI:
+    if (!STI->isRV32E()) {
+      Register DestReg = MBBI->getOperand(0).getReg();
+      Register SourceReg = MBBI->getOperand(1).getReg();
+      int64_t imm = MBBI->getOperand(2).getImm();
+      DebugLoc DL = MBBI->getDebugLoc();
+      if(imm == -1 && 
+          (DestReg == SourceReg) &&
+          (SourceReg >= RISCV::X8 && SourceReg <= RISCV::X15)){
+        BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
+            .addReg(SourceReg);
+        MBBI->eraseFromParent();
+        Modified = true;
+      }
+    }
+    break;
+  case RISCV::SUB:
+    if (!STI->isRV32E()) {
+      Register DestReg = MBBI->getOperand(0).getReg();
+      Register SourceX0 = MBBI->getOperand(1).getReg();
+      Register SourceReg = MBBI->getOperand(2).getReg();
+      DebugLoc DL = MBBI->getDebugLoc();
+      if ((SourceX0 == RISCV::X0) && 
+          (DestReg == SourceReg) &&
+          (SourceReg >= RISCV::X8 && SourceReg <= RISCV::X15)) {
+        BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
+            .addReg(SourceReg);
+        MBBI->eraseFromParent();
+        Modified = true;
+      }
+    }
+    break;
+  }
+
   return Modified;
 }
 
