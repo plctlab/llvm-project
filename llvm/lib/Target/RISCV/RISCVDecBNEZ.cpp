@@ -73,7 +73,7 @@ bool RISCVDecbnez::runOnMachineFunction(MachineFunction &MF) {
   bool Modified = false;
 
   if (!STI->hasStdExtZce()){
-    LLVM_DEBUG(dbgs() << "no hasStdExtZce. returning \n");
+    //LLVM_DEBUG(dbgs() << "no hasStdExtZce. returning \n");
     return Modified;
   }
   
