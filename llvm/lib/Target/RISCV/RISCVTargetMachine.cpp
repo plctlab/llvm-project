@@ -207,6 +207,7 @@ void RISCVPassConfig::addPreEmitPass2() {
   // progress in the LR/SC block.
   addPass(createRISCVExpandAtomicPseudoPass());
   addPass(createRISCVZceInstOptPass());
+  addPass(createRISCVDecbnezPass());
 }
 
 void RISCVPassConfig::addPreRegAlloc() {
