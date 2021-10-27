@@ -209,8 +209,11 @@ bool llvm::lowerRISCVMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
                                           AsmPrinter &AP) {
   if (lowerRISCVVMachineInstrToMCInst(MI, OutMI))
     return false;
-
+ 
   OutMI.setOpcode(MI->getOpcode());
+  //if (MI->getOpcode() == RISCV::BEQ && MI->getOperand(1).isImm()) {
+  //  OutMI.setOpcode(RISCV::BEQI);
+ // }
 
   for (const MachineOperand &MO : MI->operands()) {
     MCOperand MCOp;

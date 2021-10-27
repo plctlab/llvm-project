@@ -743,6 +743,22 @@ RISCVCC::CondCode RISCVCC::getOppositeBranchCondition(RISCVCC::CondCode CC) {
     return RISCVCC::COND_GEU;
   case RISCVCC::COND_GEU:
     return RISCVCC::COND_LTU;
+  case RISCV::BEQI:
+    return RISCV::BNEI;
+  case RISCV::BEQ:
+    return RISCV::BNE;
+  case RISCV::BNEI:
+    return RISCV::BEQI;
+  case RISCV::BNE:
+    return RISCV::BEQ;
+  case RISCV::BLT:
+    return RISCV::BGE;
+  case RISCV::BGE:
+    return RISCV::BLT;
+  case RISCV::BLTU:
+    return RISCV::BGEU;
+  case RISCV::BGEU:
+    return RISCV::BLTU;
   }
 }
 
@@ -947,7 +963,9 @@ bool RISCVInstrInfo::isBranchOffsetInRange(unsigned BranchOp,
   switch (BranchOp) {
   default:
     llvm_unreachable("Unexpected opcode!");
+  case RISCV::BEQI:
   case RISCV::BEQ:
+  case RISCV::BNEI:
   case RISCV::BNE:
   case RISCV::BLT:
   case RISCV::BGE:
