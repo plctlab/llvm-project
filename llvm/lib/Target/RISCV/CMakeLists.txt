@@ -41,6 +41,7 @@ add_llvm_target(RISCVCodeGen
   RISCVTargetTransformInfo.cpp
   RISCVZceInstOpt.cpp
   RISCVOptimizePushPop.cpp
+  RISCVDecBNEZ.cpp
 
   LINK_COMPONENTS
   Analysis
