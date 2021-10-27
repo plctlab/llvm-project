@@ -1,0 +1,322 @@
+; RUN: llc -mtriple=riscv32 -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefix=RV32I %s
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcea -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefix=RV32IZce %s
+; RUN: llc -mtriple=riscv64 -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefix=RV64I %s
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcea -verify-machineinstrs < %s \
+; RUN:   | FileCheck -check-prefix=RV64IZce %s
+
+; NOTE: /home/wuxinlong/workspace/llvm-project/build/bin/llc -mtriple=riscv32 -mattr=+experimental-zcea -verify-machineinstrs < /home/wuxinlong/workspace/llvm-project/llvm/test/CodeGen/RISCV/c_not.ll --print-after-all -o test.ll
+
+declare i8 @llvm.cttz.i8(i8, i1)
+
+define i8 @test_cttz_i8(i8 %a) nounwind {
+; RV32I-LABEL: test_cttz_i8:
+; RV32I:       # %bb.0:
+; RV32I-NEXT:    addi sp, sp, -16
+; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    andi a1, a0, 255
+; RV32I-NEXT:    beqz a1, .LBB0_2
+; RV32I-NEXT:  # %bb.1: # %cond.false
+; RV32I-NEXT:    addi a1, a0, -1
+; RV32I-NEXT:    not a0, a0
+; RV32I-NEXT:    and a0, a0, a1
+; RV32I-NEXT:    srli a1, a0, 1
+; RV32I-NEXT:    lui a2, 349525
+; RV32I-NEXT:    addi a2, a2, 1365
+; RV32I-NEXT:    and a1, a1, a2
+; RV32I-NEXT:    sub a0, a0, a1
+; RV32I-NEXT:    lui a1, 209715
+; RV32I-NEXT:    addi a1, a1, 819
+; RV32I-NEXT:    and a2, a0, a1
+; RV32I-NEXT:    srli a0, a0, 2
+; RV32I-NEXT:    and a0, a0, a1
+; RV32I-NEXT:    add a0, a2, a0
+; RV32I-NEXT:    srli a1, a0, 4
+; RV32I-NEXT:    add a0, a0, a1
+; RV32I-NEXT:    lui a1, 61681
+; RV32I-NEXT:    addi a1, a1, -241
+; RV32I-NEXT:    and a0, a0, a1
+; RV32I-NEXT:    lui a1, 4112
+; RV32I-NEXT:    addi a1, a1, 257
+; RV32I-NEXT:    call __mulsi3@plt
+; RV32I-NEXT:    srli a0, a0, 24
+; RV32I-NEXT:    j .LBB0_3
+; RV32I-NEXT:  .LBB0_2:
+; RV32I-NEXT:    addi a0, zero, 8
+; RV32I-NEXT:  .LBB0_3: # %cond.end
+; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    addi sp, sp, 16
+; RV32I-NEXT:    ret
+;
+; RV32IZce-LABEL: test_cttz_i8:
+; RV32IZce:       # %bb.0:
+; RV32IZce-NEXT:    push	{ra}, {}, -16
+; RV32IZce-NEXT:    andi	a1, a0, 255
+; RV32IZce-NEXT:    beqz a1, .LBB0_2
+; RV32IZce-NEXT:  # %bb.1: # %cond.false
+; RV32IZce-NEXT:    addi a1, a0, -1
+; RV32IZce-NEXT:    c.not a0
+; RV32IZce-NEXT:    and a0, a0, a1
+; RV32IZce-NEXT:    srli a1, a0, 1
+; RV32IZce-NEXT:    lui a2, 349525
+; RV32IZce-NEXT:    addi a2, a2, 1365
+; RV32IZce-NEXT:    and a1, a1, a2
+; RV32IZce-NEXT:    sub a0, a0, a1
+; RV32IZce-NEXT:    lui a1, 209715
+; RV32IZce-NEXT:    addi a1, a1, 819
+; RV32IZce-NEXT:    and a2, a0, a1
+; RV32IZce-NEXT:    srli a0, a0, 2
+; RV32IZce-NEXT:    and a0, a0, a1
+; RV32IZce-NEXT:    add a0, a2, a0
+; RV32IZce-NEXT:    srli a1, a0, 4
+; RV32IZce-NEXT:    add a0, a0, a1
+; RV32IZce-NEXT:    lui a1, 61681
+; RV32IZce-NEXT:    addi a1, a1, -241
+; RV32IZce-NEXT:    and a0, a0, a1
+; RV32IZce-NEXT:    lui a1, 4112
+; RV32IZce-NEXT:    addi a1, a1, 257
+; RV32IZce-NEXT:    call __mulsi3@plt
+; RV32IZce-NEXT:    srli a0, a0, 24
+; RV32IZce-NEXT:    popret	{ra}, {}, 16
+; RV32IZce-NEXT:  .LBB0_2:
+; RV32IZce-NEXT:    addi	a0, zero, 8
+; RV32IZce-NEXT:    popret	{ra}, {}, 16
+;
+; RV64I-LABEL: test_cttz_i8:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    addi sp, sp, -16
+; RV64I-NEXT:    sd ra, 8(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    andi a1, a0, 255
+; RV64I-NEXT:    beqz a1, .LBB0_2
+; RV64I-NEXT:  # %bb.1: # %cond.false
+; RV64I-NEXT:    addi a1, a0, -1
+; RV64I-NEXT:    not a0, a0
+; RV64I-NEXT:    and a0, a0, a1
+; RV64I-NEXT:    srli a1, a0, 1
+; RV64I-NEXT:    lui a2, 21845
+; RV64I-NEXT:    addiw a2, a2, 1365
+; RV64I-NEXT:    slli a2, a2, 12
+; RV64I-NEXT:    addi a2, a2, 1365
+; RV64I-NEXT:    slli a2, a2, 12
+; RV64I-NEXT:    addi a2, a2, 1365
+; RV64I-NEXT:    slli a2, a2, 12
+; RV64I-NEXT:    addi a2, a2, 1365
+; RV64I-NEXT:    and a1, a1, a2
+; RV64I-NEXT:    sub a0, a0, a1
+; RV64I-NEXT:    lui a1, 13107
+; RV64I-NEXT:    addiw a1, a1, 819
+; RV64I-NEXT:    slli a1, a1, 12
+; RV64I-NEXT:    addi a1, a1, 819
+; RV64I-NEXT:    slli a1, a1, 12
+; RV64I-NEXT:    addi a1, a1, 819
+; RV64I-NEXT:    slli a1, a1, 12
+; RV64I-NEXT:    addi a1, a1, 819
+; RV64I-NEXT:    and a2, a0, a1
+; RV64I-NEXT:    srli a0, a0, 2
+; RV64I-NEXT:    and a0, a0, a1
+; RV64I-NEXT:    add a0, a2, a0
+; RV64I-NEXT:    srli a1, a0, 4
+; RV64I-NEXT:    add a0, a0, a1
+; RV64I-NEXT:    lui a1, 3855
+; RV64I-NEXT:    addiw a1, a1, 241
+; RV64I-NEXT:    slli a1, a1, 12
+; RV64I-NEXT:    addi a1, a1, -241
+; RV64I-NEXT:    slli a1, a1, 12
+; RV64I-NEXT:    addi a1, a1, 241
+; RV64I-NEXT:    slli a1, a1, 12
+; RV64I-NEXT:    addi a1, a1, -241
+; RV64I-NEXT:    and a0, a0, a1
+; RV64I-NEXT:    lui a1, 4112
+; RV64I-NEXT:    addiw a1, a1, 257
+; RV64I-NEXT:    slli a1, a1, 16
+; RV64I-NEXT:    addi a1, a1, 257
+; RV64I-NEXT:    slli a1, a1, 16
+; RV64I-NEXT:    addi a1, a1, 257
+; RV64I-NEXT:    call __muldi3@plt
+; RV64I-NEXT:    srli a0, a0, 56
+; RV64I-NEXT:    j .LBB0_3
+; RV64I-NEXT:  .LBB0_2:
+; RV64I-NEXT:    addi a0, zero, 8
+; RV64I-NEXT:  .LBB0_3: # %cond.end
+; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    addi sp, sp, 16
+; RV64I-NEXT:    ret
+;
+; RV64IZce-LABEL: test_cttz_i8:
+; RV64IZce:       # %bb.0:
+; RV64IZce-NEXT:    push	{ra}, {}, -16
+; RV64IZce-NEXT:    andi a1, a0, 255
+; RV64IZce-NEXT:    beqz a1, .LBB0_2
+; RV64IZce-NEXT:  # %bb.1: # %cond.false
+; RV64IZce-NEXT:    addi a1, a0, -1
+; RV64IZce-NEXT:    c.not a0
+; RV64IZce-NEXT:    and a0, a0, a1
+; RV64IZce-NEXT:    srli a1, a0, 1
+; RV64IZce-NEXT:    lui a2, 21845
+; RV64IZce-NEXT:    addiw a2, a2, 1365
+; RV64IZce-NEXT:    slli a2, a2, 12
+; RV64IZce-NEXT:    addi a2, a2, 1365
+; RV64IZce-NEXT:    slli a2, a2, 12
+; RV64IZce-NEXT:    addi a2, a2, 1365
+; RV64IZce-NEXT:    slli a2, a2, 12
+; RV64IZce-NEXT:    addi a2, a2, 1365
+; RV64IZce-NEXT:    and a1, a1, a2
+; RV64IZce-NEXT:    sub a0, a0, a1
+; RV64IZce-NEXT:    lui a1, 13107
+; RV64IZce-NEXT:    addiw a1, a1, 819
+; RV64IZce-NEXT:    slli a1, a1, 12
+; RV64IZce-NEXT:    addi a1, a1, 819
+; RV64IZce-NEXT:    slli a1, a1, 12
+; RV64IZce-NEXT:    addi a1, a1, 819
+; RV64IZce-NEXT:    slli a1, a1, 12
+; RV64IZce-NEXT:    addi a1, a1, 819
+; RV64IZce-NEXT:    and a2, a0, a1
+; RV64IZce-NEXT:    srli a0, a0, 2
+; RV64IZce-NEXT:    and a0, a0, a1
+; RV64IZce-NEXT:    add a0, a2, a0
+; RV64IZce-NEXT:    srli a1, a0, 4
+; RV64IZce-NEXT:    add a0, a0, a1
+; RV64IZce-NEXT:    lui a1, 3855
+; RV64IZce-NEXT:    addiw a1, a1, 241
+; RV64IZce-NEXT:    slli a1, a1, 12
+; RV64IZce-NEXT:    addi a1, a1, -241
+; RV64IZce-NEXT:    slli a1, a1, 12
+; RV64IZce-NEXT:    addi a1, a1, 241
+; RV64IZce-NEXT:    slli a1, a1, 12
+; RV64IZce-NEXT:    addi a1, a1, -241
+; RV64IZce-NEXT:    and a0, a0, a1
+; RV64IZce-NEXT:    lui a1, 4112
+; RV64IZce-NEXT:    addiw a1, a1, 257
+; RV64IZce-NEXT:    slli a1, a1, 16
+; RV64IZce-NEXT:    addi a1, a1, 257
+; RV64IZce-NEXT:    slli a1, a1, 16
+; RV64IZce-NEXT:    addi a1, a1, 257
+; RV64IZce-NEXT:    call __muldi3@plt
+; RV64IZce-NEXT:    srli a0, a0, 56
+; RV64IZce-NEXT:    popret	{ra}, {}, 16
+; RV64IZce-NEXT:  .LBB0_2:
+; RV64IZce-NEXT:    addi	a0, zero, 8
+; RV64IZce-NEXT:    popret	{ra}, {}, 16
+  %tmp = call i8 @llvm.cttz.i8(i8 %a, i1 false)
+  ret i8 %tmp
+}
+
+declare i128 @callee_small_scalar_ret()
+
+define i64 @caller_small_scalar_ret() nounwind {
+; RV64I-LABEL: caller_small_scalar_ret:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    addi sp, sp, -16
+; RV64I-NEXT:    sd ra, 8(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    call callee_small_scalar_ret@plt
+; RV64I-NEXT:    not a1, a1
+; RV64I-NEXT:    xori a0, a0, -2
+; RV64I-NEXT:    or a0, a0, a1
+; RV64I-NEXT:    seqz a0, a0
+; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    addi sp, sp, 16
+; RV64I-NEXT:    ret
+;
+; RV64IZce-LABEL: caller_small_scalar_ret:
+; RV64IZce:       # %bb.0:
+; RV64IZce-NEXT:    push	{ra}, {}, -16
+; RV64IZce-NEXT:    call callee_small_scalar_ret@plt
+; RV64IZce-NEXT:    c.not a1
+; RV64IZce-NEXT:    xori a0, a0, -2
+; RV64IZce-NEXT:    or a0, a0, a1
+; RV64IZce-NEXT:    seqz a0, a0
+; RV64IZce-NEXT:    popret	{ra}, {}, 16
+  %1 = call i128 @callee_small_scalar_ret()
+  %2 = icmp eq i128 -2, %1
+  %3 = zext i1 %2 to i64
+  ret i64 %3
+}
+
+define i32 @andn_i32(i32 %a, i32 %b) nounwind {
+; RV32I-LABEL: andn_i32:
+; RV32I:       # %bb.0:
+; RV32I-NEXT:    not a1, a1
+; RV32I-NEXT:    and a0, a1, a0
+; RV32I-NEXT:    ret
+;
+; RV32IZce-LABEL: andn_i32:
+; RV32IZce:       # %bb.0:
+; RV32IZce-NEXT:    c.not a1
+; RV32IZce-NEXT:    and a0, a1, a0
+; RV32IZce-NEXT:    ret
+;
+; RV64I-LABEL: andn_i32:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    not a1, a1
+; RV64I-NEXT:    and a0, a1, a0
+; RV64I-NEXT:    ret
+;
+; RV64IZce-LABEL: andn_i32:
+; RV64IZce:       # %bb.0:
+; RV64IZce-NEXT:    c.not a1
+; RV64IZce-NEXT:    and a0, a1, a0
+; RV64IZce-NEXT:    ret
+  %neg = xor i32 %b, -1
+  %and = and i32 %neg, %a
+  ret i32 %and
+}
+
+define i32 @orn_i32(i32 %a, i32 %b) nounwind {
+; RV32I-LABEL: orn_i32:
+; RV32I:       # %bb.0:
+; RV32I-NEXT:    not a1, a1
+; RV32I-NEXT:    or a0, a1, a0
+; RV32I-NEXT:    ret
+;
+; RV32IZce-LABEL: orn_i32:
+; RV32IZce:       # %bb.0:
+; RV32IZce-NEXT:    c.not a1
+; RV32IZce-NEXT:    or a0, a1, a0
+; RV32IZce-NEXT:    ret
+;
+; RV64I-LABEL: orn_i32:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    not a1, a1
+; RV64I-NEXT:    or a0, a1, a0
+; RV64I-NEXT:    ret
+;
+; RV64IZce-LABEL: orn_i32:
+; RV64IZce:       # %bb.0:
+; RV64IZce-NEXT:    c.not a1
+; RV64IZce-NEXT:    or a0, a1, a0
+; RV64IZce-NEXT:    ret
+  %neg = xor i32 %b, -1
+  %or = or i32 %neg, %a
+  ret i32 %or
+}
+
+define i32 @xnor_i32(i32 %a, i32 %b) nounwind {
+; RV32I-LABEL: xnor_i32:
+; RV32I:       # %bb.0:
+; RV32I-NEXT:    xor a0, a0, a1
+; RV32I-NEXT:    not a0, a0
+; RV32I-NEXT:    ret
+;
+; RV32IZce-LABEL: xnor_i32:
+; RV32IZce:       # %bb.0:
+; RV32IZce-NEXT:    xor a0, a0, a1
+; RV32IZce-NEXT:    c.not a0
+; RV32IZce-NEXT:    ret
+;
+; RV64I-LABEL: xnor_i32:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    xor a0, a0, a1
+; RV64I-NEXT:    not a0, a0
+; RV64I-NEXT:    ret
+;
+; RV64IZce-LABEL: xnor_i32:
+; RV64IZce:       # %bb.0:
+; RV64IZce-NEXT:    xor a0, a0, a1
+; RV64IZce-NEXT:    c.not a0
+; RV64IZce-NEXT:    ret
+  %neg = xor i32 %a, -1
+  %xor = xor i32 %neg, %b
+  ret i32 %xor
+}
