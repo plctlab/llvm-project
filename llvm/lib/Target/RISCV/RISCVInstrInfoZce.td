@@ -404,6 +404,18 @@ let Predicates = [EnableZceBnei] in {
 def BNEI : Branch_rii<0b011, "bnei">;
 }
 
+class BccSwapPat<CondCode Cond, RVInstB Inst>
+    : Pat<(riscv_brcc GPR:$rs1, uimm5:$uimm, Cond, bb:$imm12),
+          (Inst GPR:$rs1, uimm5:$uimm, simm13_lsb0:$imm12)>;
+
+// Condition codes that don't have matching RISC-V branch instructions, but
+// are trivially supported by swapping the two input operands
+let Predicates = [EnableZceBnei] in
+def : BccSwapPat<SETEQ, BEQI>;
+
+let Predicates = [EnableZceBnei] in 
+def : BccSwapPat<SETNE, BNEI>;
+
 let Predicates = [EnableZceTbljal] in {
 def TBLJALM : RVInstZceTableJump_i<0b010, "tbljalm", tbljalm_uimm8>, Sched<[]>;
 def TBLJ    : RVInstZceTableJump_i<0b010, "tblj", tblj_uimm8>, Sched<[]>;
@@ -695,3 +707,5 @@ def : CompressPat<(POP rlist3:$slist, 0, spimm1:$spimm),
 def : CompressPat<(POPRET rlist3:$slist, retval1:$ret, spimm0_5:$spimm),
                   (C_POPRET rlist3:$slist, retval1:$ret, spimm0_5:$spimm)>;
 } //Predicates = [HasStdExtZcea]
+
+

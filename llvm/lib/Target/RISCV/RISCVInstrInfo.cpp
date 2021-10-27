@@ -481,8 +481,12 @@ static unsigned getOppositeBranchOpcode(int Opc) {
   switch (Opc) {
   default:
     llvm_unreachable("Unrecognized conditional branch");
+  case RISCV::BEQI:
+    return RISCV::BNEI;
   case RISCV::BEQ:
     return RISCV::BNE;
+  case RISCV::BNEI:
+    return RISCV::BEQI;
   case RISCV::BNE:
     return RISCV::BEQ;
   case RISCV::BLT:
@@ -695,7 +699,9 @@ bool RISCVInstrInfo::isBranchOffsetInRange(unsigned BranchOp,
   switch (BranchOp) {
   default:
     llvm_unreachable("Unexpected opcode!");
+  case RISCV::BEQI:
   case RISCV::BEQ:
+  case RISCV::BNEI:
   case RISCV::BNE:
   case RISCV::BLT:
   case RISCV::BGE:
