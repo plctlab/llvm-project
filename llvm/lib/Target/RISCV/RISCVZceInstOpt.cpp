@@ -25,7 +25,7 @@ public:
     optimisItionMap[RISCV::ZEXTH_RV64] = RISCV::C_ZEXT_H;
     optimisItionMap[RISCV::SEXTB] = RISCV::C_SEXT_B;
     optimisItionMap[RISCV::SEXTH] = RISCV::C_SEXT_H;
-    optimisItionMap[RISCV::MUL] = RISCV::C_MUL;
+    // optimisItionMap[RISCV::MUL] = RISCV::C_MUL;
     optimisItionMap[RISCV::ANDI] = RISCV::C_ZEXT_B;
     optimisItionMap[RISCV::ADDUW] = RISCV::C_ZEXT_W;
     // zcea
@@ -61,7 +61,7 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
   bool Modified = false;
 
   if (!(STI->hasStdExtZce() || STI->hasStdExtZcee() || STI->hasStdExtZcea() ||
-        STI->hasStdExtZceb()))
+        STI->hasStdExtZceb()) || STI->enableZceMuli())
     return Modified;
 
   for (auto &MBB : MF) {
@@ -71,11 +71,16 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
       switch (MBBI->getOpcode()) {
       default:
         break;
+      case RISCV::MUL:
+        if (STI->hasStdExtZcee())
+          Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
+        if (!Modified && STI->enableZceMuli())
+          Modified |= optimiseZceaInstruction(MBB, MBBI, NMBBI);
+        break;
       case RISCV::ZEXTH_RV32:
       case RISCV::ZEXTH_RV64:
       case RISCV::SEXTB:
       case RISCV::SEXTH:
-      case RISCV::MUL:
       case RISCV::ANDI:  // zext.b
       case RISCV::ADDUW: // zext.w
         if (STI->hasStdExtZcee())
@@ -133,7 +138,7 @@ bool RISCVZceInstOpt::optimiseZceeInstruction(
     DebugLoc DL = MBBI->getDebugLoc();
     if (SourceReg1 == DestReg &&
         (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)) {
-      BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
+      BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_MUL), DestReg)
           .addReg(SourceReg1)
           .addReg(SourceReg2);
       MBBI->eraseFromParent();
@@ -211,6 +216,34 @@ bool RISCVZceInstOpt::optimiseZceaInstruction(
       }
     }
     break;
+    case RISCV::MUL:
+      MachineBasicBlock::iterator PMBBI = std::prev(MBBI);
+      Register DestReg = MBBI->getOperand(0).getReg();
+      Register SourceReg1 = MBBI->getOperand(1).getReg();
+      Register SourceReg2 = MBBI->getOperand(2).getReg();
+      DebugLoc DL = MBBI->getDebugLoc();
+      do{
+        Register Reg = PMBBI->getOperand(0).getReg();
+        if(Reg == SourceReg1){
+          BuildMI(MBB, MBBI, DL, TII->get(RISCV::MULI), DestReg)
+            .addReg(SourceReg2)
+            .addImm(PMBBI->getOperand(2).getImm());
+          PMBBI->eraseFromParent();
+          MBBI->eraseFromParent();
+          Modified = true;
+          break;
+        }
+        if(Reg == SourceReg2){
+          BuildMI(MBB, MBBI, DL, TII->get(RISCV::MULI), DestReg)
+            .addReg(SourceReg1)
+            .addImm(PMBBI->getOperand(2).getImm());
+          PMBBI->eraseFromParent();
+          MBBI->eraseFromParent();
+          Modified = true;
+          break;
+        }
+      }while(MBB.begin()==PMBBI--);
+      break;
   }
 
   return Modified;
