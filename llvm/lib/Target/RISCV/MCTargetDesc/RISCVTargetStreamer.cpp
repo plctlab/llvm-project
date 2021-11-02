@@ -100,6 +100,8 @@ void RISCVTargetStreamer::emitTargetAttributes(const MCSubtargetInfo &STI) {
     Arch += "_zceb0p50";
   if (STI.hasFeature(RISCV::FeatureExtZcee))
     Arch += "_zcee0p50";
+  if (STI.hasFeature(RISCV::FeatureZceMuli))
+    Arch += "_zceMuli";
   emitTextAttribute(RISCVAttrs::ARCH, Arch);
 }
 
