@@ -395,6 +395,13 @@ def MULI : RVInstI<0b001, RISCVOpcode<0b0001011>, (outs GPR:$rd),
                   (ins GPR:$rs1, simm12:$imm12), "muli", "$rd, $rs1, $imm12">,
            Sched<[]>;
 
+let Predicates = [EnableZceMuli] in
+def : Pat<(mul GPR:$rs1, simm12:$imm12),
+          (MULI GPR:$rs1, simm12:$imm12)>;
+
+// def : Pat<(mul GPR:$rs1, (ld GPR:$rs2)),
+//           (MULI GPR:$rs1, GPR:$rs2)>;
+
 // 6.5 BEQI, BNEI
 let Predicates = [EnableZceBeqi] in {
 def BEQI : Branch_rii<0b010, "beqi">;
