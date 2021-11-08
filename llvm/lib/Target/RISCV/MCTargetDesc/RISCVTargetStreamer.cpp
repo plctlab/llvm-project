@@ -100,14 +100,58 @@ void RISCVTargetStreamer::emitTargetAttributes(const MCSubtargetInfo &STI) {
     Arch += "_zceb0p50";
   if (STI.hasFeature(RISCV::FeatureExtZcee))
     Arch += "_zcee0p50";
-  if (STI.hasFeature(RISCV::FeatureZceMuli))
-    Arch += "_zceMuli";
-  if (STI.hasFeature(RISCV::FeatureZceCMul))
-    Arch += "_zceCmul";
-  if (STI.hasFeature(RISCV::FeatureZceCNeg))
-    Arch += "_zceCNeg";
-  if (STI.hasFeature(RISCV::FeatureZcePushPop))
-    Arch += "_zcePushPop";
+  // Handle Zcee swichs
+  if (!STI.hasFeature(RISCV::FeatureExtZcee)){
+    if (STI.hasFeature(RISCV::FeatureZceCMul))
+      Arch += "_zceCmul";
+    if (STI.hasFeature(RISCV::FeatureZceSext))
+      Arch += "_zceSext";
+    if (STI.hasFeature(RISCV::FeatureZceZext))
+      Arch += "_zceZext";
+  }
+  // Handle Zcea swichs
+  if (!STI.hasFeature(RISCV::FeatureExtZcea)){
+    if (STI.hasFeature(RISCV::FeatureZceCNot))
+      Arch += "_zceCNot";
+    if (STI.hasFeature(RISCV::FeatureZceCNeg))
+      Arch += "_zceCNeg";
+    if (STI.hasFeature(RISCV::FeatureZceCMva01s07))
+      Arch += "_zceCMva01s07";
+    if (STI.hasFeature(RISCV::FeatureZceMuli))
+      Arch += "_zceMuli";
+    if (STI.hasFeature(RISCV::FeatureZceBeqi))
+      Arch += "_zceBeqi";
+    if (STI.hasFeature(RISCV::FeatureZceBnei))
+      Arch += "_zceBnei";
+    if (STI.hasFeature(RISCV::FeatureZceTbljal))
+      Arch += "_zceTbljal";
+    if (STI.hasFeature(RISCV::FeatureZcePushPop))
+      Arch += "_zcePushPop";
+    if (STI.hasFeature(RISCV::FeatureZcePushEPopE))
+      Arch += "_zcePushEPopE";
+    if (STI.hasFeature(RISCV::FeatureZceCPushCPop))
+      Arch += "_zceCPushCPop";
+    if (STI.hasFeature(RISCV::FeatureZcePushPop))
+      Arch += "_zceCPushECPopE";
+    if (STI.hasFeature(RISCV::FeatureZceCPushECPopE))
+      Arch += "_zcePushPop";
+  }
+  // Handle Zceb swichs
+  if (!STI.hasFeature(RISCV::FeatureExtZceb)){
+    if (STI.hasFeature(RISCV::FeatureZceCDecbnez))
+      Arch += "_zceCDecbnez";
+    if (STI.hasFeature(RISCV::FeatureZceDecbnez))
+      Arch += "_zceDecbnez";
+    if (STI.hasFeature(RISCV::FeatureZceLsgp))
+      Arch += "_zceLsgp";
+    if (STI.hasFeature(RISCV::FeatureZceClbh))
+      Arch += "_zceClbh";
+    if (STI.hasFeature(RISCV::FeatureZceClbhu))
+      Arch += "_zceClbhu";
+    if (STI.hasFeature(RISCV::FeatureZceCsbh))
+      Arch += "_zceCsbh";
+  }
+
   emitTextAttribute(RISCVAttrs::ARCH, Arch);
 }
 

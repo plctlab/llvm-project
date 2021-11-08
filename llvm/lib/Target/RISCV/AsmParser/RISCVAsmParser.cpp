@@ -2511,6 +2511,27 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
     clearFeatureBits(RISCV::FeatureExtZcea, "experimental-zcea");
     clearFeatureBits(RISCV::FeatureExtZceb, "experimental-zceb");
     clearFeatureBits(RISCV::FeatureExtZcee, "experimental-zcee");
+    // clear zce switchs 
+    clearFeatureBits(RISCV::FeatureZceCPushCPop, "zce-cpush-cpop");
+    clearFeatureBits(RISCV::FeatureZcePushPop, "zce-push-pop");
+    clearFeatureBits(RISCV::FeatureZceCPushECPopE, "zce-cpushe-cpope");
+    clearFeatureBits(RISCV::FeatureZcePushEPopE, "zce-pushe-pope");
+    clearFeatureBits(RISCV::FeatureZceTbljal, "zce-tbljal");
+    clearFeatureBits(RISCV::FeatureZceClbhu, "zce-clbhu");
+    clearFeatureBits(RISCV::FeatureZceClbh, "zce-clbh");
+    clearFeatureBits(RISCV::FeatureZceCsbh, "zce-csbh");
+    clearFeatureBits(RISCV::FeatureZceLsgp, "zce-lsgp");
+    clearFeatureBits(RISCV::FeatureZceMuli, "zce-muli");
+    clearFeatureBits(RISCV::FeatureZceCMul, "zce-cmul");
+    clearFeatureBits(RISCV::FeatureZceSext, "zce-sext");
+    clearFeatureBits(RISCV::FeatureZceZext, "zce-zext");
+    clearFeatureBits(RISCV::FeatureZceBeqi, "zce-beqi");
+    clearFeatureBits(RISCV::FeatureZceBnei, "zce-bnei");
+    clearFeatureBits(RISCV::FeatureZceCNot, "zce-cnot");
+    clearFeatureBits(RISCV::FeatureZceCNeg, "zce-cneg");
+    clearFeatureBits(RISCV::FeatureZceCMva01s07, "zce-cmva01s07");
+    clearFeatureBits(RISCV::FeatureZceCDecbnez, "zce-cdecbnez");
+    clearFeatureBits(RISCV::FeatureZceDecbnez, "zce-decbnez");
 
     while (!Arch.empty()) {
       bool DropFirst = true;
@@ -2579,11 +2600,57 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
           setFeatureBits(RISCV::FeatureExtZceb, "experimental-zceb");
         else if (Ext == "zcee")
           setFeatureBits(RISCV::FeatureExtZcee, "experimental-zcee");
+        // Handle zce swichs
+        else if (Ext == "zceCPushCPop")
+          setFeatureBits(RISCV::FeatureZceCPushCPop, "zce-cpush-cpop");
+        else if (Ext == "zcePushPop")
+          setFeatureBits(RISCV::FeatureZcePushPop, "zce-push-pop");
+        else if (Ext == "zceCPushECPopE")
+          setFeatureBits(RISCV::FeatureZceCPushECPopE, "zce-cpushe-cpope");
+        else if (Ext == "zcePushEPopE")
+          setFeatureBits(RISCV::FeatureZcePushEPopE, "zce-pushe-pope");
+        else if (Ext == "zceTbljal")
+          setFeatureBits(RISCV::FeatureZceTbljal, "zce-tbljal");
+        else if (Ext == "zceClbhu")
+          setFeatureBits(RISCV::FeatureZceClbhu, "zce-clbhu");
+        else if (Ext == "zceClbh")
+          setFeatureBits(RISCV::FeatureZceClbh, "zce-clbh");
+        else if (Ext == "zceCsbh")
+          setFeatureBits(RISCV::FeatureZceCsbh, "zce-csbh");
+        else if (Ext == "zceLsgp")
+          setFeatureBits(RISCV::FeatureZceLsgp, "zce-lsgp");
+        else if (Ext == "zceMuli")
+          setFeatureBits(RISCV::FeatureZceMuli, "zce-muli");
+        else if (Ext == "zceCmul")
+          setFeatureBits(RISCV::FeatureZceCMul, "zce-cmul");
+        else if (Ext == "zceSext")
+          setFeatureBits(RISCV::FeatureZceSext, "zce-sext");
+        else if (Ext == "zceZext")
+          setFeatureBits(RISCV::FeatureZceZext, "zce-zext");
+        else if (Ext == "zceBeqi")
+          setFeatureBits(RISCV::FeatureZceBeqi, "zce-beqi");
+        else if (Ext == "zceBnei")
+          setFeatureBits(RISCV::FeatureZceBnei, "zce-bnei");
+        else if (Ext == "zceCNot")
+          setFeatureBits(RISCV::FeatureZceCNot, "zce-cnot");
+        else if (Ext == "zceCNeg")
+          setFeatureBits(RISCV::FeatureZceCNeg, "zce-cneg");
+        //
+        else if (Ext == "zceCMva")
+          setFeatureBits(RISCV::FeatureZceCMva01s07, "zce-cmva01s07");
+        else if (Ext == "zceCDecbnez")
+          setFeatureBits(RISCV::FeatureZceCDecbnez, "zce-cdecbnez");
+        else if (Ext == "zceDecbnez")
+          setFeatureBits(RISCV::FeatureZceDecbnez, "zce-decbnez");
 
         else
           return Error(ValueExprLoc, "bad arch string " + Ext);
         Arch = Arch.drop_until([](char c) { return ::isdigit(c) || c == '_'; });
         DropFirst = false;
+        // remove rest of CMva01s07
+        if(Ext == "zceCMva"){
+          Arch = Arch.drop_front(5);
+        }
       } else
         return Error(ValueExprLoc, "bad arch string " + Arch);
 
@@ -2662,6 +2729,55 @@ bool RISCVAsmParser::parseDirectiveAttribute() {
         formalArchStr = (Twine(formalArchStr) + "_zceb0p50").str();
       if (getFeatureBits(RISCV::FeatureExtZcee))
         formalArchStr = (Twine(formalArchStr) + "_zcee0p50").str();
+      // Handle Zcee swichs
+      if (!getFeatureBits(RISCV::FeatureExtZcee)){
+        if (getFeatureBits(RISCV::FeatureZceCMul))
+          formalArchStr = (Twine(formalArchStr) + "_zceCmul").str();
+        if (getFeatureBits(RISCV::FeatureZceSext))
+          formalArchStr = (Twine(formalArchStr) + "_zceSext").str();
+        if (getFeatureBits(RISCV::FeatureZceZext))
+          formalArchStr = (Twine(formalArchStr) + "_zceZext").str();
+      }
+      // Handle Zcea swichs
+      if (!getFeatureBits(RISCV::FeatureExtZcea)){
+        if (getFeatureBits(RISCV::FeatureZceCNot))
+          formalArchStr = (Twine(formalArchStr) + "_zceCNot").str();
+        if (getFeatureBits(RISCV::FeatureZceCNeg))
+          formalArchStr = (Twine(formalArchStr) + "_zceCNeg").str();
+        if (getFeatureBits(RISCV::FeatureZceCMva01s07))
+          formalArchStr = (Twine(formalArchStr) + "_zceCMva01s07").str();
+        if (getFeatureBits(RISCV::FeatureZceMuli))
+          formalArchStr = (Twine(formalArchStr) + "_zceMuli").str();
+        if (getFeatureBits(RISCV::FeatureZceBeqi))
+          formalArchStr = (Twine(formalArchStr) + "_zceBeqi").str();
+        if (getFeatureBits(RISCV::FeatureZceBnei))
+          formalArchStr = (Twine(formalArchStr) + "_zceBnei").str();
+        if (getFeatureBits(RISCV::FeatureZceTbljal))
+          formalArchStr = (Twine(formalArchStr) + "_zceTbljal").str();
+        if (getFeatureBits(RISCV::FeatureZcePushPop))
+          formalArchStr = (Twine(formalArchStr) + "_zcePushPop").str();
+        if (getFeatureBits(RISCV::FeatureZcePushEPopE))
+          formalArchStr = (Twine(formalArchStr) + "_zcePushEPopE").str();
+        if (getFeatureBits(RISCV::FeatureZceCPushCPop))
+          formalArchStr = (Twine(formalArchStr) + "_zceCPushCPop").str();
+        if (getFeatureBits(RISCV::FeatureZceCPushECPopE))
+          formalArchStr = (Twine(formalArchStr) + "_zceCPushECPopE").str();
+      }
+      // Handle Zceb swichs
+      if (!getFeatureBits(RISCV::FeatureExtZceb)){
+        if (getFeatureBits(RISCV::FeatureZceCDecbnez))
+          formalArchStr = (Twine(formalArchStr) + "_zceCDecbnez").str();
+        if (getFeatureBits(RISCV::FeatureZceDecbnez))
+          formalArchStr = (Twine(formalArchStr) + "_zceDecbnez").str();
+        if (getFeatureBits(RISCV::FeatureZceLsgp))
+          formalArchStr = (Twine(formalArchStr) + "_zceLsgp").str();
+        if (getFeatureBits(RISCV::FeatureZceClbh))
+          formalArchStr = (Twine(formalArchStr) + "_zceClbh").str();
+        if (getFeatureBits(RISCV::FeatureZceClbhu))
+          formalArchStr = (Twine(formalArchStr) + "_zceClbhu").str();
+        if (getFeatureBits(RISCV::FeatureZceCsbh))
+          formalArchStr = (Twine(formalArchStr) + "_zceCsbh").str();
+      }
       getTargetStreamer().emitTextAttribute(Tag, formalArchStr);
     }
   }
