@@ -3276,84 +3276,44 @@ def msmall_data_limit_EQ : Joined<["-"], "msmall-data-limit=">, Group<m_Group>,
 // RISCV Zce extension flags
 def mzce_cpush_cpop : Flag<["-"], "mzce-cpush-cpop">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.PUSH, C.POP, C.POPRET">;
-def mno_zce_cpush_cpop : Flag<["-"], "mno-zce-cpush-cpop">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.PUSH, C.POP, C.POPRET">;
 def mzce_push_pop : Flag<["-"], "mzce-push-pop">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce PUSH, POP, POPRET">;
-def mno_zce_push_pop : Flag<["-"], "mno-zce-push-pop">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce PUSH, POP, POPRET">;
 def mzce_cpushe_cpope : Flag<["-"], "mzce-cpushe-cpope">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.PUSH.E, C.POP.E, C.POPRET.E">;
-def mno_zce_cpushe_cpope : Flag<["-"], "mno-zce-cpushe-cpope">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.PUSH.E, C.POP.E, C.POPRET.E">;
 def mzce_pushe_pope : Flag<["-"], "mzce-pushe-pope">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce PUSH.E, POP.E, POPRET.E">;
-def mno_zce_pushe_pope : Flag<["-"], "mno-zce-pushe-pope">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce PUSH.E, POP.E, POPRET.E">;
 def mzce_tbljal : Flag<["-"], "mzce-tbljal">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.TBLJ, C.TBLJAL, C.TBLJALM">;
-def mno_zce_tbljal : Flag<["-"], "mno-zce-tbljal">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.TBLJ, C.TBLJAL, C.TBLJALM">;
 def mzce_clbhu : Flag<["-"], "mzce-clbhu">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.LBU, C.LHU">;
-def mno_zce_clbhu : Flag<["-"], "mno-zce-clbhu">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.LBU, C.LHU">;
 def mzce_clbh : Flag<["-"], "mzce-clbh">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.LB, C.LH">;
-def mno_zce_clbh : Flag<["-"], "mno-zce-clbh">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.LB, C.LH">;
 def mzce_csbh : Flag<["-"], "mzce-csbh">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.SB, C.SH">;
-def mno_zce_csbh : Flag<["-"], "mno-zce-csbh">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.SB, C.SH">;
 def mzce_lsgp : Flag<["-"], "mzce-lsgp">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce LWGP, SWGP, LDGP (RV64), SDGP (RV64)">;
-def mno_zce_lsgp : Flag<["-"], "mno-zce-lsgp">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce LWGP, SWGP, LDGP (RV64), SDGP (RV64)">;
 def mzce_muli : Flag<["-"], "mzce-muli">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce MULI">;
-def mno_zce_muli : Flag<["-"], "mno-zce-muli">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce MULI">;
 def mzce_cmul : Flag<["-"], "mzce-cmul">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.MUL">;
-def mno_zce_cmul : Flag<["-"], "mno-zce-cmul">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.MUL">;
 def mzce_sext : Flag<["-"], "mzce-sext">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.SEXT.B, C.SEXT.H, (C.SEXT.W RV64 pseudo-instruction)">;
-def mno_zce_sext : Flag<["-"], "mno-zce-sext">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.SEXT.B, C.SEXT.H, (C.SEXT.W RV64 pseudo-instruction)">;
 def mzce_zext : Flag<["-"], "mzce-zext">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.ZEXT.B, C.ZEXT.H, C.ZEXT.W (RV64)">;
-def mno_zce_zext : Flag<["-"], "mno-zce-zext">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.ZEXT.B, C.ZEXT.H, C.ZEXT.W (RV64)">;
 def mzce_beqi : Flag<["-"], "mzce-beqi">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce BEQI">;
-def mno_zce_beqi : Flag<["-"], "mno-zce-beqi">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce BEQI">;
 def mzce_bnei : Flag<["-"], "mzce-bnei">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce BNEI">;
-def mno_zce_bnei : Flag<["-"], "mno-zce-bnei">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce BNEI">;
 def mzce_cnot : Flag<["-"], "mzce-cnot">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.NOT">;
-def mno_zce_cnot : Flag<["-"], "mno-zce-cnot">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.NOT">;
 def mzce_cneg : Flag<["-"], "mzce-cneg">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.NEG">;
-def mno_zce_cneg : Flag<["-"], "mno-zce-cneg">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.NEG">;
 def mzce_cmva01s07 : Flag<["-"], "mzce-cmva01s07">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.MVA01S07">;
-def mno_zce_cmva01s07 : Flag<["-"], "mno-zce-cmva01s07">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.MVA01S07">;
 def mzce_cdecbnez : Flag<["-"], "mzce-cdecbnez">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.DECBNEZ">;
-def mno_zce_cdecbnez : Flag<["-"], "mno-zce-cdecbnez">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce C.DECBNEZ">;
 def mzce_decbnez : Flag<["-"], "mzce-decbnez">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce DECBNEZ">;
-def mno_zce_decbnez : Flag<["-"], "mno-zce-decbnez">, Group<m_riscv_Features_Group>,Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Disable zce DECBNEZ">;
 
 def msave_restore : Flag<["-"], "msave-restore">, Group<m_riscv_Features_Group>,
   HelpText<"Enable using library calls for save and restore">;
