@@ -13,6 +13,7 @@
 #include "Relocations.h"
 #include "Thunks.h"
 #include "lld/Common/LLVM.h"
+#include "lld/Common/Memory.h"
 #include "llvm/ADT/CachedHashString.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/TinyPtrVector.h"
@@ -163,6 +164,29 @@ public:
     return rawData;
   }
 
+  MutableArrayRef<uint8_t> mutableData() const {
+    if (!copiedData) {
+      size_t size = data().size();
+      uint8_t *mutData = bAlloc.Allocate<uint8_t>(size);
+      memcpy(mutData, data().data(), size);
+      rawData = llvm::makeArrayRef(mutData, size);
+      copiedData = true;
+    }
+
+    return llvm::makeMutableArrayRef(const_cast<uint8_t *>(rawData.data()),
+                                     rawData.size());
+  }
+
+  // A pair of range to delete in (offset, size)
+  struct DeleteRange {
+    uint64_t offset;
+    uint64_t size;
+  };
+
+  // Delete ranges and adjust section content, symbols and relocations.
+  // The deleteRanges must be sorted by offset and must not overlap.
+  void deleteRanges(ArrayRef<DeleteRange> deleteRanges);
+
   uint64_t getOffsetInFile() const;
 
   // Input sections are part of an output section. Special sections
@@ -236,6 +260,7 @@ protected:
   void uncompress() const;
 
   mutable ArrayRef<uint8_t> rawData;
+  mutable bool copiedData;
 
   // This field stores the uncompressed size of the compressed data in rawData,
   // or -1 if rawData is not compressed (either because the section wasn't
@@ -401,6 +426,7 @@ extern std::vector<InputSectionBase *> inputSections;
 // STT_SECTION symbol associated to the .toc input section.
 extern llvm::DenseSet<std::pair<const Symbol *, uint64_t>> ppc64noTocRelax;
 
+Relocation *getRISCVPCRelHi20(const Symbol *sym, uint64_t addend);
 } // namespace elf
 
 std::string toString(const elf::InputSectionBase *);

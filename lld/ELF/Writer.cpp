@@ -1669,6 +1669,8 @@ template <class ELFT> void Writer<ELFT>::finalizeAddressDependentContent() {
   if (config->emachine == EM_HEXAGON)
     hexagonTLSSymbolUpdate(outputSections);
 
+  target->finalizeSections();
+
   int assignPasses = 0;
   for (;;) {
     bool changed = target->needsThunks && tc.createThunks(outputSections);

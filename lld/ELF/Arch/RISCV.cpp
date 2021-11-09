@@ -7,6 +7,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "InputFiles.h"
+#include "OutputSections.h"
 #include "Symbols.h"
 #include "SyntheticSections.h"
 #include "Target.h"
@@ -36,6 +37,7 @@ public:
                      const uint8_t *loc) const override;
   void relocate(uint8_t *loc, const Relocation &rel,
                 uint64_t val) const override;
+  void finalizeSections() const override;
 };
 
 } // end anonymous namespace
@@ -54,6 +56,7 @@ enum Op {
 
 enum Reg {
   X_RA = 1,
+  X_GP = 3,
   X_T0 = 5,
   X_T1 = 6,
   X_T2 = 7,
@@ -267,16 +270,14 @@ RelExpr RISCV::getRelExpr(const RelType type, const Symbol &s,
   case R_RISCV_TPREL_LO12_I:
   case R_RISCV_TPREL_LO12_S:
     return R_TPREL;
-  case R_RISCV_RELAX:
+  case R_RISCV_GPREL_I:
+  case R_RISCV_GPREL_S:
+    return R_RISCV_GPREL;
   case R_RISCV_TPREL_ADD:
     return R_NONE;
+  case R_RISCV_RELAX:
   case R_RISCV_ALIGN:
-    // Not just a hint; always padded to the worst-case number of NOPs, so may
-    // not currently be aligned, and without linker relaxation support we can't
-    // delete NOPs to realign.
-    errorOrWarn(getErrorLocation(loc) + "relocation R_RISCV_ALIGN requires "
-                "unimplemented linker relaxation; recompile with -mno-relax");
-    return R_NONE;
+    return R_RELAX_HINT;
   default:
     error(getErrorLocation(loc) + "unknown relocation (" + Twine(type) +
           ") against symbol " + toString(s));
@@ -402,6 +403,7 @@ void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
 
   case R_RISCV_PCREL_LO12_I:
   case R_RISCV_TPREL_LO12_I:
+  case R_RISCV_GPREL_I:
   case R_RISCV_LO12_I: {
     uint64_t hi = (val + 0x800) >> 12;
     uint64_t lo = val - (hi << 12);
@@ -411,6 +413,7 @@ void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
 
   case R_RISCV_PCREL_LO12_S:
   case R_RISCV_TPREL_LO12_S:
+  case R_RISCV_GPREL_S:
   case R_RISCV_LO12_S: {
     uint64_t hi = (val + 0x800) >> 12;
     uint64_t lo = val - (hi << 12);
@@ -469,11 +472,313 @@ void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
     break;
 
   case R_RISCV_RELAX:
+  case R_RISCV_TPREL_ADD:
     return; // Ignored (for now)
 
   default:
     llvm_unreachable("unknown relocation");
   }
+}
+
+static uint64_t maxOutputSectionAlignment() {
+  uint64_t maxAlign = 1;
+  for (auto *os : outputSections) {
+    maxAlign = std::max<uint64_t>(maxAlign, os->alignment);
+  }
+
+  return maxAlign;
+}
+
+static void setRs1(uint8_t *buf, int rs1) {
+  write32le(buf, (read32le(buf) & 0xfff07fff) | rs1 << 15);
+}
+
+static int64_t addWorstCaseAlignment(int64_t offset, uint64_t alignment) {
+  return offset >= 0 ? offset + alignment : offset - alignment;
+}
+
+using DeleteRanges = std::vector<InputSectionBase::DeleteRange>;
+
+static void addDeleteRange(DeleteRanges &ranges, uint64_t offset,
+                           uint64_t size) {
+  ranges.push_back({offset, size});
+}
+
+// Relax R_RISCV_CALL to jal or c.jal.
+//
+// We always assume during relaxation the symbols can only come closer modulo
+// the effects of alignment.
+static bool relaxCall(InputSection *is, Relocation &rel,
+                      DeleteRanges &deleteRanges) {
+  auto *sym = dyn_cast_or_null<Defined>(rel.sym);
+  if (!sym || !sym->section)
+    return false;
+
+  uint64_t pc = is->getVA(rel.offset);
+  uint64_t target = sym->getVA(rel.addend);
+  int64_t offset = target - pc;
+
+  // As the call site and callee may reside in different sections, we need to
+  // consider the worst case possible offset caused by alignment.
+  if (is->getOutputSection() != sym->getOutputSection()) {
+    offset = addWorstCaseAlignment(offset, maxOutputSectionAlignment());
+  } else if (is != sym->section) {
+    offset = addWorstCaseAlignment(offset, is->getOutputSection()->alignment);
+  }
+
+  bool rvc = config->eflags & EF_RISCV_RVC;
+  unsigned rd =
+      (read32le(is->data().data() + rel.offset + 4) & 0x00000fe0) >> 7;
+
+  // Convert to c.j or c.jal (RV32-only) if offset fits in 12 bits.
+  if (rvc && isInt<12>(offset) && rd == 0) {
+    write16le(is->mutableData().data() + rel.offset, 0xa001); // c.j 0
+    addDeleteRange(deleteRanges, rel.offset + 2, 6);
+    rel.type = R_RISCV_RVC_JUMP;
+    return true;
+  }
+
+  if (!config->is64 && rvc && isInt<12>(offset) && rd == 1) {
+    write16le(is->mutableData().data() + rel.offset, 0x2001); // c.jal 0
+    addDeleteRange(deleteRanges, rel.offset + 2, 6);
+    rel.type = R_RISCV_RVC_JUMP;
+    return true;
+  }
+
+  // Convert to jal if offset fits in 21 bits.
+  if (isInt<21>(offset)) {
+    write32le(is->mutableData().data() + rel.offset,
+              0x0000006f | rd << 7); // jal rd, 0
+    addDeleteRange(deleteRanges, rel.offset + 4, 4);
+    rel.type = R_RISCV_JAL;
+    return true;
+  }
+
+  return false;
+}
+
+// For R_RISCV_HI20 and R_RISCV_LO12_[IS], only relax to GP-relative form if
+// __global_pointer$ symbol is defined and the target symbol is within the
+// same section as gp. This assumes the offset between gp and the target
+// symbol is static during relaxation.
+static bool relaxHi20Lo12(InputSection *is, Relocation &rel,
+                          DeleteRanges &deleteRanges) {
+  bool rvc = config->eflags & EF_RISCV_RVC;
+  uint64_t target = rel.sym->getVA(rel.addend);
+
+  Defined *gp = ElfSym::riscvGlobalPointer;
+
+  auto relaxToCLui = [&]() -> bool {
+    unsigned rd = (read32le(is->data().data() + rel.offset) & 0x00000fe0) >> 7;
+    if (rvc &&
+        isInt<6>(SignExtend64(target + 0x800, config->wordsize * 8) >> 12) &&
+        rd != 0 && rd != 2 && target != 0) {
+      write16le(is->mutableData().data() + rel.offset,
+                0x6001 | rd << 7); // c.lui rd, 0
+      addDeleteRange(deleteRanges, rel.offset + 2, 2);
+      rel.type = R_RISCV_RVC_LUI;
+      return true;
+    }
+    return false;
+  };
+
+  if (!gp || rel.sym->getOutputSection() != gp->section->getOutputSection())
+    return rel.type == R_RISCV_HI20 ? relaxToCLui() : false;
+
+  uint64_t offset = target - gp->getVA();
+
+  if (isInt<12>(offset)) {
+    if (rel.type == R_RISCV_HI20) {
+      addDeleteRange(deleteRanges, rel.offset, 4);
+      rel.type = R_RISCV_NONE;
+      rel.expr = R_NONE;
+    } else { // R_RISCV_LO12_[IS]
+      setRs1(is->mutableData().data() + rel.offset, X_GP);
+      rel.type = rel.type == R_RISCV_LO12_I ? R_RISCV_GPREL_I : R_RISCV_GPREL_S;
+      rel.expr = R_RISCV_GPREL;
+    }
+    return true;
+  }
+
+  return false;
+}
+
+// Relaxing PCREL relocations requires two passes due to the linkage from
+// LO12 to HI20. The first pass only relaxes PCREL_LO12 and the second one
+// relaxes PCREL_HI20.
+static bool relaxPcrel(InputSection *is, Relocation &rel,
+                       DeleteRanges &deleteRanges) {
+  Defined *gp = ElfSym::riscvGlobalPointer;
+  if (!gp)
+    return false;
+
+  const Relocation *hi20 = &rel;
+  if (rel.type == R_RISCV_PCREL_LO12_I || rel.type == R_RISCV_PCREL_LO12_S) {
+    hi20 = getRISCVPCRelHi20(rel.sym, rel.addend);
+    if (!hi20)
+      return false;
+  }
+
+  if (hi20->sym->getOutputSection() != gp->section->getOutputSection())
+    return false;
+
+  uint64_t target = hi20->sym->getVA(hi20->addend);
+  uint64_t offset = target - gp->getVA();
+
+  if (isInt<12>(offset)) {
+    if (rel.type == R_RISCV_PCREL_HI20) {
+      addDeleteRange(deleteRanges, rel.offset, 4);
+      rel.type = R_RISCV_NONE;
+      rel.expr = R_NONE;
+    } else {
+      setRs1(is->mutableData().data() + rel.offset, X_GP);
+      rel.sym = hi20->sym;
+      rel.addend = hi20->addend + rel.addend;
+      rel.type =
+          rel.type == R_RISCV_PCREL_LO12_I ? R_RISCV_GPREL_I : R_RISCV_GPREL_S;
+      rel.expr = R_RISCV_GPREL;
+    }
+    return true;
+  }
+
+  return false;
+}
+
+template <typename F>
+void processRelaxations(MutableArrayRef<Relocation> rels, F f) {
+  if (rels.empty())
+    return;
+
+  for (auto *r = rels.begin() + 1, *e = rels.end(); r != e; ++r) {
+    if (r->type != R_RISCV_RELAX)
+      continue;
+
+    Relocation *rel = std::prev(r);
+    if (r->offset != rel->offset)
+      continue;
+
+    if (f(*rel)) {
+      r->type = R_RISCV_NONE;
+      r->expr = R_NONE;
+    }
+  }
+}
+
+static bool relax() {
+  bool changed = false;
+
+  for (OutputSection *os : outputSections) {
+    for (InputSection *is : getInputSections(os)) {
+      if (!(is->flags & SHF_EXECINSTR))
+        continue;
+
+      DeleteRanges deleteRanges;
+      processRelaxations(is->relocations, [&](Relocation &rel) {
+        switch (rel.type) {
+        case R_RISCV_CALL:
+        case R_RISCV_CALL_PLT:
+          return relaxCall(is, rel, deleteRanges);
+        case R_RISCV_HI20:
+        case R_RISCV_LO12_I:
+        case R_RISCV_LO12_S:
+          return relaxHi20Lo12(is, rel, deleteRanges);
+        case R_RISCV_PCREL_LO12_I:
+        case R_RISCV_PCREL_LO12_S:
+          return relaxPcrel(is, rel, deleteRanges);
+        }
+
+        return false;
+      });
+
+      // The second-pass for PCREL_HI20 relaxation.
+      processRelaxations(is->relocations, [&](Relocation &rel) {
+        if (rel.type != R_RISCV_PCREL_HI20)
+          return false;
+
+        return relaxPcrel(is, rel, deleteRanges);
+      });
+
+      using DeleteRange = InputSectionBase::DeleteRange;
+      llvm::sort(deleteRanges,
+                 [](const DeleteRange &lhs, const DeleteRange &rhs) {
+                   return lhs.offset < rhs.offset;
+                 });
+
+      is->deleteRanges(deleteRanges);
+      script->assignAddresses();
+      changed |= !deleteRanges.empty();
+    }
+  }
+
+  return changed;
+}
+
+static void relaxAlign() {
+  bool rvc = config->eflags & EF_RISCV_RVC;
+
+  for (OutputSection *os : outputSections) {
+    for (InputSection *is : getInputSections(os)) {
+      if (!(is->flags & SHF_EXECINSTR))
+        continue;
+
+      uint64_t bytesDeleted = 0;
+      DeleteRanges deleteRanges;
+      for (auto &rel : is->relocations) {
+        if (rel.type == R_RISCV_ALIGN && rel.addend > 0) {
+          uint64_t pc = is->getVA(rel.offset) - bytesDeleted;
+          uint64_t alignment = PowerOf2Ceil(rel.addend + 2);
+          uint64_t nopBytes = alignTo(pc, alignment) - pc;
+
+          if (nopBytes % 2 != 0 || (!rvc && nopBytes % 4 != 0)) {
+            errorOrWarn(is->getObjMsg(rel.offset) + ": alignment requires " +
+                        Twine(nopBytes) + " of nop");
+            break;
+          }
+
+          if (nopBytes > (uint64_t)rel.addend) {
+            errorOrWarn(is->getObjMsg(rel.offset) + ": alignment requires " +
+                        Twine(nopBytes) + " of nop, but only " +
+                        Twine(rel.addend) + " bytes are available");
+            break;
+          }
+          uint64_t bytesToDelete = rel.addend - nopBytes;
+
+          if (bytesToDelete > 0) {
+            addDeleteRange(deleteRanges, rel.offset + nopBytes, bytesToDelete);
+            bytesDeleted += bytesToDelete;
+          }
+
+          uint8_t *buf = is->mutableData().data() + rel.offset;
+          while (nopBytes != 0) {
+            if (nopBytes >= 4) {
+              write32le(buf, 0x00000013); // nop
+              nopBytes -= 4;
+              buf += 4;
+            } else if (rvc && nopBytes == 2) {
+              write16le(buf, 0x0001); // c.nop
+              nopBytes -= 2;
+              buf += 2;
+            }
+          }
+        }
+      }
+
+      is->deleteRanges(deleteRanges);
+      script->assignAddresses();
+    }
+  }
+}
+
+void RISCV::finalizeSections() const {
+  // Can't perform relaxation if it is not a final link.
+  if (config->relocatable)
+    return;
+
+  if (config->relax)
+    while (relax())
+      ;
+
+  relaxAlign();
 }
 
 TargetInfo *elf::getRISCVTargetInfo() {

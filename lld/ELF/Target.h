@@ -91,6 +91,8 @@ public:
   virtual void applyJumpInstrMod(uint8_t *loc, JumpModType type,
                                  JumpModType val) const {}
 
+  virtual void finalizeSections() const {}
+
   virtual ~TargetInfo();
 
   // This deletes a jump insn at the end of the section if it is a fall thru to

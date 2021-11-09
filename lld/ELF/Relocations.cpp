@@ -129,6 +129,28 @@ void elf::reportRangeError(uint8_t *loc, int64_t v, int n, const Symbol &sym,
 
 // Build a bitmask with one bit set for each 64 subset of RelExpr.
 static constexpr uint64_t buildMask() { return 0; }
+namespace {
+template <typename... Tails>
+constexpr uint64_t buildMask(int head, Tails... tails) {
+  return (0 <= head && head < 64 ? (uint64_t(1) << head) : 0) |
+         buildMask(tails...);
+}
+} // namespace
+
+// Return true if `Expr` is one of `Exprs`.
+// There are more than 64 but less than 128 RelExprs, so we divide the set of
+// exprs into [0, 63] and [64, 127] and represent each range as a constant
+// 64-bit mask. Then we decide which mask to test depending on the value of
+// expr and use a simple shift and bitwise-and to test for membership.
+template <RelExpr... Exprs> bool oneof(RelExpr expr) {
+  assert(0 <= expr && (int)expr < 128 &&
+         "RelExpr is too large for 128-bit mask!");
+
+  if (expr >= 64)
+    return (uint64_t(1) << (expr - 64)) & buildMask((Exprs - 64)...);
+
+  return (uint64_t(1) << expr) & buildMask(Exprs...);
+}
 
 template <typename... Tails>
 static constexpr uint64_t buildMask(int head, Tails... tails) {
@@ -211,7 +233,6 @@ static bool isRelExpr(RelExpr expr) {
                R_PPC64_RELAX_TOC, R_AARCH64_PAGE_PC, R_RELAX_GOT_PC,
                R_RISCV_PC_INDIRECT, R_PPC64_RELAX_GOT_PC>(expr);
 }
-
 
 static RelExpr toPlt(RelExpr expr) {
   switch (expr) {
@@ -911,7 +932,8 @@ static bool isStaticLinkTimeConstant(RelExpr e, RelType type, const Symbol &sym,
             R_MIPS_GOT_OFF, R_MIPS_GOT_OFF32, R_MIPS_GOT_GP_PC,
             R_AARCH64_GOT_PAGE_PC, R_GOT_PC, R_GOTONLY_PC, R_GOTPLTONLY_PC,
             R_PLT_PC, R_PLT_GOTPLT, R_PPC32_PLTREL, R_PPC64_CALL_PLT,
-            R_PPC64_RELAX_TOC, R_RISCV_ADD, R_AARCH64_GOT_PAGE>(e))
+            R_PPC64_RELAX_TOC, R_RISCV_ADD, R_AARCH64_GOT_PAGE,
+            R_RELAX_HINT>(e))
     return true;
 
   // These never do, except if the entire file is position dependent or if
