@@ -351,6 +351,8 @@ defm reproduce:
   Eq<"reproduce",
      "Write tar file containing inputs and command to reproduce link">;
 
+defm relax: B<"relax", "Enable linker relaxation (default)", "Disable linker relaxation">;
+
 defm rosegment: BB<"rosegment",
   "Put read-only non-executable sections in their own segment (default)",
   "Do not put read-only non-executable sections in their own segment">;
@@ -692,7 +694,6 @@ def: F<"no-copy-dt-needed-entries">;
 def: F<"no-ctors-in-init-array">;
 def: F<"no-keep-memory">;
 def: F<"no-pipeline-knowledge">;
-def: F<"no-relax">;
 def: F<"no-warn-mismatch">;
 def: Flag<["-"], "p">;
 def: Separate<["--", "-"], "rpath-link">;

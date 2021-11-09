@@ -195,6 +195,7 @@ struct Configuration {
   bool pie;
   bool printGcSections;
   bool printIcfSections;
+  bool relax;
   bool relocatable;
   bool relrPackDynRelocs;
   bool saveTemps;

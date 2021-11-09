@@ -63,7 +63,7 @@ InputSectionBase::InputSectionBase(InputFile *file, uint64_t flags,
                                    StringRef name, Kind sectionKind)
     : SectionBase(sectionKind, name, flags, entsize, alignment, type, info,
                   link),
-      file(file), rawData(data) {
+      file(file), rawData(data), copiedData(false) {
   // In order to reduce memory allocation, we assume that mergeable
   // sections are smaller than 4 GiB, which is not an unreasonable
   // assumption as of 2017.
@@ -163,6 +163,86 @@ uint64_t InputSectionBase::getOffsetInFile() const {
   const uint8_t *fileStart = (const uint8_t *)file->mb.getBufferStart();
   const uint8_t *secStart = data().begin();
   return secStart - fileStart;
+}
+
+void InputSectionBase::deleteRanges(ArrayRef<DeleteRange> ranges) {
+  if (ranges.empty())
+    return;
+
+  // Adjust all symbol offsets and sizes within the InputSection, using the
+  // following algorithm to avoid quadratic behavior.
+
+  // Gather all symbols within the section.
+  SmallVector<Defined *> symbols;
+  for (auto &sym : file->getSymbols()) {
+    auto *dr = dyn_cast<Defined>(sym);
+    if (!dr || dr->section != this)
+      continue;
+
+    symbols.push_back(dr);
+  }
+
+  // Sort symbols by their starting address.
+  llvm::sort(symbols, [](const Defined *a, const Defined *b) {
+    return a->value < b->value;
+  });
+
+  // Adjust each symbol's address by bytes deleted and also enlarge the symbol's
+  // size to keep its "end" fixed.
+  {
+    uint64_t removedBytes = 0;
+    const auto *r = ranges.begin(), *rend = ranges.end();
+    for (auto *dr : symbols) {
+      for (; r != rend && r->offset < dr->value; ++r)
+        removedBytes += r->size;
+
+      dr->value -= removedBytes;
+      dr->size += removedBytes;
+    }
+  }
+
+  const auto endOff = [](const Defined *dr) { return dr->value + dr->size; };
+
+  // Sort symbols by their "end" address before relaxation.
+  llvm::sort(symbols, [&](const Defined *a, const Defined *b) {
+    return endOff(a) < endOff(b);
+  });
+
+  // Adjust each symbol's end address to their actual end by reducing size.
+  {
+    uint64_t removedBytes = 0;
+    const auto *r = ranges.begin(), *rend = ranges.end();
+    for (auto *dr : symbols) {
+      for (; r != rend && r->offset < endOff(dr); ++r)
+        removedBytes += r->size;
+
+      dr->size -= removedBytes;
+    }
+  }
+
+  // Adjust relocation offsets within the section.
+  uint64_t removedBytes = 0;
+  const auto *r = ranges.begin(), *rend = ranges.end();
+  for (auto &rel : relocations) {
+    for (; r != rend && r->offset < rel.offset; ++r)
+      removedBytes += r->size;
+
+    rel.offset -= removedBytes;
+  }
+
+  // Adjust section content piece-wise and resize the section.
+  MutableArrayRef<uint8_t> buf = this->mutableData();
+  auto *dst = buf.begin() + ranges.begin()->offset;
+  for (auto it = ranges.begin(), e = ranges.end(); it != e; ++it) {
+    auto *from = buf.begin() + it->offset + it->size;
+    auto *to = std::next(it) != ranges.end()
+                   ? (buf.begin() + std::next(it)->offset)
+                   : buf.end();
+    dst = std::copy(from, to, dst);
+  }
+
+  // Resize the section
+  rawData = makeArrayRef(data().data(), dst);
 }
 
 uint64_t SectionBase::getOffset(uint64_t offset) const {
@@ -589,7 +669,7 @@ static uint64_t getARMStaticBase(const Symbol &sym) {
 //
 // This function returns the R_RISCV_PCREL_HI20 relocation from
 // R_RISCV_PCREL_LO12's symbol and addend.
-static Relocation *getRISCVPCRelHi20(const Symbol *sym, uint64_t addend) {
+Relocation *lld::elf::getRISCVPCRelHi20(const Symbol *sym, uint64_t addend) {
   const Defined *d = cast<Defined>(sym);
   if (!d->section) {
     error("R_RISCV_PCREL_LO12 relocation points to an absolute symbol: " +
@@ -751,6 +831,13 @@ uint64_t InputSectionBase::getRelocTargetVA(const InputFile *file, RelType type,
   case R_AARCH64_PAGE_PC: {
     uint64_t val = sym.isUndefWeak() ? p + a : sym.getVA(a);
     return getAArch64Page(val) - getAArch64Page(p);
+  }
+  case R_RISCV_GPREL: {
+    if (!ElfSym::riscvGlobalPointer)
+      llvm_unreachable(
+          "Cannot compute R_RISCV_GPREL if __global_pointer$ is not set");
+
+    return sym.getVA(a) - ElfSym::riscvGlobalPointer->getVA();
   }
   case R_RISCV_PC_INDIRECT: {
     if (const Relocation *hiRel = getRISCVPCRelHi20(&sym, a))
@@ -1023,6 +1110,10 @@ void InputSectionBase::relocateAlloc(uint8_t *buf, uint8_t *bufEnd) {
     if (auto *sec = dyn_cast<InputSection>(this))
       addrLoc += sec->outSecOff;
     RelExpr expr = rel.expr;
+
+    if (expr == R_NONE || expr == R_RELAX_HINT)
+      continue;
+
     uint64_t targetVA = SignExtend64(
         getRelocTargetVA(file, type, rel.addend, addrLoc, *rel.sym, expr),
         bits);
