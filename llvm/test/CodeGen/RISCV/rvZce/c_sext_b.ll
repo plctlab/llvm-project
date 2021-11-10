@@ -1,10 +1,10 @@
 ; RUN: llc -mtriple=riscv32 -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s -check-prefix=RV32I
-; RUN: llc -mtriple=riscv32 -mattr=+experimental-b,+experimental-zce -verify-machineinstrs < %s \
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-b,+zce-sext -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s -check-prefix=RV32IB
-; RUN: llc -mtriple=riscv32 -mattr=+experimental-zbb,+experimental-zce -verify-machineinstrs < %s \
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-zbb,+zce-sext -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s -check-prefix=RV32IBB
-; RUN: llc -mtriple=riscv32 -mattr=+experimental-zbp,+experimental-zce -verify-machineinstrs < %s \
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-zbp,+zce-sext -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s -check-prefix=RV32IBP
 
 ; NOTE: /home/wuxinlong/workspace/llvm-project/build/bin/llc -mtriple=riscv32 -mattr=+experimental-b,+experimental-zce -verify-machineinstrs < /home/wuxinlong/workspace/llvm-project/llvm/test/CodeGen/RISCV/rvZce/rv32zcee.ll  --print-after-all -o test.ll

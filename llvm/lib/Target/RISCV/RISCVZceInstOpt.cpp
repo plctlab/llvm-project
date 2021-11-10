@@ -60,9 +60,10 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
   TII = static_cast<const RISCVInstrInfo *>(MF.getSubtarget().getInstrInfo());
   bool Modified = false;
 
-  if (!(STI->hasStdExtZce() || STI->hasStdExtZcee() || STI->hasStdExtZcea() ||
-        STI->hasStdExtZceb() || STI->enableZceMuli() || STI->enableZceCMul() ||
-        STI->enableZcePushPop()))
+  if (!(STI->enableZceCMul() || STI->enableZceZext() || STI->enableZceSext() ||
+        STI->enableZceCNot() || STI->enableZceMuli() || STI->enableZceCMul() ||
+        STI->hasStdExtZceb() || STI->enableZceCNeg() || STI->enableZceClbhu() ||
+        STI->enableZceClbh() || STI->enableZceCsbh() || STI->enableZcePushPop()))
     return Modified;
 
   for (auto &MBB : MF) {
@@ -78,15 +79,18 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
         break;
       case RISCV::ZEXTH_RV32:
       case RISCV::ZEXTH_RV64:
-      case RISCV::SEXTB:
-      case RISCV::SEXTH:
       case RISCV::ANDI:  // zext.b
       case RISCV::ADDUW: // zext.w
-        if (STI->hasStdExtZcee())
+        if (STI->enableZceZext())
+          Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
+        break;
+      case RISCV::SEXTB:
+      case RISCV::SEXTH:
+        if (STI->enableZceSext())
           Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
         break;
       case RISCV::XORI: // c.not
-        if (STI->hasStdExtZcea())
+        if (STI->enableZceCNot())
           Modified |= optimiseZceaInstruction(MBB, MBBI, NMBBI);
         break;
       case RISCV::SUB:  // c.neg
@@ -95,11 +99,17 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
         break;
       case RISCV::LBU:
       case RISCV::LHU:
+        if (STI->enableZceClbhu())
+          Modified |= optimiseZcebInstruction(MBB, MBBI, NMBBI);
+        break;
       case RISCV::LB:
       case RISCV::LH:
+        if (STI->enableZceClbh())
+          Modified |= optimiseZcebInstruction(MBB, MBBI, NMBBI);
+        break;
       case RISCV::SB:
       case RISCV::SH:
-        if (STI->hasStdExtZceb())
+        if (STI->enableZceCsbh())
           Modified |= optimiseZcebInstruction(MBB, MBBI, NMBBI);
         break;
       }

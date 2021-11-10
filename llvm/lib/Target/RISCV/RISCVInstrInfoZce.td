@@ -399,8 +399,8 @@ let Predicates = [EnableZceMuli] in
 def : Pat<(mul GPR:$rs1, simm12:$imm12),
           (MULI GPR:$rs1, simm12:$imm12)>;
 
-// def : Pat<(mul GPR:$rs1, (ld GPR:$rs2)),
-//           (MULI GPR:$rs1, GPR:$rs2)>;
+// def : Pat<(add GPR:$rs1, (shl GPR:$rs1, simm12:$imm12)),
+//           (MULI GPR:$rs1, simm12:$imm12)>;
 
 // 6.5 BEQI, BNEI
 let Predicates = [EnableZceBeqi] in {
@@ -417,7 +417,7 @@ class BccSwapPat<CondCode Cond, RVInstB Inst>
 
 // Condition codes that don't have matching RISC-V branch instructions, but
 // are trivially supported by swapping the two input operands
-let Predicates = [EnableZceBnei] in
+let Predicates = [EnableZceBeqi] in
 def : BccSwapPat<SETEQ, BEQI>;
 
 let Predicates = [EnableZceBnei] in 
@@ -706,7 +706,7 @@ def C_SH : ZceStore_ri<0b101, 0b00, "c.sh", GPRC, uimm5_lsb0>,
 
 }
 
-let Predicates = [HasStdExtZcea] in{
+let Predicates = [EnableZceCPushCPop] in{
 def : CompressPat<(PUSH rlist3:$slist, alist:$areg, spimm0_5:$spimm),
                   (C_PUSH rlist3:$slist, alist:$areg, spimm0_5:$spimm)>;
 def : CompressPat<(POP rlist3:$slist, 0, spimm1:$spimm),

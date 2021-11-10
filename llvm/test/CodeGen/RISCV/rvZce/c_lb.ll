@@ -1,10 +1,10 @@
 ; RUN: llc -mtriple=riscv32 -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV32I %s
-; RUN: llc -mtriple=riscv32 -mattr=+experimental-zceb -verify-machineinstrs < %s \
+; RUN: llc -mtriple=riscv32 -mattr=+zce-clbh,+zce-clbhu -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV32IZce %s
 ; RUN: llc -mtriple=riscv64 -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV64I %s
-; RUN: llc -mtriple=riscv64 -mattr=+experimental-zceb -verify-machineinstrs < %s \
+; RUN: llc -mtriple=riscv64 -mattr=+zce-clbh,+zce-clbhu -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV64IZce %s
 
 define dso_local i32 @lb(i8 *%a) nounwind {

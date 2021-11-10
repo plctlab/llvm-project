@@ -1,10 +1,10 @@
 ; RUN: llc -mtriple=riscv64 -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s -check-prefix=RV64I
-; RUN: llc -mtriple=riscv64 -mattr=+experimental-zce -verify-machineinstrs < %s \
+; RUN: llc -mtriple=riscv64 -mattr=+zce-zext -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s -check-prefix=RV64IZCE
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-zba -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s -check-prefix=RV64IZBA
-; RUN: llc -mtriple=riscv64 -mattr=+experimental-zba,+experimental-zce -verify-machineinstrs < %s \
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-zba,+zce-zext -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s -check-prefix=RV64IZBAZCE
 
 define i64 @zextw_i64(i64 %a) nounwind {
