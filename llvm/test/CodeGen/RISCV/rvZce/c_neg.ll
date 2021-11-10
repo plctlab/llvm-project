@@ -1,10 +1,10 @@
 ; RUN: llc -mtriple=riscv32 -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV32I %s
-; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcea -verify-machineinstrs < %s \
+; RUN: llc -mtriple=riscv32 -mattr=+zce-cneg -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV32IZce %s
 ; RUN: llc -mtriple=riscv64 -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV64I %s
-; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcea -verify-machineinstrs < %s \
+; RUN: llc -mtriple=riscv64 -mattr=+zce-cneg -verify-machineinstrs < %s \
 ; RUN:   | FileCheck -check-prefix=RV64IZce %s
 
 define i32 @mulhs_negative_constant(i32 %a) nounwind {
