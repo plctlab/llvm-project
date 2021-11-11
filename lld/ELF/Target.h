@@ -32,6 +32,8 @@ public:
   virtual void writeGotPltHeader(uint8_t *buf) const {}
   virtual void writeGotHeader(uint8_t *buf) const {}
   virtual void writeGotPlt(uint8_t *buf, const Symbol &s) const {};
+  virtual void writeTableJumpHeader(uint8_t *buf) const {};
+  virtual void writeTableJump(uint8_t *buf, const uint64_t symbol) const {};
   virtual void writeIgotPlt(uint8_t *buf, const Symbol &s) const {}
   virtual int64_t getImplicitAddend(const uint8_t *buf, RelType type) const;
   virtual int getTlsGdRelaxSkip(RelType type) const { return 1; }
@@ -92,6 +94,9 @@ public:
                                  JumpModType val) const {}
 
   virtual void finalizeSections() const {}
+  virtual void processSection(InputSection &inputSection) const {
+    return;
+  };
 
   virtual ~TargetInfo();
 

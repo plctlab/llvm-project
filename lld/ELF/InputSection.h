@@ -214,6 +214,21 @@ public:
   // Returns the size of this section (even if this is a common or BSS.)
   size_t getSize() const;
 
+  // Edits the rawData, by writing newData over the existing data, at the
+  // position given by loc.
+  template <typename T> void edit(uint64_t loc, T newData) const {
+    if (loc + sizeof(T) > getSize())
+      llvm_unreachable("Cannot edit - out of range\n");
+    auto mutData = mutableData();
+    //auto mutData = const_cast<uint8_t*>(data().data());
+    std::memcpy(&mutData[loc], &newData, sizeof(T));
+    //memcpy(&data().data()[loc], &newData, sizeof(T));
+  }
+
+  void
+  deleteBytes(const std::vector<std::pair<const uint64_t, const uint64_t>>
+                  &ranges);
+
   InputSection *getLinkOrderDep() const;
 
   // Get the function symbol that encloses this offset from within the
@@ -273,6 +288,13 @@ protected:
   // compressed in the first place, or because we ended up uncompressing it).
   // Since the feature is not used often, this is usually -1.
   mutable int64_t uncompressedSize = -1;
+
+  void makeMutableDataCopy() const;
+
+  // This field stores whether we have made a mutable copy of the data, either
+  // because we have uncompressed it or because during relaxation we have had
+  // to rewrite the contents.
+  mutable bool copiedData = false;
 };
 
 // SectionPiece represents a piece of splittable section contents.

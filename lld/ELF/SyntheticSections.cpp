@@ -1172,6 +1172,45 @@ bool GotPltSection::isNeeded() const {
   return !entries.empty() || hasGotPltOffRel;
 }
 
+TableJumpSection::TableJumpSection()
+    : SyntheticSection(SHF_ALLOC | SHF_WRITE, SHT_RISCV_ATTRIBUTES, config->wordsize,
+                       ".tbljalentries") {}
+
+size_t TableJumpSection::addEntry(const Symbol& symbol) {
+  const uint64_t address = symbol.getVA();
+  const auto entriesBegin = std::begin(entries);
+  const auto entriesEnd = std::end(entries);
+  // Prevent adding duplicate entries
+  const auto findResult = std::find(entriesBegin, entriesEnd, address);
+  // If this is a duplicate addition, do not add it and return the address offset of
+  // the original entry.
+  if (findResult != entriesEnd)
+    return std::distance(entriesBegin, findResult) * 256;
+  unsigned ret = this->size;
+  this->size += 256;
+  entries.push_back(address);
+  return ret;
+}
+
+size_t TableJumpSection::getSize() const {
+  return (target->gotPltHeaderEntriesNum + entries.size()) * config->wordsize;
+}
+
+void TableJumpSection::writeTo(uint8_t *buf) {
+  target->writeTableJumpHeader(buf);
+  //buf += target->gotPltHeaderEntriesNum * config->wordsize; // TODO: Change this function.
+  for (const uint64_t address : entries) {
+    target->writeTableJump(buf, address);
+    buf += config->wordsize;
+  }
+}
+
+bool TableJumpSection::isNeeded() const {
+  //TODO: Make this function correctly. Currently discards section with entries.
+  return true;
+  //return !entries.empty();
+}
+
 static StringRef getIgotPltName() {
   // On ARM the IgotPltSection is part of the GotSection.
   if (config->emachine == EM_ARM)

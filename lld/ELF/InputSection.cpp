@@ -143,6 +143,82 @@ size_t InputSectionBase::getSize() const {
   return rawData.size() - bytesDropped;
 }
 
+void InputSectionBase::deleteBytes(
+    const std::vector<std::pair<const uint64_t, const uint64_t>> &ranges) {
+  uint64_t totalBytesDeleted = 0;
+  //const auto mutData = mutableData();
+  //uint8_t *buf = mutData.data();
+  uint8_t *buf = const_cast<uint8_t*>(data().data());
+  //const uint8_t *buf = data().data();
+  const auto size = getSize();
+
+  const auto end = std::end(ranges);
+  for (auto it = std::begin(ranges); it != end; ++it) {
+    const auto loc = it->first;
+    const auto numberOfBytes = it->second;
+
+    // Don't try and delete bytes that are out of bounds.
+    if (loc + numberOfBytes >= size)
+      //return;
+      llvm_unreachable(loc + " Cannot delete - out of range\n");
+
+    // Remove the bytes from rawData.
+    const auto destinationAddress = buf + loc - totalBytesDeleted;
+    const auto sourceAddress = buf + loc + numberOfBytes;
+    const auto nextOffset = it + 1 == end ? size : (it + 1)->first;
+    const auto size = nextOffset - loc - numberOfBytes;
+    if (destinationAddress == nullptr || sourceAddress == nullptr ||
+        destinationAddress + size == nullptr || sourceAddress + size == nullptr)
+      return;
+    std::memmove(destinationAddress, sourceAddress,
+            nextOffset - loc - numberOfBytes);
+    totalBytesDeleted += numberOfBytes;
+  }
+  rawData = makeArrayRef(buf, size - totalBytesDeleted);
+
+  // Adjust all relocations in this section.
+  for (Relocation &relocation : relocations) {
+    uint64_t distanceToMove = 0;
+    // Count up the total distance to shift each relocation before shifting.
+    for (const auto &range : ranges) {
+      if (range.first < relocation.offset)
+        distanceToMove += range.second;
+    }
+    relocation.offset -= distanceToMove;
+  }
+
+  // Adjust symbols in this section.
+  for (const auto &symbol : in.symTab->getSymbols()) {
+    // Only adjust defined symbols.
+    auto *definedSymbol = dyn_cast<Defined>(symbol.sym);
+    if (!definedSymbol || definedSymbol->section != this)
+      continue;
+
+    const auto symbolStart = definedSymbol->value;
+    const auto symbolEnd = symbolStart + definedSymbol->size;
+
+    for (const auto &range : ranges) {
+      const auto loc = range.first;
+      const auto numberOfBytes = range.second;
+      if (symbolStart <= loc && loc < symbolEnd)
+        definedSymbol->size -= numberOfBytes;
+
+      if (symbolStart >= loc + numberOfBytes)
+        definedSymbol->value -= numberOfBytes;
+    }
+  }
+
+  auto outputSection = getOutputSection();
+
+  // Close the gaps between sections by adjusting their addresses.
+  for (const auto otherSection : outputSections) {
+    if (otherSection->addr > outputSection->addr)
+      otherSection->addr -= totalBytesDeleted;
+  }
+
+  outputSection->size -= totalBytesDeleted;
+}
+
 void InputSectionBase::uncompress() const {
   size_t size = uncompressedSize;
   char *uncompressedBuf;
@@ -1376,6 +1452,23 @@ void InputSection::replace(InputSection *other) {
 
   other->repl = repl;
   other->markDead();
+}
+
+void InputSectionBase::makeMutableDataCopy() const {
+  static std::mutex mu;
+  std::lock_guard<std::mutex> lock(mu);
+
+  ArrayRef<uint8_t> oldRef = data();
+  // In case the above just uncompressed
+  if (copiedData)
+    return;
+
+  size_t size = oldRef.size();
+  uint8_t *newData = bAlloc.Allocate<uint8_t>(size);
+  memcpy(newData, oldRef.data(), size);
+  rawData = makeArrayRef(newData, size);
+  //rawData = makeArrayRef(oldRef.data(), size);
+  copiedData = true;
 }
 
 template <class ELFT>

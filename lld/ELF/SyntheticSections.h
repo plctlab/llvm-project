@@ -390,6 +390,25 @@ private:
   std::vector<const Symbol *> entries;
 };
 
+class TableJumpSection final : public SyntheticSection {
+public:
+  TableJumpSection();
+  size_t addEntry(const Symbol& symbol); // TODO: Change uint64_t to Xlen
+  size_t getSize() const override;
+  void writeTo(uint8_t *buf) override;
+  bool isNeeded() const override;
+
+  // Flag to force TableJump to be in output if we have relocations
+  // that relies on its address.
+  bool hasTableJumpOffRel = false;
+
+protected:
+  uint64_t size = 0;
+
+private:
+  std::vector<uint64_t> entries; // TODO: Change uint64_t to Xlen
+};
+
 // The IgotPltSection is a Got associated with the PltSection for GNU Ifunc
 // Symbols that will be relocated by Target->IRelativeRel.
 // On most Targets the IgotPltSection will immediately follow the GotPltSection
@@ -1202,6 +1221,7 @@ struct InStruct {
   GotPltSection *gotPlt;
   IgotPltSection *igotPlt;
   PPC64LongBranchTargetSection *ppc64LongBranchTarget;
+  TableJumpSection *riscvTableJumpSection;
   MipsGotSection *mipsGot;
   MipsRldMapSection *mipsRldMap;
   SyntheticSection *partEnd;

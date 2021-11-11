@@ -1111,6 +1111,7 @@ static void readConfigs(opt::InputArgList &args) {
       args.hasFlag(OPT_warn_symbol_ordering, OPT_no_warn_symbol_ordering, true);
   config->zCombreloc = getZFlag(args, "combreloc", "nocombreloc", true);
   config->zCopyreloc = getZFlag(args, "copyreloc", "nocopyreloc", true);
+  config->zce_tbljal = args.hasArg(OPT_zce_tbljal);
   config->zForceBti = hasZOption(args, "force-bti");
   config->zForceIbt = hasZOption(args, "force-ibt");
   config->zGlobal = hasZOption(args, "global");

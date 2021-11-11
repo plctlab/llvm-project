@@ -28,6 +28,8 @@ public:
   uint32_t calcEFlags() const override;
   void writeGotHeader(uint8_t *buf) const override;
   void writeGotPlt(uint8_t *buf, const Symbol &s) const override;
+  void writeTableJumpHeader(uint8_t *buf) const override;
+  void writeTableJump(uint8_t *buf, const uint64_t symbol) const override;
   void writePltHeader(uint8_t *buf) const override;
   void writePlt(uint8_t *buf, const Symbol &sym,
                 uint64_t pltEntryAddr) const override;
@@ -37,6 +39,13 @@ public:
   void relocate(uint8_t *loc, const Relocation &rel,
                 uint64_t val) const override;
   void finalizeSections() const override;
+  void processSection(InputSection &inputSection) const override;
+  void insertTableJumps(InputSection &inputSection) const;
+  void insertTableJump(
+      InputSection &inputSection, Relocation &rel,
+      std::vector<std::pair<const uint64_t, const uint64_t>> &bytesToDelete,
+      std::vector<std::pair<const std::string, const uint64_t>> &tblJumpSymbols)
+      const;
 };
 
 } // end anonymous namespace
@@ -73,6 +82,10 @@ static uint32_t rtype(uint32_t op, uint32_t rd, uint32_t rs1, uint32_t rs2) {
 }
 static uint32_t utype(uint32_t op, uint32_t rd, uint32_t imm) {
   return op | (rd << 7) | (imm << 12);
+}
+
+static uint16_t tbljumptype(uint8_t imm) {
+  return (imm << 2) | 0b1000100000000000;
 }
 
 RISCV::RISCV() {
@@ -144,11 +157,25 @@ void RISCV::writeGotHeader(uint8_t *buf) const {
     write32le(buf, mainPart->dynamic->getVA());
 }
 
+void RISCV::writeTableJumpHeader(uint8_t *buf) const {
+  if (config->is64)
+    write64le(buf, mainPart->dynamic->getVA());
+  else
+    write32le(buf, mainPart->dynamic->getVA());
+}
+
 void RISCV::writeGotPlt(uint8_t *buf, const Symbol &s) const {
   if (config->is64)
     write64le(buf, in.plt->getVA());
   else
     write32le(buf, in.plt->getVA());
+}
+
+void RISCV::writeTableJump(uint8_t *buf, const uint64_t address) const {
+  if (config->is64)
+    write64le(buf, address);
+  else
+    write32le(buf, address);
 }
 
 void RISCV::writePltHeader(uint8_t *buf) const {
@@ -258,6 +285,84 @@ RelExpr RISCV::getRelExpr(const RelType type, const Symbol &s,
           ") against symbol " + toString(s));
     return R_NONE;
   }
+}
+
+void RISCV::processSection(InputSection &inputSection) const {
+  if (config->zce_tbljal)
+    insertTableJumps(inputSection);
+}
+
+void RISCV::insertTableJumps(InputSection &inputSection) const {
+
+  std::vector<std::pair<const uint64_t, const uint64_t>> bytesToDelete;
+  std::vector<std::pair<const std::string, const uint64_t>> tblJumpSymbols;
+
+  const auto end = std::end(inputSection.relocations);
+  for (auto it = std::begin(inputSection.relocations); it < std::end(inputSection.relocations); ++it) {
+    //if (it >= std::end(inputSection.relocations))
+      //continue;
+
+    //if (it.type != nullptr) { // Null check TODO: Why is it null? Is this a bug?
+    //if ((*it).type) { // Null check TODO: Why is it null? Is this a bug?
+      switch (it->type) {
+        // auipc + jalr pair
+        case R_RISCV_CALL:
+        /*case R_RISCV_CALL_PLT:*/ {
+          // TODO: Split the checking into a seperate function to the fixup function?
+            insertTableJump(inputSection, *it, bytesToDelete, tblJumpSymbols);
+            inputSection.relocations.erase(it);
+            --it; // Iterator has been deleted, shifting the list.
+        }
+      }
+    //}
+
+    // Skip over the R_RISCV_RELAX.
+    //++it;
+  }
+  
+  /*for (auto& relocation : inputSection.relocations) {
+    //if (it.type != nullptr) { // Null check TODO: Why is it null? Is this a bug?
+    //if (relocation.type) { // Null check TODO: Why is it null? Is this a bug?
+      switch (relocation.type) {
+        // auipc + jalr pair
+        case R_RISCV_CALL:
+        case R_RISCV_CALL_PLT:
+        default: {
+          // TODO: Split the checking into a seperate function to the fixup function?
+            insertTableJump(inputSection, relocation, bytesToDelete, tblJumpSymbols);
+        }
+      }
+    //}
+  }*/
+  if (bytesToDelete.size() > 0)
+    inputSection.deleteBytes(bytesToDelete);
+}
+
+void RISCV::insertTableJump(
+    InputSection &inputSection, Relocation &rel,
+    std::vector<std::pair<const uint64_t, const uint64_t>> &bytesToDelete,
+    std::vector<std::pair<const std::string, const uint64_t>> &tblJumpSymbols)
+    const {
+  // The address to be jumped to.
+  const uint64_t targetLoc = rel.sym->getVA();
+  // The address we are jumping from.
+  const uint64_t loc = inputSection.getVA() + rel.offset;
+
+  //const auto jalr = inputSection.data()[rel.offset + 4];
+
+  const auto tblEntryAddress = in.riscvTableJumpSection->addEntry(*rel.sym);
+
+  // Write over the auipc instruction
+  inputSection.edit(rel.offset, tbljumptype(tblEntryAddress));
+
+  const auto deleteStartOffset = 4;
+  const auto deleteSize = 4;
+
+  if (inputSection.getVA() + inputSection.data().size() <= rel.offset - deleteStartOffset + deleteSize)
+    return;
+  bytesToDelete.emplace_back(rel.offset - deleteStartOffset, deleteSize);
+  //bytesToDelete.emplace_back(rel.offset, deleteSize);
+  return;
 }
 
 // Extract bits V[Begin:End], where range is inclusive, and Begin must be < 63.

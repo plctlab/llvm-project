@@ -22,6 +22,8 @@ void RISCVELFTargetObjectFile::Initialize(MCContext &Ctx,
       ".sdata", ELF::SHT_PROGBITS, ELF::SHF_WRITE | ELF::SHF_ALLOC);
   SmallBSSSection = getContext().getELFSection(".sbss", ELF::SHT_NOBITS,
                                                ELF::SHF_WRITE | ELF::SHF_ALLOC);
+  //TblJALEntriesSection = getContext().getELFSection(".tbljalentries ",
+  //                                                  ELF::SHT_SYMTAB, 0);
 }
 
 // A address must be loaded from a small section if its size is less than the

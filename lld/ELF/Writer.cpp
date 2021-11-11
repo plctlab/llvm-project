@@ -72,6 +72,7 @@ private:
   void assignFileOffsetsBinary();
   void setPhdrs(Partition &part);
   void checkSections();
+  void processSections();
   void fixSectionAlignments();
   void openFile();
   void writeTrapInstr();
@@ -513,6 +514,11 @@ template <class ELFT> void elf::createSyntheticSections() {
     add(in.ppc64LongBranchTarget);
   }
 
+  if (config->emachine == EM_RISCV && config->zce_tbljal) {
+    in.riscvTableJumpSection = make<TableJumpSection>();
+    add(in.riscvTableJumpSection);
+  }
+
   in.gotPlt = make<GotPltSection>();
   add(in.gotPlt);
   in.igotPlt = make<IgotPltSection>();
@@ -609,6 +615,8 @@ template <class ELFT> void Writer<ELFT>::run() {
   // we know the size of the sections.
   for (Partition &part : partitions)
     removeEmptyPTLoad(part.phdrs);
+
+  processSections();
 
   if (!config->oFormatBinary)
     assignFileOffsets();
@@ -2154,6 +2162,7 @@ template <class ELFT> void Writer<ELFT>::finalizeSections() {
     finalizeSynthetic(in.mipsGot);
     finalizeSynthetic(in.igotPlt);
     finalizeSynthetic(in.gotPlt);
+    finalizeSynthetic(in.riscvTableJumpSection);
     finalizeSynthetic(in.relaIplt);
     finalizeSynthetic(in.relaPlt);
     finalizeSynthetic(in.plt);
@@ -2810,6 +2819,12 @@ template <class ELFT> void Writer<ELFT>::checkSections() {
   checkOverlap("load address", lmas, false);
 }
 
+template <class ELFT> void Writer<ELFT>::processSections() {
+  for (InputSectionBase *inputSection : inputSections) {
+    target->processSection(cast<InputSection>(*inputSection));
+  }
+}
+
 // The entry point address is chosen in the following ways.
 //
 // 1. the '-e' entry command-line option;
@@ -2922,8 +2937,11 @@ template <class ELFT> void Writer<ELFT>::openFile() {
 
 template <class ELFT> void Writer<ELFT>::writeSectionsBinary() {
   for (OutputSection *sec : outputSections)
-    if (sec->flags & SHF_ALLOC)
+    if (sec->flags & SHF_ALLOC) {
       sec->writeTo<ELFT>(Out::bufferStart + sec->offset);
+      if (config->emachine == EM_RISCV && config->zce_tbljal)
+        in.riscvTableJumpSection->writeTo(Out::bufferStart + sec->offset);
+    }
 }
 
 static void fillTrap(uint8_t *i, uint8_t *end) {
