@@ -230,6 +230,7 @@ struct Configuration {
   bool writeAddends;
   bool zCombreloc;
   bool zCopyreloc;
+  bool zce_tbljal;
   bool zForceBti;
   bool zForceIbt;
   bool zGlobal;

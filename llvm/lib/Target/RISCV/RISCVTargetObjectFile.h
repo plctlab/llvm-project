@@ -17,6 +17,7 @@ namespace llvm {
 class RISCVELFTargetObjectFile : public TargetLoweringObjectFileELF {
   MCSection *SmallDataSection;
   MCSection *SmallBSSSection;
+  //MCSection *TblJALEntriesSection;
   unsigned SSThreshold = 8;
 
 public:
