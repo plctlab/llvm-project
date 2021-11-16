@@ -205,6 +205,10 @@ void RISCV::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   if (WantCRTs)
     CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath(crtend)));
 
+  // Zce optmise option
+  if(Args.hasArg(options::OPT_mzce_lsgp))
+    CmdArgs.push_back("-mzce-lsgp");
+
   CmdArgs.push_back("-o");
   CmdArgs.push_back(Output.getFilename());
   C.addCommand(std::make_unique<Command>(
