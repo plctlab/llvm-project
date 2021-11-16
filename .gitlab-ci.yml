@@ -11,6 +11,6 @@ build:
   script:
     - mkdir build
     - cd build
-    - cmake ../runtimes -G Ninja -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind"
+    - cmake ../runtimes -G Ninja -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" -DCMAKE_C_COMPILER="$(which clang)" -DCMAKE_CXX_COMPILER="$(which clang++)"
     - ninja cxx-test-depends
     - bin/llvm-lit -sv libcxx/test/std/experimental/simd
