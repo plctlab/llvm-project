@@ -1379,6 +1379,8 @@ static void readConfigs(opt::InputArgList &args) {
     } else {
       error(Twine("cannot find version script ") + arg->getValue());
     }
+
+  config->optmizeZceLsgp = args.hasArg(OPT_mzce_lsgp);
 }
 
 // Some Config members do not directly correspond to any particular
