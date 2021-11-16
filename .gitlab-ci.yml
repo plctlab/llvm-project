@@ -1,0 +1,16 @@
+image: ubuntu:20.04
+
+before_script:
+  - export RUNNER_MAX_LINK_JOBS=`free --giga | grep Mem | awk '{print int($2 / 16)}'`
+
+build:
+  stage: build
+  tags:
+    - llvm
+
+  script:
+    - mkdir build
+    - cd build
+    - cmake ../runtimes -G Ninja -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind"
+    - ninja cxx-test-depends
+    - bin/llvm-lit -sv libcxx/test/std/experimental/simd
