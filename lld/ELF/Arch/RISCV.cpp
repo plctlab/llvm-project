@@ -352,15 +352,15 @@ void RISCV::insertTableJump(
 
   const auto tblEntryAddress = in.riscvTableJumpSection->addEntry(*rel.sym);
 
-  // Write over the auipc instruction
-  inputSection.edit(rel.offset, tbljumptype(tblEntryAddress));
-
   const auto deleteStartOffset = 4;
   const auto deleteSize = 4;
 
-  if (inputSection.getVA() + inputSection.data().size() <= rel.offset - deleteStartOffset + deleteSize)
+  // Write over the auipc instruction
+  inputSection.edit(rel.offset + deleteStartOffset, tbljumptype(tblEntryAddress));
+
+  if (inputSection.getVA() + inputSection.data().size() <= rel.offset + deleteSize)
     return;
-  bytesToDelete.emplace_back(rel.offset - deleteStartOffset, deleteSize);
+  bytesToDelete.emplace_back(rel.offset, deleteSize);
   //bytesToDelete.emplace_back(rel.offset, deleteSize);
   return;
 }
