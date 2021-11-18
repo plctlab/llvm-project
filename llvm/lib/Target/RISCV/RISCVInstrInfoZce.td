@@ -706,6 +706,7 @@ def C_SH : ZceStore_ri<0b101, 0b00, "c.sh", GPRC, uimm5_lsb0>,
 
 }
 
+let isCompressOnly = true in {
 let Predicates = [EnableZceCPushCPop] in{
 def : CompressPat<(PUSH rlist3:$slist, alist:$areg, spimm0_5:$spimm),
                   (C_PUSH rlist3:$slist, alist:$areg, spimm0_5:$spimm)>;
@@ -715,4 +716,39 @@ def : CompressPat<(POPRET rlist3:$slist, retval1:$ret, spimm0_5:$spimm),
                   (C_POPRET rlist3:$slist, retval1:$ret, spimm0_5:$spimm)>;
 } //Predicates = [HasStdExtZcea]
 
+let Predicates = [EnableZceCMul] in{
+def : CompressPat<(MUL GPRC:$rs1, GPRC:$rs1, GPRC:$rs2),
+                  (C_MUL GPRC:$rs1, GPRC:$rs2)>;
 
+def : CompressPat<(MUL GPRC:$rs1, GPRC:$rs2, GPRC:$rs1),
+                  (C_MUL GPRC:$rs1, GPRC:$rs2)>;
+} //Predicates = [EnableZceCMul]
+
+let Predicates = [EnableZceSext, HasStdExtZbb] in{
+def : CompressPat<(SEXTB GPRC:$rs1, GPRC:$rs1),
+                  (C_SEXT_B GPRC:$rs1, GPRC:$rs1)>;
+
+def : CompressPat<(SEXTH GPRC:$rs1, GPRC:$rs1),
+                  (C_SEXT_H GPRC:$rs1, GPRC:$rs1)>;
+} //Predicates = [EnableZceSext, HasStdExtZbb]
+
+let Predicates = [EnableZceZext, HasStdExtZbb] in{
+def : CompressPat<(ZEXTH_RV32 GPRC:$rs1, GPRC:$rs1),
+                  (C_ZEXT_H GPRC:$rs1, GPRC:$rs1)>;
+
+def : CompressPat<(ZEXTH_RV64 GPRC:$rs1, GPRC:$rs1),
+                  (C_ZEXT_H GPRC:$rs1, GPRC:$rs1)>;
+} //Predicates = [EnableZceSext, HasStdExtZbb]
+
+// zext.b
+let Predicates = [EnableZceZext] in{
+def : CompressPat<(ANDI GPRC:$rs1, GPRC:$rs1, 255),
+                  (C_ZEXT_B GPRC:$rs1, GPRC:$rs1)>;
+} //Predicates = [EnableZceSext, HasStdExtZbb]
+
+// zext.w
+let Predicates = [EnableZceZext, HasStdExtZba, IsRV64] in{
+def : CompressPat<(ADDUW GPRC:$rs1, GPRC:$rs1, X0),
+                  (C_ZEXT_W GPRC:$rs1, GPRC:$rs1)>;
+} //Predicates = [EnableZceZext, HasStdExtZba, IsRV64]
+} // isCompressOnly = true

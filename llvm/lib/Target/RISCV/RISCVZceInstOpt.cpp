@@ -41,9 +41,6 @@ public:
   }
 
   bool runOnMachineFunction(MachineFunction &MF) override;
-  bool optimiseZceeInstruction(MachineBasicBlock &MBB,
-                               MachineBasicBlock::iterator MBBI,
-                               MachineBasicBlock::iterator &NextMBBI);
   bool optimiseZceaInstruction(MachineBasicBlock &MBB,
                                MachineBasicBlock::iterator MBBI,
                                MachineBasicBlock::iterator &NextMBBI);
@@ -73,22 +70,6 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
       switch (MBBI->getOpcode()) {
       default:
         break;
-      case RISCV::MUL:
-        if (STI->enableZceCMul())
-          Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
-        break;
-      case RISCV::ZEXTH_RV32:
-      case RISCV::ZEXTH_RV64:
-      case RISCV::ANDI:  // zext.b
-      case RISCV::ADDUW: // zext.w
-        if (STI->enableZceZext())
-          Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
-        break;
-      case RISCV::SEXTB:
-      case RISCV::SEXTH:
-        if (STI->enableZceSext())
-          Modified |= optimiseZceeInstruction(MBB, MBBI, NMBBI);
-        break;
       case RISCV::XORI: // c.not
         if (STI->enableZceCNot())
           Modified |= optimiseZceaInstruction(MBB, MBBI, NMBBI);
@@ -115,75 +96,6 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
       }
       MBBI = NMBBI;
     }
-  }
-  return Modified;
-}
-
-bool RISCVZceInstOpt::optimiseZceeInstruction(
-    MachineBasicBlock &MBB, MachineBasicBlock::iterator MBBI,
-    MachineBasicBlock::iterator &NextMBBI) {
-  bool Modified = false;
-  switch (MBBI->getOpcode()) {
-  default:
-    break;
-  case RISCV::ZEXTH_RV32:
-  case RISCV::ZEXTH_RV64:
-  case RISCV::SEXTB:
-  case RISCV::SEXTH:
-    if (STI->hasStdExtZbb()) {
-      Register DestReg = MBBI->getOperand(0).getReg();
-      Register SourceReg = MBBI->getOperand(1).getReg();
-      DebugLoc DL = MBBI->getDebugLoc();
-      if (SourceReg == DestReg &&
-          (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)) {
-        BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
-            .addReg(SourceReg);
-        MBBI->eraseFromParent();
-        Modified = true;
-      }
-    }
-    break;
-  case RISCV::MUL: {
-    Register DestReg = MBBI->getOperand(0).getReg();
-    Register SourceReg1 = MBBI->getOperand(1).getReg();
-    Register SourceReg2 = MBBI->getOperand(2).getReg();
-    DebugLoc DL = MBBI->getDebugLoc();
-    if (SourceReg1 == DestReg &&
-        (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)) {
-      BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
-          .addReg(SourceReg1)
-          .addReg(SourceReg2);
-      MBBI->eraseFromParent();
-      Modified = true;
-    }
-  } break;
-  case RISCV::ANDI: {
-    Register DestReg = MBBI->getOperand(0).getReg();
-    Register SourceReg1 = MBBI->getOperand(1).getReg();
-    Register SourceImm = MBBI->getOperand(2).getImm();
-    DebugLoc DL = MBBI->getDebugLoc();
-    if (SourceReg1 == DestReg &&
-        (DestReg >= RISCV::X8 && DestReg <= RISCV::X15) && SourceImm == 255) {
-      BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
-          .addReg(SourceReg1);
-      MBBI->eraseFromParent();
-      Modified = true;
-    }
-  } break;
-    case RISCV::ADDUW:
-    if (STI->hasStdExtZba() && STI->is64Bit()) {
-      Register DestReg = MBBI->getOperand(0).getReg();
-      Register SourceReg = MBBI->getOperand(1).getReg();
-      DebugLoc DL = MBBI->getDebugLoc();
-      if (SourceReg == DestReg &&
-          (DestReg >= RISCV::X8 && DestReg <= RISCV::X15)) {
-        BuildMI(MBB, MBBI, DL, TII->get(RISCV::C_ZEXT_W), DestReg)
-            .addReg(SourceReg);
-        MBBI->eraseFromParent();
-        Modified = true;
-      }
-    }
-    break;
   }
   return Modified;
 }
