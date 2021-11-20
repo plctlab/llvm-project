@@ -710,80 +710,22 @@ public:
 
 #ifndef _LIBCPP_HAS_NO_VECTOR_EXTENSION
 
-constexpr size_t __floor_pow_of_2(size_t __val) {
-  return ((__val - 1) & __val) == 0 ? __val : __floor_pow_of_2((__val - 1) & __val);
+constexpr size_t __next_pow_of_2(size_t __val) {
+  size_t __pow = 1;
+  while (__pow < __val)
+    __pow <<= 1;
+  return __pow;
 }
-
-constexpr size_t __ceil_pow_of_2(size_t __val) { return __val == 1 ? 1 : __floor_pow_of_2(__val - 1) << 1; }
 
 template <class _Tp, size_t __bytes>
 struct __vec_ext_traits {
-#if !defined(_LIBCPP_COMPILER_CLANG_BASED)
-  typedef _Tp type __attribute__((vector_size(__ceil_pow_of_2(__bytes))));
+#if defined(_LIBCPP_COMPILER_CLANG_BASED)
+  using type = _Tp __attribute__((vector_size(__bytes)));
+#else
+  using type = _Tp __attribute__((vector_size(__next_pow_of_2(__bytes))));
 #endif
 };
 
-#if defined(_LIBCPP_COMPILER_CLANG_BASED)
-#define _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, _NUM_ELEMENT)                                                                \
-  template <>                                                                                                          \
-  struct __vec_ext_traits<_TYPE, sizeof(_TYPE) * _NUM_ELEMENT> {                                                       \
-    using type = _TYPE __attribute__((vector_size(sizeof(_TYPE) * _NUM_ELEMENT)));                                     \
-  }
-
-#define _LIBCPP_SPECIALIZE_VEC_EXT_32(_TYPE)                                                                           \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 1);                                                                                \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 2);                                                                                \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 3);                                                                                \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 4);                                                                                \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 5);                                                                                \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 6);                                                                                \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 7);                                                                                \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 8);                                                                                \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 9);                                                                                \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 10);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 11);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 12);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 13);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 14);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 15);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 16);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 17);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 18);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 19);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 20);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 21);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 22);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 23);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 24);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 25);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 26);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 27);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 28);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 29);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 30);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 31);                                                                               \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 32);
-
-_LIBCPP_SPECIALIZE_VEC_EXT_32(char);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(char16_t);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(char32_t);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(wchar_t);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(signed char);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(signed short);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(signed int);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(signed long);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(signed long long);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(unsigned char);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(unsigned short);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(unsigned int);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(unsigned long);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(unsigned long long);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(float);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(double);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(long double);
-
-#undef _LIBCPP_SPECIALIZE_VEC_EXT_32
-#undef _LIBCPP_SPECIALIZE_VEC_EXT
 #endif
 
 template <class _Tp, int __num_element>
