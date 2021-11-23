@@ -7,3 +7,7 @@
 # CHECK-ASM-AND-OBJ: c.not s0
 # CHECK-ASM: encoding: [0x1c,0x80]
 c.not s0
+
+# CHECK-ASM-AND-OBJ: c.not a5
+# CHECK-ASM: encoding: [0x9c,0x83]
+not x15,x15
