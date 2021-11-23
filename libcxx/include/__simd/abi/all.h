@@ -10,7 +10,6 @@
 #define _LIBCPP___SIMD_ABI_ALL_H
 
 #include <__simd/abi/scalar.h>
-#include <__simd/abi/array.h>
 #include <__simd/abi/vec_ext.h>
 
 #endif // _LIBCPP___SIMD_ABI_ALL_H
