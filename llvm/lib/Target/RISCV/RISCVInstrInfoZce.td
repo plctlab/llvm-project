@@ -751,4 +751,14 @@ let Predicates = [EnableZceZext, HasStdExtZba, IsRV64] in{
 def : CompressPat<(ADDUW GPRC:$rs1, GPRC:$rs1, X0),
                   (C_ZEXT_W GPRC:$rs1, GPRC:$rs1)>;
 } //Predicates = [EnableZceZext, HasStdExtZba, IsRV64]
+
+let Predicates = [EnableZceCNot] in{
+def : CompressPat<(XORI GPRC:$rs1, GPRC:$rs1, -1),
+                  (C_NOT_ZCE GPRC:$rs1, GPRC:$rs1)>;
+}
+
+let Predicates = [EnableZceCNeg] in{
+def : CompressPat<(SUB GPRC:$rs1, X0, GPRC:$rs1),
+                  (C_NEG_ZCE GPRC:$rs1, GPRC:$rs1)>;
+}
 } // isCompressOnly = true

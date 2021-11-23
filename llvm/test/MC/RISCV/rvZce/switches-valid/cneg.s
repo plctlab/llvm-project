@@ -7,3 +7,7 @@
 # CHECK-ASM-AND-OBJ: c.neg s0
 # CHECK-ASM: encoding: [0x18,0x80]
 c.neg s0
+
+# CHECK-ASM-AND-OBJ: c.neg a4
+# CHECK-ASM: encoding: [0x18,0x83]
+neg x14,x14
