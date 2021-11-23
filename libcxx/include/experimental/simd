@@ -780,7 +780,7 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 using scalar = __simd_abi<_StorageKind::_Scalar, 1>;
 
 template <int _Np>
-using fixed_size = __simd_abi<_StorageKind::_Array, _Np>;
+using fixed_size = __simd_abi<_StorageKind::_VecExt, _Np>;
 
 template <class _Tp>
 inline constexpr size_t max_fixed_size = 32;
