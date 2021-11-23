@@ -651,9 +651,9 @@ public:
 
 #include <experimental/__config>
 #include <algorithm>
-#include <array>
 #include <cstddef>
 #include <functional>
+#include <__simd/abi/all.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -665,87 +665,6 @@ _LIBCPP_PUSH_MACROS
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 #if _LIBCPP_STD_VER >= 17
-
-enum class _StorageKind {
-  _Scalar,
-  _Array,
-  _VecExt,
-};
-
-template <_StorageKind __kind, int _Np>
-struct __simd_abi {};
-
-template <class _Tp, class _Abi>
-class __simd_storage {};
-
-template <class _Tp, int __num_element>
-class __simd_storage<_Tp, __simd_abi<_StorageKind::_Array, __num_element>> {
-  std::array<_Tp, __num_element> __storage_;
-
-  template <class, class>
-  friend struct simd;
-
-  template <class, class>
-  friend struct simd_mask;
-
-public:
-  _Tp __get(size_t __index) const noexcept { return __storage_[__index]; };
-  void __set(size_t __index, _Tp __val) noexcept { __storage_[__index] = __val; }
-};
-
-template <class _Tp>
-class __simd_storage<_Tp, __simd_abi<_StorageKind::_Scalar, 1>> {
-  _Tp __storage_;
-
-  template <class, class>
-  friend struct simd;
-
-  template <class, class>
-  friend struct simd_mask;
-
-public:
-  _Tp __get(size_t __index) const noexcept { return (&__storage_)[__index]; };
-  void __set(size_t __index, _Tp __val) noexcept { (&__storage_)[__index] = __val; }
-};
-
-#ifndef _LIBCPP_HAS_NO_VECTOR_EXTENSION
-
-constexpr size_t __next_pow_of_2(size_t __val) {
-  size_t __pow = 1;
-  while (__pow < __val)
-    __pow <<= 1;
-  return __pow;
-}
-
-template <class _Tp, size_t __bytes>
-struct __vec_ext_traits {
-#if defined(_LIBCPP_COMPILER_CLANG_BASED)
-  using type = _Tp __attribute__((vector_size(__bytes)));
-#else
-  using type = _Tp __attribute__((vector_size(__next_pow_of_2(__bytes))));
-#endif
-};
-
-#endif
-
-template <class _Tp, int __num_element>
-class __simd_storage<_Tp, __simd_abi<_StorageKind::_VecExt, __num_element>> {
-  using _StorageType = typename __vec_ext_traits<_Tp, sizeof(_Tp) * __num_element>::type;
-
-  _StorageType __storage_;
-
-  template <class, class>
-  friend struct simd;
-
-  template <class, class>
-  friend struct simd_mask;
-
-public:
-  _Tp __get(size_t __index) const noexcept { return __storage_[__index]; };
-  void __set(size_t __index, _Tp __val) noexcept { __storage_[__index] = __val; }
-};
-
-#endif // _LIBCPP_HAS_NO_VECTOR_EXTENSION
 
 template <class _Vp, class _Tp, class _Abi>
 class __simd_reference {

@@ -256,6 +256,12 @@ set(files
   __ranges/take_view.h
   __ranges/transform_view.h
   __ranges/view_interface.h
+  __simd/abi/all.h
+  __simd/abi/array.h
+  __simd/abi/decl.h
+  __simd/abi/scalar.h
+  __simd/abi/vec_ext.h
+  __simd/arch/config.h
   __split_buffer
   __std_stream
   __string
