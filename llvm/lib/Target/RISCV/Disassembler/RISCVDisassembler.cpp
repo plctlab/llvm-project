@@ -589,15 +589,8 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
       }
     }
 
-    LLVM_DEBUG(dbgs() << "Trying RISCV_C table (16-bit Instruction):\n");
-    // Calling the auto-generated decoder function.
-    Result = decodeInstruction(DecoderTable16, MI, Insn, Address, this, STI);
-    if (Result != MCDisassembler::Fail) {
-      Size = 2;
-      return Result;
-    }
-
     if (STI.getFeatureBits()[RISCV::FeatureStdExtZce]) {
+      
       if (STI.getFeatureBits()[RISCV::FeatureExtZceb]) {
         LLVM_DEBUG(
           dbgs() << "Trying RISCV32Zceb table (code-size reduction "
@@ -611,7 +604,7 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
         }
       }
 
-    // handle c.popret[.e] Instructions of Zce Ext
+      // handle c.popret[.e] Instructions of Zce Ext
       LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
       // Calling the auto-generated decoder function.
       Result = decodeInstruction(DecoderTableZcePOPRET16, MI, Insn, Address, this, STI);
@@ -655,6 +648,11 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
         return Result;
       }
     }
+
+    LLVM_DEBUG(dbgs() << "Trying RISCV_C table (16-bit Instruction):\n");
+    // Calling the auto-generated decoder function.
+    Result = decodeInstruction(DecoderTable16, MI, Insn, Address, this, STI);
+    Size = 2;
   }
 
   return Result;
