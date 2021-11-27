@@ -843,7 +843,7 @@ inline constexpr overaligned_tag<_Np> overaligned{};
 
 // traits [simd.traits]
 template <class _Tp>
-struct is_abi_tag : __is_abi_tag<_Tp> {};
+struct is_abi_tag : __is_abi_tag_impl<_Tp> {};
 
 template <class _Tp>
 inline constexpr bool is_abi_tag_v = is_abi_tag<_Tp>::value;

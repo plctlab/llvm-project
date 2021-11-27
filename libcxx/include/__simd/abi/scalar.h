@@ -21,7 +21,10 @@ _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 template <>
-struct __is_abi_tag<simd_abi::__scalar> : std::true_type {};
+struct __is_abi_tag_impl<simd_abi::__scalar> : std::true_type {};
+
+template <class _Tp>
+struct __simd_size_impl<_Tp, simd_abi::__scalar> : std::integral_constant<size_t, 1> {};
 
 template <class _Tp>
 class __simd_storage<_Tp, simd_abi::__scalar> {
