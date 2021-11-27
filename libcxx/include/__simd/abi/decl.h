@@ -15,12 +15,6 @@
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
-template <class _Tp>
-struct __is_abi_tag_impl : std::false_type {};
-
-template <class _Tp, class _Abi>
-struct __simd_size_impl;
-
 template <class _Tp, class _Abi>
 class __simd_storage;
 
