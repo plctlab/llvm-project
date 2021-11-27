@@ -1145,7 +1145,9 @@ public:
   static constexpr size_t size() noexcept { return simd_size_v<_Tp, _Abi>; }
 
 private:
-  __simd_storage<_Tp, _Abi> __s_;
+  using _Impl = __simd_traits<_Tp, _Abi>;
+
+  typename _Impl::_Storage __s_;
 
   template <class _Up>
   static constexpr bool __can_broadcast() {
@@ -1187,12 +1189,7 @@ public:
 
   // implicit broadcast constructor
   template <class _Up, std::enable_if_t<__can_broadcast<_Up>(), int> = 0>
-  simd(_Up&& __rv) {
-    auto __v = static_cast<_Tp>(__rv);
-    for (size_t __i = 0; __i < size(); __i++) {
-      (*this)[__i] = __v;
-    }
-  }
+  simd(_Up&& __v) : __s_(_Impl::__broadcast(static_cast<_Tp>(__v))) {}
 
   // generator constructor
   template <class _Generator, std::enable_if_t<__can_generate<_Generator>(std::make_index_sequence<size()>()), int> = 0>
