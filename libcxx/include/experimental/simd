@@ -817,6 +817,21 @@ inline constexpr overaligned_tag<_Np> overaligned{};
 
 // traits [simd.traits]
 template <class _Tp>
+struct __is_vectorizable : std::is_arithmetic<_Tp> {};
+
+template <>
+struct __is_vectorizable<bool> : std::false_type {};
+
+template <class _Tp>
+inline constexpr bool __is_vectorizable_v = __is_vectorizable<_Tp>::value;
+
+template <class _Tp, class = void>
+struct __is_abi_tag_impl : std::false_type {};
+
+template <class _Tp>
+struct __is_abi_tag_impl<_Tp, std::enable_if_t<_Tp::__is_abi_tag>> : std::bool_constant<_Tp::__is_abi_tag> {};
+
+template <class _Tp>
 struct is_abi_tag : __is_abi_tag_impl<_Tp> {};
 
 template <class _Tp>
@@ -863,12 +878,15 @@ struct abi_for_size {
 template <class _Tp, size_t _Np>
 using abi_for_size_t = typename abi_for_size<_Tp, _Np>::type;
 
+template <class _Tp, class _Abi, class = void>
+struct __simd_size_impl {};
+
+template <class _Tp, class _Abi>
+struct __simd_size_impl< _Tp, _Abi, std::enable_if_t<std::conjunction_v<__is_vectorizable<_Tp>, is_abi_tag<_Abi>>>>
+    : std::integral_constant<size_t, _Abi::__simd_size> {};
+
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
-struct simd_size : __simd_size_impl<_Tp, _Abi> {
-  // extract vectorizable out as a trait?
-  static_assert(std::is_arithmetic_v<_Tp> && !std::is_same_v<typename std::remove_const_t<_Tp>, bool>,
-                "Element type should be vectorizable");
-};
+struct simd_size : __simd_size_impl<_Tp, _Abi> {};
 
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
 inline constexpr size_t simd_size_v = simd_size<_Tp, _Abi>::value;
@@ -1275,8 +1293,8 @@ public:
 };
 
 // [simd.mask.class]
-template <class _Tp, class _Abi>
 // TODO: implement simd_mask
+template <class _Tp, class _Abi>
 class simd_mask {
 public:
   using value_type = bool;
@@ -1284,7 +1302,9 @@ public:
   using reference = bool&;
   using simd_type = simd<_Tp, _Abi>;
   using abi_type = _Abi;
-  static constexpr size_t size() noexcept;
+
+  static constexpr size_t size() noexcept { return simd_type::size(); }
+
   simd_mask() = default;
 
   // broadcast constructor

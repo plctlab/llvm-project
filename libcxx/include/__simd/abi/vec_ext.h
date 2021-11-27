@@ -15,17 +15,14 @@
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 
 template <int _Np>
-struct __vec_ext;
+struct __vec_ext {
+  static constexpr bool __is_abi_tag = _Np > 0;
+  static constexpr size_t __simd_size = _Np;
+};
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
-
-template <int _Np>
-struct __is_abi_tag_impl<simd_abi::__vec_ext<_Np>> : std::true_type {};
-
-template <class _Tp, int _Np>
-struct __simd_size_impl<_Tp, simd_abi::__vec_ext<_Np>> : std::integral_constant<size_t, _Np> {};
 
 constexpr size_t __next_pow_of_2(size_t __val) {
   size_t __pow = 1;
@@ -34,18 +31,13 @@ constexpr size_t __next_pow_of_2(size_t __val) {
   return __pow;
 }
 
-template <class _Tp, size_t __bytes>
-struct __vec_ext_traits {
-#if defined(_LIBCPP_COMPILER_CLANG_BASED)
-  using type = _Tp __attribute__((vector_size(__bytes)));
-#else
-  using type = _Tp __attribute__((vector_size(__next_pow_of_2(__bytes))));
-#endif
-};
-
 template <class _Tp, int _Np>
 class __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
-  using _StorageType = typename __vec_ext_traits<_Tp, sizeof(_Tp) * _Np>::type;
+#if defined(_LIBCPP_COMPILER_CLANG_BASED)
+  using _StorageType = _Tp __attribute__((vector_size(sizeof(_Tp) * _Np)));
+#else
+  using _StorageType = _Tp __attribute__((vector_size(__next_pow_of_2(sizeof(_Tp) * _Np))));
+#endif
 
   _StorageType __storage_;
 
