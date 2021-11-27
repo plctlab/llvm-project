@@ -49,6 +49,7 @@ class __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
 
 public:
   _Tp __get(size_t __index) const noexcept { return __storage_[__index]; }
+
   void __set(size_t __index, _Tp __val) noexcept { __storage_[__index] = __val; }
 };
 
