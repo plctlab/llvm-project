@@ -12,10 +12,19 @@
 #include <experimental/__config>
 #include <__simd/abi/decl.h>
 
+_LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+
+struct __scalar;
+
+_LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
+template <>
+struct __is_abi_tag<simd_abi::__scalar> : std::true_type {};
+
 template <class _Tp>
-class __simd_storage<_Tp, __simd_abi<_StorageKind::_Scalar, 1>> {
+class __simd_storage<_Tp, simd_abi::__scalar> {
   _Tp __storage_;
 
   template <class, class>
@@ -25,7 +34,7 @@ class __simd_storage<_Tp, __simd_abi<_StorageKind::_Scalar, 1>> {
   friend struct simd_mask;
 
 public:
-  _Tp __get(size_t __index) const noexcept { return (&__storage_)[__index]; };
+  _Tp __get(size_t __index) const noexcept { return (&__storage_)[__index]; }
   void __set(size_t __index, _Tp __val) noexcept { (&__storage_)[__index] = __val; }
 };
 
