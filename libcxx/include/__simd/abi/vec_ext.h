@@ -34,12 +34,12 @@ constexpr size_t __next_pow_of_2(size_t __val) {
 template <class _Tp, int _Np>
 class __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
 #if defined(_LIBCPP_COMPILER_CLANG_BASED)
-  using _StorageType = _Tp __attribute__((vector_size(sizeof(_Tp) * _Np)));
+  using _Storage = _Tp __attribute__((vector_size(sizeof(_Tp) * _Np)));
 #else
-  using _StorageType = _Tp __attribute__((vector_size(__next_pow_of_2(sizeof(_Tp) * _Np))));
+  using _Storage = _Tp __attribute__((vector_size(__next_pow_of_2(sizeof(_Tp) * _Np))));
 #endif
 
-  _StorageType __storage_;
+  _Storage __s_;
 
   template <class, class>
   friend struct simd;
@@ -47,10 +47,25 @@ class __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
   template <class, class>
   friend struct simd_mask;
 
-public:
-  _Tp __get(size_t __index) const noexcept { return __storage_[__index]; }
+  template <class, class>
+  friend struct __simd_traits;
 
-  void __set(size_t __index, _Tp __val) noexcept { __storage_[__index] = __val; }
+public:
+  _Tp __get(size_t __idx) const noexcept { return __s_[__idx]; }
+
+  void __set(size_t __idx, _Tp __val) noexcept { __s_[__idx] = __val; }
+};
+
+template <class _Tp, int _Np>
+struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
+  using _Storage = __simd_storage< _Tp, simd_abi::__vec_ext<_Np>>;
+
+  static _Storage __broadcast(_Tp __v) noexcept {
+    _Storage __r;
+    for (size_t __i = 0; __i < _Np; ++__i)
+      __r.__set(__i, __v);
+    return __r;
+  }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
