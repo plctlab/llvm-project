@@ -11,17 +11,12 @@
 
 #include <experimental/__config>
 #include <cstddef>
+#include <type_traits>
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
-enum class _StorageKind {
-  _Scalar,
-  _Array,
-  _VecExt,
-};
-
-template <_StorageKind __kind, int _Np>
-struct __simd_abi {};
+template <class _Tp>
+struct __is_abi_tag : std::false_type {};
 
 template <class _Tp, class _Abi>
 class __simd_storage;
