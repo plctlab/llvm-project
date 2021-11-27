@@ -12,9 +12,17 @@
 #include <experimental/__config>
 #include <__simd/abi/decl.h>
 
+_LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+
+template <int _Np>
+struct __vec_ext;
+
+_LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
-#ifndef _LIBCPP_HAS_NO_VECTOR_EXTENSION
+template <int _Np>
+struct __is_abi_tag<simd_abi::__vec_ext<_Np>> : std::true_type {};
 
 constexpr size_t __next_pow_of_2(size_t __val) {
   size_t __pow = 1;
@@ -32,9 +40,9 @@ struct __vec_ext_traits {
 #endif
 };
 
-template <class _Tp, int __num_element>
-class __simd_storage<_Tp, __simd_abi<_StorageKind::_VecExt, __num_element>> {
-  using _StorageType = typename __vec_ext_traits<_Tp, sizeof(_Tp) * __num_element>::type;
+template <class _Tp, int _Np>
+class __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
+  using _StorageType = typename __vec_ext_traits<_Tp, sizeof(_Tp) * _Np>::type;
 
   _StorageType __storage_;
 
@@ -45,11 +53,9 @@ class __simd_storage<_Tp, __simd_abi<_StorageKind::_VecExt, __num_element>> {
   friend struct simd_mask;
 
 public:
-  _Tp __get(size_t __index) const noexcept { return __storage_[__index]; };
+  _Tp __get(size_t __index) const noexcept { return __storage_[__index]; }
   void __set(size_t __index, _Tp __val) noexcept { __storage_[__index] = __val; }
 };
-
-#endif // _LIBCPP_HAS_NO_VECTOR_EXTENSION
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
