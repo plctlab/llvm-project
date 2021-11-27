@@ -22,7 +22,10 @@ _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 template <int _Np>
-struct __is_abi_tag<simd_abi::__vec_ext<_Np>> : std::true_type {};
+struct __is_abi_tag_impl<simd_abi::__vec_ext<_Np>> : std::true_type {};
+
+template <class _Tp, int _Np>
+struct __simd_size_impl<_Tp, simd_abi::__vec_ext<_Np>> : std::integral_constant<size_t, _Np> {};
 
 constexpr size_t __next_pow_of_2(size_t __val) {
   size_t __pow = 1;

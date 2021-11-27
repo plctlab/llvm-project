@@ -817,7 +817,7 @@ inline constexpr overaligned_tag<_Np> overaligned{};
 
 // traits [simd.traits]
 template <class _Tp>
-struct is_abi_tag : __is_abi_tag<_Tp> {};
+struct is_abi_tag : __is_abi_tag_impl<_Tp> {};
 
 template <class _Tp>
 inline constexpr bool is_abi_tag_v = is_abi_tag<_Tp>::value;
@@ -864,14 +864,11 @@ template <class _Tp, size_t _Np>
 using abi_for_size_t = typename abi_for_size<_Tp, _Np>::type;
 
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
-struct simd_size;
-
-// FIXME
-// template <class _Tp, _StorageKind __kind, int _Np>
-// struct simd_size<_Tp, __simd_abi<__kind, _Np>> : std::integral_constant<size_t, _Np> {
-//   static_assert(std::is_arithmetic<_Tp>::value && !std::is_same<typename std::remove_const<_Tp>::type, bool>::value,
-//                 "Element type should be vectorizable");
-// };
+struct simd_size : __simd_size_impl<_Tp, _Abi> {
+  // extract vectorizable out as a trait?
+  static_assert(std::is_arithmetic_v<_Tp> && !std::is_same_v<typename std::remove_const_t<_Tp>, bool>,
+                "Element type should be vectorizable");
+};
 
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
 inline constexpr size_t simd_size_v = simd_size<_Tp, _Abi>::value;
