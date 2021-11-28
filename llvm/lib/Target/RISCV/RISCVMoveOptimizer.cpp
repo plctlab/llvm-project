@@ -160,7 +160,8 @@ bool RISCVMoveOpt::runOnMachineFunction(MachineFunction &Fn) {
     return false;
 
   Subtarget = &static_cast<const RISCVSubtarget &>(Fn.getSubtarget());
-  if(!Subtarget->hasStdExtZcea()){
+  if (!Subtarget->hasStdExtZcea()) {
+    if (!Subtarget->enableZceCMva01s07())
     return false;
   }
 
