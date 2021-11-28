@@ -129,8 +129,11 @@ bool RISCVPushPopOpt::runOnMachineFunction(MachineFunction &Fn) {
 
   // If Zcea extension is not supported abort.
   Subtarget = &static_cast<const RISCVSubtarget &>(Fn.getSubtarget());
-  if (!Subtarget->hasStdExtZcea())
+  if (!Subtarget->hasStdExtZcea()) {
+    if (!(Subtarget->enableZcePushPop() || Subtarget->enableZceCPushCPop() ||
+          Subtarget->enableZcePushEPopE() || Subtarget->enableZceCPushECPopE()))
     return false;
+  }
   TII = static_cast<const RISCVInstrInfo *>(Subtarget->getInstrInfo());
   TRI = Subtarget->getRegisterInfo();
   // Resize the modified and used register unit trackers.  We do this once
