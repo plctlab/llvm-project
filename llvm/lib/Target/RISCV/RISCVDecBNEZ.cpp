@@ -72,8 +72,7 @@ bool RISCVDecbnez::runOnMachineFunction(MachineFunction &MF) {
   MRI = &MF.getRegInfo();
   bool Modified = false;
 
-  if (!STI->hasStdExtZce()){
-    //LLVM_DEBUG(dbgs() << "no hasStdExtZce. returning \n");
+  if (!(STI->hasStdExtZce() || STI->enableZceDecbnez())) {
     return Modified;
   }
   
