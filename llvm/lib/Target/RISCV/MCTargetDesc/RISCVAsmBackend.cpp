@@ -93,7 +93,8 @@ RISCVAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
 
       {"fixup_riscv_set_6b", 2, 6, 0},
       {"fixup_riscv_sub_6b", 2, 6, 0},
-  };
+
+      {"fixup_riscv_zce_lwgp", 0, 0, 0}};
   static_assert((array_lengthof(Infos)) == RISCV::NumTargetFixupKinds,
                 "Not all fixup kinds added to Infos array");
 
