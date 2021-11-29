@@ -81,6 +81,10 @@ enum Fixups {
   // which indicates the linker should fixup the alignment after linker
   // relaxation.
   fixup_riscv_align,
+  // fixup_riscv_zce_lwgp - Used to generate an R_RISCV_GPREL_ZCE_LWGP 
+  // relocation type, which indicates this instruction may able to be
+  // optmised by Zce extension.
+  fixup_riscv_zce_lwgp,
 
   // fixup_riscv_invalid - used as a sentinel and a marker, must be last fixup
   fixup_riscv_invalid,

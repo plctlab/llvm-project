@@ -275,10 +275,19 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
                                            SmallVectorImpl<MCFixup> &Fixups,
                                            const MCSubtargetInfo &STI) const {
   bool EnableRelax = STI.getFeatureBits()[RISCV::FeatureRelax];
+  bool EnableLsgp = STI.getFeatureBits()[RISCV::FeatureZceLsgp];
   const MCOperand &MO = MI.getOperand(OpNo);
 
   MCInstrDesc const &Desc = MCII.get(MI.getOpcode());
   unsigned MIFrm = Desc.TSFlags & RISCVII::InstFormatMask;
+
+  if(EnableLsgp && Desc.getOpcode() == RISCV::LW){
+    const MCConstantExpr *Dummy = MCConstantExpr::create(0, Ctx);
+    Fixups.push_back(
+    MCFixup::create(0, Dummy, MCFixupKind(RISCV::fixup_riscv_zce_lwgp),
+                    MI.getLoc()));
+    ++MCNumFixups;
+  }
 
   // If the destination is an immediate, there is nothing to do.
   if (MO.isImm())

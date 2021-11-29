@@ -70,7 +70,8 @@ RISCVAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
       {"fixup_riscv_call", 0, 64, MCFixupKindInfo::FKF_IsPCRel},
       {"fixup_riscv_call_plt", 0, 64, MCFixupKindInfo::FKF_IsPCRel},
       {"fixup_riscv_relax", 0, 0, 0},
-      {"fixup_riscv_align", 0, 0, 0}};
+      {"fixup_riscv_align", 0, 0, 0},
+      {"fixup_riscv_zce_lwgp", 0, 0, 0}};
   static_assert((array_lengthof(Infos)) == RISCV::NumTargetFixupKinds,
                 "Not all fixup kinds added to Infos array");
 

@@ -1,4 +1,4 @@
-# RUN: llvm-mc -triple riscv32 -riscv-no-aliases < %s -show-encoding \
+# RUN: llvm-mc -triple riscv32 -riscv-no-aliases -mattr=+zce-lsgp < %s -show-encoding \
 # RUN:     | FileCheck -check-prefix=CHECK-FIXUP %s
 # RUN: llvm-mc -filetype=obj -triple riscv32 < %s \
 # RUN:     | llvm-objdump -M no-aliases -d - \
@@ -15,7 +15,8 @@ lui t1, %hi(val)
 # CHECK-INSTR: lui t1, 74565
 
 lw a0, %lo(val)(t1)
-# CHECK-FIXUP: fixup A - offset: 0, value: %lo(val), kind: fixup_riscv_lo12_i
+# CHECK-FIXUP: fixup A - offset: 0, value: 0, kind: fixup_riscv_zce_lwgp
+# CHECK-FIXUP: fixup B - offset: 0, value: %lo(val), kind: fixup_riscv_lo12_i
 # CHECK-INSTR: lw a0, 1656(t1)
 addi a1, t1, %lo(val)
 # CHECK-FIXUP: fixup A - offset: 0, value: %lo(val), kind: fixup_riscv_lo12_i
