@@ -102,6 +102,7 @@ enum RelExpr {
   R_RISCV_ADD,
   R_RISCV_GPREL,
   R_RISCV_PC_INDIRECT,
+  R_RISCV_GPREL_ZCE_LSGP,
 };
 
 // Architecture-neutral representation of relocation.

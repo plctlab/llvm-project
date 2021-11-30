@@ -281,14 +281,6 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
   MCInstrDesc const &Desc = MCII.get(MI.getOpcode());
   unsigned MIFrm = Desc.TSFlags & RISCVII::InstFormatMask;
 
-  if(EnableLsgp && Desc.getOpcode() == RISCV::LW){
-    const MCConstantExpr *Dummy = MCConstantExpr::create(0, Ctx);
-    Fixups.push_back(
-    MCFixup::create(0, Dummy, MCFixupKind(RISCV::fixup_riscv_zce_lwgp),
-                    MI.getLoc()));
-    ++MCNumFixups;
-  }
-
   // If the destination is an immediate, there is nothing to do.
   if (MO.isImm())
     return MO.getImm();
@@ -384,6 +376,13 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
     } else if (MIFrm == RISCVII::InstFormatCB) {
       FixupKind = RISCV::fixup_riscv_rvc_branch;
     }
+  }
+
+  if (EnableLsgp && (Desc.getOpcode() == RISCV::LWGP 
+                    // || Desc.getOpcode() == RISCV::LW
+                    // TBD: uncomment when dependency of [WIP][LLD][RISCV] Linker Relaxation was removed
+                    )){
+    FixupKind = RISCV::fixup_riscv_zce_lwgp;
   }
 
   assert(FixupKind != RISCV::fixup_riscv_invalid && "Unhandled expression!");

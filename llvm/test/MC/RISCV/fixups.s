@@ -1,9 +1,9 @@
 # RUN: llvm-mc -triple riscv32 -riscv-no-aliases -mattr=+zce-lsgp < %s -show-encoding \
 # RUN:     | FileCheck -check-prefix=CHECK-FIXUP %s
-# RUN: llvm-mc -filetype=obj -triple riscv32 < %s \
-# RUN:     | llvm-objdump -M no-aliases -d - \
+# RUN: llvm-mc -filetype=obj -triple riscv32 -mattr=+zce-lsgp < %s \
+# RUN:     | llvm-objdump -M no-aliases --mattr=+zce-lsgp -d - \
 # RUN:     | FileCheck -check-prefix=CHECK-INSTR %s
-# RUN: llvm-mc -filetype=obj -triple=riscv32 %s \
+# RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=+zce-lsgp %s \
 # RUN:     | llvm-readobj -r - | FileCheck %s -check-prefix=CHECK-REL
 
 # Checks that fixups that can be resolved within the same object file are
@@ -15,9 +15,11 @@ lui t1, %hi(val)
 # CHECK-INSTR: lui t1, 74565
 
 lw a0, %lo(val)(t1)
-# CHECK-FIXUP: fixup A - offset: 0, value: 0, kind: fixup_riscv_zce_lwgp
-# CHECK-FIXUP: fixup B - offset: 0, value: %lo(val), kind: fixup_riscv_lo12_i
+# CHECK-FIXUP: fixup A - offset: 0, value: %lo(val), kind: fixup_riscv_lo12_i
 # CHECK-INSTR: lw a0, 1656(t1)
+lwgp a0, %lo(val)(gp)
+# CHECK-INSTR: lwgp	a0, 22136(gp)
+# CHECK-FIXUP: fixup A - offset: 0, value: %lo(val), kind: fixup_riscv_zce_lwgp
 addi a1, t1, %lo(val)
 # CHECK-FIXUP: fixup A - offset: 0, value: %lo(val), kind: fixup_riscv_lo12_i
 # CHECK-INSTR: addi a1, t1, 1656
@@ -31,23 +33,23 @@ auipc t1, %pcrel_hi(.LBB0)
 # CHECK-INSTR: auipc t1, 0
 addi t1, t1, %pcrel_lo(1b)
 # CHECK-FIXUP: fixup A - offset: 0, value: %pcrel_lo(.Ltmp0), kind: fixup_riscv_pcrel_lo12_i
-# CHECK-INSTR: addi t1, t1, -16
+# CHECK-INSTR: addi t1, t1, -20
 sw t1, %pcrel_lo(1b)(t1)
 # CHECK-FIXUP: fixup A - offset: 0, value: %pcrel_lo(.Ltmp0), kind: fixup_riscv_pcrel_lo12_s
-# CHECK-INSTR: sw t1, -16(t1)
+# CHECK-INSTR: sw t1, -20(t1)
 
 jal zero, .LBB0
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB0, kind: fixup_riscv_jal
 # CHECK-INSTR: jal zero, 0x0
 jal zero, .LBB2
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB2, kind: fixup_riscv_jal
-# CHECK-INSTR: jal zero, 0x50d14
+# CHECK-INSTR: jal zero, 0x50d18
 beq a0, a1, .LBB0
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB0, kind: fixup_riscv_branch
 # CHECK-INSTR: beq a0, a1, 0x0
 blt a0, a1, .LBB1
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB1, kind: fixup_riscv_branch
-# CHECK-INSTR: blt a0, a1, 0x47c
+# CHECK-INSTR: blt a0, a1, 0x480
 
 .fill 1104
 
