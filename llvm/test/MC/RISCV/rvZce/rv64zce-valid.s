@@ -54,6 +54,13 @@ c.not s0
 # CHECK-ASM: encoding: [0x45,0x9c]
 c.mul s0, s1
 
+# CHECK-ASM: lwgp s0, %lo(foo)(gp)
+# CHECK-ASM: encoding: [0x07,0bA0110100,A,0b000AAAAA]
+# CHECK-ASM-FIXUP:  fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_lwgp
+# CHECK-OBJ: 07 34 00 00 lwgp s0, 0(gp)
+# CHECK-OBJ: 0000004c: R_RISCV_GPREL_ZCE_LWGP foo
+lwgp s0, %lo(foo)(gp)
+
 # CHECK-ASM-AND-OBJ: ldgp s0, 65528(gp)
 # CHECK-ASM: encoding: [0x07,0xb4,0xbf,0x5f]
 # CHECK-NO-EXT: error: instruction requires the following: 'Lsgp' from 'Zceb' (all existing standard extensions for small embedded cores v0.50)

@@ -11,6 +11,7 @@
 #include "Symbols.h"
 #include "SyntheticSections.h"
 #include "Target.h"
+#include "llvm/Support/MathExtras.h"
 
 using namespace llvm;
 using namespace llvm::object;
@@ -278,6 +279,8 @@ RelExpr RISCV::getRelExpr(const RelType type, const Symbol &s,
   case R_RISCV_RELAX:
   case R_RISCV_ALIGN:
     return R_RELAX_HINT;
+  case R_RISCV_GPREL_ZCE_LWGP:
+    return R_RISCV_GPREL_ZCE_LSGP;
   default:
     error(getErrorLocation(loc) + "unknown relocation (" + Twine(type) +
           ") against symbol " + toString(s));
@@ -474,9 +477,32 @@ void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
   case R_RISCV_RELAX:
   case R_RISCV_TPREL_ADD:
     return; // Ignored (for now)
+  
+  case R_RISCV_GPREL_ZCE_LWGP: {
+    uint32_t inst = read32le(loc);
+    bool enableZceLsgp = config->optmizeZceLsgp;
+
+    if(!enableZceLsgp){
+      error(getErrorLocation(loc) + "can't relocate  (" + Twine(rel.type) +
+          ") check whether you have enable '-mzce-lsgp'");
+    }
+    else if(isShiftedInt<14,2>(val)){
+      unsigned rd = (read32le(loc) & 0x00000fe0) >> 7;
+
+      uint64_t imm8_2 = (val >> 2) & 0x7f;
+      uint64_t imm10_9 = (val >> 9) & 0x3;
+      uint64_t imm15_11 = (val >> 11) & 0x1f;
+
+      write32le(loc,
+              (0x3007 | rd << 7 | imm15_11 << 15 | imm10_9 << 20| imm8_2 << 22)); // lwgp rs, val(gp)
+      return;
+    }
+    return;
+  }
 
   default:
     llvm_unreachable("unknown relocation");
+    return;
   }
 }
 
@@ -586,6 +612,22 @@ static bool relaxHi20Lo12(InputSection *is, Relocation &rel,
     return rel.type == R_RISCV_HI20 ? relaxToCLui() : false;
 
   uint64_t offset = target - gp->getVA();
+
+  bool enableZceLsgp = config->optmizeZceLsgp;
+  uint32_t inst = read32le(is->data().data() + rel.offset);
+  bool isLw = (inst & 0x7f) == 3 && ((inst >> 12) & 0x7) == 2;
+
+  // relax to lwgp
+  if(enableZceLsgp && rel.type == R_RISCV_LO12_I && isLw && isShiftedInt<14,2>(offset)){
+    unsigned rd = (read32le(is->data().data() + rel.offset) & 0x00000fe0) >> 7;
+
+    write32le(is->mutableData().data() + rel.offset,
+            (0x3007 | rd << 7)); // lwgp rs, 0(gp)
+    
+    rel.type = R_RISCV_GPREL_ZCE_LWGP;
+    rel.expr = R_RISCV_GPREL_ZCE_LSGP;
+    return true;
+  }
 
   if (isInt<12>(offset)) {
     if (rel.type == R_RISCV_HI20) {

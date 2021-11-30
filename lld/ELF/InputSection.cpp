@@ -826,7 +826,8 @@ uint64_t InputSectionBase::getRelocTargetVA(const InputFile *file, RelType type,
     uint64_t val = sym.isUndefWeak() ? p + a : sym.getVA(a);
     return getAArch64Page(val) - getAArch64Page(p);
   }
-  case R_RISCV_GPREL: {
+  case R_RISCV_GPREL: 
+  case R_RISCV_GPREL_ZCE_LSGP: {
     if (!ElfSym::riscvGlobalPointer)
       llvm_unreachable(
           "Cannot compute R_RISCV_GPREL if __global_pointer$ is not set");

@@ -1,6 +1,6 @@
-# RUN: llvm-mc -triple riscv32 -riscv-no-aliases < %s -show-encoding \
+# RUN: llvm-mc -triple riscv32 -riscv-no-aliases -mattr=+zce-lsgp < %s -show-encoding \
 # RUN:     | FileCheck -check-prefix=INSTR -check-prefix=FIXUP %s
-# RUN: llvm-mc -filetype=obj -triple riscv32 -mattr=+c < %s \
+# RUN: llvm-mc -filetype=obj -triple riscv32 -mattr=+c,+zce-lsgp < %s \
 # RUN:     | llvm-readobj -r - | FileCheck -check-prefix=RELOC %s
 
 # Check prefixes:
@@ -175,3 +175,8 @@ bgeu a0, a1, foo
 # RELOC: R_RISCV_BRANCH
 # INSTR: bgeu a0, a1, foo
 # FIXUP: fixup A - offset: 0, value: foo, kind: fixup_riscv_branch
+
+lwgp t1, %lo(foo)(gp)
+# RELOC: R_RISCV_GPREL_ZCE_LWGP foo 0x0
+# INSTR: lwgp t1, %lo(foo)(gp)
+# FIXUP: fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_lwgp

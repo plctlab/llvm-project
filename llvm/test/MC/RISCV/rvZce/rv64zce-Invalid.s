@@ -28,4 +28,11 @@ c.sb a5, 16(a4)
 # CHECK-ERROR: error: immediate must be a multiple of 2 bytes in the range [0, 30]
 c.sh a5, 31(a4)
 
-c.popret {ra}, {0}, 33
+# CHECK-ERROR: error: operand must be a symbol with %lo modifier or an multiple of 4 bytes integer in the range [-32768, 32764]
+lwgp s0, %hi(foo)(gp)
+
+# CHECK-ERROR: error: operand must be a symbol with %lo modifier or an multiple of 4 bytes integer in the range [-32768, 32764]
+lwgp s0, 2043(gp)
+
+# CHECK-ERROR: error: operand must be a symbol with %lo modifier or an multiple of 4 bytes integer in the range [-32768, 32764]
+lwgp s0, 32768(gp)
