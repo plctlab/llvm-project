@@ -66,6 +66,14 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
   static _Storage __generate(_Generator&& __g) noexcept {
     return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Np>());
   }
+
+  template <class _Up, class _Flags>
+  static _Storage __load(const _Up* __mem, _Flags) noexcept {
+    _Storage __r;
+    for (size_t __i = 0; __i < _Np; __i++)
+      __r.__set(__i, static_cast<_Tp>(__mem[__i]));
+    return __r;
+  }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
