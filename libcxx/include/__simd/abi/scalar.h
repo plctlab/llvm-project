@@ -44,8 +44,13 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   }
 
   template <class _Up, class _Flags>
-  static _Storage __load(const _Up* __mem, _Flags) noexcept {
+  static _Storage __load(_Up* __mem, _Flags) noexcept {
     return static_cast<_Tp>(*__mem);
+  }
+
+  template <class _Up, class _Flags>
+  static void __store(_Storage __s, const _Up* __mem, _Flags) noexcept {
+    *__mem = static_cast<_Up>(__s);
   }
 };
 
