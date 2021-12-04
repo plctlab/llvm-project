@@ -1198,25 +1198,20 @@ public:
   // load constructor
   template <class _Up, class _Flags, class = std::enable_if_t<__is_vectorizable<_Up>()>,
             class = std::enable_if_t<is_simd_flag_type_v<_Flags>>>
-  simd(const _Up* __buffer, _Flags) {
-    // TODO: optimize for overaligned flags
-    for (size_t __i = 0; __i < size(); __i++) {
-      (*this)[__i] = static_cast<_Tp>(__buffer[__i]);
-    }
-  }
+  simd(const _Up* __mem, _Flags __f) : __s_(_Impl::__load(__mem, __f)) {}
 
   // loads [simd.load]
   template <class _Up, class _Flags>
-  std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> copy_from(const _Up* __buffer, _Flags) {
-    *this = simd(__buffer, _Flags());
+  std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> copy_from(const _Up* __mem, _Flags __f) {
+    __s_ = _Impl::__load(__mem, __f);
   }
 
   // stores [simd.store]
   template <class _Up, class _Flags>
-  std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> copy_to(_Up* __buffer, _Flags) const {
+  std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> copy_to(_Up* __mem, _Flags) const {
     // TODO: optimize for overaligned flags
     for (size_t __i = 0; __i < size(); __i++) {
-      __buffer[__i] = static_cast<_Up>((*this)[__i]);
+      __mem[__i] = static_cast<_Up>((*this)[__i]);
     }
   }
 
