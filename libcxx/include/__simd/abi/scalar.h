@@ -24,19 +24,9 @@ _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 template <class _Tp>
-class __simd_storage<_Tp, simd_abi::__scalar> {
+struct __simd_storage<_Tp, simd_abi::__scalar> {
   _Tp __s_;
 
-  template <class, class>
-  friend struct simd;
-
-  template <class, class>
-  friend struct simd_mask;
-
-  template <class, class>
-  friend struct __simd_traits;
-
-public:
   _Tp __get(size_t __idx) const noexcept { return (&__s_)[__idx]; }
 
   void __set(size_t __idx, _Tp __val) noexcept { (&__s_)[__idx] = __val; }
@@ -47,6 +37,11 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   using _Storage = __simd_storage<_Tp, simd_abi::__scalar>;
 
   static _Storage __broadcast(_Tp __v) noexcept { return __v; }
+
+  template <class _Generator>
+  static _Storage __generate(_Generator&& __g) noexcept {
+    return __g(std::integral_constant<size_t, 0>());
+  }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
