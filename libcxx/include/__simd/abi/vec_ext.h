@@ -74,6 +74,13 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
       __r.__set(__i, static_cast<_Tp>(__mem[__i]));
     return __r;
   }
+
+  template <class _Up, class _Flags>
+  static void __store(_Storage __s, _Up* __mem, _Flags) noexcept {
+    // TODO: optimized implementation
+    for (size_t __i = 0; __i < _Np; __i++)
+      __mem[__i] = static_cast<_Up>(__s.__get(__i));
+  }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
