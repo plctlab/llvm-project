@@ -42,6 +42,11 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   static _Storage __generate(_Generator&& __g) noexcept {
     return __g(std::integral_constant<size_t, 0>());
   }
+
+  template <class _Up, class _Flags>
+  static _Storage __load(const _Up* __mem, _Flags) noexcept {
+    return static_cast<_Tp>(*__mem);
+  }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
