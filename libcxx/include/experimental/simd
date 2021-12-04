@@ -828,15 +828,21 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
 class simd;
+
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
 class simd_mask;
 
 struct element_aligned_tag {};
+
 struct vector_aligned_tag {};
+
 template <size_t>
 struct overaligned_tag {};
+
 inline constexpr element_aligned_tag element_aligned{};
+
 inline constexpr vector_aligned_tag vector_aligned{};
+
 template <size_t _Np>
 inline constexpr overaligned_tag<_Np> overaligned{};
 
@@ -1174,14 +1180,10 @@ private:
 
   template <class _Up>
   static _LIBCPP_HIDE_FROM_ABI constexpr bool __can_broadcast() {
-    return (std::is_arithmetic<_Up>::value &&
-            __is_non_narrowing_arithmetic_convertible<_Up, _Tp>()) ||
-           (!std::is_arithmetic<_Up>::value &&
-            std::is_convertible<_Up, _Tp>::value) ||
-           std::is_same<__remove_const_t<_Up>, int>::value ||
-           (std::is_same<__remove_const_t<_Up>,
-                         unsigned int>::value &&
-            std::is_unsigned<_Tp>::value);
+    return (std::is_arithmetic_v<_Up> && __is_non_narrowing_arithmetic_convertible<_Up, _Tp>()) ||
+           (!std::is_arithmetic_v<_Up> && std::is_convertible_v<_Up, _Tp>) ||
+           std::is_same_v<std::remove_const_t<_Up>, int> ||
+           (std::is_same_v<std::remove_const_t<_Up>, unsigned int> && std::is_unsigned_v<_Tp>);
   }
 
   template <class _Generator, size_t... __indicies>
@@ -1200,14 +1202,6 @@ private:
     return false;
   }
 
-  template <class _Generator, size_t... __indicies>
-  _LIBCPP_HIDE_FROM_ABI void __generator_init(_Generator&& __g, std::index_sequence<__indicies...>) {
-    int __not_used[]{((*this)[__indicies] =
-                          __g(std::integral_constant<size_t, __indicies>()),
-                      0)...};
-    (void)__not_used;
-  }
-
 public:
   // implicit type conversion constructor
   template <class _Up, class = std::enable_if_t<std::is_same_v<_Abi, simd_abi::fixed_size<size()>> &&
@@ -1224,9 +1218,7 @@ public:
 
   // generator constructor
   template <class _Generator, std::enable_if_t<__can_generate<_Generator>(std::make_index_sequence<size()>()), int> = 0>
-  explicit _LIBCPP_HIDE_FROM_ABI simd(_Generator&& __g) {
-    __generator_init(std::forward<_Generator>(__g), std::make_index_sequence<size()>());
-  }
+  explicit _LIBCPP_HIDE_FROM_ABI simd(_Generator&& __g) : __s_(_Impl::__generate(std::forward<_Generator>(__g))) {}
 
   // load constructor
   template <class _Up, class _Flags, class = std::enable_if_t<__is_vectorizable<_Up>()>,

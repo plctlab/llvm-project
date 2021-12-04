@@ -32,7 +32,7 @@ constexpr size_t __next_pow_of_2(size_t __val) {
 }
 
 template <class _Tp, int _Np>
-class __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
+struct __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
 #if defined(_LIBCPP_COMPILER_CLANG_BASED)
   using _Storage = _Tp __attribute__((vector_size(sizeof(_Tp) * _Np)));
 #else
@@ -41,16 +41,6 @@ class __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
 
   _Storage __s_;
 
-  template <class, class>
-  friend struct simd;
-
-  template <class, class>
-  friend struct simd_mask;
-
-  template <class, class>
-  friend struct __simd_traits;
-
-public:
   _Tp __get(size_t __idx) const noexcept { return __s_[__idx]; }
 
   void __set(size_t __idx, _Tp __val) noexcept { __s_[__idx] = __val; }
@@ -65,6 +55,16 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
     for (size_t __i = 0; __i < _Np; ++__i)
       __r.__set(__i, __v);
     return __r;
+  }
+
+  template <class _Generator, size_t... _Is>
+  static _Storage __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
+    return _Storage{{__g(std::integral_constant<size_t, _Is>())...}};
+  }
+
+  template <class _Generator>
+  static _Storage __generate(_Generator&& __g) noexcept {
+    return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Np>());
   }
 };
 
