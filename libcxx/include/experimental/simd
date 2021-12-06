@@ -651,6 +651,7 @@ public:
 
 #include <experimental/__config>
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <functional>
 #include <__simd/abi/all.h>
@@ -1181,11 +1182,8 @@ public:
   // implicit type conversion constructor
   template <class _Up, class = std::enable_if_t<std::is_same_v<_Abi, simd_abi::fixed_size<size()>> &&
                                                 __is_non_narrowing_arithmetic_convertible<_Up, _Tp>()>>
-  simd(const simd<_Up, simd_abi::fixed_size<size()>>& __v) {
-    for (size_t __i = 0; __i < size(); __i++) {
-      (*this)[__i] = static_cast<_Tp>(__v[__i]);
-    }
-  }
+  simd(const simd<_Up, simd_abi::fixed_size<size()>>& __v)
+      : simd(static_cast<std::array<_Up, size()>>(__v).data(), vector_aligned) {}
 
   // implicit broadcast constructor
   template <class _Up, std::enable_if_t<__can_broadcast<_Up>(), int> = 0>
