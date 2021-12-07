@@ -95,7 +95,9 @@ RISCVAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
       {"fixup_riscv_sub_6b", 2, 6, 0},
 
       {"fixup_riscv_zce_lwgp", 15, 14, 0},
-      {"fixup_riscv_zce_swgp", 7, 22, 0}};
+      {"fixup_riscv_zce_swgp", 7, 22, 0},
+      {"fixup_riscv_zce_ldgp", 15, 14, 0},
+      {"fixup_riscv_zce_sdgp", 7, 22, 0}};
   static_assert((array_lengthof(Infos)) == RISCV::NumTargetFixupKinds,
                 "Not all fixup kinds added to Infos array");
 
@@ -483,21 +485,31 @@ static uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
             (Bit5 << 2);
     return Value;
   }
-  case RISCV::fixup_riscv_zce_lwgp: {
-    Value = (Value & 0xffff);
-    unsigned imm8_2 = (Value >> 2) & 0x7f;
-    unsigned imm10_9 = (Value >> 9) & 0x3;
-    unsigned imm15_11 = (Value >> 11) & 0x1f;
-    Value = (imm15_11 | imm10_9 << 5| imm8_2 << 7 );
-    return Value;
-  }
+  case RISCV::fixup_riscv_zce_lwgp:
   case RISCV::fixup_riscv_zce_swgp: {
     Value = (Value & 0xffff);
     unsigned imm4_2 = (Value >> 2) & 0x7;
     unsigned imm8_5 = (Value >> 5) & 0xf;
     unsigned imm10_9 = (Value >> 9) & 0x3;
     unsigned imm15_11 = (Value >> 11) & 0x1f;
-    Value = (imm8_5 << 18 | imm15_11 << 8 | imm4_2 << 2 | imm10_9 );
+    if(Fixup.getTargetKind() == RISCV::fixup_riscv_zce_lwgp)
+      Value = ( imm8_5 << 10 | imm4_2 << 7 | imm10_9 << 5| imm15_11 );
+    else // RISCV::fixup_riscv_zce_swgp
+      Value = (imm8_5 << 18 | imm15_11 << 8 | imm4_2 << 2 | imm10_9 );
+    return Value;
+  }
+  case RISCV::fixup_riscv_zce_ldgp:
+  case RISCV::fixup_riscv_zce_sdgp: {
+    Value = (Value & 0x1ffff);
+    unsigned imm4_3 = (Value >> 3) & 0x3;
+    unsigned imm8_5 = (Value >> 5) & 0xf;
+    uint64_t imm10_9 = (Value >> 9) & 0x3;
+    uint64_t imm15_11 = (Value >> 11) & 0x1f;
+    uint64_t imm16 = (Value >> 16) & 0x1;
+    if(Fixup.getTargetKind() == RISCV::fixup_riscv_zce_ldgp)
+      Value = ( imm8_5 << 10 | imm4_3 << 8 | imm16 << 7 | imm10_9 << 5 | imm15_11 );
+    else // RISCV::fixup_riscv_zce_sdgp
+      Value = ( imm8_5 << 18 | imm15_11 << 8 | imm4_3 << 3 | imm16 << 2 | imm10_9 );
     return Value;
   }
   }

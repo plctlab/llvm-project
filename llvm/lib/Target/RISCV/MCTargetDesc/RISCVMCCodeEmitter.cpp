@@ -276,6 +276,8 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
                                            const MCSubtargetInfo &STI) const {
   bool EnableRelax = STI.getFeatureBits()[RISCV::FeatureRelax];
   bool EnableLsgp = STI.getFeatureBits()[RISCV::FeatureZceLsgp];
+  bool isRV64 = STI.getFeatureBits()[RISCV::Feature64Bit];
+
   const MCOperand &MO = MI.getOperand(OpNo);
 
   MCInstrDesc const &Desc = MCII.get(MI.getOpcode());
@@ -390,6 +392,18 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
                       // TBD: uncomment when dependency of [WIP][LLD][RISCV] Linker Relaxation was removed
                       ){
       FixupKind = RISCV::fixup_riscv_zce_swgp;
+    }
+    else if ( isRV64 && Desc.getOpcode() == RISCV::LDGP 
+                      // || Desc.getOpcode() == RISCV::LD
+                      // TBD: uncomment when dependency of [WIP][LLD][RISCV] Linker Relaxation was removed
+                      ){
+      FixupKind = RISCV::fixup_riscv_zce_ldgp;
+    }
+    else if ( isRV64 && Desc.getOpcode() == RISCV::SDGP 
+                      // || Desc.getOpcode() == RISCV::SD
+                      // TBD: uncomment when dependency of [WIP][LLD][RISCV] Linker Relaxation was removed
+                      ){
+      FixupKind = RISCV::fixup_riscv_zce_sdgp;
     }
   }
   

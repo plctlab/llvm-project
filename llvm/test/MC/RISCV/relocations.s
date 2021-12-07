@@ -1,6 +1,6 @@
-# RUN: llvm-mc -triple riscv32 -riscv-no-aliases -mattr=+zce-lsgp < %s -show-encoding \
+# RUN: llvm-mc -triple riscv64 -riscv-no-aliases -mattr=+zce-lsgp < %s -show-encoding \
 # RUN:     | FileCheck -check-prefix=INSTR -check-prefix=FIXUP %s
-# RUN: llvm-mc -filetype=obj -triple riscv32 -mattr=+c,+zce-lsgp < %s \
+# RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+c,+zce-lsgp < %s \
 # RUN:     | llvm-readobj -r - | FileCheck -check-prefix=RELOC %s
 
 # Check prefixes:
@@ -185,3 +185,13 @@ swgp t1, %lo(foo)(gp)
 # RELOC: R_RISCV_GPREL_ZCE_SWGP foo 0x0
 # INSTR: swgp t1, %lo(foo)(gp)
 # FIXUP: fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_swgp
+
+ldgp t1, %lo(foo)(gp)
+# RELOC: R_RISCV_GPREL_ZCE_LDGP foo 0x0
+# INSTR: ldgp t1, %lo(foo)(gp)
+# FIXUP: fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_ldgp
+
+sdgp t1, %lo(foo)(gp)
+# RELOC: R_RISCV_GPREL_ZCE_SDGP foo 0x0
+# INSTR: sdgp t1, %lo(foo)(gp)
+# FIXUP: fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_sdgp

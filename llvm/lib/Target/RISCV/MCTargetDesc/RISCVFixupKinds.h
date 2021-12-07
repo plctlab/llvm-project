@@ -113,6 +113,14 @@ enum Fixups {
   // relocation type, which indicates this instruction may able to be
   // optmised by Zce extension.
   fixup_riscv_zce_swgp,
+  // fixup_riscv_zce_ldgp - Used to generate an R_RISCV_GPREL_ZCE_LDGP 
+  // relocation type, which indicates this instruction may able to be
+  // optmised by Zce extension.
+  fixup_riscv_zce_ldgp,
+  // fixup_riscv_zce_sdgp - Used to generate an R_RISCV_GPREL_ZCE_SDGP 
+  // relocation type, which indicates this instruction may able to be
+  // optmised by Zce extension.
+  fixup_riscv_zce_sdgp,
 
   // Used as a sentinel, must be the last
   fixup_riscv_invalid,
