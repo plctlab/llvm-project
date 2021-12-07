@@ -127,9 +127,9 @@ def simm17_lsb000 : Operand<XLenVT>,
   let DecoderMethod = "decodeSImmOperand<17>";
   let MCOperandPredicate = [{
     int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return isShiftedInt<14, 3>(Imm);
+    if (MCOp.evaluateAsConstantImm(Imm))
+      return isShiftedInt<14, 3>(Imm);
+    return MCOp.isBareSymbolRef();
   }];
 }
 

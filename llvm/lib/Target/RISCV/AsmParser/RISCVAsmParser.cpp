@@ -752,13 +752,18 @@ public:
   }
 
   bool isSImm17Lsb000() const {
-    if (!isImm())
-      return false;
     int64_t Imm;
     RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    bool IsValid;
+    if (!isImm())
+      return false;
     bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
-    return IsConstantImm && isShiftedInt<14, 3>(Imm) &&
-           VK == RISCVMCExpr::VK_RISCV_None;
+    if (!IsConstantImm)
+      IsValid = RISCVAsmParser::classifySymbolRef(getImm(), VK);
+    else
+      IsValid = isShiftedInt<14, 3>(Imm);
+    return IsValid && ((IsConstantImm && VK == RISCVMCExpr::VK_RISCV_None) ||
+                       VK == RISCVMCExpr::VK_RISCV_LO);
   }
 
   bool isSImm12() const {
@@ -1377,7 +1382,8 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
   case Match_InvalidSImm17Lsb000:
     return generateImmOutOfRangeError(
         Operands, ErrorInfo, -(1 << 16), (1 << 16) - 8,
-        "immediate must be a multiple of 8 bytes in the range");
+        "operand must be a symbol with %lo modifier or an "
+        "multiple of 8 bytes integer in the range");
   case Match_InvalidSImm10Lsb0000NonZero:
     return generateImmOutOfRangeError(
         Operands, ErrorInfo, -(1 << 9), (1 << 9) - 16,

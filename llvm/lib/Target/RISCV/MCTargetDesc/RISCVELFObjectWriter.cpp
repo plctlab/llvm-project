@@ -148,6 +148,10 @@ unsigned RISCVELFObjectWriter::getRelocType(MCContext &Ctx,
     return ELF::R_RISCV_GPREL_ZCE_LWGP;
   case RISCV::fixup_riscv_zce_swgp:
     return ELF::R_RISCV_GPREL_ZCE_SWGP;
+  case RISCV::fixup_riscv_zce_ldgp:
+    return ELF::R_RISCV_GPREL_ZCE_LDGP;
+  case RISCV::fixup_riscv_zce_sdgp:
+    return ELF::R_RISCV_GPREL_ZCE_SDGP;
   }
 }
 
