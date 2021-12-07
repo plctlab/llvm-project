@@ -57,8 +57,8 @@ c.mul s0, s1
 # CHECK-ASM: lwgp s0, %lo(foo)(gp)
 # CHECK-ASM: encoding: [0x07,0bA0110100,A,0b000AAAAA]
 # CHECK-ASM-FIXUP:  fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_lwgp
-# CHECK-OBJ: 07 34 00 00 lwgp s0, 0(gp)
-# CHECK-OBJ: 0000004c: R_RISCV_GPREL_ZCE_LWGP foo
+# CHECK-OBJ: lwgp s0, 0(gp)
+# CHECK-OBJ: R_RISCV_GPREL_ZCE_LWGP foo
 lwgp s0, %lo(foo)(gp)
 
 # CHECK-ASM-AND-OBJ: ldgp s0, 65528(gp)
@@ -74,6 +74,13 @@ ldgp s0, 65528(gp)
 # CHECK-NO-RV64: error: instruction requires the following: RV64I Base Instruction Set
 # CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Lsgp' from 'Zceb' (all existing standard extensions for small embedded cores v0.50), RV64I Base Instruction Set
 sdgp s0, 65528(gp)
+
+# CHECK-ASM: swgp s0, %lo(foo)(gp)
+# CHECK-ASM: encoding: [0bA0100111,0x30'A',0x80'A',0b000AAAAA]
+# CHECK-ASM-FIXUP:  fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_swgp
+# CHECK-OBJ: lwgp s0, 0(gp)
+# CHECK-OBJ: R_RISCV_GPREL_ZCE_SWGP foo
+swgp s0, %lo(foo)(gp)
 
 # CHECK-ASM-AND-OBJ: push {ra, s0-s1}, {a0-a1}, -128
 # CHECK-ASM: encoding: [0x2b,0x43,0x12,0x00]

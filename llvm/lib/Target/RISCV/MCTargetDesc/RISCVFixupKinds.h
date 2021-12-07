@@ -104,10 +104,15 @@ enum Fixups {
   // 6-bit fixup corresponding to R_RISCV_SUB6 for local label assignment in
   // DWARF CFA.
   fixup_riscv_sub_6b,
+
   // fixup_riscv_zce_lwgp - Used to generate an R_RISCV_GPREL_ZCE_LWGP 
   // relocation type, which indicates this instruction may able to be
   // optmised by Zce extension.
   fixup_riscv_zce_lwgp,
+  // fixup_riscv_zce_swgp - Used to generate an R_RISCV_GPREL_ZCE_SWGP 
+  // relocation type, which indicates this instruction may able to be
+  // optmised by Zce extension.
+  fixup_riscv_zce_swgp,
 
   // Used as a sentinel, must be the last
   fixup_riscv_invalid,

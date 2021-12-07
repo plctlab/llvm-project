@@ -280,6 +280,7 @@ RelExpr RISCV::getRelExpr(const RelType type, const Symbol &s,
   case R_RISCV_ALIGN:
     return R_RELAX_HINT;
   case R_RISCV_GPREL_ZCE_LWGP:
+  case R_RISCV_GPREL_ZCE_SWGP:
     return R_RISCV_GPREL_ZCE_LSGP;
   default:
     error(getErrorLocation(loc) + "unknown relocation (" + Twine(type) +
@@ -479,7 +480,6 @@ void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
     return; // Ignored (for now)
   
   case R_RISCV_GPREL_ZCE_LWGP: {
-    uint32_t inst = read32le(loc);
     bool enableZceLsgp = config->optmizeZceLsgp;
 
     if(!enableZceLsgp){
@@ -495,6 +495,26 @@ void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
 
       write32le(loc,
               (0x3007 | rd << 7 | imm15_11 << 15 | imm10_9 << 20| imm8_2 << 22)); // lwgp rs, val(gp)
+      return;
+    }
+    return;
+  }
+  case R_RISCV_GPREL_ZCE_SWGP: {
+    bool enableZceLsgp = config->optmizeZceLsgp;
+    if(!enableZceLsgp){
+      error(getErrorLocation(loc) + "can't relocate  (" + Twine(rel.type) +
+          ") check whether you have enable '-mzce-lsgp'");
+    }
+    else if(isShiftedInt<14,2>(val)){
+      unsigned rs2 = (read32le(loc) & 0x1F00000) >> 20;
+
+      uint64_t imm4_2 = (val >> 2) & 0x7;
+      uint64_t imm8_5 = (val >> 5) & 0xf;
+      uint64_t imm10_9 = (val >> 9) & 0x3;
+      uint64_t imm15_11 = (val >> 11) & 0x1f;
+
+      write32le(loc,
+              (0x3027 | imm8_5 << 25 | rs2 << 20 | imm15_11 << 15 | imm4_2 << 9 | imm10_9 << 7 )); // swgp rs2, val(gp)
       return;
     }
     return;
@@ -615,18 +635,31 @@ static bool relaxHi20Lo12(InputSection *is, Relocation &rel,
 
   bool enableZceLsgp = config->optmizeZceLsgp;
   uint32_t inst = read32le(is->data().data() + rel.offset);
-  bool isLw = (inst & 0x7f) == 3 && ((inst >> 12) & 0x7) == 2;
+  bool isLw = (inst & 0x707f) == 0x2003;
+  bool isSw = (inst & 0x707f) == 0x2023;
 
-  // relax to lwgp
-  if(enableZceLsgp && rel.type == R_RISCV_LO12_I && isLw && isShiftedInt<14,2>(offset)){
-    unsigned rd = (read32le(is->data().data() + rel.offset) & 0x00000fe0) >> 7;
+  // relax to lwgp/swgp
+  if(enableZceLsgp && isShiftedInt<14,2>(offset)){
+    if(rel.type == R_RISCV_LO12_I && isLw){
+      unsigned rd = (read32le(is->data().data() + rel.offset) & 0x00000fe0) >> 7;
 
-    write32le(is->mutableData().data() + rel.offset,
-            (0x3007 | rd << 7)); // lwgp rs, 0(gp)
-    
-    rel.type = R_RISCV_GPREL_ZCE_LWGP;
-    rel.expr = R_RISCV_GPREL_ZCE_LSGP;
-    return true;
+      write32le(is->mutableData().data() + rel.offset,
+              (0x3007 | rd << 7)); // lwgp rs, 0(gp)
+      
+      rel.type = R_RISCV_GPREL_ZCE_LWGP;
+      rel.expr = R_RISCV_GPREL_ZCE_LSGP;
+      return true;
+    }
+    else if(rel.type == R_RISCV_LO12_S && isSw){
+      unsigned rs2 = (read32le(is->data().data() + rel.offset) & 0x1F00000) >> 20;
+
+      write32le(is->mutableData().data() + rel.offset,
+              (0x3027 | rs2 << 20)); // swgp rs2, 0(gp)
+      
+      rel.type = R_RISCV_GPREL_ZCE_SWGP;
+      rel.expr = R_RISCV_GPREL_ZCE_LSGP;
+      return true;
+    }
   }
 
   if (isInt<12>(offset)) {

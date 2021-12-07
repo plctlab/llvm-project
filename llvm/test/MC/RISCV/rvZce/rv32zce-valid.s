@@ -111,13 +111,20 @@ lwgp s0, 32764(gp)
 # CHECK-ASM: lwgp s0, %lo(foo)(gp)
 # CHECK-ASM: encoding: [0x07,0bA0110100,A,0b000AAAAA]
 # CHECK-ASM: fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_lwgp
-# CHECK-OBJ: 07 34 00 00 lwgp s0, 0(gp)
-# CHECK-OBJ: 0000004c: R_RISCV_GPREL_ZCE_LWGP foo
+# CHECK-OBJ: lwgp s0, 0(gp)
+# CHECK-OBJ: R_RISCV_GPREL_ZCE_LWGP foo
 lwgp s0, %lo(foo)(gp)
 
 # CHECK-ASM-AND-OBJ: swgp s0, 32764(gp)
 # CHECK-ASM: encoding: [0xa7,0xbf,0x87,0x1e]
 swgp s0, 32764(gp)
+
+# CHECK-ASM: swgp s0, %lo(foo)(gp)
+# CHECK-ASM: encoding: [0bA0100111,0x30'A',0x80'A',0b000AAAAA]
+# CHECK-ASM: fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_swgp
+# CHECK-OBJ: swgp s0, 0(gp)
+# CHECK-OBJ: R_RISCV_GPREL_ZCE_SWGP foo
+swgp s0, %lo(foo)(gp)
 
 # CHECK-ASM-AND-OBJ: c.popret   {ra}, {}, 16
 # CHECK-ASM: encoding: [0x00,0x8c]

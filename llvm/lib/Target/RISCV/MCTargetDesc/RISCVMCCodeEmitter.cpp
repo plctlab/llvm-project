@@ -378,12 +378,21 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
     }
   }
 
-  if (EnableLsgp && (Desc.getOpcode() == RISCV::LWGP 
-                    // || Desc.getOpcode() == RISCV::LW
-                    // TBD: uncomment when dependency of [WIP][LLD][RISCV] Linker Relaxation was removed
-                    )){
-    FixupKind = RISCV::fixup_riscv_zce_lwgp;
+  if(EnableLsgp){
+    if (Desc.getOpcode() == RISCV::LWGP 
+                      // || Desc.getOpcode() == RISCV::LW
+                      // TBD: uncomment when dependency of [WIP][LLD][RISCV] Linker Relaxation was removed
+                      ){
+      FixupKind = RISCV::fixup_riscv_zce_lwgp;
+    }
+    else if (Desc.getOpcode() == RISCV::SWGP 
+                      // || Desc.getOpcode() == RISCV::SW
+                      // TBD: uncomment when dependency of [WIP][LLD][RISCV] Linker Relaxation was removed
+                      ){
+      FixupKind = RISCV::fixup_riscv_zce_swgp;
+    }
   }
+  
 
   assert(FixupKind != RISCV::fixup_riscv_invalid && "Unhandled expression!");
 

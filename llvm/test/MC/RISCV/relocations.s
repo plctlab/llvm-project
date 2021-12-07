@@ -180,3 +180,8 @@ lwgp t1, %lo(foo)(gp)
 # RELOC: R_RISCV_GPREL_ZCE_LWGP foo 0x0
 # INSTR: lwgp t1, %lo(foo)(gp)
 # FIXUP: fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_lwgp
+
+swgp t1, %lo(foo)(gp)
+# RELOC: R_RISCV_GPREL_ZCE_SWGP foo 0x0
+# INSTR: swgp t1, %lo(foo)(gp)
+# FIXUP: fixup A - offset: 0, value: %lo(foo), kind: fixup_riscv_zce_swgp
