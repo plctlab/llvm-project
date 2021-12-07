@@ -1178,6 +1178,8 @@ private:
     return false;
   }
 
+  simd(typename _Impl::_Storage __s) : __s_(__s) {}
+
 public:
   // implicit type conversion constructor
   template <class _Up, class = std::enable_if_t<std::is_same_v<_Abi, simd_abi::fixed_size<size()>> &&
@@ -1240,7 +1242,7 @@ public:
 
   mask_type operator!() const; // TODO: wait mask to be implemented
 
-  simd operator~() const; // TODO
+  simd operator~() const { return _Impl::__bitwise_not(__s_); }
 
   simd operator+() const { return *this; }
 
