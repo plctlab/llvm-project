@@ -1216,10 +1216,28 @@ public:
   value_type operator[](size_t __i) const { return __s_.__get(__i); }
 
   // unary operators [simd.unary]
-  simd& operator++();
-  simd operator++(int);
-  simd& operator--();
-  simd operator--(int);
+  simd& operator++() {
+    _Impl::__increment(__s_);
+    return *this;
+  }
+
+  simd operator++(int) {
+    simd __r = *this;
+    _Impl::__increment(__s_);
+    return __r;
+  }
+
+  simd& operator--() {
+    _Impl::__decrement(__s_);
+    return *this;
+  }
+
+  simd operator--(int) {
+    simd __r = *this;
+    _Impl::__decrement(__s_);
+    return __r;
+  }
+
   mask_type operator!() const;
   simd operator~() const;
   simd operator+() const;

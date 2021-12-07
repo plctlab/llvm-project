@@ -52,6 +52,10 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   static void __store(_Storage __s, const _Up* __mem, _Flags) noexcept {
     *__mem = static_cast<_Up>(__s);
   }
+
+  static void __increment(_Storage& __s) noexcept { ++__s; }
+
+  static void __decrement(_Storage& __s) noexcept { --__s; }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
