@@ -1239,9 +1239,29 @@ public:
   _LIBCPP_HIDE_FROM_ABI reference operator[](size_t __i) { return reference(&__s_, __i); }
 
 
-  simd& operator++();
-  simd& operator--();
-  simd operator--(int);
+  // unary operators [simd.unary]
+  simd& operator++() {
+    _Impl::__increment(__s_);
+    return *this;
+  }
+
+  simd operator++(int) {
+    simd __r = *this;
+    _Impl::__increment(__s_);
+    return __r;
+  }
+
+  simd& operator--() {
+    _Impl::__decrement(__s_);
+    return *this;
+  }
+
+  simd operator--(int) {
+    simd __r = *this;
+    _Impl::__decrement(__s_);
+    return __r;
+  }
+
   mask_type operator!() const;
   simd operator~() const;
   simd operator+() const;

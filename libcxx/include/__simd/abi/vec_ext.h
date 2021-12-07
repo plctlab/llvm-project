@@ -81,6 +81,16 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
     for (size_t __i = 0; __i < _Np; __i++)
       __mem[__i] = static_cast<_Up>(__s.__get(__i));
   }
+
+  static void __increment(_Storage& __s) noexcept {
+    for (size_t __i = 0; __i < _Np; __i++)
+      __s.__set(__i, __s.__get(__i) + 1);
+  }
+
+  static void __decrement(_Storage& __s) noexcept {
+    for (size_t __i = 0; __i < _Np; __i++)
+      __s.__set(__i, __s.__get(__i) - 1);
+  }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
