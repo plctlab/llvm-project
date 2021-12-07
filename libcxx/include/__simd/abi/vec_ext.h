@@ -39,11 +39,11 @@ struct __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
   using _Storage = _Tp __attribute__((vector_size(__next_pow_of_2(sizeof(_Tp) * _Np))));
 #endif
 
-  _Storage __s_;
+  _Storage __s;
 
-  _Tp __get(size_t __idx) const noexcept { return __s_[__idx]; }
+  _Tp __get(size_t __idx) const noexcept { return __s[__idx]; }
 
-  void __set(size_t __idx, _Tp __val) noexcept { __s_[__idx] = __val; }
+  void __set(size_t __idx, _Tp __val) noexcept { __s[__idx] = __val; }
 };
 
 template <class _Tp, int _Np>
@@ -90,6 +90,12 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
   static void __decrement(_Storage& __s) noexcept {
     for (size_t __i = 0; __i < _Np; __i++)
       __s.__set(__i, __s.__get(__i) - 1);
+  }
+
+  static _Storage __negate(_Storage __s) noexcept {
+    for (size_t __i = 0; __i < _Np; __i++)
+      __s.__set(__i, -__s.__get(__i));
+    return __s;
   }
 };
 
