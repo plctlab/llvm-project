@@ -86,6 +86,11 @@ enum Fixups {
   // optmised by Zce extension.
   fixup_riscv_zce_lwgp,
 
+  // fixup_riscv_zce_swgp - Used to generate an R_RISCV_GPREL_ZCE_SWGP 
+  // relocation type, which indicates this instruction may able to be
+  // optmised by Zce extension.
+  fixup_riscv_zce_swgp,
+
   // fixup_riscv_invalid - used as a sentinel and a marker, must be last fixup
   fixup_riscv_invalid,
   NumTargetFixupKinds = fixup_riscv_invalid - FirstTargetFixupKind

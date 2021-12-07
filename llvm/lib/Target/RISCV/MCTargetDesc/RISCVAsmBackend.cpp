@@ -71,7 +71,8 @@ RISCVAsmBackend::getFixupKindInfo(MCFixupKind Kind) const {
       {"fixup_riscv_call_plt", 0, 64, MCFixupKindInfo::FKF_IsPCRel},
       {"fixup_riscv_relax", 0, 0, 0},
       {"fixup_riscv_align", 0, 0, 0},
-      {"fixup_riscv_zce_lwgp", 15, 14, 0}};
+      {"fixup_riscv_zce_lwgp", 15, 14, 0},
+      {"fixup_riscv_zce_swgp", 7, 22, 0}};
   static_assert((array_lengthof(Infos)) == RISCV::NumTargetFixupKinds,
                 "Not all fixup kinds added to Infos array");
 
@@ -321,7 +322,16 @@ static uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
     unsigned imm8_2 = (Value >> 2) & 0x7f;
     unsigned imm10_9 = (Value >> 9) & 0x3;
     unsigned imm15_11 = (Value >> 11) & 0x1f;
-    Value = (imm15_11 | imm10_9 << 5| imm8_2 << 7);
+    Value = (imm15_11 | imm10_9 << 5| imm8_2 << 7 );
+    return Value;
+  }
+  case RISCV::fixup_riscv_zce_swgp: {
+    Value = (Value & 0xffff);
+    unsigned imm4_2 = (Value >> 2) & 0x7;
+    unsigned imm8_5 = (Value >> 5) & 0xf;
+    unsigned imm10_9 = (Value >> 9) & 0x3;
+    unsigned imm15_11 = (Value >> 11) & 0x1f;
+    Value = (imm8_5 << 18 | imm15_11 << 8 | imm4_2 << 2 | imm10_9 );
     return Value;
   }
   }

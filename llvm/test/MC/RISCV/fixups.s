@@ -26,6 +26,9 @@ addi a1, t1, %lo(val)
 sw a0, %lo(val)(t1)
 # CHECK-FIXUP: fixup A - offset: 0, value: %lo(val), kind: fixup_riscv_lo12_s
 # CHECK-INSTR: sw a0, 1656(t1)
+swgp a0, %lo(val)(gp)
+# CHECK-FIXUP: fixup A - offset: 0, value: %lo(val), kind: fixup_riscv_zce_swgp
+# CHECK-INSTR: swgp a0, 22136(gp)
 
 1:
 auipc t1, %pcrel_hi(.LBB0)
@@ -33,23 +36,23 @@ auipc t1, %pcrel_hi(.LBB0)
 # CHECK-INSTR: auipc t1, 0
 addi t1, t1, %pcrel_lo(1b)
 # CHECK-FIXUP: fixup A - offset: 0, value: %pcrel_lo(.Ltmp0), kind: fixup_riscv_pcrel_lo12_i
-# CHECK-INSTR: addi t1, t1, -20
+# CHECK-INSTR: addi t1, t1, -24
 sw t1, %pcrel_lo(1b)(t1)
 # CHECK-FIXUP: fixup A - offset: 0, value: %pcrel_lo(.Ltmp0), kind: fixup_riscv_pcrel_lo12_s
-# CHECK-INSTR: sw t1, -20(t1)
+# CHECK-INSTR: sw t1, -24(t1)
 
 jal zero, .LBB0
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB0, kind: fixup_riscv_jal
 # CHECK-INSTR: jal zero, 0x0
 jal zero, .LBB2
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB2, kind: fixup_riscv_jal
-# CHECK-INSTR: jal zero, 0x50d18
+# CHECK-INSTR: jal zero, 0x50d1c
 beq a0, a1, .LBB0
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB0, kind: fixup_riscv_branch
 # CHECK-INSTR: beq a0, a1, 0x0
 blt a0, a1, .LBB1
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB1, kind: fixup_riscv_branch
-# CHECK-INSTR: blt a0, a1, 0x480
+# CHECK-INSTR: blt a0, a1, 0x484
 
 .fill 1104
 
