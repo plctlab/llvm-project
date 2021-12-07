@@ -97,6 +97,12 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
       __s.__set(__i, -__s.__get(__i));
     return __s;
   }
+
+  static _Storage __bitwise_not(_Storage __s) noexcept {
+    for (size_t __i = 0; __i < _Np; __i++)
+      __s.__set(__i, ~__s.__get(__i));
+    return __s;
+  }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
