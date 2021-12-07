@@ -25,11 +25,11 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 template <class _Tp>
 struct __simd_storage<_Tp, simd_abi::__scalar> {
-  _Tp __s_;
+  _Tp __s;
 
-  _Tp __get(size_t __idx) const noexcept { return (&__s_)[__idx]; }
+  _Tp __get(size_t __idx) const noexcept { return (&__s)[__idx]; }
 
-  void __set(size_t __idx, _Tp __val) noexcept { (&__s_)[__idx] = __val; }
+  void __set(size_t __idx, _Tp __val) noexcept { (&__s)[__idx] = __val; }
 };
 
 template <class _Tp>
@@ -53,9 +53,11 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
     *__mem = static_cast<_Up>(__s);
   }
 
-  static void __increment(_Storage& __s) noexcept { ++__s; }
+  static void __increment(_Storage& __s) noexcept { ++__s.__get(0); }
 
-  static void __decrement(_Storage& __s) noexcept { --__s; }
+  static void __decrement(_Storage& __s) noexcept { --__s.__get(0); }
+
+  static _Storage __negate(_Storage __s) noexcept { return !__s.__get(0); }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD

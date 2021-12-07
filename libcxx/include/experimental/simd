@@ -1238,10 +1238,13 @@ public:
     return __r;
   }
 
-  mask_type operator!() const;
-  simd operator~() const;
-  simd operator+() const;
-  simd operator-() const;
+  mask_type operator!() const; // TODO: wait mask to be implemented
+
+  simd operator~() const; // TODO
+
+  simd operator+() const { return *this; }
+
+  simd operator-() const { return _Impl::__negate(__s_); }
 
   // binary operators [simd.binary]
   friend simd operator+(const simd&, const simd&);
