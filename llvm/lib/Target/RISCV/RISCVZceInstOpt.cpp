@@ -29,8 +29,8 @@ public:
     optimisItionMap[RISCV::ANDI] = RISCV::C_ZEXT_B;
     optimisItionMap[RISCV::ADDUW] = RISCV::C_ZEXT_W;
     // zcea
-    optimisItionMap[RISCV::XORI] = RISCV::C_NOT;
-    optimisItionMap[RISCV::SUB] = RISCV::C_NEG;
+    optimisItionMap[RISCV::XORI] = RISCV::C_NOT_ZCE;
+    optimisItionMap[RISCV::SUB] = RISCV::C_NEG_ZCE;
     //zceb
     optimisItionMap[RISCV::LBU] = RISCV::C_LBU;
     optimisItionMap[RISCV::LHU] = RISCV::C_LHU;

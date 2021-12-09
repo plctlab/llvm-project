@@ -1182,15 +1182,16 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
       for (auto &CS : CSI)
         MBB.addLiveIn(CS.getReg());
     }
-
-  // Manually spill values not spilled by libcall.
-  const auto &NonLibcallCSI = getNonLibcallCSI(*MF, CSI);
-  for (auto &CS : NonLibcallCSI) {
-    // Insert the spill to the stack frame.
-    Register Reg = CS.getReg();
-    const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
-    TII.storeRegToStackSlot(MBB, MI, Reg, !MBB.isLiveIn(Reg), CS.getFrameIdx(),
-                            RC, TRI);
+    
+    // Manually spill values not spilled by libcall.
+    const auto &NonLibcallCSI = getNonLibcallCSI(*MF, CSI);
+    for (auto &CS : NonLibcallCSI) {
+      // Insert the spill to the stack frame.
+      Register Reg = CS.getReg();
+      const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
+      TII.storeRegToStackSlot(MBB, MI, Reg, !MBB.isLiveIn(Reg), CS.getFrameIdx(),
+                              RC, TRI);
+    }
   }
 
   return true;

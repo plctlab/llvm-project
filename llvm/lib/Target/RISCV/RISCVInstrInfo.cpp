@@ -680,8 +680,12 @@ static RISCVCC::CondCode getCondFromBranchOpc(unsigned Opc) {
     return RISCVCC::COND_INVALID;
   case RISCV::BEQ:
     return RISCVCC::COND_EQ;
+  case RISCV::BEQI:
+    return RISCVCC::COND_EQI;
   case RISCV::BNE:
     return RISCVCC::COND_NE;
+  case RISCV::BNEI:
+    return RISCVCC::COND_NEI;
   case RISCV::BLT:
     return RISCVCC::COND_LT;
   case RISCV::BGE:
@@ -714,8 +718,12 @@ const MCInstrDesc &RISCVInstrInfo::getBrCond(RISCVCC::CondCode CC) const {
     llvm_unreachable("Unknown condition code!");
   case RISCVCC::COND_EQ:
     return get(RISCV::BEQ);
+  case RISCVCC::COND_EQI:
+    return get(RISCV::BEQI);
   case RISCVCC::COND_NE:
     return get(RISCV::BNE);
+  case RISCVCC::COND_NEI:
+    return get(RISCV::BNEI);
   case RISCVCC::COND_LT:
     return get(RISCV::BLT);
   case RISCVCC::COND_GE:
@@ -733,8 +741,12 @@ RISCVCC::CondCode RISCVCC::getOppositeBranchCondition(RISCVCC::CondCode CC) {
     llvm_unreachable("Unrecognized conditional branch");
   case RISCVCC::COND_EQ:
     return RISCVCC::COND_NE;
+  case RISCVCC::COND_EQI:
+    return RISCVCC::COND_NEI;
   case RISCVCC::COND_NE:
     return RISCVCC::COND_EQ;
+  case RISCVCC::COND_NEI:
+    return RISCVCC::COND_EQI;
   case RISCVCC::COND_LT:
     return RISCVCC::COND_GE;
   case RISCVCC::COND_GE:
@@ -743,22 +755,6 @@ RISCVCC::CondCode RISCVCC::getOppositeBranchCondition(RISCVCC::CondCode CC) {
     return RISCVCC::COND_GEU;
   case RISCVCC::COND_GEU:
     return RISCVCC::COND_LTU;
-  case RISCV::BEQI:
-    return RISCV::BNEI;
-  case RISCV::BEQ:
-    return RISCV::BNE;
-  case RISCV::BNEI:
-    return RISCV::BEQI;
-  case RISCV::BNE:
-    return RISCV::BEQ;
-  case RISCV::BLT:
-    return RISCV::BGE;
-  case RISCV::BGE:
-    return RISCV::BLT;
-  case RISCV::BLTU:
-    return RISCV::BGEU;
-  case RISCV::BGEU:
-    return RISCV::BLTU;
   }
 }
 
