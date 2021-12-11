@@ -24,7 +24,7 @@ _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 template <class _Tp>
-struct __simd_storage<_Tp, simd_abi::__scalar> {
+struct __simd_storage_scalar {
   _Tp __s;
 
   _Tp __get(size_t __idx) const noexcept { return (&__s)[__idx]; }
@@ -34,7 +34,7 @@ struct __simd_storage<_Tp, simd_abi::__scalar> {
 
 template <class _Tp>
 struct __simd_traits<_Tp, simd_abi::__scalar> {
-  using _Storage = __simd_storage<_Tp, simd_abi::__scalar>;
+  using _Storage = __simd_storage_scalar<_Tp>;
 
   static _Storage __broadcast(_Tp __v) noexcept { return __v; }
 

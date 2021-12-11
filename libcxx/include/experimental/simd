@@ -673,16 +673,19 @@ template <class _Vp, class _Tp, class _Abi>
 class __simd_reference {
   static_assert(std::is_same_v<_Vp, _Tp>, "");
 
+  using _Impl = __simd_traits<_Tp, _Abi>;
+  using _Storage = typename _Impl::_Storage;
+
   template <class, class>
   friend struct simd;
 
   template <class, class>
   friend struct simd_mask;
 
-  __simd_storage<_Tp, _Abi>* __ptr_;
+  _Storage* __ptr_;
   size_t __index_;
 
-  __simd_reference(__simd_storage<_Tp, _Abi>* __ptr, size_t __index) : __ptr_(__ptr), __index_(__index) {}
+  __simd_reference(_Storage* __ptr, size_t __index) : __ptr_(__ptr), __index_(__index) {}
 
   __simd_reference(const __simd_reference&) = default;
 
@@ -1153,8 +1156,9 @@ public:
 
 private:
   using _Impl = __simd_traits<_Tp, _Abi>;
+  using _Storage = typename _Impl::_Storage;
 
-  typename _Impl::_Storage __s_;
+  _Storage __s_;
 
   template <class _Up>
   static constexpr bool __can_broadcast() {
@@ -1178,7 +1182,7 @@ private:
     return false;
   }
 
-  simd(typename _Impl::_Storage __s) : __s_(__s) {}
+  simd(_Storage __s) : __s_(__s) {}
 
 public:
   // implicit type conversion constructor
