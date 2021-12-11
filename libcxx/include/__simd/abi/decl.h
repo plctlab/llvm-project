@@ -12,15 +12,15 @@
 #include <experimental/__config>
 #include <cstddef>
 #include <type_traits>
+#include <utility>
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
-// TODO: Combine this into __simd_traits
-template <class _Tp, class _Abi>
-struct __simd_storage;
-
 template <class _Tp, class _Abi>
 struct __simd_traits;
+
+template <class _Tp, class _Abi>
+struct __mask_traits;
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 

@@ -32,7 +32,7 @@ constexpr size_t __next_pow_of_2(size_t __val) {
 }
 
 template <class _Tp, int _Np>
-struct __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
+struct __simd_storage_vec_ext {
 #if defined(_LIBCPP_COMPILER_CLANG_BASED)
   using _Storage = _Tp __attribute__((vector_size(sizeof(_Tp) * _Np)));
 #else
@@ -48,7 +48,7 @@ struct __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
 
 template <class _Tp, int _Np>
 struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
-  using _Storage = __simd_storage< _Tp, simd_abi::__vec_ext<_Np>>;
+  using _Storage = __simd_storage_vec_ext< _Tp, _Np>;
 
   static _Storage __broadcast(_Tp __v) noexcept {
     _Storage __r;
