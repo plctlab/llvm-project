@@ -11,3 +11,11 @@ c.lbu a5, 10(a4)
 # CHECK-ASM-AND-OBJ: c.lhu a5, 10(a4)
 # CHECK-ASM: encoding: [0x3c,0x37]
 c.lhu a5, 10(a4)
+
+# CHECK-ASM-AND-OBJ: c.lbu a5, 10(a4)
+# CHECK-ASM: encoding: [0x3c,0x27]
+lbu a5, 10(a4)
+
+# CHECK-ASM-AND-OBJ: c.lhu a5, 10(a4)
+# CHECK-ASM: encoding: [0x3c,0x37]
+lhu a5, 10(a4)

@@ -11,3 +11,11 @@ c.sb a5, 10(a4)
 # CHECK-ASM-AND-OBJ: c.sh a5, 10(a4)
 # CHECK-ASM: encoding: [0x3c,0xb7]
 c.sh a5, 10(a4)
+
+# CHECK-ASM-AND-OBJ: c.sb a5, 10(a4)
+# CHECK-ASM: encoding: [0x3c,0xa7]
+sb a5, 10(a4)
+
+# CHECK-ASM-AND-OBJ: c.sh a5, 10(a4)
+# CHECK-ASM: encoding: [0x3c,0xb7]
+sh a5, 10(a4)
