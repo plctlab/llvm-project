@@ -11,3 +11,11 @@ c.lb a5, 10(a4)
 # CHECK-ASM-AND-OBJ: c.lh a5, 10(a4)
 # CHECK-ASM: encoding: [0x3e,0x37]
 c.lh a5, 10(a4)
+
+# CHECK-ASM-AND-OBJ: c.lb a5, 10(a4)
+# CHECK-ASM: encoding: [0x3e,0x27]
+lb a5, 10(a4)
+
+# CHECK-ASM-AND-OBJ: c.lh a5, 10(a4)
+# CHECK-ASM: encoding: [0x3e,0x37]
+lh a5, 10(a4)

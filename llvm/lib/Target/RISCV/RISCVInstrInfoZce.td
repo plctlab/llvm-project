@@ -761,4 +761,32 @@ let Predicates = [EnableZceCNeg] in{
 def : CompressPat<(SUB GPRC:$rs1, X0, GPRC:$rs1),
                   (C_NEG_ZCE GPRC:$rs1, GPRC:$rs1)>;
 }
+
+//c.lbu  c.lhu
+let Predicates = [EnableZceClbhu ] in{
+def : CompressPat<(LBU  GPRC:$rd, GPRC:$rs1, uimm4:$imm),
+                  (C_LBU GPRC:$rd, GPRC:$rs1, uimm4:$imm)>;
+
+def : CompressPat<(LHU  GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm),
+                  (C_LHU GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm)>;
+}// Predicates = [EnableZceClbhu]
+
+//c.lb  c.lh
+let Predicates = [EnableZceClbh] in{
+def : CompressPat<(LB  GPRC:$rd, GPRC:$rs1, uimm4:$imm),
+                  (C_LB GPRC:$rd, GPRC:$rs1, uimm4:$imm)>;
+
+def : CompressPat<(LH  GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm),
+                  (C_LH GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm)>;
+}// Predicates = [EnableZceClbh]
+
+//c.sb   c.sh
+let Predicates = [EnableZceCsbh] in{
+def : CompressPat<(SB  GPRC:$rs2, GPRC:$rs1, uimm4:$imm),
+                  (C_SB GPRC:$rs2, GPRC:$rs1, uimm4:$imm)>;
+
+def : CompressPat<(SH  GPRC:$rs2, GPRC:$rs1, uimm5_lsb0:$imm),
+                  (C_SH GPRC:$rs2, GPRC:$rs1, uimm5_lsb0:$imm)>;
+}// Predicates = [EnableZceCsbh]
+
 } // isCompressOnly = true
