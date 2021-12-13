@@ -669,72 +669,109 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 // TODO: handle _LIBCPP_HAS_NO_VECTOR_EXTENSION
 
-template <class _Vp, class _Tp, class _Abi>
+template <class _Storage, class _ValueType>
 class __simd_reference {
-  static_assert(std::is_same_v<_Vp, _Tp>, "");
-
-  using _Impl = __simd_traits<_Tp, _Abi>;
-  using _Storage = typename _Impl::_Storage;
-
   template <class, class>
   friend struct simd;
 
   template <class, class>
   friend struct simd_mask;
 
-  _Storage* __ptr_;
-  size_t __index_;
+  _Storage& __s_;
+  size_t __idx_;
 
-  __simd_reference(_Storage* __ptr, size_t __index) : __ptr_(__ptr), __index_(__index) {}
+  __simd_reference(_Storage& __s, size_t __idx) : __s_(__s), __idx_(__idx) {}
 
   __simd_reference(const __simd_reference&) = default;
 
+  _ValueType __get() const { return __s_.__get(__idx_); }
+
+  void __set(_ValueType __v) { __s_.__set(__idx_, __v); }
+
 public:
+  using value_type = _ValueType;
+
   __simd_reference() = delete;
   __simd_reference& operator=(const __simd_reference&) = delete;
 
-  operator _Vp() const { return __ptr_->__get(__index_); }
+  operator value_type() const { return __get(); }
 
-  __simd_reference operator=(_Vp __value) && {
-    __ptr_->__set(__index_, __value);
+  __simd_reference operator=(value_type __v) && {
+    __set(__v);
     return *this;
   }
 
-  __simd_reference operator++() && { return std::move(*this) = __ptr_->__get(__index_) + 1; }
-
-  _Vp operator++(int) && {
-    auto __val = __ptr_->__get(__index_);
-    __ptr_->__set(__index_, __val + 1);
-    return __val;
+  __simd_reference operator++() && {
+    __set(__get() + 1);
+    return *this;
   }
 
-  __simd_reference operator--() && { return std::move(*this) = __ptr_->__get(__index_) - 1; }
-
-  _Vp operator--(int) && {
-    auto __val = __ptr_->__get(__index_);
-    __ptr_->__set(__index_, __val - 1);
-    return __val;
+  value_type operator++(int) && {
+    auto __r = __get();
+    __set(__get() + 1);
+    return __r;
   }
 
-  __simd_reference operator+=(_Vp __value) && { return std::move(*this) = __ptr_->__get(__index_) + __value; }
+  __simd_reference operator--() && {
+    __set(__get() - 1);
+    return *this;
+  }
 
-  __simd_reference operator-=(_Vp __value) && { return std::move(*this) = __ptr_->__get(__index_) - __value; }
+  value_type operator--(int) && {
+    auto __r = __get();
+    __set(__get() - 1);
+    return __r;
+  }
 
-  __simd_reference operator*=(_Vp __value) && { return std::move(*this) = __ptr_->__get(__index_) * __value; }
+  __simd_reference operator+=(value_type __v) && {
+    __set(__get() + __v);
+    return *this;
+  }
 
-  __simd_reference operator/=(_Vp __value) && { return std::move(*this) = __ptr_->__get(__index_) / __value; }
+  __simd_reference operator-=(value_type __v) && {
+    __set(__get() - __v);
+    return *this;
+  }
 
-  __simd_reference operator%=(_Vp __value) && { return std::move(*this) = __ptr_->__get(__index_) % __value; }
+  __simd_reference operator*=(value_type __v) && {
+    __set(__get() * __v);
+    return *this;
+  }
 
-  __simd_reference operator>>=(_Vp __value) && { return std::move(*this) = __ptr_->__get(__index_) >> __value; }
+  __simd_reference operator/=(value_type __v) && {
+    __set(__get() / __v);
+    return *this;
+  }
 
-  __simd_reference operator<<=(_Vp __value) && { return std::move(*this) = __ptr_->__get(__index_) << __value; }
+  __simd_reference operator%=(value_type __v) && {
+    __set(__get() % __v);
+    return *this;
+  }
 
-  __simd_reference operator&=(_Vp __value) && { return std::move(*this) = __ptr_->__get(__index_) & __value; }
+  __simd_reference operator>>=(value_type __v) && {
+    __set(__get() >> __v);
+    return *this;
+  }
 
-  __simd_reference operator|=(_Vp __value) && { return std::move(*this) = __ptr_->__get(__index_) | __value; }
+  __simd_reference operator<<=(value_type __v) && {
+    __set(__get() << __v);
+    return *this;
+  }
 
-  __simd_reference operator^=(_Vp __value) && { return std::move(*this) = __ptr_->__get(__index_) ^ __value; }
+  __simd_reference operator&=(value_type __v) && {
+    __set(__get() & __v);
+    return *this;
+  }
+
+  __simd_reference operator|=(value_type __v) && {
+    __set(__get() | __v);
+    return *this;
+  }
+
+  __simd_reference operator^=(value_type __v) && {
+    __set(__get() ^ __v);
+    return *this;
+  }
 };
 
 template <class _To, class _From>
@@ -1142,9 +1179,12 @@ public:
 // TODO: implement simd
 template <class _Tp, class _Abi>
 class simd {
+  using _Impl = __simd_traits<_Tp, _Abi>;
+  using _Storage = typename _Impl::_Storage;
+
 public:
   using value_type = _Tp;
-  using reference = __simd_reference<_Tp, _Tp, _Abi>;
+  using reference = __simd_reference<_Storage, value_type>;
   using mask_type = simd_mask<_Tp, _Abi>;
   using abi_type = _Abi;
 
@@ -1155,9 +1195,6 @@ public:
   static constexpr size_t size() noexcept { return simd_size_v<_Tp, _Abi>; }
 
 private:
-  using _Impl = __simd_traits<_Tp, _Abi>;
-  using _Storage = typename _Impl::_Storage;
-
   _Storage __s_;
 
   template <class _Up>
@@ -1217,7 +1254,7 @@ public:
   }
 
   // scalar access [simd.subscr]
-  reference operator[](size_t __i) { return reference(&__s_, __i); }
+  reference operator[](size_t __i) { return reference(__s_, __i); }
 
   value_type operator[](size_t __i) const { return __s_.__get(__i); }
 

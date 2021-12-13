@@ -25,11 +25,11 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 template <class _Tp>
 struct __simd_storage_scalar {
-  _Tp __s;
+  _Tp __data;
 
-  _Tp __get(size_t __idx) const noexcept { return (&__s)[__idx]; }
+  _Tp __get(size_t __idx) const noexcept { return (&__data)[__idx]; }
 
-  void __set(size_t __idx, _Tp __val) noexcept { (&__s)[__idx] = __val; }
+  void __set(size_t __idx, _Tp __val) noexcept { (&__data)[__idx] = __val; }
 };
 
 template <class _Tp>
@@ -53,13 +53,13 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
     *__mem = static_cast<_Up>(__s);
   }
 
-  static void __increment(_Storage& __s) noexcept { ++__s.__get(0); }
+  static void __increment(_Storage& __s) noexcept { ++__s.__data; }
 
-  static void __decrement(_Storage& __s) noexcept { --__s.__get(0); }
+  static void __decrement(_Storage& __s) noexcept { --__s.__data; }
 
-  static _Storage __negate(_Storage __s) noexcept { return !__s.__get(0); }
+  static _Storage __negate(_Storage __s) noexcept { return !__s.__data; }
 
-  static _Storage __bitwise_not(_Storage __s) noexcept { return ~__s.__get(0); }
+  static _Storage __bitwise_not(_Storage __s) noexcept { return ~__s.__data; }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
