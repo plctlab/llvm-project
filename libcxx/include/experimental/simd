@@ -847,6 +847,8 @@ class simd;
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
 class simd_mask;
 
+// TODO: alignment related optimizations
+
 struct element_aligned_tag {};
 
 struct vector_aligned_tag {};

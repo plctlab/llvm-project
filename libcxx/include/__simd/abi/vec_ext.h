@@ -54,7 +54,7 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
 
   template <class _Generator, size_t... _Is>
   static _Storage __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
-    return _Storage{{__g(std::integral_constant<size_t, _Is>())...}};
+    return {{__g(std::integral_constant<size_t, _Is>())...}};
   }
 
   template <class _Generator>
@@ -64,6 +64,7 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
 
   template <class _Up, class _Flags>
   static _Storage __load(const _Up* __mem, _Flags) noexcept {
+    // TODO: optimized implementation
     return __generate([=](size_t __i) { return static_cast<_Tp>(__mem[__i]); });
   }
 
