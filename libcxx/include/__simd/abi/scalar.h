@@ -36,30 +36,30 @@ template <class _Tp>
 struct __simd_traits<_Tp, simd_abi::__scalar> {
   using _Storage = __simd_storage_scalar<_Tp>;
 
-  static _Storage __broadcast(_Tp __v) noexcept { return __v; }
+  static _Storage __broadcast(_Tp __v) noexcept { return {__v}; }
 
   template <class _Generator>
   static _Storage __generate(_Generator&& __g) noexcept {
-    return __g(std::integral_constant<size_t, 0>());
+    return {__g(std::integral_constant<size_t, 0>())};
   }
 
   template <class _Up, class _Flags>
   static _Storage __load(_Up* __mem, _Flags) noexcept {
-    return static_cast<_Tp>(*__mem);
+    return {static_cast<_Tp>(*__mem)};
   }
 
   template <class _Up, class _Flags>
   static void __store(_Storage __s, const _Up* __mem, _Flags) noexcept {
-    *__mem = static_cast<_Up>(__s);
+    *__mem = static_cast<_Up>(__s.__data);
   }
 
   static void __increment(_Storage& __s) noexcept { ++__s.__data; }
 
   static void __decrement(_Storage& __s) noexcept { --__s.__data; }
 
-  static _Storage __negate(_Storage __s) noexcept { return !__s.__data; }
+  static _Storage __negate(_Storage __s) noexcept { return {!__s.__data}; }
 
-  static _Storage __bitwise_not(_Storage __s) noexcept { return ~__s.__data; }
+  static _Storage __bitwise_not(_Storage __s) noexcept { return {~__s.__data}; }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
