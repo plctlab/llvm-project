@@ -34,27 +34,22 @@ constexpr size_t __next_pow_of_2(size_t __val) {
 template <class _Tp, int _Np>
 struct __simd_storage_vec_ext {
 #if defined(_LIBCPP_COMPILER_CLANG_BASED)
-  using _Storage = _Tp __attribute__((vector_size(sizeof(_Tp) * _Np)));
+  _Tp __data __attribute__((vector_size(sizeof(_Tp) * _Np)));
 #else
-  using _Storage = _Tp __attribute__((vector_size(__next_pow_of_2(sizeof(_Tp) * _Np))));
+  _Tp __data __attribute__((vector_size(__next_pow_of_2(sizeof(_Tp) * _Np))));
 #endif
 
-  _Storage __s;
+  _Tp __get(size_t __idx) const noexcept { return __data[__idx]; }
 
-  _Tp __get(size_t __idx) const noexcept { return __s[__idx]; }
-
-  void __set(size_t __idx, _Tp __val) noexcept { __s[__idx] = __val; }
+  void __set(size_t __idx, _Tp __val) noexcept { __data[__idx] = __val; }
 };
 
 template <class _Tp, int _Np>
 struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
-  using _Storage = __simd_storage_vec_ext< _Tp, _Np>;
+  using _Storage = __simd_storage_vec_ext<_Tp, _Np>;
 
   static _Storage __broadcast(_Tp __v) noexcept {
-    _Storage __r;
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __r.__set(__i, __v);
-    return __r;
+    return __generate([=](size_t) { return __v; });
   }
 
   template <class _Generator, size_t... _Is>
@@ -69,40 +64,23 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
 
   template <class _Up, class _Flags>
   static _Storage __load(const _Up* __mem, _Flags) noexcept {
-    _Storage __r;
-    for (size_t __i = 0; __i < _Np; __i++)
-      __r.__set(__i, static_cast<_Tp>(__mem[__i]));
-    return __r;
+    return __generate([=](size_t __i) { return static_cast<_Tp>(__mem[__i]); });
   }
 
   template <class _Up, class _Flags>
   static void __store(_Storage __s, _Up* __mem, _Flags) noexcept {
     // TODO: optimized implementation
     for (size_t __i = 0; __i < _Np; __i++)
-      __mem[__i] = static_cast<_Up>(__s.__get(__i));
+      __mem[__i] = static_cast<_Up>(__s.__data[__i]);
   }
 
-  static void __increment(_Storage& __s) noexcept {
-    for (size_t __i = 0; __i < _Np; __i++)
-      __s.__set(__i, __s.__get(__i) + 1);
-  }
+  static void __increment(_Storage& __s) noexcept { ++__s.__data; }
 
-  static void __decrement(_Storage& __s) noexcept {
-    for (size_t __i = 0; __i < _Np; __i++)
-      __s.__set(__i, __s.__get(__i) - 1);
-  }
+  static void __decrement(_Storage& __s) noexcept { --__s.__data; }
 
-  static _Storage __negate(_Storage __s) noexcept {
-    for (size_t __i = 0; __i < _Np; __i++)
-      __s.__set(__i, -__s.__get(__i));
-    return __s;
-  }
+  static _Storage __negate(_Storage __s) noexcept { return {-__s.__data}; }
 
-  static _Storage __bitwise_not(_Storage __s) noexcept {
-    for (size_t __i = 0; __i < _Np; __i++)
-      __s.__set(__i, ~__s.__get(__i));
-    return __s;
-  }
+  static _Storage __bitwise_not(_Storage __s) noexcept { return {~__s.__data}; }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
