@@ -66,6 +66,60 @@ static const RISCVSupportedExtension SupportedExperimentalExtensions[] = {
 
     {"zfhmin", RISCVExtensionVersion{0, 1}},
     {"zfh", RISCVExtensionVersion{0, 1}},
+
+    {"zce", RISCVExtensionVersion{0, 50}},
+    {"zcee", RISCVExtensionVersion{0, 50}},
+    {"zcea", RISCVExtensionVersion{0, 50}},
+    {"zceb", RISCVExtensionVersion{0, 50}},
+    {"zce-cpush-cpop", RISCVExtensionVersion{0, 50}},
+    {"zce-push-pop", RISCVExtensionVersion{0, 50}},
+    {"zce-cpushe-cpope", RISCVExtensionVersion{0, 50}},
+    {"zce-pushe-pope", RISCVExtensionVersion{0, 50}},
+    {"zce-tbljal", RISCVExtensionVersion{0, 50}},
+    {"zce-clbhu", RISCVExtensionVersion{0, 50}},
+    {"zce-clbh", RISCVExtensionVersion{0, 50}},
+    {"zce-csbh", RISCVExtensionVersion{0, 50}},
+    {"zce-lsgp", RISCVExtensionVersion{0, 50}},
+    {"zce-muli", RISCVExtensionVersion{0, 50}},
+    {"zce-cmul", RISCVExtensionVersion{0, 50}},
+    {"zce-sext", RISCVExtensionVersion{0, 50}},
+    {"zce-zext", RISCVExtensionVersion{0, 50}},
+    {"zce-beqi", RISCVExtensionVersion{0, 50}},
+    {"zce-bnei", RISCVExtensionVersion{0, 50}},
+    {"zce-cnot", RISCVExtensionVersion{0, 50}},
+    {"zce-cneg", RISCVExtensionVersion{0, 50}},
+    {"zce-cmva01s07", RISCVExtensionVersion{0, 50}},
+    {"zce-cdecbnez", RISCVExtensionVersion{0, 50}},
+    {"zce-decbnez", RISCVExtensionVersion{0, 50}},
+};
+
+static const StringRef SupportedZceeSwitchs[] = {
+    "zce-cmul",
+    "zce-sext",
+    "zce-zext",
+};
+
+static const StringRef SupportedZceaSwitchs[] = {
+    "zce-cpush-cpop",
+    "zce-push-pop",
+    "zce-cpushe-cpope",
+    "zce-pushe-pope",
+    "zce-tbljal",
+    "zce-muli",
+    "zce-beqi",
+    "zce-bnei",
+    "zce-cnot",
+    "zce-cneg",
+    "zce-cmva01s07",
+};
+
+static const StringRef SupportedZcebSwitchs[] = {
+    "zce-cdecbnez",
+    "zce-decbnez",
+    "zce-clbhu",
+    "zce-clbh",
+    "zce-csbh",
+    "zce-lsgp",
 };
 
 static bool stripExperimentalPrefix(StringRef &Ext) {
@@ -161,8 +215,9 @@ static Optional<RISCVExtensionVersion> isExperimentalExtension(StringRef Ext) {
 
 bool RISCVISAInfo::isSupportedExtensionFeature(StringRef Ext) {
   bool IsExperimental = stripExperimentalPrefix(Ext);
+  bool IsZceFeature = Ext.startswith("zce");
 
-  if (IsExperimental)
+  if (IsExperimental || IsZceFeature)
     return llvm::any_of(SupportedExperimentalExtensions, FindByName(Ext));
   else
     return llvm::any_of(SupportedExtensions, FindByName(Ext));
@@ -419,7 +474,8 @@ RISCVISAInfo::parseFeatures(unsigned XLen,
     bool Add = ExtName[0] == '+';
     ExtName = ExtName.drop_front(1); // Drop '+' or '-'
     Experimental = stripExperimentalPrefix(ExtName);
-    auto ExtensionInfos = Experimental
+    bool IsZceFeature = ExtName.startswith("zce");
+    auto ExtensionInfos = (Experimental || IsZceFeature)
                               ? makeArrayRef(SupportedExperimentalExtensions)
                               : makeArrayRef(SupportedExtensions);
     auto ExtensionInfoIterator =
@@ -612,6 +668,9 @@ RISCVISAInfo::parseArchString(StringRef Arch, bool EnableExperimentalExtension,
       StringRef Type = getExtensionType(Ext);
       StringRef Desc = getExtensionTypeDesc(Ext);
       auto Pos = findFirstNonVersionCharacter(Ext) + 1;
+      // proess the special case zce-cmva01s07
+      if(Ext.startswith("zce-cmva01s07"))
+        Pos = 13;
       StringRef Name(Ext.substr(0, Pos));
       StringRef Vers(Ext.substr(Pos));
 
@@ -729,6 +788,11 @@ void RISCVISAInfo::updateFLen() {
 }
 
 std::string RISCVISAInfo::toString() const {
+  bool hasZce = hasExtension("zce");
+  bool hasZcee = hasExtension("zcee");
+  bool hasZcea = hasExtension("zcea");
+  bool hasZceb = hasExtension("zceb");
+
   std::string Buffer;
   raw_string_ostream Arch(Buffer);
 
@@ -738,6 +802,21 @@ std::string RISCVISAInfo::toString() const {
   for (auto &Ext : Exts) {
     StringRef ExtName = Ext.first;
     auto ExtInfo = Ext.second;
+
+    if(ExtName.startswith("zce-")){
+      if(hasZce)
+        continue;
+      if(llvm::find(SupportedZceeSwitchs,ExtName) != std::end(SupportedZceeSwitchs)
+        && hasZcee)
+        continue;
+      if(llvm::find(SupportedZceaSwitchs,ExtName) != std::end(SupportedZceaSwitchs)
+        && hasZcea)
+        continue;
+      if(llvm::find(SupportedZcebSwitchs,ExtName) != std::end(SupportedZcebSwitchs)
+        && hasZceb)
+        continue;
+    }
+
     Arch << LS << ExtName;
     Arch << ExtInfo.MajorVersion << "p" << ExtInfo.MinorVersion;
   }

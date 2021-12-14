@@ -64,8 +64,8 @@ define i32 @callee_half_on_stack(i32 %a, i32 %b, i32 %c, i32 %d, i32 %e, i32 %f,
 ; RV32I-NEXT:    call __gnu_h2f_ieee@plt
 ; RV32I-NEXT:    call __fixsfsi@plt
 ; RV32I-NEXT:    add a0, s0, a0
-; RV32I-NEXT:    lw s0, 8(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s0, 8(sp) # 4-byte Folded Reload
 ; RV32I-NEXT:    addi sp, sp, 16
 ; RV32I-NEXT:    ret
 ;
@@ -79,8 +79,8 @@ define i32 @callee_half_on_stack(i32 %a, i32 %b, i32 %c, i32 %d, i32 %e, i32 %f,
 ; RV32IZce-NEXT:    call __gnu_h2f_ieee@plt
 ; RV32IZce-NEXT:    call __fixsfsi@plt
 ; RV32IZce-NEXT:    add a0, s0, a0
-; RV32IZce-NEXT:    lw s0, 8(sp) # 4-byte Folded Reload
 ; RV32IZce-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
+; RV32IZce-NEXT:    lw s0, 8(sp) # 4-byte Folded Reload
 ; RV32IZce-NEXT:    addi sp, sp, 16
 ; RV32IZce-NEXT:    ret
 ;
@@ -94,8 +94,8 @@ define i32 @callee_half_on_stack(i32 %a, i32 %b, i32 %c, i32 %d, i32 %e, i32 %f,
 ; RV64I-NEXT:    call __gnu_h2f_ieee@plt
 ; RV64I-NEXT:    call __fixsfdi@plt
 ; RV64I-NEXT:    addw a0, s0, a0
-; RV64I-NEXT:    ld s0, 0(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s0, 0(sp) # 8-byte Folded Reload
 ; RV64I-NEXT:    addi sp, sp, 16
 ; RV64I-NEXT:    ret
 ;
@@ -109,8 +109,8 @@ define i32 @callee_half_on_stack(i32 %a, i32 %b, i32 %c, i32 %d, i32 %e, i32 %f,
 ; RV64IZce-NEXT:    call __gnu_h2f_ieee@plt
 ; RV64IZce-NEXT:    call __fixsfdi@plt
 ; RV64IZce-NEXT:    addw a0, s0, a0
-; RV64IZce-NEXT:    ld s0, 0(sp) # 8-byte Folded Reload
 ; RV64IZce-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
+; RV64IZce-NEXT:    ld s0, 0(sp) # 8-byte Folded Reload
 ; RV64IZce-NEXT:    addi sp, sp, 16
 ; RV64IZce-NEXT:    ret
   %1 = fptosi half %i to i32

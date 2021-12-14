@@ -41,7 +41,7 @@ define signext i32 @mulOfTwoParam(i32 %a, i32 %b) #0 {
 ; RV64IM-NEXT:	sw	a1, 8(sp)
 ; RV64IM-NEXT:	lw	a0, 12(sp)
 ; RV64IM-NEXT:	lw	a1, 8(sp)
-; RV64IM-NEXT:	mul	a0, a0, a1
+; RV64IM-NEXT:	mulw	a0, a0, a1
 ; RV64IM-NEXT:	sw	a0, 4(sp)
 ; RV64IM-NEXT:	lw	a0, 4(sp)
 ; RV64IM-NEXT:	addi	sp, sp, 16
@@ -54,7 +54,7 @@ define signext i32 @mulOfTwoParam(i32 %a, i32 %b) #0 {
 ; RV64IMMULI-NEXT:    	sw	a1, 8(sp)
 ; RV64IMMULI-NEXT:    	lw	a0, 12(sp)
 ; RV64IMMULI-NEXT:    	lw	a1, 8(sp)
-; RV64IMMULI-NEXT:    	mul	a0, a0, a1
+; RV64IMMULI-NEXT:    	mulw	a0, a0, a1
 ; RV64IMMULI-NEXT:    	sw	a0, 4(sp)
 ; RV64IMMULI-NEXT:    	lw	a0, 4(sp)
 ; RV64IMMULI-NEXT:    	addi	sp, sp, 16
@@ -77,14 +77,14 @@ define signext i32 @mulRegAndImm() #0 {
 ; RV32IM-LABEL: mulRegAndImm:
 ; RV32IM:       # %bb.0:
 ; RV32IM-NEXT:  addi	sp, sp, -16
-; RV32IM-NEXT:	addi	a0, zero, 15
+; RV32IM-NEXT:	li a0, 15
 ; RV32IM-NEXT:	sw	a0, 12(sp)
-; RV32IM-NEXT:	addi	a0, zero, 10
+; RV32IM-NEXT:	li a0, 10
 ; RV32IM-NEXT:	sw	a0, 8(sp)
 ; RV32IM-NEXT:	lw	a0, 8(sp)
 ; RV32IM-NEXT:	lw	a1, 12(sp)
 ; RV32IM-NEXT:	mul	a0, a0, a1
-; RV32IM-NEXT:	addi	a1, zero, 185
+; RV32IM-NEXT:	li a1, 185
 ; RV32IM-NEXT:	mul	a0, a0, a1
 ; RV32IM-NEXT:	sw	a0, 4(sp)
 ; RV32IM-NEXT:	lw	a0, 4(sp)
@@ -94,9 +94,9 @@ define signext i32 @mulRegAndImm() #0 {
 ; RV32IMMULI-LABEL: mulRegAndImm:
 ; RV32IMMULI:       # %bb.0:
 ; RV32IMMULI-NEXT:  addi	sp, sp, -16
-; RV32IMMULI-NEXT:	addi	a0, zero, 15
+; RV32IMMULI-NEXT:	li a0, 15
 ; RV32IMMULI-NEXT:	sw	a0, 12(sp)
-; RV32IMMULI-NEXT:	addi	a0, zero, 10
+; RV32IMMULI-NEXT:	li a0, 10
 ; RV32IMMULI-NEXT:	sw	a0, 8(sp)
 ; RV32IMMULI-NEXT:	lw	a0, 8(sp)
 ; RV32IMMULI-NEXT:	lw	a1, 12(sp)
@@ -110,15 +110,15 @@ define signext i32 @mulRegAndImm() #0 {
 ; RV64IM-LABEL: mulRegAndImm:
 ; RV64IM:       # %bb.0:
 ; RV64IM-NEXT:  addi	sp, sp, -16
-; RV64IM-NEXT:	addi	a0, zero, 15
+; RV64IM-NEXT:	li a0, 15
 ; RV64IM-NEXT:	sw	a0, 12(sp)
-; RV64IM-NEXT:	addi	a0, zero, 10
+; RV64IM-NEXT:	li a0, 10
 ; RV64IM-NEXT:	sw	a0, 8(sp)
 ; RV64IM-NEXT:	lw	a0, 8(sp)
 ; RV64IM-NEXT:	lw	a1, 12(sp)
-; RV64IM-NEXT:	mul	a0, a0, a1
-; RV64IM-NEXT:	addi	a1, zero, 185
-; RV64IM-NEXT:	mul	a0, a0, a1
+; RV64IM-NEXT:	mulw a0, a0, a1
+; RV64IM-NEXT:	li a1, 185
+; RV64IM-NEXT:	mulw a0, a0, a1
 ; RV64IM-NEXT:	sw	a0, 4(sp)
 ; RV64IM-NEXT:	lw	a0, 4(sp)
 ; RV64IM-NEXT:	addi	sp, sp, 16
@@ -127,9 +127,9 @@ define signext i32 @mulRegAndImm() #0 {
 ; RV64IMMULI-LABEL: mulRegAndImm:
 ; RV64IMMULI:       # %bb.0:
 ; RV64IMMULI-NEXT:  addi	sp, sp, -16
-; RV64IMMULI-NEXT:	addi	a0, zero, 15
+; RV64IMMULI-NEXT:	li a0, 15
 ; RV64IMMULI-NEXT:	sw	a0, 12(sp)
-; RV64IMMULI-NEXT:	addi	a0, zero, 10
+; RV64IMMULI-NEXT:	li a0, 10
 ; RV64IMMULI-NEXT:	sw	a0, 8(sp)
 ; RV64IMMULI-NEXT:	lw	a0, 8(sp)
 ; RV64IMMULI-NEXT:	lw	a1, 12(sp)
@@ -159,8 +159,8 @@ define signext i32 @mulTwoFuncRes() #0 {
 ; RV32IM:       # %bb.0:
 ; RV32IM-NEXT:  addi	sp, sp, -16
 ; RV32IM-NEXT:	sw	ra, 12(sp)                      # 4-byte Folded Spill
-; RV32IM-NEXT:	addi	a0, zero, 5
-; RV32IM-NEXT:	addi	a1, zero, 6
+; RV32IM-NEXT:	li a0, 5
+; RV32IM-NEXT:	li a1, 6
 ; RV32IM-NEXT:	call	mulOfTwoParam@plt
 ; RV32IM-NEXT:	sw	a0, 8(sp)
 ; RV32IM-NEXT:	call	mulRegAndImm@plt
@@ -169,7 +169,7 @@ define signext i32 @mulTwoFuncRes() #0 {
 ; RV32IM-NEXT:	lw	a1, 4(sp)
 ; RV32IM-NEXT:	mul	a0, a0, a1
 ; RV32IM-NEXT:	sw	a0, 0(sp)
-; RV32IM-NEXT:	mv	a0, zero
+; RV32IM-NEXT:	li a0, 0
 ; RV32IM-NEXT:	lw	ra, 12(sp)                      # 4-byte Folded Reload
 ; RV32IM-NEXT:	addi	sp, sp, 16
 ; RV32IM-NEXT:	ret
@@ -178,8 +178,8 @@ define signext i32 @mulTwoFuncRes() #0 {
 ; RV32IMMULI:       # %bb.0:
 ; RV32IMMULI-NEXT:  addi	sp, sp, -16
 ; RV32IMMULI-NEXT:	sw	ra, 12(sp)                      # 4-byte Folded Spill
-; RV32IMMULI-NEXT:	addi	a0, zero, 5
-; RV32IMMULI-NEXT:	addi	a1, zero, 6
+; RV32IMMULI-NEXT:	li a0, 5
+; RV32IMMULI-NEXT:	li a1, 6
 ; RV32IMMULI-NEXT:	call	mulOfTwoParam@plt
 ; RV32IMMULI-NEXT:	sw	a0, 8(sp)
 ; RV32IMMULI-NEXT:	call	mulRegAndImm@plt
@@ -188,7 +188,7 @@ define signext i32 @mulTwoFuncRes() #0 {
 ; RV32IMMULI-NEXT:	lw	a1, 4(sp)
 ; RV32IMMULI-NEXT:	mul	a0, a0, a1
 ; RV32IMMULI-NEXT:	sw	a0, 0(sp)
-; RV32IMMULI-NEXT:	mv	a0, zero
+; RV32IMMULI-NEXT:	li a0, 0
 ; RV32IMMULI-NEXT:	lw	ra, 12(sp)                      # 4-byte Folded Reload
 ; RV32IMMULI-NEXT:	addi	sp, sp, 16
 ; RV32IMMULI-NEXT:	ret
@@ -197,17 +197,17 @@ define signext i32 @mulTwoFuncRes() #0 {
 ; RV64IM:       # %bb.0:
 ; RV64IM-NEXT:  addi	sp, sp, -32
 ; RV64IM-NEXT:	sd	ra, 24(sp)                      # 8-byte Folded Spill
-; RV64IM-NEXT:	addi	a0, zero, 5
-; RV64IM-NEXT:	addi	a1, zero, 6
+; RV64IM-NEXT:	li a0, 5
+; RV64IM-NEXT:	li a1, 6
 ; RV64IM-NEXT:	call	mulOfTwoParam@plt
 ; RV64IM-NEXT:	sw	a0, 20(sp)
 ; RV64IM-NEXT:	call	mulRegAndImm@plt
 ; RV64IM-NEXT:	sw	a0, 16(sp)
 ; RV64IM-NEXT:	lw	a0, 20(sp)
 ; RV64IM-NEXT:	lw	a1, 16(sp)
-; RV64IM-NEXT:	mul	a0, a0, a1
+; RV64IM-NEXT:	mulw	a0, a0, a1
 ; RV64IM-NEXT:	sw	a0, 12(sp)
-; RV64IM-NEXT:	mv	a0, zero
+; RV64IM-NEXT:	li a0, 0
 ; RV64IM-NEXT:	ld	ra, 24(sp)                      # 8-byte Folded Reload
 ; RV64IM-NEXT:	addi	sp, sp, 32
 ; RV64IM-NEXT:	ret
@@ -216,17 +216,17 @@ define signext i32 @mulTwoFuncRes() #0 {
 ; RV64IMMULI:       # %bb.0:
 ; RV64IMMULI-NEXT:  addi	sp, sp, -32
 ; RV64IMMULI-NEXT:	sd	ra, 24(sp)                      # 8-byte Folded Spill
-; RV64IMMULI-NEXT:	addi	a0, zero, 5
-; RV64IMMULI-NEXT:	addi	a1, zero, 6
+; RV64IMMULI-NEXT:	li a0, 5
+; RV64IMMULI-NEXT:	li a1, 6
 ; RV64IMMULI-NEXT:	call	mulOfTwoParam@plt
 ; RV64IMMULI-NEXT:	sw	a0, 20(sp)
 ; RV64IMMULI-NEXT:	call	mulRegAndImm@plt
 ; RV64IMMULI-NEXT:	sw	a0, 16(sp)
 ; RV64IMMULI-NEXT:	lw	a0, 20(sp)
 ; RV64IMMULI-NEXT:	lw	a1, 16(sp)
-; RV64IMMULI-NEXT:	mul	a0, a0, a1
+; RV64IMMULI-NEXT:	mulw	a0, a0, a1
 ; RV64IMMULI-NEXT:	sw	a0, 12(sp)
-; RV64IMMULI-NEXT:	mv	a0, zero
+; RV64IMMULI-NEXT:	li a0, 0
 ; RV64IMMULI-NEXT:	ld	ra, 24(sp)                      # 8-byte Folded Reload
 ; RV64IMMULI-NEXT:	addi	sp, sp, 32
 ; RV64IMMULI-NEXT:	ret

@@ -28,13 +28,13 @@ namespace RISCVCC {
 
 enum CondCode {
   COND_EQ,
-  COND_EQI,
   COND_NE,
-  COND_NEI,
   COND_LT,
   COND_GE,
   COND_LTU,
   COND_GEU,
+  COND_EQI,
+  COND_NEI,
   COND_INVALID
 };
 

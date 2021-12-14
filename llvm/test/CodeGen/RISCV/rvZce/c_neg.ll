@@ -81,15 +81,15 @@ define i32 @muli32_m65(i32 %a) nounwind {
 ;
 ; RV64I-LABEL: muli32_m65:
 ; RV64I:       # %bb.0:
-; RV64I-NEXT:    slli a1, a0, 6
-; RV64I-NEXT:    add a0, a1, a0
+; RV64I-NEXT:    slliw a1, a0, 6
+; RV64I-NEXT:    addw a0, a1, a0
 ; RV64I-NEXT:    negw a0, a0
 ; RV64I-NEXT:    ret
 ;
 ; RV64IZce-LABEL: muli32_m65:
 ; RV64IZce:       # %bb.0:
-; RV64IZce-NEXT:    slli a1, a0, 6
-; RV64IZce-NEXT:    add a0, a1, a0
+; RV64IZce-NEXT:    slliw a1, a0, 6
+; RV64IZce-NEXT:    addw a0, a1, a0
 ; RV64IZce-NEXT:    negw a0, a0
 ; RV64IZce-NEXT:    ret
   %1 = mul i32 %a, -65
@@ -147,10 +147,10 @@ define void @getSetCCResultType(<4 x i32>* %p, <4 x i32>* %q) nounwind {
 ; RV64I-NEXT:    seqz a2, a2
 ; RV64I-NEXT:    seqz a3, a3
 ; RV64I-NEXT:    seqz a4, a4
-; RV64I-NEXT:    neg a4, a4
-; RV64I-NEXT:    neg a3, a3
-; RV64I-NEXT:    neg a2, a2
-; RV64I-NEXT:    neg a1, a1
+; RV64I-NEXT:    negw a4, a4
+; RV64I-NEXT:    negw a3, a3
+; RV64I-NEXT:    negw a2, a2
+; RV64I-NEXT:    negw a1, a1
 ; RV64I-NEXT:    sw a1, 12(a0)
 ; RV64I-NEXT:    sw a2, 8(a0)
 ; RV64I-NEXT:    sw a3, 4(a0)
@@ -167,10 +167,10 @@ define void @getSetCCResultType(<4 x i32>* %p, <4 x i32>* %q) nounwind {
 ; RV64IZce-NEXT:    seqz a2, a2
 ; RV64IZce-NEXT:    seqz a3, a3
 ; RV64IZce-NEXT:    seqz a4, a4
-; RV64IZce-NEXT:    c.neg a4
-; RV64IZce-NEXT:    c.neg a3
-; RV64IZce-NEXT:    c.neg a2
-; RV64IZce-NEXT:    c.neg a1
+; RV64IZce-NEXT:    negw a4, a4
+; RV64IZce-NEXT:    negw a3, a3
+; RV64IZce-NEXT:    negw a2, a2
+; RV64IZce-NEXT:    negw a1, a1
 ; RV64IZce-NEXT:    sw a1, 12(a0)
 ; RV64IZce-NEXT:    sw a2, 8(a0)
 ; RV64IZce-NEXT:    sw a3, 4(a0)
@@ -206,15 +206,15 @@ define i32 @rol_i32(i32 %a, i32 %b) nounwind {
 ; RV64I-LABEL: rol_i32:
 ; RV64I:       # %bb.0:
 ; RV64I-NEXT: 	sllw	a2, a0, a1
-; RV64I-NEXT:	neg	a1, a1
-; RV64I-NEXT:	srlw	a0, a0, a1
-; RV64I-NEXT:	or	a0, a2, a0
-; RV64I-NEXT:	ret
+; RV64I-NEXT:	  negw	a1, a1
+; RV64I-NEXT:	  srlw	a0, a0, a1
+; RV64I-NEXT:	  or	a0, a2, a0
+; RV64I-NEXT:	  ret
 ;
 ; RV64IZce-LABEL: rol_i32:
 ; RV64IZce:       # %bb.0:
 ; RV64IZce-NEXT: 	sllw	a2, a0, a1
-; RV64IZce-NEXT:	c.neg	a1
+; RV64IZce-NEXT:	negw	a1
 ; RV64IZce-NEXT:	srlw	a0, a0, a1
 ; RV64IZce-NEXT:	or	a0, a2, a0
 ; RV64IZce-NEXT:	ret

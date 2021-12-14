@@ -2,4 +2,4 @@
 // RUN: llvm-objdump -d --mattr=+experimental-zce %t | FileCheck %s
 
 bnei s0, 20, 40
-// CHECK: bnei s0, 20, 0x2c
+// CHECK: bnei s0, 20, 0x28

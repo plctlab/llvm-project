@@ -1,7 +1,7 @@
-# RUN: llvm-mc %s -triple=riscv64 -mattr=+zce-zext,+experimental-b -riscv-no-aliases -show-encoding \
+# RUN: llvm-mc %s -triple=riscv64 -mattr=+zce-zext,+experimental-zbb,+experimental-zba -riscv-no-aliases -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK-ASM %s
-# RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=+zce-zext,+experimental-b < %s \
-# RUN:     | llvm-objdump --mattr=+zce-zext,+experimental-b -M no-aliases -d -r - \
+# RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=+zce-zext,+experimental-zbb,+experimental-zba < %s \
+# RUN:     | llvm-objdump --mattr=+zce-zext,+experimental-zbb,+experimental-zba -M no-aliases -d -r - \
 # RUN:     | FileCheck --check-prefixes=CHECK-ASM-AND-OBJ %s
 
 # CHECK-ASM-AND-OBJ: zext.h s0, s1

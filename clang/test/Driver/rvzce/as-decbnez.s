@@ -3,4 +3,4 @@
 
 nop
 decbnez s0, 1, -4
-// CHECK: decbnez s0, 0, 0x2
+// CHECK: decbnez s0, 0, 0xfffffffe

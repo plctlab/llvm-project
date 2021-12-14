@@ -388,7 +388,7 @@ getNonLibcallCSI(const MachineFunction &MF,
 void RISCVFrameLowering::adjustStackForRVV(MachineFunction &MF,
                                            MachineBasicBlock &MBB,
                                            MachineBasicBlock::iterator MBBI,
-                                           const DebugLoc &DL, int64_t Amount,
+                                          const DebugLoc &DL, int64_t Amount,
                                            MachineInstr::MIFlag Flag) const {
   assert(Amount != 0 && "Did not need to adjust stack pointer for RVV.");
 
@@ -399,8 +399,9 @@ void RISCVFrameLowering::adjustStackForRVV(MachineFunction &MF,
     Amount = -Amount;
     Opc = RISCV::SUB;
   }
+
   // 1. Multiply the number of v-slots to the length of registers
-  Register FactorRegister =
+Register FactorRegister =
       TII->getVLENFactoredAmount(MF, MBB, MBBI, DL, Amount, Flag);
   // 2. SP = SP - RVV stack size
   BuildMI(MBB, MBBI, DL, TII->get(Opc), SPReg)
@@ -521,13 +522,13 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
       .addCFIIndex(CFIIndex)
       .setMIFlag(MachineInstr::FrameSetup);
 
-  // The frame pointer is callee-saved, and code has been generated for us to
-  // save it to the stack. We need to skip over the storing of callee-saved
-  // registers as the frame pointer must be modified after it has been saved
-  // to the stack, not before.
   if (PushEnabled)
     std::advance(MBBI, 1);
   else
+    // The frame pointer is callee-saved, and code has been generated for us to
+    // save it to the stack. We need to skip over the storing of callee-saved
+    // registers as the frame pointer must be modified after it has been saved
+    // to the stack, not before.
     // FIXME: assumes exactly one instruction is used to save each callee-saved
     // register.
     std::advance(MBBI, getNonLibcallCSI(MF, CSI).size());
@@ -1182,7 +1183,7 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
       for (auto &CS : CSI)
         MBB.addLiveIn(CS.getReg());
     }
-    
+
     // Manually spill values not spilled by libcall.
     const auto &NonLibcallCSI = getNonLibcallCSI(*MF, CSI);
     for (auto &CS : NonLibcallCSI) {
@@ -1190,7 +1191,7 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
       Register Reg = CS.getReg();
       const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
       TII.storeRegToStackSlot(MBB, MI, Reg, !MBB.isLiveIn(Reg), CS.getFrameIdx(),
-                              RC, TRI);
+                            RC, TRI);
     }
   }
 
@@ -1262,10 +1263,9 @@ bool RISCVFrameLowering::restoreCalleeSavedRegisters(
       }
     }
   }
-  
   return true;
 }
-
+  
 bool RISCVFrameLowering::enableShrinkWrapping(const MachineFunction &MF) const {
   // Keep the conventional code flow when not optimizing.
   if (MF.getFunction().hasOptNone())

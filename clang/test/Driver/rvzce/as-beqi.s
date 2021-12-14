@@ -2,4 +2,4 @@
 // RUN: llvm-objdump -d --mattr=+experimental-zce %t | FileCheck %s
 
 beqi s0, 20, 40
-// CHECK: beqi s0, 20, 0x2c
+// CHECK: beqi s0, 20, 0x28
