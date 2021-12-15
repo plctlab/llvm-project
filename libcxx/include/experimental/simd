@@ -1317,19 +1317,29 @@ public:
   friend simd operator>>(const simd& __lhs, int __rhs) { return _Impl::__shift_right(__lhs.__s_, __rhs); }
 
   // compound assignment [simd.cassign]
-  friend simd& operator+=(simd& __lhs, const simd& __rhs);
-  friend simd& operator-=(simd& __lhs, const simd& __rhs);
-  friend simd& operator*=(simd& __lhs, const simd& __rhs);
-  friend simd& operator/=(simd& __lhs, const simd& __rhs);
-  friend simd& operator%=(simd& __lhs, const simd& __rhs);
+  friend simd& operator+=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs + __rhs; }
 
-  friend simd& operator&=(simd& __lhs, const simd& __rhs);
-  friend simd& operator|=(simd& __lhs, const simd& __rhs);
-  friend simd& operator^=(simd& __lhs, const simd& __rhs);
-  friend simd& operator<<=(simd& __lhs, const simd& __rhs);
-  friend simd& operator>>=(simd& __lhs, const simd& __rhs);
-  friend simd& operator<<=(simd& __lhs, int __rhs);
-  friend simd& operator>>=(simd& __lhs, int __rhs);
+  friend simd& operator-=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs - __rhs; }
+
+  friend simd& operator*=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs * __rhs; }
+
+  friend simd& operator/=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs / __rhs; }
+
+  friend simd& operator%=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs % __rhs; }
+
+  friend simd& operator&=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs & __rhs; }
+
+  friend simd& operator|=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs | __rhs; }
+
+  friend simd& operator^=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs ^ __rhs; }
+
+  friend simd& operator<<=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs << __rhs; }
+
+  friend simd& operator>>=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs >> __rhs; }
+
+  friend simd& operator<<=(simd& __lhs, int __rhs) { return __lhs = __lhs << __rhs; }
+
+  friend simd& operator>>=(simd& __lhs, int __rhs) { return __lhs = __lhs >> __rhs; }
 
   // compares [simd.comparison]
   friend mask_type operator==(const simd& __lhs, const simd& __rhs);
