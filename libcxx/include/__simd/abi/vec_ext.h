@@ -82,6 +82,30 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
   static _Storage __negate(_Storage __s) noexcept { return {-__s.__data}; }
 
   static _Storage __bitwise_not(_Storage __s) noexcept { return {~__s.__data}; }
+
+  static _Storage __plus(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data + __rhs.__data}; }
+
+  static _Storage __minus(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data - __rhs.__data}; }
+
+  static _Storage __multiplies(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data * __rhs.__data}; }
+
+  static _Storage __divides(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data / __rhs.__data}; }
+
+  static _Storage __modulus(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data % __rhs.__data}; }
+
+  static _Storage __bitwise_and(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
+
+  static _Storage __bitwise_or(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
+
+  static _Storage __bitwise_xor(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data ^ __rhs.__data}; }
+
+  static _Storage __shift_left(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data << __rhs.__data}; }
+
+  static _Storage __shift_right(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data >> __rhs.__data}; }
+
+  static _Storage __shift_left(_Storage __lhs, int __rhs) noexcept { return {__lhs.__data << __rhs}; }
+
+  static _Storage __shift_right(_Storage __lhs, int __rhs) noexcept { return {__lhs.__data >> __rhs}; }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD

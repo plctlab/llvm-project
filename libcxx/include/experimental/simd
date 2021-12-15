@@ -1292,41 +1292,52 @@ public:
   simd operator-() const { return _Impl::__negate(__s_); }
 
   // binary operators [simd.binary]
-  friend simd operator+(const simd&, const simd&);
-  friend simd operator-(const simd&, const simd&);
-  friend simd operator*(const simd&, const simd&);
-  friend simd operator/(const simd&, const simd&);
-  friend simd operator%(const simd&, const simd&);
-  friend simd operator&(const simd&, const simd&);
-  friend simd operator|(const simd&, const simd&);
-  friend simd operator^(const simd&, const simd&);
-  friend simd operator<<(const simd&, const simd&);
-  friend simd operator>>(const simd&, const simd&);
-  friend simd operator<<(const simd&, int);
-  friend simd operator>>(const simd&, int);
+  friend simd operator+(const simd& __lhs, const simd& __rhs) { return _Impl::__plus(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator-(const simd& __lhs, const simd& __rhs) { return _Impl::__minus(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator*(const simd& __lhs, const simd& __rhs) { return _Impl::__multiplies(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator/(const simd& __lhs, const simd& __rhs) { return _Impl::__divides(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator%(const simd& __lhs, const simd& __rhs) { return _Impl::__modulus(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator&(const simd& __lhs, const simd& __rhs) { return _Impl::__bitwise_and(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator|(const simd& __lhs, const simd& __rhs) { return _Impl::__bitwise_or(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator^(const simd& __lhs, const simd& __rhs) { return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator<<(const simd& __lhs, const simd& __rhs) { return _Impl::__shift_left(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator>>(const simd& __lhs, const simd& __rhs) { return _Impl::__shift_right(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator<<(const simd& __lhs, int __rhs) { return _Impl::__shift_left(__lhs.__s_, __rhs); }
+
+  friend simd operator>>(const simd& __lhs, int __rhs) { return _Impl::__shift_right(__lhs.__s_, __rhs); }
 
   // compound assignment [simd.cassign]
-  friend simd& operator+=(simd&, const simd&);
-  friend simd& operator-=(simd&, const simd&);
-  friend simd& operator*=(simd&, const simd&);
-  friend simd& operator/=(simd&, const simd&);
-  friend simd& operator%=(simd&, const simd&);
+  friend simd& operator+=(simd& __lhs, const simd& __rhs);
+  friend simd& operator-=(simd& __lhs, const simd& __rhs);
+  friend simd& operator*=(simd& __lhs, const simd& __rhs);
+  friend simd& operator/=(simd& __lhs, const simd& __rhs);
+  friend simd& operator%=(simd& __lhs, const simd& __rhs);
 
-  friend simd& operator&=(simd&, const simd&);
-  friend simd& operator|=(simd&, const simd&);
-  friend simd& operator^=(simd&, const simd&);
-  friend simd& operator<<=(simd&, const simd&);
-  friend simd& operator>>=(simd&, const simd&);
-  friend simd& operator<<=(simd&, int);
-  friend simd& operator>>=(simd&, int);
+  friend simd& operator&=(simd& __lhs, const simd& __rhs);
+  friend simd& operator|=(simd& __lhs, const simd& __rhs);
+  friend simd& operator^=(simd& __lhs, const simd& __rhs);
+  friend simd& operator<<=(simd& __lhs, const simd& __rhs);
+  friend simd& operator>>=(simd& __lhs, const simd& __rhs);
+  friend simd& operator<<=(simd& __lhs, int __rhs);
+  friend simd& operator>>=(simd& __lhs, int __rhs);
 
   // compares [simd.comparison]
-  friend mask_type operator==(const simd&, const simd&);
-  friend mask_type operator!=(const simd&, const simd&);
-  friend mask_type operator>=(const simd&, const simd&);
-  friend mask_type operator<=(const simd&, const simd&);
-  friend mask_type operator>(const simd&, const simd&);
-  friend mask_type operator<(const simd&, const simd&);
+  friend mask_type operator==(const simd& __lhs, const simd& __rhs);
+  friend mask_type operator!=(const simd& __lhs, const simd& __rhs);
+  friend mask_type operator>=(const simd& __lhs, const simd& __rhs);
+  friend mask_type operator<=(const simd& __lhs, const simd& __rhs);
+  friend mask_type operator>(const simd& __lhs, const simd& __rhs);
+  friend mask_type operator<(const simd& __lhs, const simd& __rhs);
 };
 
 // [simd.mask.class]
