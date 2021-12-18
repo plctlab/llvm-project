@@ -128,29 +128,7 @@ void elf::reportRangeError(uint8_t *loc, int64_t v, int n, const Symbol &sym,
 }
 
 // Build a bitmask with one bit set for each 64 subset of RelExpr.
-static constexpr uint64_t buildMask() { return 0; }
-namespace {
-template <typename... Tails>
-constexpr uint64_t buildMask(int head, Tails... tails) {
-  return (0 <= head && head < 64 ? (uint64_t(1) << head) : 0) |
-         buildMask(tails...);
-}
-} // namespace
-
-// Return true if `Expr` is one of `Exprs`.
-// There are more than 64 but less than 128 RelExprs, so we divide the set of
-// exprs into [0, 63] and [64, 127] and represent each range as a constant
-// 64-bit mask. Then we decide which mask to test depending on the value of
-// expr and use a simple shift and bitwise-and to test for membership.
-template <RelExpr... Exprs> bool oneof(RelExpr expr) {
-  assert(0 <= expr && (int)expr < 128 &&
-         "RelExpr is too large for 128-bit mask!");
-
-  if (expr >= 64)
-    return (uint64_t(1) << (expr - 64)) & buildMask((Exprs - 64)...);
-
-  return (uint64_t(1) << expr) & buildMask(Exprs...);
-}
+static constexpr uint64_t buildMask() { return 0; }  
 
 template <typename... Tails>
 static constexpr uint64_t buildMask(int head, Tails... tails) {

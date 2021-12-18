@@ -361,8 +361,6 @@ defm reproduce:
   EEq<"reproduce",
      "Write tar file containing inputs and command to reproduce link">;
 
-defm relax: B<"relax", "Enable linker relaxation (default)", "Disable linker relaxation">;
-
 defm rosegment: BB<"rosegment",
   "Put read-only non-executable sections in their own segment (default)",
   "Do not put read-only non-executable sections in their own segment">;

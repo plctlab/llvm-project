@@ -5,7 +5,7 @@
 
 # RUN: echo 'SECTIONS { .text : { *(.text) } .sdata 0x200000 : { gI = .+0x100; gStart = .+0x6500; } }' > %t.lds
 # RUN: ld.lld --undefined=__global_pointer$ %t.rv32relax.o %t.lds -o %t.rv32relax -mzce-lsgp
-# RUN: ld.lld --undefined=__global_pointer$ %t.rv32.o %t.lds -o %t.rv32 -mzce-lsgp -no-relax
+# RUN: ld.lld --undefined=__global_pointer$ %t.rv32.o %t.lds -o %t.rv32 -mzce-lsgp --no-relax
 
 # RUN: llvm-objdump  --triple=riscv32 --mattr=+c,+m,+a,+experimental-zce -d -M no-aliases --no-show-raw-insn  %t.rv32relax | FileCheck --check-prefix=LSGP-RELAX %s
 # RUN: llvm-objdump  --triple=riscv32 --mattr=+c,+m,+a,+experimental-zce -d -M no-aliases --no-show-raw-insn  %t.rv32 | FileCheck --check-prefix=LSGP %s

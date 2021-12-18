@@ -408,9 +408,9 @@ private:
 };
 
 #ifdef _WIN32
-static_assert(sizeof(InputSection) <= 184, "InputSection is too big");
+static_assert(sizeof(InputSection) <= 200, "InputSection is too big");
 #else
-static_assert(sizeof(InputSection) <= 176, "InputSection is too big");
+static_assert(sizeof(InputSection) <= 192, "InputSection is too big");
 #endif
 
 inline bool isDebugSection(const InputSectionBase &sec) {
