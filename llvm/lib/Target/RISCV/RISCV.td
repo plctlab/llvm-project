@@ -309,8 +309,7 @@ def HasStdExtZceb : Predicate<"Subtarget->hasStdExtZceb() && !Subtarget->hasStdE
 def FeatureStdExtZce
     : SubtargetFeature<"experimental-zce", "HasStdExtZce", "true",
                        "'Zce' (code-size reduction extension proposal v0.50)",
-                       [FeatureExtZcee,
-                        FeatureExtZcea,
+                       [FeatureExtZcea,
                         FeatureExtZceb]>;
 def HasStdExtZce : Predicate<"Subtarget->hasStdExtZce()">,
                            AssemblerPredicate<(all_of FeatureStdExtZce),

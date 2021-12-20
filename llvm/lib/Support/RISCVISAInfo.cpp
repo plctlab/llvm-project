@@ -760,6 +760,7 @@ void RISCVISAInfo::updateImplication() {
   bool HasV = Exts.count("v") == 1;
   bool HasZfh = Exts.count("zfh") == 1;
   bool HasZce = Exts.count("zce") == 1;
+  bool HasZcea = Exts.count("zcea") == 1;
 
   // If not in e extension and i extension does not exist, i extension is
   // implied
@@ -779,13 +780,18 @@ void RISCVISAInfo::updateImplication() {
   }
 
   if (HasZce){
-    auto zceeVersion = findDefaultVersion("zcee");
-    addExtension("zcee", zceeVersion->Major, zceeVersion->Minor);
     auto zceaVersion = findDefaultVersion("zcea");
     addExtension("zcea", zceaVersion->Major, zceaVersion->Minor);
+    HasZcea = true;
     auto zcebVersion = findDefaultVersion("zceb");
     addExtension("zceb", zcebVersion->Major, zcebVersion->Minor);
   }
+
+  if(HasZcea){
+    auto zceeVersion = findDefaultVersion("zcee");
+    addExtension("zcee", zceeVersion->Major, zceeVersion->Minor);
+  }
+
 }
 
 void RISCVISAInfo::updateFLen() {
