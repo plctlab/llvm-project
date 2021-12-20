@@ -677,70 +677,47 @@ static bool relaxHi20Lo12(InputSection *is, Relocation &rel,
   uint64_t offset = target - gp->getVA();
 
   bool enableZceLsgp = config->optmizeZceLsgp;
-  bool isRV64 = config->is64;
-  uint32_t inst = read32le(is->data().data() + rel.offset);
-  bool isLw = (inst & 0x707f) == 0x2003;
-  bool isSw = (inst & 0x707f) == 0x2023;
-  bool isLd = (inst & 0x707f) == 0x3003;
-  bool isSd = (inst & 0x707f) == 0x3023;
 
   // relax to lwgp/swgp and ld/sdgp
   if(enableZceLsgp){
-    bool changed = false;
+    bool isRV64 = config->is64;
+    uint32_t inst = read32le(is->data().data() + rel.offset);
+    uint32_t newInst = 0x0;
+    bool isLw = (inst & 0x707f) == 0x2003;
+    bool isSw = (inst & 0x707f) == 0x2023;
+    bool isLd = (inst & 0x707f) == 0x3003;
+    bool isSd = (inst & 0x707f) == 0x3023;
     if (rel.type == R_RISCV_HI20 && isShiftedInt<14,2>(offset)) {
       addDeleteRange(deleteRanges, rel.offset, 4);
       rel.type = R_RISCV_NONE;
       rel.expr = R_NONE;
       return true;
     } else if(rel.type == R_RISCV_LO12_I){
-      unsigned rd = (read32le(is->data().data() + rel.offset) & 0x00000fe0) >> 7;
+      unsigned rd = (inst & 0x00000fe0) >> 7;
       if(isLw && isShiftedInt<14,2>(offset)){
-        write32le(is->mutableData().data() + rel.offset,
-                (0x3007 | rd << 7)); // lwgp rs, 0(gp)
-        
+        newInst = (0x3007 | rd << 7); // lwgp rs, 0(gp)
         rel.type = R_RISCV_GPREL_ZCE_LWGP;
-        changed = true;
       } // isLw && isShiftedInt<14,2>(offset)
       else if(isRV64 && isLd && isShiftedInt<14,3>(offset)){
-        write32le(is->mutableData().data() + rel.offset,
-                (0x40003007 | rd << 7)); // ldgp rs, 0(gp)
-        
+        newInst = (0x40003007 | rd << 7); // ldgp rs, 0(gp)
         rel.type = R_RISCV_GPREL_ZCE_LDGP;
-        changed = true;
       } // isRV64 && isLd && isShiftedInt<14,3>(offset)
-      else{
-        setRs1(is->mutableData().data() + rel.offset, X_GP);
-        rel.type = R_RISCV_GPREL_I;
-        rel.expr = R_RISCV_GPREL;
-        return true;
-      }
     } // rel.type == R_RISCV_LO12_I
     else if(rel.type == R_RISCV_LO12_S){
-      unsigned rs2 = (read32le(is->data().data() + rel.offset) & 0x1F00000) >> 20;
+      unsigned rs2 = (inst & 0x1F00000) >> 20;
       if(isSw && isShiftedInt<14,2>(offset)){
-        write32le(is->mutableData().data() + rel.offset,
-                (0x3027 | rs2 << 20)); // swgp rs2, 0(gp)
-        
+        newInst = (0x3027 | rs2 << 20); // swgp rs2, 0(gp)
         rel.type = R_RISCV_GPREL_ZCE_SWGP;
-        changed = true;
       } // isSw && isShiftedInt<14,2>(offset)
       else if(isRV64 && isSd && isShiftedInt<14,3>(offset)){
-        write32le(is->mutableData().data() + rel.offset,
-                (0x40003027 | rs2 << 20)); // sdgp rs2, 0(gp)
-        
+        newInst = (0x40003027 | rs2 << 20); // sdgp rs2, 0(gp)
         rel.type = R_RISCV_GPREL_ZCE_SDGP;
-        changed = true;
       } // isRV64 && isSd && isShiftedInt<14,3>(offset)
-      else{
-        setRs1(is->mutableData().data() + rel.offset, X_GP);
-        rel.type = R_RISCV_GPREL_S;
-        rel.expr = R_RISCV_GPREL;
-        return true;
-      }
     } // rel.type == R_RISCV_LO12_S
-    if (changed){
+    if (newInst > 0){
+      setRs1(is->mutableData().data() + rel.offset, newInst);
       rel.expr = R_RISCV_GPREL_ZCE_LSGP;
-      return changed;
+      return true;
     }
   }
 
