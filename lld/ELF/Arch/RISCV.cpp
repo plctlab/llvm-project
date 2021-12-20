@@ -684,7 +684,7 @@ static bool relaxHi20Lo12(InputSection *is, Relocation &rel,
       } // isRV64 && isSd && isShiftedInt<14,3>(offset)
     } // rel.type == R_RISCV_LO12_S
     if (newInst > 0){
-      setRs1(is->mutableData().data() + rel.offset, newInst);
+      write32le(is->mutableData().data() + rel.offset, newInst);
       rel.expr = R_RISCV_GPREL_ZCE_LSGP;
       return true;
     }
