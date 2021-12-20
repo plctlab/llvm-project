@@ -29,18 +29,18 @@
 # LSGP-NEXT:  lwgp  a0, 23808(gp)
 # LSGP-NEXT:  swgp  a0, 23808(gp)
 
-# LSGP-RELAX:  addi    a1, gp, -1792
-# LSGP-RELAX-NEXT:       lwgp    a0, -1792(gp)
+# LSGP-RELAX:       addi    a1, gp, -1792
+# LSGP-RELAX-NEXT:  lwgp    a0, -1792(gp)
 # LSGP-RELAX-NEXT:  swgp    a0, -1792(gp)
 
-# LSGP-RELAX-NEXT:  addi    a1, gp, -768
-# LSGP-RELAX:       lwgp    a0, 23808(gp)
+# LSGP-RELAX:       addi    a1, a0, 1280
+# LSGP-RELAX-NEXT:  lwgp    a0, 23808(gp)
 # LSGP-RELAX-NEXT:  swgp    a0, 23808(gp)
 
 # LSGP-RELAX-NEXT:  addi    a1, gp, -1792
 # LSGP-RELAX-NEXT:  lwgp    a0, -1792(gp)
 # LSGP-RELAX-NEXT:  swgp    a0, -1792(gp)
-# LSGP-RELAX-NEXT:  addi    a1, gp, -768
+# LSGP-RELAX-NEXT:  addi    a1, a0, 1280
 # LSGP-RELAX-NEXT:  lwgp    a0, 23808(gp)
 # LSGP-RELAX-NEXT:  swgp    a0, 23808(gp)
 
