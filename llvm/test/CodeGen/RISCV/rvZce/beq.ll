@@ -6,13 +6,19 @@ define void @foo(i32 %a, i32 *%b, i1 %c) nounwind {
 ; RV32I-LABEL: foo:
 ; RV32I:       # %bb.0:
 ; RV32I-NEXT:    lw a0, 0(a1)
-; RV32I-NEXT:    beqi a0, 2, .LBB0_3
+; RV32I-NEXT:    beqi a0, 2, .LBB0_5
 ; RV32I-NEXT:  # %bb.1: # %test2
 ; RV32I-NEXT:    lw a0, 0(a1)
-; RV32I-NEXT:    bnei a0, 3, .LBB0_3
+; RV32I-NEXT:    bnei a0, 3, .LBB0_5
 ; RV32I-NEXT:  # %bb.2: # %test3
 ; RV32I-NEXT:    lw a0, 0(a1)
-; RV32I-NEXT:  .LBB0_3: # %end
+; RV32I-NEXT:    bnez a0, .LBB0_5
+; RV32I-NEXT:  # %bb.3: # %test4
+; RV32I-NEXT:    lw a2, 0(a1)
+; RV32I-NEXT:    beqz a0, .LBB0_5
+; RV32I-NEXT:  # %bb.4: # %test5
+; RV32I-NEXT:    lw a0, 0(a1)
+; RV32I-NEXT:  .LBB0_5: # %end
 ; RV32I-NEXT:    ret
 
   %val1 = load volatile i32, i32* %b
@@ -26,6 +32,16 @@ test2:
 
 test3:
   %val3 = load volatile i32, i32* %b
+  %tst3 = icmp ne i32 0,  %val3
+  br i1 %tst3, label %end, label %test4
+
+test4:
+  %val4 = load volatile i32, i32* %b
+  %tst4 = icmp eq i32 0,  %val3
+  br i1 %tst4, label %end, label %test5
+
+test5:
+  %val5 = load volatile i32, i32* %b
   br label %end
 
 end:
