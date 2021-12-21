@@ -53,9 +53,9 @@ define i8 @test_cttz_i8(i8 %a) nounwind {
 ;
 ; RV32IZce-LABEL: test_cttz_i8:
 ; RV32IZce:       # %bb.0:
-; RV32IZce-NEXT:    push {ra}, {}, -16
+; RV32IZce-NEXT:    c.push {ra}, {}, -16
 ; RV32IZce-NEXT:    andi a1, a0, 255
-; RV32IZce-NEXT:    beqi a1, 0, .LBB0_2
+; RV32IZce-NEXT:    beqz a1, .LBB0_2
 ; RV32IZce-NEXT:  # %bb.1: # %cond.false
 ; RV32IZce-NEXT:    addi a1, a0, -1
 ; RV32IZce-NEXT:    c.not a0
@@ -80,10 +80,10 @@ define i8 @test_cttz_i8(i8 %a) nounwind {
 ; RV32IZce-NEXT:    addi a1, a1, 257
 ; RV32IZce-NEXT:    call __mulsi3@plt
 ; RV32IZce-NEXT:    srli a0, a0, 24
-; RV32IZce-NEXT:    popret {ra}, {}, 16
+; RV32IZce-NEXT:    c.popret {ra}, {}, 16
 ; RV32IZce-NEXT:  .LBB0_2:
 ; RV32IZce-NEXT:    addi a0, zero, 8
-; RV32IZce-NEXT:    popret {ra}, {}, 16
+; RV32IZce-NEXT:    c.popret {ra}, {}, 16
 ;
 ; RV64I-LABEL: test_cttz_i8:
 ; RV64I:       # %bb.0:
@@ -147,9 +147,9 @@ define i8 @test_cttz_i8(i8 %a) nounwind {
 ;
 ; RV64IZce-LABEL: test_cttz_i8:
 ; RV64IZce:       # %bb.0:
-; RV64IZce-NEXT:    push {ra}, {}, -16
+; RV64IZce-NEXT:    c.push {ra}, {}, -16
 ; RV64IZce-NEXT:    andi a1, a0, 255
-; RV64IZce-NEXT:    beqi a1, 0, .LBB0_2
+; RV64IZce-NEXT:    beqz a1, .LBB0_2
 ; RV64IZce-NEXT:  # %bb.1: # %cond.false
 ; RV64IZce-NEXT:    addi a1, a0, -1
 ; RV64IZce-NEXT:    c.not a0
@@ -196,10 +196,10 @@ define i8 @test_cttz_i8(i8 %a) nounwind {
 ; RV64IZce-NEXT:    addi a1, a1, 257
 ; RV64IZce-NEXT:    call __muldi3@plt
 ; RV64IZce-NEXT:    srli a0, a0, 56
-; RV64IZce-NEXT:    popret {ra}, {}, 16
+; RV64IZce-NEXT:    c.popret {ra}, {}, 16
 ; RV64IZce-NEXT:  .LBB0_2:
 ; RV64IZce-NEXT:    addi a0, zero, 8
-; RV64IZce-NEXT:    popret {ra}, {}, 16
+; RV64IZce-NEXT:    c.popret {ra}, {}, 16
   %tmp = call i8 @llvm.cttz.i8(i8 %a, i1 false)
   ret i8 %tmp
 }
@@ -232,7 +232,7 @@ define i64 @caller_small_scalar_ret() nounwind {
 ;
 ; RV32IZce-LABEL: caller_small_scalar_ret:
 ; RV32IZce:       # %bb.0:
-; RV32IZce-NEXT:    push {ra}, {}, -32
+; RV32IZce-NEXT:    c.push {ra}, {}, -32
 ; RV32IZce-NEXT:    addi a0, sp, 8
 ; RV32IZce-NEXT:    call callee_small_scalar_ret@plt
 ; RV32IZce-NEXT:    lw a0, 20(sp)
@@ -248,7 +248,7 @@ define i64 @caller_small_scalar_ret() nounwind {
 ; RV32IZce-NEXT:    or a0, a1, a0
 ; RV32IZce-NEXT:    seqz a0, a0
 ; RV32IZce-NEXT:    mv a1, zero
-; RV32IZce-NEXT:    popret {ra}, {}, 32
+; RV32IZce-NEXT:    c.popret {ra}, {}, 32
 ;
 ; RV64I-LABEL: caller_small_scalar_ret:
 ; RV64I:       # %bb.0:
@@ -265,13 +265,13 @@ define i64 @caller_small_scalar_ret() nounwind {
 ;
 ; RV64IZce-LABEL: caller_small_scalar_ret:
 ; RV64IZce:       # %bb.0:
-; RV64IZce-NEXT:    push {ra}, {}, -16
+; RV64IZce-NEXT:    c.push {ra}, {}, -16
 ; RV64IZce-NEXT:    call callee_small_scalar_ret@plt
 ; RV64IZce-NEXT:    c.not a1
 ; RV64IZce-NEXT:    xori a0, a0, -2
 ; RV64IZce-NEXT:    or a0, a0, a1
 ; RV64IZce-NEXT:    seqz a0, a0
-; RV64IZce-NEXT:    popret {ra}, {}, 16
+; RV64IZce-NEXT:    c.popret {ra}, {}, 16
   %1 = call i128 @callee_small_scalar_ret()
   %2 = icmp eq i128 -2, %1
   %3 = zext i1 %2 to i64
