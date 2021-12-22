@@ -273,17 +273,16 @@ RelExpr RISCV::getRelExpr(const RelType type, const Symbol &s,
     return R_TPREL;
   case R_RISCV_GPREL_I:
   case R_RISCV_GPREL_S:
+  case R_RISCV_GPREL_ZCE_LWGP:
+  case R_RISCV_GPREL_ZCE_SWGP:
+  case R_RISCV_GPREL_ZCE_LDGP:
+  case R_RISCV_GPREL_ZCE_SDGP:
     return R_RISCV_GPREL;
   case R_RISCV_TPREL_ADD:
     return R_NONE;
   case R_RISCV_RELAX:
   case R_RISCV_ALIGN:
     return R_RELAX_HINT;
-  case R_RISCV_GPREL_ZCE_LWGP:
-  case R_RISCV_GPREL_ZCE_SWGP:
-  case R_RISCV_GPREL_ZCE_LDGP:
-  case R_RISCV_GPREL_ZCE_SDGP:
-    return R_RISCV_GPREL_ZCE_LSGP;
   default:
     error(getErrorLocation(loc) + "unknown relocation (" + Twine(type) +
           ") against symbol " + toString(s));
@@ -716,7 +715,7 @@ static bool relaxHi20Lo12(InputSection *is, Relocation &rel,
     } // rel.type == R_RISCV_LO12_S
     if (newInst > 0){
       write32le(is->mutableData().data() + rel.offset, newInst);
-      rel.expr = R_RISCV_GPREL_ZCE_LSGP;
+      rel.expr = R_RISCV_GPREL;
       return true;
     }
   }
