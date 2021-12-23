@@ -210,19 +210,6 @@ bool llvm::lowerRISCVMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
     return false;
  
   OutMI.setOpcode(MI->getOpcode());
-  if ((MI->getOpcode() == RISCV::BNEI || 
-      MI->getOpcode() == RISCV::BEQI) && 
-      MI->getOperand(1).getImm() == 0) {
-    MCOperand MCOp;
-    unsigned operand =(MI->getOpcode() == RISCV::BNEI) ? RISCV::BNE : RISCV::BEQ;
-    OutMI.setOpcode(operand);
-    if (LowerRISCVMachineOperandToMCOperand(MI->getOperand(0), MCOp, AP))
-      OutMI.addOperand(MCOp);
-    OutMI.addOperand(MCOperand::createReg(RISCV::X0));
-    if (LowerRISCVMachineOperandToMCOperand(MI->getOperand(2), MCOp, AP))
-      OutMI.addOperand(MCOp);
-    return false;
-  }
 
   for (const MachineOperand &MO : MI->operands()) {
     MCOperand MCOp;

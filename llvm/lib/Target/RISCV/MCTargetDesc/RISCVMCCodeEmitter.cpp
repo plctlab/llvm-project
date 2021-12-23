@@ -83,6 +83,9 @@ public:
   unsigned getVMaskReg(const MCInst &MI, unsigned OpNo,
                        SmallVectorImpl<MCFixup> &Fixups,
                        const MCSubtargetInfo &STI) const;
+  unsigned getNZUImm5(const MCInst &MI, unsigned OpNo,
+                      SmallVectorImpl<MCFixup> &Fixups,
+                      const MCSubtargetInfo &STI) const;
 
   unsigned getNEGImm7Lsb0NonZero(const MCInst &MI, unsigned OpNo,
                       SmallVectorImpl<MCFixup> &Fixups,
@@ -443,7 +446,14 @@ unsigned RISCVMCCodeEmitter::getVMaskReg(const MCInst &MI, unsigned OpNo,
     return 1;
   }
 }
-
+unsigned RISCVMCCodeEmitter::getNZUImm5(const MCInst &MI, unsigned OpNo,
+                                        SmallVectorImpl<MCFixup> &Fixups,
+                                        const MCSubtargetInfo &STI) const {
+  MCOperand MO = MI.getOperand(OpNo);
+  assert((MO.isImm() && MO.getImm() != 0) &&
+         "NZUImm5 operand must be a  non-zero operand");
+  return (MO.getImm());
+}
 unsigned RISCVMCCodeEmitter::getNEGImm7Lsb0NonZero(const MCInst &MI, unsigned OpNo,
                                         SmallVectorImpl<MCFixup> &Fixups,
                                         const MCSubtargetInfo &STI) const {

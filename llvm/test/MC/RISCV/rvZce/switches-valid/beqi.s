@@ -5,7 +5,7 @@
 # RUN:     | FileCheck --check-prefixes=CHECK-OBJ %s
 
 # CHECK-OBJ: beqi s0, 20, 0x34
-# CHECK-ASM: encoding: [0x63,0x24,0x44,0x03]
+# CHECK-ASM: encoding: [0x63,0x24,0x8a,0x02]
 nop
 nop
 nop
