@@ -30,7 +30,22 @@ def uimm4 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
     return MCOp.isBareSymbolRef();
   }];
 }
-
+def NZUImm5AsmOperand : AsmOperandClass {
+  let Name = "NZUImm5";
+  let RenderMethod = "addImmOperands";
+  let DiagnosticType = "InvalidNZUImm5";
+}
+def nzuimm5: Operand<XLenVT>,
+  ImmLeaf<XLenVT, [{return Imm != 0 && isUInt<5>(Imm); }]> {
+  let ParserMatchClass = NZUImm5AsmOperand;
+  let EncoderMethod = "getNZUImm5";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (MCOp.evaluateAsConstantImm(Imm))
+      return Imm != 0 && isUInt<5>(Imm);
+    return MCOp.isBareSymbolRef();
+  }];
+}
 def uimm5_lsb0 : Operand<XLenVT>,
                  ImmLeaf<XLenVT, [{return isShiftedUInt<4, 1>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<5, "Lsb0">;
@@ -308,16 +323,16 @@ def spimm1 : Operand<OtherVT>, ImmLeaf<OtherVT, [{return  isShiftedUInt<1, 4>(Im
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class Branch_rii<bits<3> funct3, string opcodestr>
     : RVInstB<funct3, OPC_BRANCH, (outs),
-              (ins GPR:$rs1, uimm5:$uimm, simm13_lsb0:$imm12),
-              opcodestr, "$rs1, $uimm, $imm12">,
+             (ins GPR:$rs2, nzuimm5:$nzuimm, simm13_lsb0:$imm12),
+              opcodestr, "$rs2, $nzuimm, $imm12">,
       Sched<[]> {
   bits<12> imm12;
-  bits<5> uimm;
-  bits<5> rs1;
+  bits<5> nzuimm;
+  bits<5> rs2;
   let isBranch = 1;
   let isTerminator = 1;
 
-  let Inst{24-20} = uimm;
+  let Inst{19-15} = nzuimm;
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
@@ -412,8 +427,9 @@ def BNEI : Branch_rii<0b011, "bnei">;
 }
 
 class BccSwapPat<CondCode Cond, RVInstB Inst>
-    : Pat<(riscv_brcc GPR:$rs1, uimm5:$uimm, Cond, bb:$imm12),
-          (Inst GPR:$rs1, uimm5:$uimm, simm13_lsb0:$imm12)>;
+    : Pat<(riscv_brcc GPR:$rs2, nzuimm5:$uimm, Cond, bb:$imm12),
+          (Inst GPR:$rs2, nzuimm5:$uimm, simm13_lsb0:$imm12)>;
+
 
 // Condition codes that don't have matching RISC-V branch instructions, but
 // are trivially supported by swapping the two input operands

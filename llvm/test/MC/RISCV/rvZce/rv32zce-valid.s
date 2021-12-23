@@ -41,11 +41,11 @@ c.mva01s07 s0, s1
 muli s0, s1, 2
 
 # CHECK-OBJ: beqi s0, 20, 0x3c
-# CHECK-ASM: encoding: [0x63,0x24,0x44,0x03]
+# CHECK-ASM: encoding: [0x63,0x24,0x8a,0x02]
 beqi s0, 20, 40
 
 # CHECK-OBJ: bnei s0, 20, 0x40
-# CHECK-ASM: encoding: [0x63,0x34,0x44,0x03]
+# CHECK-ASM: encoding: [0x63,0x34,0x8a,0x02]
 bnei s0, 20, 40
 
 # CHECK-ASM-AND-OBJ: tbljalm 6
