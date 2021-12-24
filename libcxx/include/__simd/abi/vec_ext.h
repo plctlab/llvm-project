@@ -24,6 +24,7 @@ _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
+// TODO: replace it by std::bit_ceil when bump to C++20
 constexpr size_t __next_pow_of_2(size_t __val) {
   size_t __pow = 1;
   while (__pow < __val)
@@ -41,7 +42,7 @@ struct __simd_storage_vec_ext {
 
   _Tp __get(size_t __idx) const noexcept { return __data[__idx]; }
 
-  void __set(size_t __idx, _Tp __val) noexcept { __data[__idx] = __val; }
+  void __set(size_t __idx, _Tp __v) noexcept { __data[__idx] = __v; }
 };
 
 template <class _Tp, int _Np>
@@ -79,9 +80,11 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
 
   static void __decrement(_Storage& __s) noexcept { --__s.__data; }
 
-  static _Storage __negate(_Storage __s) noexcept { return {-__s.__data}; }
+  static _Storage __negate(_Storage __s) noexcept { return {!__s.__data}; }
 
   static _Storage __bitwise_not(_Storage __s) noexcept { return {~__s.__data}; }
+
+  static _Storage __unary_minus(_Storage __s) noexcept { return {-__s.__data}; }
 
   static _Storage __plus(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data + __rhs.__data}; }
 
@@ -106,6 +109,18 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
   static _Storage __shift_left(_Storage __lhs, int __rhs) noexcept { return {__lhs.__data << __rhs}; }
 
   static _Storage __shift_right(_Storage __lhs, int __rhs) noexcept { return {__lhs.__data >> __rhs}; }
+
+  static _Storage __equal_to(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data == __rhs.__data}; }
+
+  static _Storage __not_equal_to(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data != __rhs.__data}; }
+
+  static _Storage __less_equal(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data <= __rhs.__data}; }
+
+  static _Storage __less(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data < __rhs.__data}; }
+
+  static _Storage __logical_and(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
+
+  static _Storage __logical_or(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
