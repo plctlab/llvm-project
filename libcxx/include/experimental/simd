@@ -229,11 +229,11 @@ public:
   static constexpr size_t size() noexcept;
   simd() = default;
 
-  // implicit type conversion constructor
-  template <class U> simd(const simd<U, simd_abi::fixed_size<size()>>&);
-
   // implicit broadcast constructor (see below for constraints)
   template <class U> simd(U&& value);
+
+  // implicit type conversion constructor
+  template <class U> simd(const simd<U, simd_abi::fixed_size<size()>>&);
 
   // generator constructor (see below for constraints)
   template <class G> explicit simd(G&& gen);
@@ -252,51 +252,50 @@ public:
   value_type operator[](size_t) const;
 
   // unary operators [simd.unary]
-  simd& operator++();
-  simd operator++(int);
-  simd& operator--();
-  simd operator--(int);
-  mask_type operator!() const;
-  simd operator~() const; // see below
-  simd operator+() const;
-  simd operator-() const;
+  simd& operator++() noexcept;
+  simd operator++(int) noexcept;
+  simd& operator--() noexcept;
+  simd operator--(int) noexcept;
+  mask_type operator!() const noexcept;
+  simd operator~() const noexcept; // see below
+  simd operator+() const noexcept;
+  simd operator-() const noexcept;
 
   // binary operators [simd.binary]
-  friend simd operator+ (const simd&, const simd&);
-  friend simd operator- (const simd&, const simd&);
-  friend simd operator* (const simd&, const simd&);
-  friend simd operator/ (const simd&, const simd&);
-  friend simd operator% (const simd&, const simd&);
-  friend simd operator& (const simd&, const simd&);
-  friend simd operator| (const simd&, const simd&);
-  friend simd operator^ (const simd&, const simd&);
-  friend simd operator<<(const simd&, const simd&);
-  friend simd operator>>(const simd&, const simd&);
-  friend simd operator<<(const simd&, int);
-  friend simd operator>>(const simd&, int);
+  friend simd operator+ (const simd&, const simd&) noexcept;
+  friend simd operator- (const simd&, const simd&) noexcept;
+  friend simd operator* (const simd&, const simd&) noexcept;
+  friend simd operator/ (const simd&, const simd&) noexcept;
+  friend simd operator% (const simd&, const simd&) noexcept;
+  friend simd operator& (const simd&, const simd&) noexcept;
+  friend simd operator| (const simd&, const simd&) noexcept;
+  friend simd operator^ (const simd&, const simd&) noexcept;
+  friend simd operator<<(const simd&, const simd&) noexcept;
+  friend simd operator>>(const simd&, const simd&) noexcept;
+  friend simd operator<<(const simd&, int) noexcept;
+  friend simd operator>>(const simd&, int) noexcept;
 
   // compound assignment [simd.cassign]
-  friend simd& operator+= (simd&, const simd&);
-  friend simd& operator-= (simd&, const simd&);
-  friend simd& operator*= (simd&, const simd&);
-  friend simd& operator/= (simd&, const simd&);
-  friend simd& operator%= (simd&, const simd&);
-
-  friend simd& operator&= (simd&, const simd&);
-  friend simd& operator|= (simd&, const simd&);
-  friend simd& operator^= (simd&, const simd&);
-  friend simd& operator<<=(simd&, const simd&);
-  friend simd& operator>>=(simd&, const simd&);
-  friend simd& operator<<=(simd&, int);
-  friend simd& operator>>=(simd&, int);
+  friend simd& operator+= (simd&, const simd&) noexcept;
+  friend simd& operator-= (simd&, const simd&) noexcept;
+  friend simd& operator*= (simd&, const simd&) noexcept;
+  friend simd& operator/= (simd&, const simd&) noexcept;
+  friend simd& operator%= (simd&, const simd&) noexcept;
+  friend simd& operator&= (simd&, const simd&) noexcept;
+  friend simd& operator|= (simd&, const simd&) noexcept;
+  friend simd& operator^= (simd&, const simd&) noexcept;
+  friend simd& operator<<=(simd&, const simd&) noexcept;
+  friend simd& operator>>=(simd&, const simd&) noexcept;
+  friend simd& operator<<=(simd&, int) noexcept;
+  friend simd& operator>>=(simd&, int) noexcept;
 
   // compares [simd.comparison]
-  friend mask_type operator==(const simd&, const simd&);
-  friend mask_type operator!=(const simd&, const simd&);
-  friend mask_type operator>=(const simd&, const simd&);
-  friend mask_type operator<=(const simd&, const simd&);
-  friend mask_type operator> (const simd&, const simd&);
-  friend mask_type operator< (const simd&, const simd&);
+  friend mask_type operator==(const simd&, const simd&) noexcept;
+  friend mask_type operator!=(const simd&, const simd&) noexcept;
+  friend mask_type operator>=(const simd&, const simd&) noexcept;
+  friend mask_type operator<=(const simd&, const simd&) noexcept;
+  friend mask_type operator> (const simd&, const simd&) noexcept;
+  friend mask_type operator< (const simd&, const simd&) noexcept;
 };
 
 // [simd.math]
@@ -819,6 +818,40 @@ constexpr bool __is_vectorizable() {
   return std::is_arithmetic_v<_Tp> && !std::is_const_v<_Tp> && !std::is_volatile_v<_Tp> && !std::is_same_v<_Tp, bool>;
 }
 
+template <class _Tp, class _Up>
+constexpr bool __can_broadcast() {
+  return (std::is_arithmetic_v<_Up> && __is_non_narrowing_arithmetic_convertible<_Up, _Tp>()) ||
+         (!std::is_arithmetic_v<_Up> && std::is_convertible_v<_Up, _Tp>) ||
+         std::is_same_v<std::remove_const_t<_Up>, int> ||
+         (std::is_same_v<std::remove_const_t<_Up>, unsigned int> && std::is_unsigned_v<_Tp>);
+}
+
+template <class _Tp, class _Generator, size_t... __indicies>
+constexpr decltype(std::forward_as_tuple(std::declval<_Generator>()(std::integral_constant<size_t, __indicies>())...),
+                   bool())
+__can_generate(std::index_sequence<__indicies...>) {
+  return !__variadic_sum<bool>(
+      !__can_broadcast<_Tp, decltype(std::declval<_Generator>()(std::integral_constant<size_t, __indicies>()))>()...);
+}
+
+template <class _Tp, class _Generator>
+bool __can_generate(...) {
+  return false;
+}
+
+template <class _Tp>
+auto __choose_mask_type() {
+  if constexpr (sizeof(_Tp) == 1) {
+    return uint8_t{};
+  } else if constexpr (sizeof(_Tp) == 2) {
+    return uint16_t{};
+  } else if constexpr (sizeof(_Tp) == 4) {
+    return uint32_t{};
+  } else if constexpr (sizeof(_Tp) == 8) {
+    return uint64_t{};
+  }
+}
+
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
@@ -921,7 +954,7 @@ template <class _Tp, class _Abi, class = void>
 struct __simd_size_impl {};
 
 template <class _Tp, class _Abi>
-struct __simd_size_impl< _Tp, _Abi, std::enable_if_t<__is_vectorizable<_Tp>() && is_abi_tag_v<_Abi>>>
+struct __simd_size_impl<_Tp, _Abi, std::enable_if_t<__is_vectorizable<_Tp>() && is_abi_tag_v<_Abi>>>
     : std::integral_constant<size_t, _Abi::__simd_size> {};
 
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
@@ -940,6 +973,7 @@ inline constexpr size_t memory_alignment_v = memory_alignment<_Tp, _Up>::value;
 // class template simd [simd.class]
 template <class _Tp>
 using native_simd = simd<_Tp, simd_abi::native<_Tp>>;
+
 template <class _Tp, int _Np>
 using fixed_size_simd = simd<_Tp, simd_abi::fixed_size<_Np>>;
 
@@ -967,7 +1001,7 @@ struct __static_simd_cast_traits<simd<_Tp, _NewAbi>> {
 template <class _Tp>
 struct __simd_cast_traits {
   template <class _Up, class _Abi>
-  static std::enable_if_t< __is_non_narrowing_arithmetic_convertible<_Up, _Tp>(), simd<_Tp, _Abi>>
+  static std::enable_if_t<__is_non_narrowing_arithmetic_convertible<_Up, _Tp>(), simd<_Tp, _Abi>>
   __apply(const simd<_Up, _Abi>& __v);
 };
 
@@ -1178,11 +1212,14 @@ public:
 };
 
 // [simd.class]
-// TODO: implement simd
 template <class _Tp, class _Abi>
 class simd {
   using _Impl = __simd_traits<_Tp, _Abi>;
   using _Storage = typename _Impl::_Storage;
+
+  _Storage __s_;
+
+  simd(_Storage __s) : __s_(__s) {}
 
 public:
   using value_type = _Tp;
@@ -1194,64 +1231,36 @@ public:
   simd(const simd&) = default;
   simd& operator=(const simd&) = default;
 
-  static constexpr size_t size() noexcept { return simd_size_v<_Tp, _Abi>; }
+  static constexpr size_t size() noexcept { return simd_size_v<value_type, abi_type>; }
 
-private:
-  _Storage __s_;
+  // implicit broadcast constructor
+  template <class _Up, std::enable_if_t<__can_broadcast<value_type, _Up>(), int> = 0>
+  simd(_Up&& __v) : __s_(_Impl::__broadcast(static_cast<value_type>(__v))) {}
 
-  template <class _Up>
-  static constexpr bool __can_broadcast() {
-    return (std::is_arithmetic_v<_Up> && __is_non_narrowing_arithmetic_convertible<_Up, _Tp>()) ||
-           (!std::is_arithmetic_v<_Up> && std::is_convertible_v<_Up, _Tp>) ||
-           std::is_same_v<std::remove_const_t<_Up>, int> ||
-           (std::is_same_v<std::remove_const_t<_Up>, unsigned int> && std::is_unsigned_v<_Tp>);
-  }
-
-  template <class _Generator, size_t... __indicies>
-  static constexpr decltype(std::forward_as_tuple(
-                                std::declval<_Generator>()(std::integral_constant<size_t, __indicies>())...),
-                            bool())
-  __can_generate(std::index_sequence<__indicies...>) {
-    return !__variadic_sum<bool>(
-        !__can_broadcast<decltype(std::declval<_Generator>()(std::integral_constant<size_t, __indicies>()))>()...);
-  }
-
-  template <class _Generator>
-  static bool __can_generate(...) {
-    return false;
-  }
-
-  simd(_Storage __s) : __s_(__s) {}
-
-public:
   // implicit type conversion constructor
-  template <class _Up, class = std::enable_if_t<std::is_same_v<_Abi, simd_abi::fixed_size<size()>> &&
-                                                __is_non_narrowing_arithmetic_convertible<_Up, _Tp>()>>
+  template <class _Up, class = std::enable_if_t<std::is_same_v<abi_type, simd_abi::fixed_size<size()>> &&
+                                                __is_non_narrowing_arithmetic_convertible<_Up, value_type>()>>
   simd(const simd<_Up, simd_abi::fixed_size<size()>>& __v)
       : simd(static_cast<std::array<_Up, size()>>(__v).data(), vector_aligned) {}
 
-  // implicit broadcast constructor
-  template <class _Up, std::enable_if_t<__can_broadcast<_Up>(), int> = 0>
-  simd(_Up&& __v) : __s_(_Impl::__broadcast(static_cast<_Tp>(__v))) {}
-
   // generator constructor
-  template <class _Generator, std::enable_if_t<__can_generate<_Generator>(std::make_index_sequence<size()>()), int> = 0>
+  template <class _Generator,
+            std::enable_if_t<__can_generate<value_type, _Generator>(std::make_index_sequence<size()>()), int> = 0>
   explicit simd(_Generator&& __g) : __s_(_Impl::__generate(std::forward<_Generator>(__g))) {}
 
   // load constructor
-  template <class _Up, class _Flags, class = std::enable_if_t<__is_vectorizable<_Up>()>,
-            class = std::enable_if_t<is_simd_flag_type_v<_Flags>>>
+  template <class _Up, class _Flags, class = std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>>>
   simd(const _Up* __mem, _Flags __f) : __s_(_Impl::__load(__mem, __f)) {}
 
   // loads [simd.load]
-  template <class _Up, class _Flags>
-  std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> copy_from(const _Up* __mem, _Flags __f) {
+  template <class _Up, class _Flags, class = std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>>>
+  void copy_from(const _Up* __mem, _Flags __f) {
     __s_ = _Impl::__load(__mem, __f);
   }
 
   // stores [simd.store]
-  template <class _Up, class _Flags>
-  std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> copy_to(_Up* __mem, _Flags __f) const {
+  template <class _Up, class _Flags, class = std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>>>
+  void copy_to(_Up* __mem, _Flags __f) const {
     _Impl::__store(__s_, __mem, __f);
   }
 
@@ -1283,81 +1292,123 @@ public:
     return __r;
   }
 
-  mask_type operator!() const; // TODO: wait mask to be implemented
+  mask_type operator!() const noexcept { return _Impl::__negate(__s_); }
 
-  simd operator~() const { return _Impl::__bitwise_not(__s_); }
+  simd operator~() const noexcept { return _Impl::__bitwise_not(__s_); }
 
-  simd operator+() const { return *this; }
+  simd operator+() const noexcept { return *this; }
 
-  simd operator-() const { return _Impl::__negate(__s_); }
+  simd operator-() const noexcept { return _Impl::__unary_minus(__s_); }
 
   // binary operators [simd.binary]
-  friend simd operator+(const simd& __lhs, const simd& __rhs) { return _Impl::__plus(__lhs.__s_, __rhs.__s_); }
+  friend simd operator+(const simd& __lhs, const simd& __rhs) noexcept { return _Impl::__plus(__lhs.__s_, __rhs.__s_); }
 
-  friend simd operator-(const simd& __lhs, const simd& __rhs) { return _Impl::__minus(__lhs.__s_, __rhs.__s_); }
+  friend simd operator-(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__minus(__lhs.__s_, __rhs.__s_);
+  }
 
-  friend simd operator*(const simd& __lhs, const simd& __rhs) { return _Impl::__multiplies(__lhs.__s_, __rhs.__s_); }
+  friend simd operator*(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__multiplies(__lhs.__s_, __rhs.__s_);
+  }
 
-  friend simd operator/(const simd& __lhs, const simd& __rhs) { return _Impl::__divides(__lhs.__s_, __rhs.__s_); }
+  friend simd operator/(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__divides(__lhs.__s_, __rhs.__s_);
+  }
 
-  friend simd operator%(const simd& __lhs, const simd& __rhs) { return _Impl::__modulus(__lhs.__s_, __rhs.__s_); }
+  friend simd operator%(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__modulus(__lhs.__s_, __rhs.__s_);
+  }
 
-  friend simd operator&(const simd& __lhs, const simd& __rhs) { return _Impl::__bitwise_and(__lhs.__s_, __rhs.__s_); }
+  friend simd operator&(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__bitwise_and(__lhs.__s_, __rhs.__s_);
+  }
 
-  friend simd operator|(const simd& __lhs, const simd& __rhs) { return _Impl::__bitwise_or(__lhs.__s_, __rhs.__s_); }
+  friend simd operator|(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__bitwise_or(__lhs.__s_, __rhs.__s_);
+  }
 
-  friend simd operator^(const simd& __lhs, const simd& __rhs) { return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_); }
+  friend simd operator^(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_);
+  }
 
-  friend simd operator<<(const simd& __lhs, const simd& __rhs) { return _Impl::__shift_left(__lhs.__s_, __rhs.__s_); }
+  friend simd operator<<(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__shift_left(__lhs.__s_, __rhs.__s_);
+  }
 
-  friend simd operator>>(const simd& __lhs, const simd& __rhs) { return _Impl::__shift_right(__lhs.__s_, __rhs.__s_); }
+  friend simd operator>>(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__shift_right(__lhs.__s_, __rhs.__s_);
+  }
 
-  friend simd operator<<(const simd& __lhs, int __rhs) { return _Impl::__shift_left(__lhs.__s_, __rhs); }
+  friend simd operator<<(const simd& __lhs, int __rhs) noexcept { return _Impl::__shift_left(__lhs.__s_, __rhs); }
 
-  friend simd operator>>(const simd& __lhs, int __rhs) { return _Impl::__shift_right(__lhs.__s_, __rhs); }
+  friend simd operator>>(const simd& __lhs, int __rhs) noexcept { return _Impl::__shift_right(__lhs.__s_, __rhs); }
 
   // compound assignment [simd.cassign]
-  friend simd& operator+=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs + __rhs; }
+  friend simd& operator+=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs + __rhs; }
 
-  friend simd& operator-=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs - __rhs; }
+  friend simd& operator-=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs - __rhs; }
 
-  friend simd& operator*=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs * __rhs; }
+  friend simd& operator*=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs * __rhs; }
 
-  friend simd& operator/=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs / __rhs; }
+  friend simd& operator/=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs / __rhs; }
 
-  friend simd& operator%=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs % __rhs; }
+  friend simd& operator%=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs % __rhs; }
 
-  friend simd& operator&=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs & __rhs; }
+  friend simd& operator&=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs & __rhs; }
 
-  friend simd& operator|=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs | __rhs; }
+  friend simd& operator|=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs | __rhs; }
 
-  friend simd& operator^=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs ^ __rhs; }
+  friend simd& operator^=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs ^ __rhs; }
 
-  friend simd& operator<<=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs << __rhs; }
+  friend simd& operator<<=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs << __rhs; }
 
-  friend simd& operator>>=(simd& __lhs, const simd& __rhs) { return __lhs = __lhs >> __rhs; }
+  friend simd& operator>>=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs >> __rhs; }
 
-  friend simd& operator<<=(simd& __lhs, int __rhs) { return __lhs = __lhs << __rhs; }
+  friend simd& operator<<=(simd& __lhs, int __rhs) noexcept { return __lhs = __lhs << __rhs; }
 
-  friend simd& operator>>=(simd& __lhs, int __rhs) { return __lhs = __lhs >> __rhs; }
+  friend simd& operator>>=(simd& __lhs, int __rhs) noexcept { return __lhs = __lhs >> __rhs; }
 
   // compares [simd.comparison]
-  friend mask_type operator==(const simd& __lhs, const simd& __rhs);
-  friend mask_type operator!=(const simd& __lhs, const simd& __rhs);
-  friend mask_type operator>=(const simd& __lhs, const simd& __rhs);
-  friend mask_type operator<=(const simd& __lhs, const simd& __rhs);
-  friend mask_type operator>(const simd& __lhs, const simd& __rhs);
-  friend mask_type operator<(const simd& __lhs, const simd& __rhs);
+  friend mask_type operator==(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__equal_to(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend mask_type operator!=(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__not_equal_to(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend mask_type operator>=(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__less_equal(__rhs.__s_, __lhs.__s_);
+  }
+
+  friend mask_type operator<=(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__less_equal(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend mask_type operator>(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__less(__rhs.__s_, __lhs.__s_);
+  }
+
+  friend mask_type operator<(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__less(__lhs.__s_, __rhs.__s_);
+  }
 };
 
 // [simd.mask.class]
-// TODO: implement simd_mask
 template <class _Tp, class _Abi>
 class simd_mask {
+  using _Impl = __simd_traits<decltype(__choose_mask_type<_Tp>()), _Abi>;
+  using _Storage = typename _Impl::_Storage;
+
+  _Storage __s_;
+
+  simd_mask(_Storage __s) : __s_(__s) {}
+
+  friend class simd<_Tp, _Abi>;
+
 public:
   using value_type = bool;
-  // TODO: this is strawman implementation. Turn it into a proxy type.
-  using reference = bool&;
+  using reference = __simd_reference<_Storage, value_type>;
   using simd_type = simd<_Tp, _Abi>;
   using abi_type = _Abi;
 
@@ -1366,44 +1417,73 @@ public:
   simd_mask() = default;
 
   // broadcast constructor
-  explicit simd_mask(value_type) noexcept;
+  explicit simd_mask(value_type __v) noexcept : __s_(_Impl::__broadcast(static_cast<value_type>(__v))) {}
 
   // implicit type conversion constructor
-  template <class _Up>
-  simd_mask(const simd_mask<_Up, simd_abi::fixed_size<size()>>&) noexcept;
+  template <class _Up, class = std::enable_if_t<std::is_same_v<abi_type, simd_abi::fixed_size<size()>> &&
+                                                __is_non_narrowing_arithmetic_convertible<_Up, value_type>()>>
+  simd_mask(const simd_mask<_Up, simd_abi::fixed_size<size()>>& __v) noexcept
+      : simd_mask(static_cast<std::array<_Up, size()>>(__v).data(), vector_aligned) {}
 
   // load constructor
-  template <class _Flags>
-  simd_mask(const value_type*, _Flags);
+  template <class _Flags, class = std::enable_if_t<is_simd_flag_type_v<_Flags>>>
+  simd_mask(const value_type* __mem, _Flags __f) : __s_(_Impl::__load(__mem, __f)) {}
 
   // loads [simd.mask.copy]
-  template <class _Flags>
-  void copy_from(const value_type*, _Flags);
-  template <class _Flags>
-  void copy_to(value_type*, _Flags) const;
+  template <class _Flags, class = std::enable_if_t<is_simd_flag_type_v<_Flags>>>
+  void copy_from(const value_type* __mem, _Flags __f) {
+    __s_ = _Impl::__load(__mem, __f);
+  }
+
+  template <class _Flags, class = std::enable_if_t<is_simd_flag_type_v<_Flags>>>
+  void copy_to(value_type* __mem, _Flags __f) const {
+    _Impl::__store(__s_, __mem, __f);
+  }
 
   // scalar access [simd.mask.subscr]
-  reference operator[](size_t);
-  value_type operator[](size_t) const;
+  reference operator[](size_t __i) { return reference(__s_, __i); }
+
+  value_type operator[](size_t __i) const { return __s_.__get(__i); }
 
   // unary operators [simd.mask.unary]
-  simd_mask operator!() const noexcept;
+  simd_mask operator!() const noexcept { return _Impl::__negate(__s_); }
 
   // simd_mask binary operators [simd.mask.binary]
-  friend simd_mask operator&&(const simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask operator||(const simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask operator&(const simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask operator|(const simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask operator^(const simd_mask&, const simd_mask&) noexcept;
+  friend simd_mask operator&&(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__logical_and(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd_mask operator||(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__logical_or(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd_mask operator&(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__bitwise_and(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd_mask operator|(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__bitwise_or(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd_mask operator^(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_);
+  }
 
   // simd_mask compound assignment [simd.mask.cassign]
-  friend simd_mask& operator&=(simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask& operator|=(simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask& operator^=(simd_mask&, const simd_mask&) noexcept;
+  friend simd_mask& operator&=(simd_mask& __lhs, const simd_mask& __rhs) noexcept { return __lhs = __lhs & __rhs; }
+
+  friend simd_mask& operator|=(simd_mask& __lhs, const simd_mask& __rhs) noexcept { return __lhs = __lhs | __rhs; }
+
+  friend simd_mask& operator^=(simd_mask& __lhs, const simd_mask& __rhs) noexcept { return __lhs = __lhs ^ __rhs; }
 
   // simd_mask compares [simd.mask.comparison]
-  friend simd_mask operator==(const simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask operator!=(const simd_mask&, const simd_mask&) noexcept;
+  friend simd_mask operator==(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__equal_to(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd_mask operator!=(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__not_equal_to(__lhs.__s_, __rhs.__s_);
+  }
 };
 
 #endif // _LIBCPP_STD_VER >= 17

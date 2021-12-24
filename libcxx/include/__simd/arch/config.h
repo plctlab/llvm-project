@@ -19,13 +19,13 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 #define _LIBCPP_SIMD_HAVE_MMX 0
 #endif
 
-#if defined __SSE__
+#ifdef __SSE__
 #define _LIBCPP_SIMD_HAVE_SSE 1
 #else
 #define _LIBCPP_SIMD_HAVE_SSE 0
 #endif
 
-#if defined __SSE2__
+#ifdef __SSE2__
 #define _LIBCPP_SIMD_HAVE_SSE2 1
 #else
 #define _LIBCPP_SIMD_HAVE_SSE2 0
