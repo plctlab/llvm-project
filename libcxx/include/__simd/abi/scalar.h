@@ -29,7 +29,7 @@ struct __simd_storage_scalar {
 
   _Tp __get(size_t __idx) const noexcept { return (&__data)[__idx]; }
 
-  void __set(size_t __idx, _Tp __val) noexcept { (&__data)[__idx] = __val; }
+  void __set(size_t __idx, _Tp __v) noexcept { (&__data)[__idx] = __v; }
 };
 
 template <class _Tp>
@@ -61,6 +61,8 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
 
   static _Storage __bitwise_not(_Storage __s) noexcept { return {~__s.__data}; }
 
+  static _Storage __unary_minus(_Storage __s) noexcept { return {-__s.__data}; }
+
   static _Storage __plus(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data + __rhs.__data}; }
 
   static _Storage __minus(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data - __rhs.__data}; }
@@ -84,6 +86,18 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   static _Storage __shift_left(_Storage __lhs, int __rhs) noexcept { return {__lhs.__data << __rhs}; }
 
   static _Storage __shift_right(_Storage __lhs, int __rhs) noexcept { return {__lhs.__data >> __rhs}; }
+
+  static _Storage __equal_to(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data == __rhs.__data}; }
+
+  static _Storage __not_equal_to(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data != __rhs.__data}; }
+
+  static _Storage __less_equal(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data <= __rhs.__data}; }
+
+  static _Storage __less(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data < __rhs.__data}; }
+
+  static _Storage __logical_and(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
+
+  static _Storage __logical_or(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
