@@ -98,6 +98,20 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   static _Storage __logical_and(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
 
   static _Storage __logical_or(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
+
+  static bool __all_of(_Storage __s) noexcept { return __s.__data; }
+
+  static bool __any_of(_Storage __s) noexcept { return __s.__data; }
+
+  static bool __none_of(_Storage __s) noexcept { return !__s.__data; }
+
+  static bool __some_of(_Storage) noexcept { return false; }
+
+  static int __popcount(_Storage __s) noexcept { return __s.__data; }
+
+  static int __find_first_set(_Storage) { return 0; }
+
+  static int __find_last_set(_Storage) { return 0; }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD

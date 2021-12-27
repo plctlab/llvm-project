@@ -200,15 +200,15 @@ class where_expression : public const_where_expression<M, T> {
 public:
   where_expression(const where_expression&) = delete;
   where_expression& operator=(const where_expression&) = delete;
-  template <class U> void operator=(U&& x);
-  template <class U> void operator+=(U&& x);
-  template <class U> void operator-=(U&& x);
-  template <class U> void operator*=(U&& x);
-  template <class U> void operator/=(U&& x);
-  template <class U> void operator%=(U&& x);
-  template <class U> void operator&=(U&& x);
-  template <class U> void operator|=(U&& x);
-  template <class U> void operator^=(U&& x);
+  template <class U> void operator=(U&& x) noexcept;
+  template <class U> void operator+=(U&& x) noexcept;
+  template <class U> void operator-=(U&& x) noexcept;
+  template <class U> void operator*=(U&& x) noexcept;
+  template <class U> void operator/=(U&& x) noexcept;
+  template <class U> void operator%=(U&& x) noexcept;
+  template <class U> void operator&=(U&& x) noexcept;
+  template <class U> void operator|=(U&& x) noexcept;
+  template <class U> void operator^=(U&& x) noexcept;
   template <class U> void operator<<=(U&& x);
   template <class U> void operator>>=(U&& x);
   void operator++();
@@ -963,7 +963,6 @@ struct simd_size : __simd_size_impl<_Tp, _Abi> {};
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
 inline constexpr size_t simd_size_v = simd_size<_Tp, _Abi>::value;
 
-// TODO: implement it.
 template <class _Tp, class _Up = typename _Tp::value_type>
 struct memory_alignment;
 
@@ -1064,30 +1063,58 @@ simd_mask<_Tp, abi_for_size_t<_Tp, __variadic_sum(simd_size_v<_Tp, _Abis>...)>> 
 
 // reductions [simd.mask.reductions]
 template <class _Tp, class _Abi>
-bool all_of(const simd_mask<_Tp, _Abi>&) noexcept;
+bool all_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __simd_traits<_Tp, _Abi>::__all_of(__m);
+}
+
 template <class _Tp, class _Abi>
-bool any_of(const simd_mask<_Tp, _Abi>&) noexcept;
+bool any_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __simd_traits<_Tp, _Abi>::__any_of(__m);
+}
+
 template <class _Tp, class _Abi>
-bool none_of(const simd_mask<_Tp, _Abi>&) noexcept;
+bool none_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __simd_traits<_Tp, _Abi>::__none_of(__m);
+}
+
 template <class _Tp, class _Abi>
-bool some_of(const simd_mask<_Tp, _Abi>&) noexcept;
+bool some_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __simd_traits<_Tp, _Abi>::__some_of(__m);
+}
+
 template <class _Tp, class _Abi>
-int popcount(const simd_mask<_Tp, _Abi>&) noexcept;
+int popcount(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __simd_traits<_Tp, _Abi>::__popcount(__m);
+}
+
 template <class _Tp, class _Abi>
-int find_first_set(const simd_mask<_Tp, _Abi>&);
+int find_first_set(const simd_mask<_Tp, _Abi>& __m) {
+  return __simd_traits<_Tp, _Abi>::__find_first_set(__m);
+}
+
 template <class _Tp, class _Abi>
-int find_last_set(const simd_mask<_Tp, _Abi>&);
-bool all_of(bool) noexcept;
-bool any_of(bool) noexcept;
-bool none_of(bool) noexcept;
-bool some_of(bool) noexcept;
-int popcount(bool) noexcept;
-int find_first_set(bool) noexcept;
-int find_last_set(bool) noexcept;
+int find_last_set(const simd_mask<_Tp, _Abi>& __m) {
+  return __simd_traits<_Tp, _Abi>::__find_last_set(__m);
+}
+
+bool all_of(bool __v) noexcept { return __v; }
+
+bool any_of(bool __v) noexcept { return __v; }
+
+bool none_of(bool __v) noexcept { return !__v; }
+
+bool some_of(bool) noexcept { return false; }
+
+int popcount(bool __v) noexcept { return __v; }
+
+int find_first_set(bool) noexcept { return 0; }
+
+int find_last_set(bool) noexcept { return 0; }
 
 // masked assignment [simd.whereexpr]
 template <class _MaskType, class _Tp>
 class const_where_expression;
+
 template <class _MaskType, class _Tp>
 class where_expression;
 
@@ -1144,10 +1171,13 @@ typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _S
 
 template <class _Tp, class _Abi>
 _Tp hmin(const simd<_Tp, _Abi>&);
+
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>&);
+
 template <class _Tp, class _Abi>
 _Tp hmax(const simd<_Tp, _Abi>&);
+
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>&);
 
@@ -1165,14 +1195,16 @@ template <class _Tp, class _Abi>
 simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&);
 
 // [simd.whereexpr]
-// TODO implement where expressions.
 template <class _MaskType, class _Tp>
 class const_where_expression {
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
+
   remove_const_t<_Tp> operator-() const&&;
+
   template <class _Up, class _Flags>
+
   void copy_to(_Up*, _Flags) const&&;
 };
 
@@ -1253,14 +1285,14 @@ public:
   simd(const _Up* __mem, _Flags __f) : __s_(_Impl::__load(__mem, __f)) {}
 
   // loads [simd.load]
-  template <class _Up, class _Flags, class = std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>>>
-  void copy_from(const _Up* __mem, _Flags __f) {
+  template <class _Up, class _Flags>
+  std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> copy_from(const _Up* __mem, _Flags __f) {
     __s_ = _Impl::__load(__mem, __f);
   }
 
   // stores [simd.store]
-  template <class _Up, class _Flags, class = std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>>>
-  void copy_to(_Up* __mem, _Flags __f) const {
+  template <class _Up, class _Flags>
+  std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> copy_to(_Up* __mem, _Flags __f) const {
     _Impl::__store(__s_, __mem, __f);
   }
 
@@ -1270,23 +1302,23 @@ public:
   value_type operator[](size_t __i) const { return __s_.__get(__i); }
 
   // unary operators [simd.unary]
-  simd& operator++() {
+  simd& operator++() noexcept {
     _Impl::__increment(__s_);
     return *this;
   }
 
-  simd operator++(int) {
+  simd operator++(int) noexcept {
     simd __r = *this;
     _Impl::__increment(__s_);
     return __r;
   }
 
-  simd& operator--() {
+  simd& operator--() noexcept {
     _Impl::__decrement(__s_);
     return *this;
   }
 
-  simd operator--(int) {
+  simd operator--(int) noexcept {
     simd __r = *this;
     _Impl::__decrement(__s_);
     return __r;
