@@ -121,6 +121,55 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
   static _Storage __logical_and(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
 
   static _Storage __logical_or(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
+
+  static bool __all_of(_Storage __s) noexcept {
+    for (auto __v : __s.__data)
+      if (!__v)
+        return false;
+    return true;
+  }
+
+  static bool __any_of(_Storage __s) noexcept {
+    for (auto __v : __s.__data)
+      if (__v)
+        return true;
+    return false;
+  }
+
+  static bool __none_of(_Storage __s) noexcept {
+    for (auto __v : __s.__data)
+      if (__v)
+        return false;
+    return true;
+  }
+
+  static bool __some_of(_Storage __s) noexcept {
+    for (size_t __i = 1; __i < _Np; ++__i)
+      if (__s[__i] != __s[__i - 1])
+        return true;
+    return false;
+  }
+
+  static int __popcount(_Storage __s) noexcept {
+    int __count = 0;
+    for (auto __v : __s.__data)
+      __count += __v != 0;
+    return __count;
+  }
+
+  static int __find_first_set(_Storage __s) {
+    for (size_t __i = 0; __i < _Np; ++__i)
+      if (__s.__data[__i])
+        return __i;
+    return -1;
+  }
+
+  static int __find_last_set(_Storage __s) {
+    for (size_t __i = _Np - 1; __i > -1; --__i)
+      if (__s.__data[__i])
+        return __i;
+    return -1;
+  }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
