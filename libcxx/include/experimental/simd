@@ -1170,18 +1170,23 @@ typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _S
                                       bit_xor<typename _SimdType::value_type> binary_op);
 
 template <class _Tp, class _Abi>
-_Tp hmin(const simd<_Tp, _Abi>&);
+_Tp hmin(const simd<_Tp, _Abi>& __s) {
+  return __simd_traits<_Tp, _Abi>::__hmin(__s);
+}
 
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>&);
 
 template <class _Tp, class _Abi>
-_Tp hmax(const simd<_Tp, _Abi>&);
+_Tp hmax(const simd<_Tp, _Abi>& __s) {
+  return __simd_traits<_Tp, _Abi>::__hmax(__s);
+}
 
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>&);
 
 // algorithms [simd.alg]
+// implemented in simd class
 template <class _Tp, class _Abi>
 simd<_Tp, _Abi> min(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&) noexcept;
 
@@ -1252,6 +1257,19 @@ class simd {
   _Storage __s_;
 
   simd(_Storage __s) : __s_(__s) {}
+
+  friend simd min(const simd& __a, const simd& __b) noexcept { return _Impl::__min(__a, __b); }
+
+  friend simd max(const simd& __a, const simd& __b) noexcept { return _Impl::__max(__a, __b); }
+
+  friend std::pair<simd, simd> minmax(const simd& __a, const simd& __b) noexcept {
+    auto [__min, __max] = _Impl::__min(__a, __b);
+    return {__min, __max};
+  }
+
+  friend simd clamp(const simd& __v, const simd& __lo, const simd& __hi) noexcept {
+    return _Impl::__clamp(__v, __lo, __hi);
+  }
 
 public:
   using value_type = _Tp;

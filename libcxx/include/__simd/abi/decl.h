@@ -10,6 +10,7 @@
 #define _LIBCPP___SIMD_ABI_DECL_H
 
 #include <experimental/__config>
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <type_traits>
