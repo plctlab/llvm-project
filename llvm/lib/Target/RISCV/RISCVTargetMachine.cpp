@@ -208,6 +208,7 @@ void RISCVPassConfig::addPreEmitPass2() {
   addPass(createRISCVExpandAtomicPseudoPass());
   addPass(createRISCVZceInstOptPass());
   addPass(createRISCVDecbnezPass());
+  addPass(createRISCVBeqiBneiPass());
 }
 
 void RISCVPassConfig::addPreRegAlloc() {

@@ -64,6 +64,9 @@ void  initializeRISCVPushPopOptPass(PassRegistry&);
 FunctionPass *createRISCVDecbnezPass();
 void  initializeRISCVDecbnezPass(PassRegistry&);
 
+FunctionPass *createRISCVBeqiBneiPass();
+void initializeRISCVBeqiBneiPass(PassRegistry &);
+
 InstructionSelector *createRISCVInstructionSelector(const RISCVTargetMachine &,
                                                     RISCVSubtarget &,
                                                     RISCVRegisterBankInfo &);
