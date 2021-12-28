@@ -170,6 +170,50 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
         return __i;
     return -1;
   }
+
+  static _Tp __hmin(_Storage __s) {
+    _Tp __min = __s.__data[0];
+    for (auto __v : __s.__data)
+      __min = std::min(__min, __v);
+    return __min;
+  }
+
+  static _Tp __hmax(_Storage __s) {
+    _Tp __max = __s.__data[0];
+    for (auto __v : __s.__data)
+      __max = std::max(__max, __v);
+    return __max;
+  }
+
+  static _Storage __min(_Storage __a, _Storage __b) noexcept {
+    _Storage __r;
+    for (size_t __i = 0; __i < _Np; ++__i)
+      __r.__data[__i] = std::min(__a.__data[__i], __b.__data[__i]);
+    return __r;
+  }
+
+  static _Storage __max(_Storage __a, _Storage __b) noexcept {
+    _Storage __r;
+    for (size_t __i = 0; __i < _Np; ++__i)
+      __r.__data[__i] = std::max(__a.__data[__i], __b.__data[__i]);
+    return __r;
+  }
+
+  static std::pair<_Storage, _Storage> __minmax(_Storage __a, _Storage __b) noexcept {
+    _Storage __min, __max;
+    for (size_t __i = 0; __i < _Np; ++__i) {
+      __min.__data[__i] = std::min(__a.__data[__i], __b.__data[__i]);
+      __max.__data[__i] = std::max(__a.__data[__i], __b.__data[__i]);
+    }
+    return {__min, __max};
+  }
+
+  static _Storage __clamp(_Storage __v, _Storage __lo, _Storage __hi) noexcept {
+    _Storage __r;
+    for (size_t __i = 0; __i < _Np; ++__i)
+      __r.__data[__i] = std::min(std::max(__v.__data[__i], __lo.__data[__i]), __hi.__data[__i]);
+    return __r;
+  }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD

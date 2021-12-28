@@ -112,6 +112,23 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   static int __find_first_set(_Storage) { return 0; }
 
   static int __find_last_set(_Storage) { return 0; }
+
+  static _Tp __hmin(_Storage __s) { return __s.__data; }
+
+  static _Tp __hmax(_Storage __s) { return __s.__data; }
+
+  static _Storage __min(_Storage __a, _Storage __b) noexcept { return {std::min(__a.__data, __b.__data)}; }
+
+  static _Storage __max(_Storage __a, _Storage __b) noexcept { return {std::max(__a.__data, __b.__data)}; }
+
+  static std::pair<_Storage, _Storage> __minmax(_Storage __a, _Storage __b) noexcept {
+    auto [__min, __max] = std::minmax(__a.__data, __b.__data);
+    return {__min, __max};
+  }
+
+  static _Storage __clamp(_Storage __v, _Storage __lo, _Storage __hi) noexcept {
+    return {std::clamp(__v.__data, __lo.__data, __hi.__data)};
+  }
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
