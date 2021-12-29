@@ -1200,52 +1200,68 @@ template <class _Tp, class _Abi>
 simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&);
 
 // [simd.whereexpr]
-template <class _MaskType, class _Tp>
+template <class _MaskType, class _SimdType>
 class const_where_expression {
+protected:
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
 
-  remove_const_t<_Tp> operator-() const&&;
+  remove_const_t<_SimdType> operator-() const&&;
 
-  template <class _Up, class _Flags>
-
-  void copy_to(_Up*, _Flags) const&&;
+  template <class _Tp, class _Flags>
+  void copy_to(_Tp*, _Flags) const&&;
 };
 
-template <class _MaskType, class _Tp>
-class where_expression : public const_where_expression<_MaskType, _Tp> {
+template <class _MaskType, class _SimdType>
+class where_expression : public const_where_expression<_MaskType, _SimdType> {
 public:
   where_expression(const where_expression&) = delete;
   where_expression& operator=(const where_expression&) = delete;
-  template <class _Up>
-  void operator=(_Up&&);
-  template <class _Up>
-  void operator+=(_Up&&);
-  template <class _Up>
-  void operator-=(_Up&&);
-  template <class _Up>
-  void operator*=(_Up&&);
-  template <class _Up>
-  void operator/=(_Up&&);
-  template <class _Up>
-  void operator%=(_Up&&);
-  template <class _Up>
-  void operator&=(_Up&&);
-  template <class _Up>
-  void operator|=(_Up&&);
-  template <class _Up>
-  void operator^=(_Up&&);
-  template <class _Up>
-  void operator<<=(_Up&&);
-  template <class _Up>
-  void operator>>=(_Up&&);
+
+  template <class _Tp>
+  void operator=(_Tp&&);
+
+  template <class _Tp>
+  void operator+=(_Tp&&);
+
+  template <class _Tp>
+  void operator-=(_Tp&&);
+
+  template <class _Tp>
+  void operator*=(_Tp&&);
+
+  template <class _Tp>
+  void operator/=(_Tp&&);
+
+  template <class _Tp>
+  void operator%=(_Tp&&);
+
+  template <class _Tp>
+  void operator&=(_Tp&&);
+
+  template <class _Tp>
+  void operator|=(_Tp&&);
+
+  template <class _Tp>
+  void operator^=(_Tp&&);
+
+  template <class _Tp>
+  void operator<<=(_Tp&&);
+
+  template <class _Tp>
+  void operator>>=(_Tp&&);
+
   void operator++();
+
   void operator++(int);
+
   void operator--();
+
   void operator--(int);
-  template <class _Up, class _Flags>
-  void copy_from(const _Up*, _Flags);
+
+  template <class _Tp, class _Flags>
+  void copy_from(const _Tp*, _Flags);
 };
 
 // [simd.class]
@@ -1258,17 +1274,23 @@ class simd {
 
   simd(_Storage __s) : __s_(__s) {}
 
-  friend simd min(const simd& __a, const simd& __b) noexcept { return _Impl::__min(__a, __b); }
+  template <class _MaskType, class _SimdType>
+  friend class const_where_expression;
 
-  friend simd max(const simd& __a, const simd& __b) noexcept { return _Impl::__max(__a, __b); }
+  template <class _MaskType, class _SimdType>
+  friend class where_expression;
+
+  friend simd min(const simd& __a, const simd& __b) noexcept { return _Impl::__min(__a.__s_, __b.__s_); }
+
+  friend simd max(const simd& __a, const simd& __b) noexcept { return _Impl::__max(__a.__s_, __b.__s_); }
 
   friend std::pair<simd, simd> minmax(const simd& __a, const simd& __b) noexcept {
-    auto [__min, __max] = _Impl::__min(__a, __b);
+    auto [__min, __max] = _Impl::__min(__a.__s_, __b.__s_);
     return {__min, __max};
   }
 
   friend simd clamp(const simd& __v, const simd& __lo, const simd& __hi) noexcept {
-    return _Impl::__clamp(__v, __lo, __hi);
+    return _Impl::__clamp(__v.__s_, __lo.__s_, __hi.__s_);
   }
 
 public:
@@ -1455,6 +1477,12 @@ class simd_mask {
   simd_mask(_Storage __s) : __s_(__s) {}
 
   friend class simd<_Tp, _Abi>;
+
+  template <class _MaskType, class _SimdType>
+  friend class const_where_expression;
+
+  template <class _MaskType, class _SimdType>
+  friend class where_expression;
 
 public:
   using value_type = bool;
