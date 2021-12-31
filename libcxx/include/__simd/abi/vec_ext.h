@@ -55,7 +55,8 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
 
   template <class _Generator, size_t... _Is>
   static _Storage __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
-    return {{__g(std::integral_constant<size_t, _Is>())...}};
+    // _Storage specified here is to work around GCC
+    return _Storage{{__g(std::integral_constant<size_t, _Is>())...}};
   }
 
   template <class _Generator>
@@ -158,17 +159,19 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
   }
 
   static int __find_first_set(_Storage __s) {
-    for (size_t __i = 0; __i < _Np; ++__i)
+    size_t __i = 0;
+    for (; __i < _Np; ++__i)
       if (__s.__data[__i])
-        return __i;
-    return -1;
+        break;
+    return __i;
   }
 
   static int __find_last_set(_Storage __s) {
-    for (size_t __i = _Np - 1; __i > -1; --__i)
+    size_t __i = _Np - 1;
+    for (; __i != -1; --__i)
       if (__s.__data[__i])
-        return __i;
-    return -1;
+        break;
+    return __i;
   }
 
   static _Tp __hmin(_Storage __s) {
