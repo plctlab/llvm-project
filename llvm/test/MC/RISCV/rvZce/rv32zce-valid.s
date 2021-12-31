@@ -226,6 +226,10 @@ c.push {ra, s0-s11}, {a0-a3}, -112
 # CHECK-ASM: encoding: [0xdc,0x8e]
 c.push {ra, s0-s11}, {a0-a3}, -144
 
+# CHECK-ASM-AND-OBJ: c.pop {ra}, {}, 32
+# CHECK-ASM: encoding: [0x80,0x8f]
+c.pop.e {ra}, {}, 32
+
 # CHECK-ASM-AND-OBJ: c.pop.e {ra, s0-s2}, {}, 32
 # CHECK-ASM: encoding: [0xa0,0x8f]
 c.pop.e {ra, s0-s2}, {}, 32
@@ -233,6 +237,10 @@ c.pop.e {ra, s0-s2}, {}, 32
 # CHECK-ASM-AND-OBJ: c.pop.e {ra, s0-s3}, {}, 48
 # CHECK-ASM: encoding: [0xa4,0x8f]
 c.pop.e {ra, s0-s3}, {}, 48
+
+# CHECK-ASM-AND-OBJ: c.popret {ra}, {}, 16
+# CHECK-ASM: encoding: [0x00,0x8c]
+c.popret.e {ra}, {}, 16
 
 # CHECK-ASM-AND-OBJ: c.popret.e {ra, s0-s2}, {}, 16
 # CHECK-ASM: encoding: [0x60,0x8c]
@@ -253,6 +261,10 @@ c.popret.e {ra, s0-s3}, {0}, 96
 # CHECK-ASM-AND-OBJ: c.popret.e {ra, s0-s4}, {}, 112
 # CHECK-ASM: encoding: [0xe8,0x8e]
 c.popret.e {ra, s0-s4}, {}, 112
+
+# CHECK-ASM-AND-OBJ: c.push {ra}, {}, -16
+# CHECK-ASM: encoding: [0x40,0x8c]
+c.push.e {ra}, {}, -16
 
 # CHECK-ASM-AND-OBJ: c.push.e {ra, s0-s2}, {a0-a2}, -16
 # CHECK-ASM: encoding: [0x40,0x8f]
