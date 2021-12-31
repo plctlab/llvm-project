@@ -1289,7 +1289,7 @@ class simd {
     return {__min, __max};
   }
 
-  friend simd clamp(const simd& __v, const simd& __lo, const simd& __hi) noexcept {
+  friend simd clamp(const simd& __v, const simd& __lo, const simd& __hi) {
     return _Impl::__clamp(__v.__s_, __lo.__s_, __hi.__s_);
   }
 
