@@ -457,6 +457,10 @@ template <class ELFT> void elf::createSyntheticSections() {
   if (config->emachine == EM_RISCV && config->zce_tbljal) {
     in.riscvTableJumpSection = make<TableJumpSection>();
     add(in.riscvTableJumpSection);
+
+    symtab->addSymbol(Defined{/*file=*/nullptr, ".tbljalentries", STB_WEAK,
+                              STT_NOTYPE, STT_NOTYPE,
+                              /*value=*/0, /*size=*/0, in.riscvTableJumpSection});
   }
 
   in.gotPlt = make<GotPltSection>();
@@ -532,6 +536,8 @@ template <class ELFT> void Writer<ELFT>::run() {
   if (config->copyRelocs)
     addSectionSymbols();
 
+  processSections(); // TODO: Merge with finalizeSections?
+
   // Now that we have a complete set of output sections. This function
   // completes section contents. For example, we need to add strings
   // to the string table, and add entries to .got and .plt.
@@ -541,8 +547,12 @@ template <class ELFT> void Writer<ELFT>::run() {
   if (errorCount())
     return;
 
-  // If --compressed-debug-sections is specified, compress .debug_* sections.
-  // Do it right now because it changes the size of output sections.
+
+  processSections(); // TODO: Merge with finalizeSections?
+
+  // If -compressed-debug-sections is specified, we need to compress
+  // .debug_* sections. Do it right now because it changes the size of
+  // output sections.
   for (OutputSection *sec : outputSections)
     sec->maybeCompress<ELFT>();
 
@@ -554,8 +564,6 @@ template <class ELFT> void Writer<ELFT>::run() {
   // we know the size of the sections.
   for (Partition &part : partitions)
     removeEmptyPTLoad(part.phdrs);
-
-  processSections();
 
   if (!config->oFormatBinary)
     assignFileOffsets();

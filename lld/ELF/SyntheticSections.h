@@ -28,6 +28,7 @@
 #include "llvm/MC/StringTableBuilder.h"
 #include "llvm/Support/Endian.h"
 #include <functional>
+#include <memory>
 
 namespace lld {
 namespace elf {
@@ -393,10 +394,13 @@ private:
 class TableJumpSection final : public SyntheticSection {
 public:
   TableJumpSection();
-  size_t addEntry(const Symbol& symbol); // TODO: Change uint64_t to Xlen
   size_t getSize() const override;
   void writeTo(uint8_t *buf) override;
   bool isNeeded() const override;
+
+  size_t addEntryT0(const Symbol& symbol);
+  size_t addEntryZero(const Symbol& symbol);
+  size_t addEntryRa(const Symbol& symbol);
 
   // Flag to force TableJump to be in output if we have relocations
   // that relies on its address.
@@ -406,7 +410,26 @@ protected:
   uint64_t size = 0;
 
 private:
-  std::vector<uint64_t> entries; // TODO: Change uint64_t to Xlen
+  size_t addEntry(const Symbol& symbol,
+                  std::vector<std::string>& entriesList,
+                  const size_t maxSize);
+  void writeEntries(uint8_t *buf, std::vector<std::string>& entriesList);
+  void padUntil(uint8_t *buf, const uint8_t index);
+
+  const size_t xlen = config->is64 ? 64 : 32;
+
+  std::vector<std::string> entriesT0;
+  std::vector<std::string> entriesZero;
+  std::vector<std::string> entriesRa;
+
+  // TODO: Make use of these in cost function.
+  const size_t maxSizeT0 = 8;
+  const size_t maxSizeZero = 56;
+  const size_t maxSizeRa = 192;
+
+  const size_t startT0 = 0;
+  const size_t startZero = 8;
+  const size_t startRa = 64;
 };
 
 // The IgotPltSection is a Got associated with the PltSection for GNU Ifunc
