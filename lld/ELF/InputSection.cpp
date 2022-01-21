@@ -158,8 +158,7 @@ void InputSectionBase::deleteBytes(
     const auto numberOfBytes = it->second;
 
     // Don't try and delete bytes that are out of bounds.
-    if (loc + numberOfBytes >= size)
-      //return;
+    if (loc + numberOfBytes > size)
       llvm_unreachable(loc + " Cannot delete - out of range\n");
 
     // Remove the bytes from rawData.
@@ -167,9 +166,10 @@ void InputSectionBase::deleteBytes(
     const auto sourceAddress = buf + loc + numberOfBytes;
     const auto nextOffset = it + 1 == end ? size : (it + 1)->first;
     const auto size = nextOffset - loc - numberOfBytes;
-    if (destinationAddress == nullptr || sourceAddress == nullptr ||
-        destinationAddress + size == nullptr || sourceAddress + size == nullptr)
-      return;
+    if (destinationAddress == nullptr || sourceAddress == nullptr/* ||
+        destinationAddress + size == nullptr || sourceAddress + size == nullptr*/)
+      llvm_unreachable(loc + " Cannot delete - out of range\n");
+      //continue;
     std::memmove(destinationAddress, sourceAddress,
             nextOffset - loc - numberOfBytes);
     totalBytesDeleted += numberOfBytes;

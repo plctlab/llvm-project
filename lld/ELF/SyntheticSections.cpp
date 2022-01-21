@@ -1176,39 +1176,86 @@ TableJumpSection::TableJumpSection()
     : SyntheticSection(SHF_ALLOC | SHF_WRITE, SHT_RISCV_ATTRIBUTES, config->wordsize,
                        ".tbljalentries") {}
 
-size_t TableJumpSection::addEntry(const Symbol& symbol) {
-  const uint64_t address = symbol.getVA();
-  const auto entriesBegin = std::begin(entries);
-  const auto entriesEnd = std::end(entries);
+size_t TableJumpSection::addEntryT0(const Symbol& symbol) {
+  return addEntry(symbol, entriesT0, maxSizeT0);
+}
+
+size_t TableJumpSection::addEntryZero(const Symbol& symbol) {
+  return addEntry(symbol, entriesZero, maxSizeZero);
+}
+
+size_t TableJumpSection::addEntryRa(const Symbol& symbol) {
+  return addEntry(symbol, entriesRa, maxSizeRa);
+}
+
+size_t TableJumpSection::addEntry(const Symbol& symbol,
+                                  std::vector<std::string>& entriesList,
+                                  const size_t maxSize) {
   // Prevent adding duplicate entries
-  const auto findResult = std::find(entriesBegin, entriesEnd, address);
-  // If this is a duplicate addition, do not add it and return the address offset of
-  // the original entry.
-  if (findResult != entriesEnd)
-    return std::distance(entriesBegin, findResult) * 256;
-  unsigned ret = this->size;
-  this->size += 256;
-  entries.push_back(address);
+  for (std::size_t i = 0; i < entriesList.size(); ++i) {
+    // If this is a duplicate addition, do not add it and return the address
+    // offset of the original entry.
+    if (entriesList[i] == symbol.getName()) {
+      return i;
+    }
+  }
+  unsigned ret = entriesList.size();
+  size += 64;
+  entriesList.push_back(symbol.getName().str());
   return ret;
 }
 
 size_t TableJumpSection::getSize() const {
-  return (target->gotPltHeaderEntriesNum + entries.size()) * config->wordsize;
+  if (size == 0)
+  return 256 * xlen; // TODO: This is the maximum size shrink this. This is being caused by getSize being called to allocate space for the section before the tbljal optimisation is performed to add entries to the table.
+  //return (target->gotPltHeaderEntriesNum + entries.size()) * config->wordsize;
+  if (!entriesRa.empty()) {
+    return (startRa + entriesRa.size()) * xlen;
+  }
+  if (!entriesZero.empty()) {
+    return (startZero + entriesZero.size()) * xlen;
+  }
+  return entriesT0.size() * xlen;
 }
 
 void TableJumpSection::writeTo(uint8_t *buf) {
   target->writeTableJumpHeader(buf);
-  //buf += target->gotPltHeaderEntriesNum * config->wordsize; // TODO: Change this function.
-  for (const uint64_t address : entries) {
-    target->writeTableJump(buf, address);
-    buf += config->wordsize;
+  writeEntries(buf, entriesT0);
+  padUntil(buf + ((startT0 + entriesT0.size()) * xlen), startZero * xlen);
+  writeEntries(buf + startZero, entriesZero);
+  padUntil(buf + ((startZero + entriesZero.size()) * xlen), startRa * xlen);
+  writeEntries(buf + startRa, entriesRa);
+}
+
+void TableJumpSection::padUntil(uint8_t *buf, const uint8_t address) {
+  for (size_t i = 0; i < address; ++i) {
+    if (config->is64)
+      write64le(buf, 0);
+    else
+      write32le(buf, 0);
+  }
+}
+
+void TableJumpSection::writeEntries(uint8_t *buf,
+                                    std::vector<std::string>& entriesList) {
+  for (const std::string& symbolName : entriesList) {
+    // Use the symbol from in.symTab to ensure we have the final adjusted symbol.
+    for (const auto &symbol : in.symTab->getSymbols()) {
+      if (symbol.sym->getName() != symbolName)
+        continue;
+      // Only process defined symbols.
+      auto *definedSymbol = dyn_cast<Defined>(symbol.sym);
+      if (!definedSymbol)
+        continue;
+      target->writeTableJump(buf, definedSymbol->getVA());
+      buf += config->wordsize;
+    }
   }
 }
 
 bool TableJumpSection::isNeeded() const {
   //TODO: Make this function correctly. Currently discards section with entries.
-  return true;
-  //return !entries.empty();
+  return getSize() != 0;
 }
 
 static StringRef getIgotPltName() {

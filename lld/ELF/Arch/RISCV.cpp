@@ -74,6 +74,11 @@ enum Reg {
 static uint32_t hi20(uint32_t val) { return (val + 0x800) >> 12; }
 static uint32_t lo12(uint32_t val) { return val & 4095; }
 
+// Extract bits V[Begin:End], where range is inclusive, and Begin must be < 63.
+static uint32_t extractBits(uint64_t v, uint32_t begin, uint32_t end) {
+  return (v & ((1ULL << (begin + 1)) - 1)) >> end;
+}
+
 static uint32_t itype(uint32_t op, uint32_t rd, uint32_t rs1, uint32_t imm) {
   return op | (rd << 7) | (rs1 << 15) | (imm << 20);
 }
@@ -84,8 +89,8 @@ static uint32_t utype(uint32_t op, uint32_t rd, uint32_t imm) {
   return op | (rd << 7) | (imm << 12);
 }
 
-static uint16_t tbljumptype(uint8_t imm) {
-  return (imm << 2) | 0b1000100000000000;
+static uint32_t tbljumptype(uint8_t imm) {
+  return (imm << 2) | (0b10001 << 11);
 }
 
 RISCV::RISCV() {
@@ -297,43 +302,22 @@ void RISCV::insertTableJumps(InputSection &inputSection) const {
   std::vector<std::pair<const uint64_t, const uint64_t>> bytesToDelete;
   std::vector<std::pair<const std::string, const uint64_t>> tblJumpSymbols;
 
-  const auto end = std::end(inputSection.relocations);
   for (auto it = std::begin(inputSection.relocations); it < std::end(inputSection.relocations); ++it) {
-    //if (it >= std::end(inputSection.relocations))
-      //continue;
-
-    //if (it.type != nullptr) { // Null check TODO: Why is it null? Is this a bug?
-    //if ((*it).type) { // Null check TODO: Why is it null? Is this a bug?
       switch (it->type) {
         // auipc + jalr pair
         case R_RISCV_CALL:
-        /*case R_RISCV_CALL_PLT:*/ {
-          // TODO: Split the checking into a seperate function to the fixup function?
+        case R_RISCV_CALL_PLT:
+        /*case R_RISCV_HI20:
+        case R_RISCV_LO12_I:
+        case R_RISCV_LO12_S:
+        case R_RISCV_PCREL_LO12_I:
+        case R_RISCV_PCREL_LO12_S:*/{
             insertTableJump(inputSection, *it, bytesToDelete, tblJumpSymbols);
             inputSection.relocations.erase(it);
             --it; // Iterator has been deleted, shifting the list.
         }
       }
-    //}
-
-    // Skip over the R_RISCV_RELAX.
-    //++it;
   }
-  
-  /*for (auto& relocation : inputSection.relocations) {
-    //if (it.type != nullptr) { // Null check TODO: Why is it null? Is this a bug?
-    //if (relocation.type) { // Null check TODO: Why is it null? Is this a bug?
-      switch (relocation.type) {
-        // auipc + jalr pair
-        case R_RISCV_CALL:
-        case R_RISCV_CALL_PLT:
-        default: {
-          // TODO: Split the checking into a seperate function to the fixup function?
-            insertTableJump(inputSection, relocation, bytesToDelete, tblJumpSymbols);
-        }
-      }
-    //}
-  }*/
   if (bytesToDelete.size() > 0)
     inputSection.deleteBytes(bytesToDelete);
 }
@@ -346,28 +330,39 @@ void RISCV::insertTableJump(
   // The address to be jumped to.
   const uint64_t targetLoc = rel.sym->getVA();
   // The address we are jumping from.
-  const uint64_t loc = inputSection.getVA() + rel.offset;
+  const auto loc = inputSection.getVA() + rel.offset;
+  //const auto jalr = loc + 4;
+  //const uint8_t rd = (jalr & 0x00000fe0) >> 7;
 
-  //const auto jalr = inputSection.data()[rel.offset + 4];
+  const auto jalr = inputSection.data()[rel.offset + 4];
+  const uint8_t rd = extractBits(jalr, 11, 7);
 
-  const auto tblEntryAddress = in.riscvTableJumpSection->addEntry(*rel.sym);
+  //const bool rvc = config->eflags & EF_RISCV_RVC;
+
+  uint32_t tblEntryAddress;
+  if (rd == X_T0)
+    tblEntryAddress = in.riscvTableJumpSection->addEntryT0(*rel.sym);
+  else if (rd == 0)
+    tblEntryAddress = in.riscvTableJumpSection->addEntryZero(*rel.sym);
+  else if (rd == X_RA)
+    tblEntryAddress = in.riscvTableJumpSection->addEntryRa(*rel.sym);
+  else
+    return; // Unknown link register, do not modify.
 
   const auto deleteStartOffset = 4;
   const auto deleteSize = 4;
 
   // Write over the auipc instruction
-  inputSection.edit(rel.offset + deleteStartOffset, tbljumptype(tblEntryAddress));
+  inputSection.edit(rel.offset, tbljumptype(tblEntryAddress));
+  //inputSection.edit(rel.offset + deleteStartOffset, tblEntryAddress);
 
-  if (inputSection.getVA() + inputSection.data().size() <= rel.offset + deleteSize)
-    return;
-  bytesToDelete.emplace_back(rel.offset, deleteSize);
+  //if (inputSection.getVA() + inputSection.data().size() <= rel.offset + deleteSize)
+    //return;
+  bytesToDelete.emplace_back(rel.offset + 2, 6);
+
+  //bytesToDelete.emplace_back(rel.offset + 2, deleteSize);
   //bytesToDelete.emplace_back(rel.offset, deleteSize);
   return;
-}
-
-// Extract bits V[Begin:End], where range is inclusive, and Begin must be < 63.
-static uint32_t extractBits(uint64_t v, uint32_t begin, uint32_t end) {
-  return (v & ((1ULL << (begin + 1)) - 1)) >> end;
 }
 
 void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
