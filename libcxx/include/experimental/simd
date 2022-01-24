@@ -784,25 +784,16 @@ constexpr bool __is_non_narrowing_convertible_impl(...) {
 }
 
 template <class _From, class _To>
-constexpr std::enable_if_t<std::is_arithmetic_v<_To> && std::is_arithmetic_v<_From>, bool>
-__is_non_narrowing_arithmetic_convertible() {
-  return __is_non_narrowing_convertible_impl<_To>(_From{});
+constexpr bool __is_non_narrowing_arithmetic_convertible() {
+  if constexpr (std::is_arithmetic_v<_To> && std::is_arithmetic_v<_From>)
+    return __is_non_narrowing_convertible_impl<_To>(_From{});
+  else
+    return false;
 }
 
-template <class _From, class _To>
-constexpr std::enable_if_t<!(std::is_arithmetic_v<_To> && std::is_arithmetic_v<_From>), bool>
-__is_non_narrowing_arithmetic_convertible() {
-  return false;
-}
-
-template <class _Tp>
-constexpr _Tp __variadic_sum() {
-  return _Tp{};
-}
-
-template <class _Tp, class _Up, class... _Args>
-constexpr _Tp __variadic_sum(_Up __first, _Args... __rest) {
-  return static_cast<_Tp>(__first) + __variadic_sum<_Tp>(__rest...);
+template <class _Tp, class... _Args>
+constexpr _Tp __variadic_sum(_Args... __args) {
+  return (static_cast<_Tp>(__args) + ...);
 }
 
 template <class _Tp>
@@ -837,19 +828,6 @@ __can_generate(std::index_sequence<__indicies...>) {
 template <class _Tp, class _Generator>
 bool __can_generate(...) {
   return false;
-}
-
-template <class _Tp>
-auto __choose_mask_type() {
-  if constexpr (sizeof(_Tp) == 1) {
-    return uint8_t{};
-  } else if constexpr (sizeof(_Tp) == 2) {
-    return uint16_t{};
-  } else if constexpr (sizeof(_Tp) == 4) {
-    return uint32_t{};
-  } else if constexpr (sizeof(_Tp) == 8) {
-    return uint64_t{};
-  }
 }
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
@@ -1064,37 +1042,37 @@ simd_mask<_Tp, abi_for_size_t<_Tp, __variadic_sum(simd_size_v<_Tp, _Abis>...)>> 
 // reductions [simd.mask.reductions]
 template <class _Tp, class _Abi>
 bool all_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
-  return __simd_traits<_Tp, _Abi>::__all_of(__m);
+  return __mask_traits<_Tp, _Abi>::__all_of(__m);
 }
 
 template <class _Tp, class _Abi>
 bool any_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
-  return __simd_traits<_Tp, _Abi>::__any_of(__m);
+  return __mask_traits<_Tp, _Abi>::__any_of(__m);
 }
 
 template <class _Tp, class _Abi>
 bool none_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
-  return __simd_traits<_Tp, _Abi>::__none_of(__m);
+  return __mask_traits<_Tp, _Abi>::__none_of(__m);
 }
 
 template <class _Tp, class _Abi>
 bool some_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
-  return __simd_traits<_Tp, _Abi>::__some_of(__m);
+  return __mask_traits<_Tp, _Abi>::__some_of(__m);
 }
 
 template <class _Tp, class _Abi>
 int popcount(const simd_mask<_Tp, _Abi>& __m) noexcept {
-  return __simd_traits<_Tp, _Abi>::__popcount(__m);
+  return __mask_traits<_Tp, _Abi>::__popcount(__m);
 }
 
 template <class _Tp, class _Abi>
 int find_first_set(const simd_mask<_Tp, _Abi>& __m) {
-  return __simd_traits<_Tp, _Abi>::__find_first_set(__m);
+  return __mask_traits<_Tp, _Abi>::__find_first_set(__m);
 }
 
 template <class _Tp, class _Abi>
 int find_last_set(const simd_mask<_Tp, _Abi>& __m) {
-  return __simd_traits<_Tp, _Abi>::__find_last_set(__m);
+  return __mask_traits<_Tp, _Abi>::__find_last_set(__m);
 }
 
 bool all_of(bool __v) noexcept { return __v; }
@@ -1119,6 +1097,7 @@ template <class _MaskType, class _Tp>
 class where_expression;
 
 // masked assignment [simd.mask.where]
+// implemented in where_expression / const_where_expression class
 template <class _Tp, class _Abi>
 where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>> where(const typename simd<_Tp, _Abi>::mask_type&,
                                                               simd<_Tp, _Abi>&) noexcept;
@@ -1203,11 +1182,30 @@ simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&, const simd
 template <class _MaskType, class _SimdType>
 class const_where_expression {
 protected:
+  using _Impl = typename _SimdType::_Impl;
+
+  const _MaskType& __m_;
+  _SimdType& __v_;
+
+  friend const_where_expression where(const _MaskType& __m, const _SimdType& __v) noexcept {
+    return {__m, const_cast<_SimdType&>(__v)};
+  }
+
+  friend const_where_expression where(const __nodeduce_t<_MaskType>& __m, const _SimdType& __v) noexcept {
+    return {__m, const_cast<_SimdType&>(__v)};
+  }
+
+  friend const_where_expression where(bool __m, const _SimdType& __v) noexcept {
+    return {__m, const_cast<_SimdType&>(__v)};
+  }
+
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
 
-  remove_const_t<_SimdType> operator-() const&&;
+  remove_const_t<_SimdType> operator-() const&& {
+    // TODO
+  }
 
   template <class _Tp, class _Flags>
   void copy_to(_Tp*, _Flags) const&&;
@@ -1215,6 +1213,12 @@ public:
 
 template <class _MaskType, class _SimdType>
 class where_expression : public const_where_expression<_MaskType, _SimdType> {
+  friend where_expression where(const _MaskType& __m, _SimdType& __v) noexcept { return {__m, __v}; }
+
+  friend where_expression where(const __nodeduce_t<_MaskType>& __m, _SimdType& __v) noexcept { return {__m, __v}; }
+
+  friend where_expression where(bool __m, _SimdType& __v) noexcept { return {__m, __v}; }
+
 public:
   where_expression(const where_expression&) = delete;
   where_expression& operator=(const where_expression&) = delete;
@@ -1268,7 +1272,7 @@ public:
 template <class _Tp, class _Abi>
 class simd {
   using _Impl = __simd_traits<_Tp, _Abi>;
-  using _Storage = typename _Impl::_Storage;
+  using _Storage = typename _Impl::_Simd;
 
   _Storage __s_;
 
@@ -1469,8 +1473,8 @@ public:
 // [simd.mask.class]
 template <class _Tp, class _Abi>
 class simd_mask {
-  using _Impl = __simd_traits<decltype(__choose_mask_type<_Tp>()), _Abi>;
-  using _Storage = typename _Impl::_Storage;
+  using _Impl = __mask_traits<_Tp, _Abi>;
+  using _Storage = typename _Impl::_Mask;
 
   _Storage __s_;
 
@@ -1508,13 +1512,13 @@ public:
   simd_mask(const value_type* __mem, _Flags __f) : __s_(_Impl::__load(__mem, __f)) {}
 
   // loads [simd.mask.copy]
-  template <class _Flags, class = std::enable_if_t<is_simd_flag_type_v<_Flags>>>
-  void copy_from(const value_type* __mem, _Flags __f) {
+  template <class _Flags>
+  std::enable_if_t<is_simd_flag_type_v<_Flags>> copy_from(const value_type* __mem, _Flags __f) {
     __s_ = _Impl::__load(__mem, __f);
   }
 
-  template <class _Flags, class = std::enable_if_t<is_simd_flag_type_v<_Flags>>>
-  void copy_to(value_type* __mem, _Flags __f) const {
+  template <class _Flags>
+  std::enable_if_t<is_simd_flag_type_v<_Flags>> copy_to(value_type* __mem, _Flags __f) const {
     _Impl::__store(__s_, __mem, __f);
   }
 
