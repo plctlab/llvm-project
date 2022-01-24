@@ -32,6 +32,19 @@ constexpr size_t __next_pow_of_2(size_t __val) {
   return __pow;
 }
 
+template <class _Tp>
+auto __choose_mask_type() {
+  if constexpr (sizeof(_Tp) == 1) {
+    return uint8_t{};
+  } else if constexpr (sizeof(_Tp) == 2) {
+    return uint16_t{};
+  } else if constexpr (sizeof(_Tp) == 4) {
+    return uint32_t{};
+  } else if constexpr (sizeof(_Tp) == 8) {
+    return uint64_t{};
+  }
+}
+
 template <class _Tp, int _Np>
 struct __simd_storage_vec_ext {
 #if defined(_LIBCPP_COMPILER_CLANG_BASED)
@@ -46,164 +59,113 @@ struct __simd_storage_vec_ext {
 };
 
 template <class _Tp, int _Np>
-struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
-  using _Storage = __simd_storage_vec_ext<_Tp, _Np>;
+struct __mask_storage_vec_ext : __simd_storage_vec_ext<decltype(__choose_mask_type<_Tp>()), _Np> {};
 
-  static _Storage __broadcast(_Tp __v) noexcept {
+template <class _Tp, int _Np>
+struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
+  using _Simd = __simd_storage_vec_ext<_Tp, _Np>;
+  using _Mask = __mask_storage_vec_ext<_Tp, _Np>;
+
+  static _Simd __broadcast(_Tp __v) noexcept {
     return __generate([=](size_t) { return __v; });
   }
 
   template <class _Generator, size_t... _Is>
-  static _Storage __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
-    // _Storage specified here is to work around GCC
-    return _Storage{{__g(std::integral_constant<size_t, _Is>())...}};
+  static _Simd __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
+    // _Simd specified here is to work around GCC
+    return _Simd{{__g(std::integral_constant<size_t, _Is>())...}};
   }
 
   template <class _Generator>
-  static _Storage __generate(_Generator&& __g) noexcept {
+  static _Simd __generate(_Generator&& __g) noexcept {
     return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Np>());
   }
 
   template <class _Up, class _Flags>
-  static _Storage __load(const _Up* __mem, _Flags) noexcept {
+  static _Simd __load(const _Up* __mem, _Flags) noexcept {
     // TODO: optimized implementation
     return __generate([=](size_t __i) { return static_cast<_Tp>(__mem[__i]); });
   }
 
   template <class _Up, class _Flags>
-  static void __store(_Storage __s, _Up* __mem, _Flags) noexcept {
+  static void __store(_Simd __s, _Up* __mem, _Flags) noexcept {
     // TODO: optimized implementation
     for (size_t __i = 0; __i < _Np; __i++)
       __mem[__i] = static_cast<_Up>(__s.__data[__i]);
   }
 
-  static void __increment(_Storage& __s) noexcept { ++__s.__data; }
+  static void __increment(_Simd& __s) noexcept { ++__s.__data; }
 
-  static void __decrement(_Storage& __s) noexcept { --__s.__data; }
+  static void __decrement(_Simd& __s) noexcept { --__s.__data; }
 
-  static _Storage __negate(_Storage __s) noexcept { return {!__s.__data}; }
+  static _Simd __negate(_Simd __s) noexcept { return {!__s.__data}; }
 
-  static _Storage __bitwise_not(_Storage __s) noexcept { return {~__s.__data}; }
+  static _Simd __bitwise_not(_Simd __s) noexcept { return {~__s.__data}; }
 
-  static _Storage __unary_minus(_Storage __s) noexcept { return {-__s.__data}; }
+  static _Simd __unary_minus(_Simd __s) noexcept { return {-__s.__data}; }
 
-  static _Storage __plus(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data + __rhs.__data}; }
+  static _Simd __plus(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data + __rhs.__data}; }
 
-  static _Storage __minus(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data - __rhs.__data}; }
+  static _Simd __minus(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data - __rhs.__data}; }
 
-  static _Storage __multiplies(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data * __rhs.__data}; }
+  static _Simd __multiplies(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data * __rhs.__data}; }
 
-  static _Storage __divides(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data / __rhs.__data}; }
+  static _Simd __divides(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data / __rhs.__data}; }
 
-  static _Storage __modulus(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data % __rhs.__data}; }
+  static _Simd __modulus(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data % __rhs.__data}; }
 
-  static _Storage __bitwise_and(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
+  static _Simd __bitwise_and(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
 
-  static _Storage __bitwise_or(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
+  static _Simd __bitwise_or(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
 
-  static _Storage __bitwise_xor(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data ^ __rhs.__data}; }
+  static _Simd __bitwise_xor(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data ^ __rhs.__data}; }
 
-  static _Storage __shift_left(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data << __rhs.__data}; }
+  static _Simd __shift_left(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data << __rhs.__data}; }
 
-  static _Storage __shift_right(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data >> __rhs.__data}; }
+  static _Simd __shift_right(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data >> __rhs.__data}; }
 
-  static _Storage __shift_left(_Storage __lhs, int __rhs) noexcept { return {__lhs.__data << __rhs}; }
+  static _Simd __shift_left(_Simd __lhs, int __rhs) noexcept { return {__lhs.__data << __rhs}; }
 
-  static _Storage __shift_right(_Storage __lhs, int __rhs) noexcept { return {__lhs.__data >> __rhs}; }
+  static _Simd __shift_right(_Simd __lhs, int __rhs) noexcept { return {__lhs.__data >> __rhs}; }
 
-  static _Storage __equal_to(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data == __rhs.__data}; }
+  static _Simd __equal_to(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data == __rhs.__data}; }
 
-  static _Storage __not_equal_to(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data != __rhs.__data}; }
+  static _Simd __not_equal_to(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data != __rhs.__data}; }
 
-  static _Storage __less_equal(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data <= __rhs.__data}; }
+  static _Simd __less_equal(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data <= __rhs.__data}; }
 
-  static _Storage __less(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data < __rhs.__data}; }
+  static _Simd __less(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data < __rhs.__data}; }
 
-  static _Storage __logical_and(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
-
-  static _Storage __logical_or(_Storage __lhs, _Storage __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
-
-  static bool __all_of(_Storage __s) noexcept {
-    for (auto __v : __s.__data)
-      if (!__v)
-        return false;
-    return true;
-  }
-
-  static bool __any_of(_Storage __s) noexcept {
-    for (auto __v : __s.__data)
-      if (__v)
-        return true;
-    return false;
-  }
-
-  static bool __none_of(_Storage __s) noexcept {
-    for (auto __v : __s.__data)
-      if (__v)
-        return false;
-    return true;
-  }
-
-  static bool __some_of(_Storage __s) noexcept {
-    for (size_t __i = 1; __i < _Np; ++__i)
-      if (__s[__i] != __s[__i - 1])
-        return true;
-    return false;
-  }
-
-  static int __popcount(_Storage __s) noexcept {
-    int __count = 0;
-    for (auto __v : __s.__data)
-      __count += __v != 0;
-    return __count;
-  }
-
-  static int __find_first_set(_Storage __s) {
-    size_t __i = 0;
-    for (; __i < _Np; ++__i)
-      if (__s.__data[__i])
-        break;
-    return __i;
-  }
-
-  static int __find_last_set(_Storage __s) {
-    size_t __i = _Np - 1;
-    for (; __i != -1; --__i)
-      if (__s.__data[__i])
-        break;
-    return __i;
-  }
-
-  static _Tp __hmin(_Storage __s) {
+  static _Tp __hmin(_Simd __s) {
     _Tp __min = __s.__data[0];
     for (auto __v : __s.__data)
       __min = std::min(__min, __v);
     return __min;
   }
 
-  static _Tp __hmax(_Storage __s) {
+  static _Tp __hmax(_Simd __s) {
     _Tp __max = __s.__data[0];
     for (auto __v : __s.__data)
       __max = std::max(__max, __v);
     return __max;
   }
 
-  static _Storage __min(_Storage __a, _Storage __b) noexcept {
-    _Storage __r;
+  static _Simd __min(_Simd __a, _Simd __b) noexcept {
+    _Simd __r;
     for (size_t __i = 0; __i < _Np; ++__i)
       __r.__data[__i] = std::min(__a.__data[__i], __b.__data[__i]);
     return __r;
   }
 
-  static _Storage __max(_Storage __a, _Storage __b) noexcept {
-    _Storage __r;
+  static _Simd __max(_Simd __a, _Simd __b) noexcept {
+    _Simd __r;
     for (size_t __i = 0; __i < _Np; ++__i)
       __r.__data[__i] = std::max(__a.__data[__i], __b.__data[__i]);
     return __r;
   }
 
-  static std::pair<_Storage, _Storage> __minmax(_Storage __a, _Storage __b) noexcept {
-    _Storage __min, __max;
+  static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
+    _Simd __min, __max;
     for (size_t __i = 0; __i < _Np; ++__i) {
       __min.__data[__i] = std::min(__a.__data[__i], __b.__data[__i]);
       __max.__data[__i] = std::max(__a.__data[__i], __b.__data[__i]);
@@ -211,11 +173,98 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
     return {__min, __max};
   }
 
-  static _Storage __clamp(_Storage __v, _Storage __lo, _Storage __hi) noexcept {
-    _Storage __r;
+  static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {
+    _Simd __r;
     for (size_t __i = 0; __i < _Np; ++__i)
       __r.__data[__i] = std::min(std::max(__v.__data[__i], __lo.__data[__i]), __hi.__data[__i]);
     return __r;
+  }
+};
+
+template <class _Tp, int _Np>
+struct __mask_traits<_Tp, simd_abi::__vec_ext<_Np>> {
+  using _Mask = __mask_storage_vec_ext<_Tp, _Np>;
+
+  static _Mask __broadcast(_Tp __v) noexcept {
+    return __generate([=](size_t) { return __v; });
+  }
+
+  template <class _Up, class _Flags>
+  static _Mask __load(const _Up* __mem, _Flags) noexcept {
+    // TODO: optimized implementation
+    return __generate([=](size_t __i) { return static_cast<_Tp>(__mem[__i]); });
+  }
+
+  template <class _Up, class _Flags>
+  static void __store(_Mask __s, _Up* __mem, _Flags) noexcept {
+    // TODO: optimized implementation
+    for (size_t __i = 0; __i < _Np; __i++)
+      __mem[__i] = static_cast<_Up>(__s.__data[__i]);
+  }
+
+  static _Mask __logical_and(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
+
+  static _Mask __logical_or(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
+
+  static _Mask __bitwise_and(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
+
+  static _Mask __bitwise_or(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
+
+  static _Mask __bitwise_xor(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data ^ __rhs.__data}; }
+
+  static _Mask __equal_to(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data == __rhs.__data}; }
+
+  static _Mask __not_equal_to(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data != __rhs.__data}; }
+
+  static bool __all_of(_Mask __s) noexcept {
+    for (auto __v : __s.__data)
+      if (!__v)
+        return false;
+    return true;
+  }
+
+  static bool __any_of(_Mask __s) noexcept {
+    for (auto __v : __s.__data)
+      if (__v)
+        return true;
+    return false;
+  }
+
+  static bool __none_of(_Mask __s) noexcept {
+    for (auto __v : __s.__data)
+      if (__v)
+        return false;
+    return true;
+  }
+
+  static bool __some_of(_Mask __s) noexcept {
+    for (size_t __i = 1; __i < _Np; ++__i)
+      if (__s[__i] != __s[__i - 1])
+        return true;
+    return false;
+  }
+
+  static int __popcount(_Mask __s) noexcept {
+    int __count = 0;
+    for (auto __v : __s.__data)
+      __count += __v != 0;
+    return __count;
+  }
+
+  static int __find_first_set(_Mask __s) {
+    size_t __i = 0;
+    for (; __i < _Np; ++__i)
+      if (__s.__data[__i])
+        break;
+    return __i;
+  }
+
+  static int __find_last_set(_Mask __s) {
+    size_t __i = _Np - 1;
+    for (; __i != -1; --__i)
+      if (__s.__data[__i])
+        break;
+    return __i;
   }
 };
 
