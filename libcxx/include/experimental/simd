@@ -1097,28 +1097,39 @@ template <class _MaskType, class _Tp>
 class where_expression;
 
 // masked assignment [simd.mask.where]
-// implemented in where_expression / const_where_expression class
 template <class _Tp, class _Abi>
-where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>> where(const typename simd<_Tp, _Abi>::mask_type&,
-                                                              simd<_Tp, _Abi>&) noexcept;
+where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>> where(const typename simd<_Tp, _Abi>::mask_type& __m,
+                                                              simd<_Tp, _Abi>& __v) noexcept {
+  return {__m, __v};
+}
 
 template <class _Tp, class _Abi>
-const_where_expression<simd_mask<_Tp, _Abi>, const simd<_Tp, _Abi>> where(const typename simd<_Tp, _Abi>::mask_type&,
-                                                                          const simd<_Tp, _Abi>&) noexcept;
+const_where_expression<simd_mask<_Tp, _Abi>, const simd<_Tp, _Abi>>
+where(const typename simd<_Tp, _Abi>::mask_type& __m, const simd<_Tp, _Abi>& __v) noexcept {
+  return {__m, const_cast<simd<_Tp, _Abi>&>(__v)};
+}
 
 template <class _Tp, class _Abi>
-where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>> where(const __nodeduce_t<simd_mask<_Tp, _Abi>>&,
-                                                                   simd_mask<_Tp, _Abi>&) noexcept;
+where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>> where(const __nodeduce_t<simd_mask<_Tp, _Abi>>& __m,
+                                                                   simd_mask<_Tp, _Abi>& __v) noexcept {
+  return {__m, __v};
+}
 
 template <class _Tp, class _Abi>
 const_where_expression<simd_mask<_Tp, _Abi>, const simd_mask<_Tp, _Abi>>
-where(const __nodeduce_t<simd_mask<_Tp, _Abi>>&, const simd_mask<_Tp, _Abi>&) noexcept;
+where(const __nodeduce_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>& __v) noexcept {
+  return {__m, const_cast<simd<_Tp, _Abi>&>(__v)};
+}
 
-template <class _Tp>
-where_expression<bool, _Tp> where(bool, _Tp&) noexcept;
+template <class _Tp> // TODO: add SFINAE check here
+where_expression<bool, _Tp> where(bool __m, _Tp& __v) noexcept {
+  return {__m, __v};
+}
 
-template <class _Tp>
-const_where_expression<bool, const _Tp> where(bool, const _Tp&) noexcept;
+template <class _Tp> // TODO: add SFINAE check here
+const_where_expression<bool, const _Tp> where(bool __m, const _Tp& __v) noexcept {
+  return {__m, const_cast<_Tp&>(__v)};
+}
 
 // reductions [simd.reductions]
 template <class _Tp, class _Abi, class _BinaryOp = std::plus<_Tp>>
@@ -1165,18 +1176,26 @@ template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>&);
 
 // algorithms [simd.alg]
-// implemented in simd class
 template <class _Tp, class _Abi>
-simd<_Tp, _Abi> min(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&) noexcept;
+simd<_Tp, _Abi> min(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
+  return __simd_traits<_Tp, _Abi>::__min(__a.__s_, __b.__s_);
+}
 
 template <class _Tp, class _Abi>
-simd<_Tp, _Abi> max(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&) noexcept;
+simd<_Tp, _Abi> max(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
+  return __simd_traits<_Tp, _Abi>::__max(__a.__s_, __b.__s_);
+}
 
 template <class _Tp, class _Abi>
-std::pair<simd<_Tp, _Abi>, simd<_Tp, _Abi>> minmax(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&) noexcept;
+std::pair<simd<_Tp, _Abi>, simd<_Tp, _Abi>> minmax(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
+  auto [__min, __max] = __simd_traits<_Tp, _Abi>::__min(__a.__s_, __b.__s_);
+  return {__min, __max};
+}
 
 template <class _Tp, class _Abi>
-simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&);
+simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>& __v, const simd<_Tp, _Abi>& __lo, const simd<_Tp, _Abi>& __hi) {
+  return __simd_traits<_Tp, _Abi>::__clamp(__v.__s_, __lo.__s_, __hi.__s_);
+}
 
 // [simd.whereexpr]
 template <class _MaskType, class _SimdType>
@@ -1187,17 +1206,9 @@ protected:
   const _MaskType& __m_;
   _SimdType& __v_;
 
-  friend const_where_expression where(const _MaskType& __m, const _SimdType& __v) noexcept {
-    return {__m, const_cast<_SimdType&>(__v)};
-  }
-
-  friend const_where_expression where(const __nodeduce_t<_MaskType>& __m, const _SimdType& __v) noexcept {
-    return {__m, const_cast<_SimdType&>(__v)};
-  }
-
-  friend const_where_expression where(bool __m, const _SimdType& __v) noexcept {
-    return {__m, const_cast<_SimdType&>(__v)};
-  }
+  friend const_where_expression where<>(const _MaskType&, const _SimdType&) noexcept;
+  friend const_where_expression where<>(const __nodeduce_t<_MaskType>&, const _SimdType&) noexcept;
+  friend const_where_expression where<>(bool, const _SimdType&) noexcept;
 
 public:
   const_where_expression(const const_where_expression&) = delete;
@@ -1213,11 +1224,9 @@ public:
 
 template <class _MaskType, class _SimdType>
 class where_expression : public const_where_expression<_MaskType, _SimdType> {
-  friend where_expression where(const _MaskType& __m, _SimdType& __v) noexcept { return {__m, __v}; }
-
-  friend where_expression where(const __nodeduce_t<_MaskType>& __m, _SimdType& __v) noexcept { return {__m, __v}; }
-
-  friend where_expression where(bool __m, _SimdType& __v) noexcept { return {__m, __v}; }
+  friend where_expression where<>(const _MaskType&, _SimdType&) noexcept;
+  friend where_expression where<>(const __nodeduce_t<_MaskType>&, _SimdType&) noexcept;
+  friend where_expression where<>(bool, _SimdType&) noexcept;
 
 public:
   where_expression(const where_expression&) = delete;
@@ -1284,18 +1293,10 @@ class simd {
   template <class _MaskType, class _SimdType>
   friend class where_expression;
 
-  friend simd min(const simd& __a, const simd& __b) noexcept { return _Impl::__min(__a.__s_, __b.__s_); }
-
-  friend simd max(const simd& __a, const simd& __b) noexcept { return _Impl::__max(__a.__s_, __b.__s_); }
-
-  friend std::pair<simd, simd> minmax(const simd& __a, const simd& __b) noexcept {
-    auto [__min, __max] = _Impl::__min(__a.__s_, __b.__s_);
-    return {__min, __max};
-  }
-
-  friend simd clamp(const simd& __v, const simd& __lo, const simd& __hi) {
-    return _Impl::__clamp(__v.__s_, __lo.__s_, __hi.__s_);
-  }
+  friend simd min<>(const simd&, const simd&) noexcept;
+  friend simd max<>(const simd&, const simd&) noexcept;
+  friend std::pair<simd, simd> minmax<>(const simd&, const simd&) noexcept;
+  friend simd clamp<>(const simd&, const simd&, const simd&);
 
 public:
   using value_type = _Tp;
