@@ -72,6 +72,11 @@ public:
   // The file from which this symbol was created.
   InputFile *file;
 
+  bool operator==(const Symbol& other)
+{
+    return getVA() == other.getVA() && getName() == other.getName();
+}
+
 protected:
   const char *nameData;
   mutable uint32_t nameSize;
