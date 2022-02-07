@@ -656,7 +656,7 @@ public:
 #include <__simd/abi/all.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 _LIBCPP_PUSH_MACROS
@@ -1042,37 +1042,37 @@ simd_mask<_Tp, abi_for_size_t<_Tp, __variadic_sum(simd_size_v<_Tp, _Abis>...)>> 
 // reductions [simd.mask.reductions]
 template <class _Tp, class _Abi>
 bool all_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
-  return __mask_traits<_Tp, _Abi>::__all_of(__m);
+  return __mask_traits<_Tp, _Abi>::__all_of(__m.__s_);
 }
 
 template <class _Tp, class _Abi>
 bool any_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
-  return __mask_traits<_Tp, _Abi>::__any_of(__m);
+  return __mask_traits<_Tp, _Abi>::__any_of(__m.__s_);
 }
 
 template <class _Tp, class _Abi>
 bool none_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
-  return __mask_traits<_Tp, _Abi>::__none_of(__m);
+  return __mask_traits<_Tp, _Abi>::__none_of(__m.__s_);
 }
 
 template <class _Tp, class _Abi>
 bool some_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
-  return __mask_traits<_Tp, _Abi>::__some_of(__m);
+  return __mask_traits<_Tp, _Abi>::__some_of(__m.__s_);
 }
 
 template <class _Tp, class _Abi>
 int popcount(const simd_mask<_Tp, _Abi>& __m) noexcept {
-  return __mask_traits<_Tp, _Abi>::__popcount(__m);
+  return __mask_traits<_Tp, _Abi>::__popcount(__m.__s_);
 }
 
 template <class _Tp, class _Abi>
 int find_first_set(const simd_mask<_Tp, _Abi>& __m) {
-  return __mask_traits<_Tp, _Abi>::__find_first_set(__m);
+  return __mask_traits<_Tp, _Abi>::__find_first_set(__m.__s_);
 }
 
 template <class _Tp, class _Abi>
 int find_last_set(const simd_mask<_Tp, _Abi>& __m) {
-  return __mask_traits<_Tp, _Abi>::__find_last_set(__m);
+  return __mask_traits<_Tp, _Abi>::__find_last_set(__m.__s_);
 }
 
 bool all_of(bool __v) noexcept { return __v; }
@@ -1488,6 +1488,14 @@ class simd_mask {
 
   template <class _MaskType, class _SimdType>
   friend class where_expression;
+
+  friend bool all_of<>(const simd_mask&) noexcept;
+  friend bool any_of<>(const simd_mask&) noexcept;
+  friend bool none_of<>(const simd_mask&) noexcept;
+  friend bool some_of<>(const simd_mask&) noexcept;
+  friend int popcount<>(const simd_mask&) noexcept;
+  friend int find_first_set<>(const simd_mask&);
+  friend int find_last_set<>(const simd_mask&);
 
 public:
   using value_type = bool;
