@@ -962,6 +962,7 @@ template <class _Tp, int _Np>
 using fixed_size_simd_mask = simd_mask<_Tp, simd_abi::fixed_size<_Np>>;
 
 // casts [simd.casts]
+// TODO: implement
 template <class _Tp>
 struct __static_simd_cast_traits {
   template <class _Up, class _Abi>
@@ -1164,6 +1165,7 @@ _Tp hmin(const simd<_Tp, _Abi>& __s) {
   return __simd_traits<_Tp, _Abi>::__hmin(__s);
 }
 
+// TODO: implement
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>&);
 
@@ -1172,6 +1174,7 @@ _Tp hmax(const simd<_Tp, _Abi>& __s) {
   return __simd_traits<_Tp, _Abi>::__hmax(__s);
 }
 
+// TODO: implement
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>&);
 
@@ -1245,6 +1248,7 @@ public:
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __to_value_type(std::forward<_Tp>(__v)));
   }
 
+  // TODO: implement
   template <class _Tp>
   void operator+=(_Tp&&);
 
