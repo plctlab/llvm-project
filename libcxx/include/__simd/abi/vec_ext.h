@@ -179,6 +179,19 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
       __r.__data[__i] = std::min(std::max(__v.__data[__i], __lo.__data[__i]), __hi.__data[__i]);
     return __r;
   }
+
+  static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept {
+    _Simd __r;
+    for (size_t __i = 0; __i < _Np; ++__i)
+      __r.__data[__i] = __m.__data[__i] ? -__s.__data[__i] : __s.__data[__i];
+    return __r;
+  }
+
+  static _Simd __masked_assign(_Simd& __s, _Mask __m, _Tp __v) noexcept {
+    for (size_t __i = 0; __i < _Np; ++__i)
+      __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
+    return __s;
+  }
 };
 
 template <class _Tp, int _Np>

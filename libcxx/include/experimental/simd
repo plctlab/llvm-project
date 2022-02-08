@@ -1099,36 +1099,36 @@ class where_expression;
 // masked assignment [simd.mask.where]
 template <class _Tp, class _Abi>
 where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>> where(const typename simd<_Tp, _Abi>::mask_type& __m,
-                                                              simd<_Tp, _Abi>& __v) noexcept {
-  return {__m, __v};
+                                                              simd<_Tp, _Abi>& __s) noexcept {
+  return {__m, __s};
 }
 
 template <class _Tp, class _Abi>
 const_where_expression<simd_mask<_Tp, _Abi>, const simd<_Tp, _Abi>>
-where(const typename simd<_Tp, _Abi>::mask_type& __m, const simd<_Tp, _Abi>& __v) noexcept {
-  return {__m, const_cast<simd<_Tp, _Abi>&>(__v)};
+where(const typename simd<_Tp, _Abi>::mask_type& __m, const simd<_Tp, _Abi>& __s) noexcept {
+  return {__m, const_cast<simd<_Tp, _Abi>&>(__s)};
 }
 
 template <class _Tp, class _Abi>
 where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>> where(const __nodeduce_t<simd_mask<_Tp, _Abi>>& __m,
-                                                                   simd_mask<_Tp, _Abi>& __v) noexcept {
-  return {__m, __v};
+                                                                   simd_mask<_Tp, _Abi>& __s) noexcept {
+  return {__m, __s};
 }
 
 template <class _Tp, class _Abi>
 const_where_expression<simd_mask<_Tp, _Abi>, const simd_mask<_Tp, _Abi>>
-where(const __nodeduce_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>& __v) noexcept {
-  return {__m, const_cast<simd<_Tp, _Abi>&>(__v)};
+where(const __nodeduce_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>& __s) noexcept {
+  return {__m, const_cast<simd<_Tp, _Abi>&>(__s)};
 }
 
 template <class _Tp> // TODO: add SFINAE check here
-where_expression<bool, _Tp> where(bool __m, _Tp& __v) noexcept {
-  return {__m, __v};
+where_expression<bool, _Tp> where(bool __m, _Tp& __s) noexcept {
+  return {__m, __s};
 }
 
 template <class _Tp> // TODO: add SFINAE check here
-const_where_expression<bool, const _Tp> where(bool __m, const _Tp& __v) noexcept {
-  return {__m, const_cast<_Tp&>(__v)};
+const_where_expression<bool, const _Tp> where(bool __m, const _Tp& __s) noexcept {
+  return {__m, const_cast<_Tp&>(__s)};
 }
 
 // reductions [simd.reductions]
@@ -1200,23 +1200,21 @@ simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>& __v, const simd<_Tp, _Abi>& __lo, c
 // [simd.whereexpr]
 template <class _MaskType, class _SimdType>
 class const_where_expression {
-protected:
   using _Impl = typename _SimdType::_Impl;
-
-  const _MaskType& __m_;
-  _SimdType& __v_;
 
   friend const_where_expression where<>(const _MaskType&, const _SimdType&) noexcept;
   friend const_where_expression where<>(const __nodeduce_t<_MaskType>&, const _SimdType&) noexcept;
   friend const_where_expression where<>(bool, const _SimdType&) noexcept;
 
+protected:
+  const _MaskType& __m_;
+  _SimdType& __s_;
+
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
 
-  remove_const_t<_SimdType> operator-() const&& {
-    // TODO
-  }
+  remove_const_t<_SimdType> operator-() const&& { return _Impl::__masked_unary_minus(__s_.__s_, __m_.__s_); }
 
   template <class _Tp, class _Flags>
   void copy_to(_Tp*, _Flags) const&&;
@@ -1224,16 +1222,28 @@ public:
 
 template <class _MaskType, class _SimdType>
 class where_expression : public const_where_expression<_MaskType, _SimdType> {
+  using _Impl = typename _SimdType::_Impl;
+
+  using const_where_expression<_MaskType, _SimdType>::__m_;
+  using const_where_expression<_MaskType, _SimdType>::__s_;
+
   friend where_expression where<>(const _MaskType&, _SimdType&) noexcept;
   friend where_expression where<>(const __nodeduce_t<_MaskType>&, _SimdType&) noexcept;
   friend where_expression where<>(bool, _SimdType&) noexcept;
+
+  template <class _Tp>
+  typename _SimdType::value_type __to_value_type(_Tp&& __v) const {
+    return static_cast<typename _SimdType::value_type>(std::forward<_Tp>(__v));
+  }
 
 public:
   where_expression(const where_expression&) = delete;
   where_expression& operator=(const where_expression&) = delete;
 
   template <class _Tp>
-  void operator=(_Tp&&);
+  void operator=(_Tp&& __v) {
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __to_value_type(std::forward<_Tp>(__v)));
+  }
 
   template <class _Tp>
   void operator+=(_Tp&&);
