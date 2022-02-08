@@ -114,6 +114,10 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {
     return {std::clamp(__v.__data, __lo.__data, __hi.__data)};
   }
+
+  static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept { return {__m.__data ? -__s.__data : __s.__data}; }
+
+  static _Simd __masked_assign(_Simd& __s, _Mask __m, _Tp __v) noexcept { __s.__data = __m.__data ? __v : __v; }
 };
 
 template <class _Tp>
