@@ -18,20 +18,19 @@
 #include <cassert>
 
 #include "test_macros.h"
+#include "../test_util.h"
 
 namespace ex = std::experimental::parallelism_v2;
 
 template <class T, class... Args>
 auto not_supported_native_simd_ctor(Args&&... args)
-    -> decltype(ex::native_simd<T>(std::forward<Args>(args)...),
-                void()) = delete;
+    -> decltype(ex::native_simd<T>(std::forward<Args>(args)...), void()) = delete;
 
 template <class T>
 void not_supported_native_simd_ctor(...) {}
 
 template <class T, class... Args>
-auto supported_native_simd_ctor(Args&&... args)
-    -> decltype(ex::native_simd<T>(std::forward<Args>(args)...), void()) {}
+auto supported_native_simd_ctor(Args&&... args) -> decltype(ex::native_simd<T>(std::forward<Args>(args)...), void()) {}
 
 template <class T>
 void supported_native_simd_ctor(...) = delete;
@@ -70,18 +69,18 @@ void compile_unsigned() {
   supported_native_simd_ctor<uint16_t>(3u);
 }
 
-template <typename SimdType>
-void test_broadcast() {
-  SimdType a(3);
-  for (size_t i = 0; i < a.size(); i++) {
-    assert(a[i] == 3);
+struct test_broadcast {
+  template <typename SimdType>
+  void operator()() {
+    SimdType a(3);
+    for (size_t i = 0; i < a.size(); i++) {
+      assert(a[i] == 3);
+    }
   }
-}
+};
 
 int main(int, char**) {
-  test_broadcast<ex::native_simd<int>>();
-  test_broadcast<ex::fixed_size_simd<int, 4>>();
-  test_broadcast<ex::fixed_size_simd<int, 15>>();
+  test_all_simd<test_broadcast>();
 
   return 0;
 }
