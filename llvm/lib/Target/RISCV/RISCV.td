@@ -306,15 +306,59 @@ def FeatureExtZceb
 def HasStdExtZceb : Predicate<"Subtarget->hasStdExtZceb() && !Subtarget->hasStdExtD()">,
                            AssemblerPredicate<(all_of FeatureExtZceb, (not FeatureStdExtD)),
                            "'Zceb' (reuses encoding from the D-extension, incompatible with D v0.50)">;
-def FeatureStdExtZce
-    : SubtargetFeature<"experimental-zce", "HasStdExtZce", "true",
-                       "'Zce' (code-size reduction extension proposal v0.50)",
-                       [FeatureExtZcea,
-                        FeatureExtZceb]>;
-def HasStdExtZce : Predicate<"Subtarget->hasStdExtZce()">,
-                           AssemblerPredicate<(all_of FeatureStdExtZce),
-                           "'Zce' (code-size reduction extension proposal v0.50)">;
-def NotHasStdExtD : Predicate<"!Subtarget->hasStdExtD()">;
+
+def FeatureExtZca
+    : SubtargetFeature<"experimental-zca", "HasStdExtZca", "true",
+                       "'Zca' (part of the C extension, excluding all 16-bit floating point loads and stores)">;
+def HasStdExtZca : Predicate<"Subtarget->hasStdExtZca()">,
+                           AssemblerPredicate<(all_of FeatureExtZca),
+                           "'Zca' (part of the C extension, excluding all 16-bit floating point loads and stores)">;
+
+def FeatureExtZcb
+    : SubtargetFeature<"experimental-zcb", "HasStdExtZcb", "true",
+                       "'Zcb' (TODO)", 
+                       [FeatureExtZca]>;
+def HasStdExtZcb : Predicate<"Subtarget->hasStdExtZcb()">,
+                           AssemblerPredicate<(all_of FeatureExtZcb),
+                           "'Zcb' (TODO)">;
+
+def FeatureExtZcf
+    : SubtargetFeature<"experimental-zcf", "HasStdExtZcf", "true",
+                       "'Zcf' (single precision floating point loads and stores)">;
+def HasStdExtZcf : Predicate<"Subtarget->hasStdExtZcf()">,
+                           AssemblerPredicate<(all_of FeatureExtZcf),
+                           "'Zcf' (single precision floating point loads and stores)">;
+
+def FeatureExtZcmb
+    : SubtargetFeature<"experimental-zcmb", "HasStdExtZcmb", "true",
+                       "'Zcmb' (16-bit versions of existing 32-bit load/store instructions.)", 
+                       [FeatureExtZcb]>;
+def HasStdExtZcmb : Predicate<"Subtarget->hasStdExtZcmb() && !Subtarget->hasStdExtC()">,
+                           AssemblerPredicate<(all_of FeatureExtZcmb, (not FeatureStdExtC)),
+                           "'Zcmb' (16-bit versions of existing 32-bit load/store instructions.)">;
+
+def FeatureExtZcmp
+    : SubtargetFeature<"experimental-zcmp", "HasStdExtZcmp", "true",
+                       "'Zcmp' (sequenced instuctions for code-size reduction.)", 
+                       [FeatureExtZca]>;
+def HasStdExtZcmp : Predicate<"Subtarget->hasStdExtZcmp() && !Subtarget->hasStdExtC()">,
+                           AssemblerPredicate<(all_of FeatureExtZcmp, (not FeatureStdExtC)),
+                           "'Zcmp' (sequenced instuctions for code-size reduction.)">;
+
+def FeatureExtZcmpe
+    : SubtargetFeature<"experimental-zcmpe", "HasStdExtZcmpe", "true",
+                       "'Zcmpe' (EABI support of Zcmp)", 
+                       [FeatureExtZca]>;
+def HasStdExtZcmpe : Predicate<"Subtarget->hasStdExtZcmpe() && !Subtarget->hasStdExtC()">,
+                           AssemblerPredicate<(all_of FeatureExtZcmpe, (not FeatureStdExtC)),
+                           "'Zcmpe' (EABI support of Zcmp)">;
+            
+def FeatureExtZcmt
+    : SubtargetFeature<"experimental-zcmt", "HasStdExtZcmt", "true",
+                       "'Zcmt' (table jump instuctions for code-size reduction)">;
+def HasStdExtZcmt : Predicate<"Subtarget->hasStdExtZcmt() && !Subtarget->hasStdExtC()">,
+                           AssemblerPredicate<(all_of FeatureExtZcmt, (not FeatureStdExtC)),
+                           "'Zcmt' (table jump instuctions for code-size reduction)">;
 
 def FeatureNoRVCHints
     : SubtargetFeature<"no-rvc-hints", "EnableRVCHintInstrs", "false",

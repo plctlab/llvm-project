@@ -53,6 +53,13 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   bool HasStdExtZcea = false;
   bool HasStdExtZceb = false;
   bool HasStdExtZcee = false;
+  bool HasStdExtZca = false;
+  bool HasStdExtZcb = false;
+  bool HasStdExtZcf = false;
+  bool HasStdExtZcmb = false;
+  bool HasStdExtZcmp = false;
+  bool HasStdExtZcmpe = false;
+  bool HasStdExtZcmt = false;
   bool HasStdExtV = false;
   bool HasStdExtZvlsseg = false;
   bool HasStdExtZvamo = false;
@@ -145,6 +152,13 @@ public:
   bool hasStdExtZcee() const { return HasStdExtZcee; }
   bool hasStdExtZbt() const { return HasStdExtZbt; }
   bool hasStdExtZce() const { return HasStdExtZce; }
+  bool hasStdExtZca() const { return HasStdExtZca; }
+  bool hasStdExtZcb() const { return HasStdExtZcb; }
+  bool hasStdExtZcf() const { return HasStdExtZcf; }
+  bool hasStdExtZcmb() const { return HasStdExtZcmb; }
+  bool hasStdExtZcmp() const { return HasStdExtZcmp; }
+  bool hasStdExtZcmpe() const { return HasStdExtZcmpe; }
+  bool hasStdExtZcmt() const { return HasStdExtZcmt; }
   bool hasStdExtV() const { return HasStdExtV; }
   bool hasStdExtZvlsseg() const { return HasStdExtZvlsseg; }
   bool hasStdExtZvamo() const { return HasStdExtZvamo; }
