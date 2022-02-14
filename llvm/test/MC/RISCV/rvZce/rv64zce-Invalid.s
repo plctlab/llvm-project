@@ -10,24 +10,6 @@ tblj 56
 # CHECK-ERROR: error: immediate must be an integer in the range [0, 191]
 tbljal 192
 
-# CHECK-ERROR: error: immediate must be an integer in the range [0, 15]
-c.lbu a5, 16(a4)
-
-# CHECK-ERROR: error: immediate must be a multiple of 2 bytes in the range [0, 30]
-c.lhu a5, 31(a4)
-
-# CHECK-ERROR: error: immediate must be an integer in the range [0, 15]
-c.lb a5, 16(a4)
-
-# CHECK-ERROR: error: immediate must be a multiple of 2 bytes in the range [0, 30]
-c.lh a5, 31(a4)
-
-# CHECK-ERROR: error: immediate must be an integer in the range [0, 15]
-c.sb a5, 16(a4)
-
-# CHECK-ERROR: error: immediate must be a multiple of 2 bytes in the range [0, 30]
-c.sh a5, 31(a4)
-
 # CHECK-ERROR: error: operand must be a symbol with %lo modifier or an multiple of 4 bytes integer in the range [-32768, 32764]
 lwgp s0, %hi(foo)(gp)
 

@@ -31,20 +31,10 @@ public:
     // zcea
     optimisItionMap[RISCV::XORI] = RISCV::C_NOT_ZCE;
     optimisItionMap[RISCV::SUB] = RISCV::C_NEG_ZCE;
-    //zceb
-    optimisItionMap[RISCV::LBU] = RISCV::C_LBU;
-    optimisItionMap[RISCV::LHU] = RISCV::C_LHU;
-    optimisItionMap[RISCV::LB] = RISCV::C_LB;
-    optimisItionMap[RISCV::LH] = RISCV::C_LH;
-    optimisItionMap[RISCV::SB] = RISCV::C_SB;
-    optimisItionMap[RISCV::SH] = RISCV::C_SH;
   }
 
   bool runOnMachineFunction(MachineFunction &MF) override;
   bool optimiseZceaInstruction(MachineBasicBlock &MBB,
-                               MachineBasicBlock::iterator MBBI,
-                               MachineBasicBlock::iterator &NextMBBI);
-  bool optimiseZcebInstruction(MachineBasicBlock &MBB,
                                MachineBasicBlock::iterator MBBI,
                                MachineBasicBlock::iterator &NextMBBI);
 };
@@ -59,7 +49,7 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
 
   if (!(STI->enableZceCMul() || STI->enableZceZext() || STI->enableZceSext() ||
         STI->enableZceCNot() || STI->enableZceMuli() || STI->enableZceCMul() ||
-        STI->hasStdExtZceb() || STI->enableZceCNeg() || STI->enableZceClbhu() ||
+        STI->enableZceCNeg() || STI->enableZceClbhu() ||
         STI->enableZceClbh() || STI->enableZceCsbh() || STI->enableZcePushPop()))
     return Modified;
 
@@ -77,21 +67,6 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
       case RISCV::SUB:  // c.neg
         if (STI->enableZceCNeg())
           Modified |= optimiseZceaInstruction(MBB, MBBI, NMBBI);
-        break;
-      case RISCV::LBU:
-      case RISCV::LHU:
-        if (STI->enableZceClbhu())
-          Modified |= optimiseZcebInstruction(MBB, MBBI, NMBBI);
-        break;
-      case RISCV::LB:
-      case RISCV::LH:
-        if (STI->enableZceClbh())
-          Modified |= optimiseZcebInstruction(MBB, MBBI, NMBBI);
-        break;
-      case RISCV::SB:
-      case RISCV::SH:
-        if (STI->enableZceCsbh())
-          Modified |= optimiseZcebInstruction(MBB, MBBI, NMBBI);
         break;
       }
       MBBI = NMBBI;
@@ -135,56 +110,6 @@ bool RISCVZceInstOpt::optimiseZceaInstruction(
           (SourceReg >= RISCV::X8 && SourceReg <= RISCV::X15)) {
         BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
             .addReg(SourceReg);
-        MBBI->eraseFromParent();
-        Modified = true;
-      }
-    }
-    break;
-  }
-
-  return Modified;
-}
-
-bool RISCVZceInstOpt::optimiseZcebInstruction(
-    MachineBasicBlock &MBB, MachineBasicBlock::iterator MBBI,
-    MachineBasicBlock::iterator &NextMBBI) {
-  
-  bool Modified = false;
-  switch (MBBI->getOpcode()) {
-  default:
-    break;
-  case RISCV::LBU:
-  case RISCV::LHU:
-  case RISCV::LB:
-  case RISCV::LH:
-    if (!STI->isRV32E()) {
-      Register DestReg = MBBI->getOperand(0).getReg();
-      Register SourceReg = MBBI->getOperand(1).getReg();
-      int64_t imm = MBBI->getOperand(2).getImm();
-      DebugLoc DL = MBBI->getDebugLoc();
-      if ((DestReg >= RISCV::X8 && DestReg <= RISCV::X15) &&
-          (SourceReg >= RISCV::X8 && SourceReg <= RISCV::X15)) {
-        BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]), DestReg)
-            .addReg(SourceReg)
-            .addImm(imm);
-        MBBI->eraseFromParent();
-        Modified = true;
-      }
-    }
-    break;
-  case RISCV::SB:
-  case RISCV::SH:
-    if (!STI->isRV32E()) {
-      Register DestReg = MBBI->getOperand(0).getReg();
-      Register SourceReg = MBBI->getOperand(1).getReg();
-      int64_t imm = MBBI->getOperand(2).getImm();
-      DebugLoc DL = MBBI->getDebugLoc();
-      if ((DestReg >= RISCV::X8 && DestReg <= RISCV::X15) &&
-          (SourceReg >= RISCV::X8 && SourceReg <= RISCV::X15)) {
-        BuildMI(MBB, MBBI, DL, TII->get(optimisItionMap[MBBI->getOpcode()]))
-            .addReg(DestReg)
-            .addReg(SourceReg)
-            .addImm(imm);
         MBBI->eraseFromParent();
         Modified = true;
       }

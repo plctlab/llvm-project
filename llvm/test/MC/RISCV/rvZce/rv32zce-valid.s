@@ -291,28 +291,3 @@ push {ra, s0-s1}, {}, -112
 # CHECK-ASM: encoding: [0x2b,0x40,0x0d,0x00]
 push.e {ra, s0-s2}, {}, -16
 
-# CHECK-ASM-AND-OBJ: c.lbu a5, 10(a4)
-# CHECK-ASM: encoding: [0x3c,0x27]
-c.lbu a5, 10(a4)
-
-# CHECK-ASM-AND-OBJ: c.lhu a5, 10(a4)
-# CHECK-ASM: encoding: [0x3c,0x37]
-c.lhu a5, 10(a4)
-
-# CHECK-ASM-AND-OBJ: c.lb a5, 10(a4)
-# CHECK-ASM: encoding: [0x3e,0x27]
-c.lb a5, 10(a4)
-
-# CHECK-ASM-AND-OBJ: c.lh a5, 10(a4)
-# CHECK-ASM: encoding: [0x3e,0x37]
-c.lh a5, 10(a4)
-
-# CHECK-ASM-AND-OBJ: c.sb a5, 10(a4)
-# CHECK-ASM: encoding: [0x3c,0xa7]
-c.sb a5, 10(a4)
-
-# CHECK-ASM-AND-OBJ: c.sh a5, 10(a4)
-# CHECK-ASM: encoding: [0x3c,0xb7]
-c.sh a5, 10(a4)
-
-# comments

@@ -19,6 +19,19 @@ include "RISCVInstrFormatsZce.td"
 // Operand and SDNode transformation definitions.
 //===----------------------------------------------------------------------===//
 
+def uimm2_lsb0 : Operand<XLenVT>,
+                 ImmLeaf<XLenVT, [{return isShiftedUInt<1, 1>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<2, "Lsb0">;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeUImmOperand<2>";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return isShiftedUInt<1, 1>(Imm);
+  }];
+}
+
 def uimm4 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<4>;
   let EncoderMethod = "getImmOpValue";
@@ -661,10 +674,56 @@ def SDGP : ZceGPStore<0b010, 0b011, "sdgp", simm17_lsb000>, Sched<[]> {
   let Inst{9} = imm{16};
 }
 
-// 7.3. C.LBU, C.LHU, C.LB, C.LH, C.SB, C.SH
-let Predicates = [EnableZceClbhu] in {
+// C.LBU, C.LHU, C.LH, C.SB, C.SH
+let Predicates = [HasStdExtZcb] in {
+def C_LBU : ZceLoad_ri<0b100, 0b00, "c.lbu", GPRC, uimm2>,
+          Sched<[]> {
+bits<2> imm;
 
-def C_LBU : ZceLoad_ri<0b001, 0b00, "c.lbu", GPRC, uimm4>,
+let Inst{12-10} = 0b000;
+let Inst{6-5} = imm{0,1};
+}
+
+def C_LHU : ZceLoad_ri<0b100, 0b00, "c.lhu", GPRC, uimm2_lsb0>,
+          Sched<[]> {
+bits<2> imm;
+
+let Inst{12-10} = 0b001;
+let Inst{6} = 0b0;
+let Inst{5} = imm{1};
+}
+
+def C_LH : ZceLoad_ri<0b100, 0b00, "c.lh", GPRC, uimm2_lsb0>,
+          Sched<[]> {
+bits<2> imm;
+
+let Inst{12-10} = 0b001;
+let Inst{6} = 0b1;
+let Inst{5} = imm{1};
+}
+
+def C_SB : ZceStore_ri<0b100, 0b00, "c.sb", GPRC, uimm2>,
+          Sched<[]> {
+  bits<2> imm;
+
+  let Inst{12-10} = 0b010;
+  let Inst{6-5} = imm{0,1};
+}
+
+def C_SH : ZceStore_ri<0b100, 0b00, "c.sh", GPRC, uimm2_lsb0>,
+          Sched<[]> {
+  bits<2> imm;
+
+  let Inst{12-10} = 0b011;
+  let Inst{6} = 0b1;
+  let Inst{5} = imm{1};
+}
+}
+
+// CM.LBU, CM.LHU, CM.LB, CM.LH, CM.SB, CM.SH
+let Predicates = [HasStdExtZcmb] in {
+
+def CM_LBU : ZceLoad_ri<0b001, 0b10, "cm.lbu", GPRC, uimm4>,
            Sched<[]> {
   bits<4> imm;
   let Inst{12} = 0;
@@ -672,7 +731,7 @@ def C_LBU : ZceLoad_ri<0b001, 0b00, "c.lbu", GPRC, uimm4>,
   let Inst{6-5} = imm{2-1};
 }
 
-def C_LHU : ZceLoad_ri<0b001, 0b00, "c.lhu", GPRC, uimm5_lsb0>,
+def CM_LHU : ZceLoad_ri<0b001, 0b10, "cm.lhu", GPRC, uimm5_lsb0>,
            Sched<[]> {
   bits<5> imm;
   let Inst{12} = 1;
@@ -680,11 +739,7 @@ def C_LHU : ZceLoad_ri<0b001, 0b00, "c.lhu", GPRC, uimm5_lsb0>,
   let Inst{6-5} = imm{2-1};
 }
 
-}
-
-let Predicates = [EnableZceClbh] in {
-
-def C_LB : ZceLoad_ri<0b001, 0b10, "c.lb", GPRC, uimm4>,
+def CM_LB : ZceLoad_ri<0b001, 0b00, "cm.lb", GPRC, uimm4>,
           Sched<[]> {
   bits<4> imm;
   let Inst{12} = 0;
@@ -692,7 +747,7 @@ def C_LB : ZceLoad_ri<0b001, 0b10, "c.lb", GPRC, uimm4>,
   let Inst{6-5} = imm{2-1};
 }
 
-def C_LH : ZceLoad_ri<0b001, 0b10, "c.lh", GPRC, uimm5_lsb0>,
+def CM_LH : ZceLoad_ri<0b001, 0b00, "cm.lh", GPRC, uimm5_lsb0>,
           Sched<[]> {
   bits<5> imm;
   let Inst{12} = 1;
@@ -700,11 +755,7 @@ def C_LH : ZceLoad_ri<0b001, 0b10, "c.lh", GPRC, uimm5_lsb0>,
   let Inst{6-5} = imm{2-1};
 }
 
-}
-
-let Predicates = [EnableZceCsbh] in {
-
-def C_SB : ZceStore_ri<0b101, 0b00, "c.sb", GPRC, uimm4>,
+def CM_SB : ZceStore_ri<0b101, 0b00, "cm.sb", GPRC, uimm4>,
           Sched<[]> {
   bits<4> imm;
   let Inst{12} = 0;
@@ -712,7 +763,7 @@ def C_SB : ZceStore_ri<0b101, 0b00, "c.sb", GPRC, uimm4>,
   let Inst{6-5} = imm{2-1};
 }
 
-def C_SH : ZceStore_ri<0b101, 0b00, "c.sh", GPRC, uimm5_lsb0>,
+def CM_SH : ZceStore_ri<0b101, 0b00, "cm.sh", GPRC, uimm5_lsb0>,
           Sched<[]> {
   bits<5> imm;
   let Inst{12} = 1;
@@ -778,31 +829,47 @@ def : CompressPat<(SUB GPRC:$rs1, X0, GPRC:$rs1),
                   (C_NEG_ZCE GPRC:$rs1, GPRC:$rs1)>;
 }
 
+let Predicates = [HasStdExtZcb] in{
 //c.lbu  c.lhu
-let Predicates = [EnableZceClbhu ] in{
-def : CompressPat<(LBU  GPRC:$rd, GPRC:$rs1, uimm4:$imm),
-                  (C_LBU GPRC:$rd, GPRC:$rs1, uimm4:$imm)>;
+// def : CompressPat<(LBU  GPRC:$rd, GPRC:$rs1, uimm2:$imm),
+//                   (C_LBU GPRC:$rd, GPRC:$rs1, uimm2:$imm)>;
 
-def : CompressPat<(LHU  GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm),
-                  (C_LHU GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm)>;
-}// Predicates = [EnableZceClbhu]
+def : CompressPat<(LHU  GPRC:$rd, GPRC:$rs1, uimm2_lsb0:$imm),
+                  (C_LHU GPRC:$rd, GPRC:$rs1, uimm2_lsb0:$imm)>;
 
-//c.lb  c.lh
-let Predicates = [EnableZceClbh] in{
-def : CompressPat<(LB  GPRC:$rd, GPRC:$rs1, uimm4:$imm),
-                  (C_LB GPRC:$rd, GPRC:$rs1, uimm4:$imm)>;
-
-def : CompressPat<(LH  GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm),
-                  (C_LH GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm)>;
-}// Predicates = [EnableZceClbh]
+//c.lh
+def : CompressPat<(LH  GPRC:$rd, GPRC:$rs1, uimm2_lsb0:$imm),
+                  (C_LH GPRC:$rd, GPRC:$rs1, uimm2_lsb0:$imm)>;
 
 //c.sb   c.sh
-let Predicates = [EnableZceCsbh] in{
+// def : CompressPat<(SB  GPRC:$rs2, GPRC:$rs1, uimm2:$imm),
+//                   (C_SB GPRC:$rs2, GPRC:$rs1, uimm2:$imm)>;
+
+def : CompressPat<(SH  GPRC:$rs2, GPRC:$rs1, uimm2_lsb0:$imm),
+                  (C_SH GPRC:$rs2, GPRC:$rs1, uimm2_lsb0:$imm)>;
+}// Predicates = [HasStdExtZcb]
+
+let Predicates = [HasStdExtZcmb] in{
+//cm.lbu  cm.lhu
+def : CompressPat<(LBU  GPRC:$rd, GPRC:$rs1, uimm4:$imm),
+                  (CM_LBU GPRC:$rd, GPRC:$rs1, uimm4:$imm)>;
+
+def : CompressPat<(LHU  GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm),
+                  (CM_LHU GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm)>;
+
+//cm.lb  cm.lh
+def : CompressPat<(LB  GPRC:$rd, GPRC:$rs1, uimm4:$imm),
+                  (CM_LB GPRC:$rd, GPRC:$rs1, uimm4:$imm)>;
+
+def : CompressPat<(LH  GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm),
+                  (CM_LH GPRC:$rd, GPRC:$rs1, uimm5_lsb0:$imm)>;
+
+//cm.sb   cm.sh
 def : CompressPat<(SB  GPRC:$rs2, GPRC:$rs1, uimm4:$imm),
-                  (C_SB GPRC:$rs2, GPRC:$rs1, uimm4:$imm)>;
+                  (CM_SB GPRC:$rs2, GPRC:$rs1, uimm4:$imm)>;
 
 def : CompressPat<(SH  GPRC:$rs2, GPRC:$rs1, uimm5_lsb0:$imm),
-                  (C_SH GPRC:$rs2, GPRC:$rs1, uimm5_lsb0:$imm)>;
-}// Predicates = [EnableZceCsbh]
+                  (CM_SH GPRC:$rs2, GPRC:$rs1, uimm5_lsb0:$imm)>;
+}// Predicates = [HasStdExtZcmb]
 
 } // isCompressOnly = true
