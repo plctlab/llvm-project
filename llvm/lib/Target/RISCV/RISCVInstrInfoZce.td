@@ -19,6 +19,20 @@ include "RISCVInstrFormatsZce.td"
 // Operand and SDNode transformation definitions.
 //===----------------------------------------------------------------------===//
 
+def uimm2_zce : Operand<XLenVT>,
+                 ImmLeaf<XLenVT, [{return isUInt<2>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<2>;
+  let DecoderMethod = "decodeUImmOperand<2>";
+  let OperandType = "OPERAND_UIMM2";
+  let OperandNamespace = "RISCVOp";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return isUInt<2>(Imm);
+  }];
+}
+
 def uimm2_lsb0 : Operand<XLenVT>,
                  ImmLeaf<XLenVT, [{return isShiftedUInt<1, 1>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<2, "Lsb0">;
@@ -676,7 +690,7 @@ def SDGP : ZceGPStore<0b010, 0b011, "sdgp", simm17_lsb000>, Sched<[]> {
 
 // C.LBU, C.LHU, C.LH, C.SB, C.SH
 let Predicates = [HasStdExtZcb] in {
-def C_LBU : ZceLoad_ri<0b100, 0b00, "c.lbu", GPRC, uimm2>,
+def C_LBU : ZceLoad_ri<0b100, 0b00, "c.lbu", GPRC, uimm2_zce>,
           Sched<[]> {
 bits<2> imm;
 
@@ -702,7 +716,7 @@ let Inst{6} = 0b1;
 let Inst{5} = imm{1};
 }
 
-def C_SB : ZceStore_ri<0b100, 0b00, "c.sb", GPRC, uimm2>,
+def C_SB : ZceStore_ri<0b100, 0b00, "c.sb", GPRC, uimm2_zce>,
           Sched<[]> {
   bits<2> imm;
 
@@ -831,8 +845,8 @@ def : CompressPat<(SUB GPRC:$rs1, X0, GPRC:$rs1),
 
 let Predicates = [HasStdExtZcb] in{
 //c.lbu  c.lhu
-// def : CompressPat<(LBU  GPRC:$rd, GPRC:$rs1, uimm2:$imm),
-//                   (C_LBU GPRC:$rd, GPRC:$rs1, uimm2:$imm)>;
+def : CompressPat<(LBU  GPRC:$rd, GPRC:$rs1, uimm2_zce:$imm),
+                  (C_LBU GPRC:$rd, GPRC:$rs1, uimm2_zce:$imm)>;
 
 def : CompressPat<(LHU  GPRC:$rd, GPRC:$rs1, uimm2_lsb0:$imm),
                   (C_LHU GPRC:$rd, GPRC:$rs1, uimm2_lsb0:$imm)>;
@@ -842,8 +856,8 @@ def : CompressPat<(LH  GPRC:$rd, GPRC:$rs1, uimm2_lsb0:$imm),
                   (C_LH GPRC:$rd, GPRC:$rs1, uimm2_lsb0:$imm)>;
 
 //c.sb   c.sh
-// def : CompressPat<(SB  GPRC:$rs2, GPRC:$rs1, uimm2:$imm),
-//                   (C_SB GPRC:$rs2, GPRC:$rs1, uimm2:$imm)>;
+def : CompressPat<(SB  GPRC:$rs2, GPRC:$rs1, uimm2_zce:$imm),
+                  (C_SB GPRC:$rs2, GPRC:$rs1, uimm2_zce:$imm)>;
 
 def : CompressPat<(SH  GPRC:$rs2, GPRC:$rs1, uimm2_lsb0:$imm),
                   (C_SH GPRC:$rs2, GPRC:$rs1, uimm2_lsb0:$imm)>;
