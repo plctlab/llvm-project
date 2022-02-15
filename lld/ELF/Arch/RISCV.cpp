@@ -687,10 +687,14 @@ static bool relaxHi20Lo12(InputSection *is, Relocation &rel,
     bool isLd = (inst & 0x707f) == 0x3003;
     bool isSd = (inst & 0x707f) == 0x3023;
     if (rel.type == R_RISCV_HI20 && isShiftedInt<14,2>(offset)) {
-      addDeleteRange(deleteRanges, rel.offset, 4);
-      rel.type = R_RISCV_NONE;
-      rel.expr = R_NONE;
-      return true;
+      uint32_t nextInst = read32le(is->data().data() + rel.offset + 4) & 0x707f;
+      if((nextInst == 0x2003) || (nextInst == 0x2023) ||
+         (nextInst == 0x3003) || (nextInst == 0x3023)){
+        addDeleteRange(deleteRanges, rel.offset, 4);
+        rel.type = R_RISCV_NONE;
+        rel.expr = R_NONE;
+        return true;
+      }
     } else if(rel.type == R_RISCV_LO12_I){
       unsigned rd = (inst & 0x00000fe0) >> 7;
       if(isLw && isShiftedInt<14,2>(offset)){

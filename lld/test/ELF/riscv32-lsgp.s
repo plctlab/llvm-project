@@ -12,20 +12,20 @@
 
 # LSGP:       lui   a0, 512
 # LSGP-NEXT:  addi  a1, a0, 256
+# LSGP-NEXT:  lui   a0, 512
 # LSGP-NEXT:  lw    a0, 256(a0)
+# LSGP-NEXT:  lui   a0, 512
 # LSGP-NEXT:  sw    a0, 256(a0)
 
 # LSGP:       lui   a0, 518
 # LSGP-NEXT:  addi  a1, a0, 1280
+# LSGP-NEXT:  lui   a0, 518
 # LSGP-NEXT:  lw    a0, 1280(a0)
+# LSGP-NEXT:  lui   a0, 518
 # LSGP-NEXT:  sw    a0, 1280(a0)
 
-# LSGP-NEXT:  lui   a0, 512
-# LSGP-NEXT:  addi  a1, a0, 256
 # LSGP-NEXT:  lwgp  a0, -1792(gp)
 # LSGP-NEXT:  swgp  a0, -1792(gp)
-# LSGP-NEXT:  lui   a0, 518
-# LSGP-NEXT:  addi  a1, a0, 1280
 # LSGP-NEXT:  lwgp  a0, 23808(gp)
 # LSGP-NEXT:  swgp  a0, 23808(gp)
 
@@ -33,14 +33,13 @@
 # LSGP-RELAX-NEXT:  lwgp    a0, -1792(gp)
 # LSGP-RELAX-NEXT:  swgp    a0, -1792(gp)
 
-# LSGP-RELAX:       addi    a1, a0, 1280
+# LSGP-RELAX-NEXT:  lui     a0, 518
+# LSGP-RELAX-NEXT:  addi    a1, a0, 1280
 # LSGP-RELAX-NEXT:  lwgp    a0, 23808(gp)
 # LSGP-RELAX-NEXT:  swgp    a0, 23808(gp)
 
-# LSGP-RELAX-NEXT:  addi    a1, gp, -1792
 # LSGP-RELAX-NEXT:  lwgp    a0, -1792(gp)
 # LSGP-RELAX-NEXT:  swgp    a0, -1792(gp)
-# LSGP-RELAX-NEXT:  addi    a1, a0, 1280
 # LSGP-RELAX-NEXT:  lwgp    a0, 23808(gp)
 # LSGP-RELAX-NEXT:  swgp    a0, 23808(gp)
 
@@ -48,19 +47,19 @@
 _start:
   lui a0, %hi(gI)
   addi a1, a0, %lo(gI)
+  lui a0, %hi(gI)
   lw a0, %lo(gI)(a0)
+  lui a0, %hi(gI)
   sw a0, %lo(gI)(a0)
   
   lui a0, %hi(gStart)
   addi a1, a0, %lo(gStart)
+  lui a0, %hi(gStart)
   lw a0, %lo(gStart)(a0)
+  lui a0, %hi(gStart)
   sw a0, %lo(gStart)(a0)
 
-  lui a0, %hi(gI)
-  addi a1, a0, %lo(gI)
   lwgp a0, %lo(gI)(gp)
   swgp a0, %lo(gI)(gp)
-  lui a0, %hi(gStart)
-  addi a1, a0, %lo(gStart)
   lwgp a0, %lo(gStart)(gp)
   swgp a0, %lo(gStart)(gp)
