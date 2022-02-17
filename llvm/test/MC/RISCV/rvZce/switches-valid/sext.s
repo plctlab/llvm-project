@@ -14,7 +14,7 @@
 sext.b s0, s1
 
 # CHECK-ASM-AND-OBJ: c.sext.b s0
-# CHECK-ASM: encoding: [0x04,0x80]
+# CHECK-ASM: encoding: [0x65,0x9c]
 sext.b s0, s0
 
 # CHECK-ASM-AND-OBJ: sext.h s0, s1
@@ -22,5 +22,5 @@ sext.b s0, s0
 sext.h s0, s1
 
 # CHECK-ASM-AND-OBJ: c.sext.h s0
-# CHECK-ASM: encoding: [0x0c,0x80]
+# CHECK-ASM: encoding: [0x6d,0x9c]
 sext.h s0, s0

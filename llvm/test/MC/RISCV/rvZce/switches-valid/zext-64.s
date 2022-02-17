@@ -9,7 +9,7 @@
 zext.h s0, s1
 
 # CHECK-ASM-AND-OBJ: c.zext.h s0
-# CHECK-ASM: encoding: [0x08,0x80]
+# CHECK-ASM: encoding: [0x69,0x9c]
 zext.h s0, s0
 
 # CHECK-ASM-AND-OBJ: andi s0, s1, 255
@@ -17,7 +17,7 @@ zext.h s0, s0
 andi s0, s1, 255
 
 # CHECK-ASM-AND-OBJ: c.zext.b s0
-# CHECK-ASM: encoding: [0x00,0x80]
+# CHECK-ASM: encoding: [0x61,0x9c]
 andi s0, s0, 255
 
 # CHECK-ASM-AND-OBJ: add.uw s0, s1, zero
@@ -25,9 +25,9 @@ andi s0, s0, 255
 zext.w s0, s1
 
 # CHECK-ASM-AND-OBJ: c.zext.w s0
-# CHECK-ASM: encoding: [0x10,0x80]
+# CHECK-ASM: encoding: [0x71,0x9c]
 zext.w s0, s0
 
 # CHECK-ASM-AND-OBJ: c.zext.w s0
-# CHECK-ASM: encoding: [0x10,0x80]
+# CHECK-ASM: encoding: [0x71,0x9c]
 add.uw s0, s0, zero

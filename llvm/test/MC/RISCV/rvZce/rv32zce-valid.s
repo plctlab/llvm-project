@@ -5,48 +5,32 @@
 # RUN:     | FileCheck --check-prefixes=CHECK-OBJ,CHECK-ASM-AND-OBJ %s
 
 # CHECK-ASM-AND-OBJ: c.zext.b s0
-# CHECK-ASM: encoding: [0x00,0x80]
+# CHECK-ASM: encoding: [0x61,0x9c]
 c.zext.b s0
 
 # CHECK-ASM-AND-OBJ: c.sext.b s0
-# CHECK-ASM: encoding: [0x04,0x80]
+# CHECK-ASM: encoding: [0x65,0x9c]
 c.sext.b s0
 
 # CHECK-ASM-AND-OBJ: c.zext.h s0
-# CHECK-ASM: encoding: [0x08,0x80]
+# CHECK-ASM: encoding: [0x69,0x9c]
 c.zext.h s0
 
 # CHECK-ASM-AND-OBJ: c.sext.h s0
-# CHECK-ASM: encoding: [0x0c,0x80]
+# CHECK-ASM: encoding: [0x6d,0x9c]
 c.sext.h s0
 
-# CHECK-ASM-AND-OBJ: c.neg s0
-# CHECK-ASM: encoding: [0x18,0x80]
-c.neg s0
-
 # CHECK-ASM-AND-OBJ: c.not s0
-# CHECK-ASM: encoding: [0x1c,0x80]
+# CHECK-ASM: encoding: [0x75,0x9c]
 c.not s0
 
 # CHECK-ASM-AND-OBJ: c.mul s0, s1
 # CHECK-ASM: encoding: [0x45,0x9c]
 c.mul s0, s1
 
-# CHECK-ASM-AND-OBJ: c.mva01s07 s0, s1
-# CHECK-ASM: encoding: [0x65,0x9c]
-c.mva01s07 s0, s1
-
 # CHECK-ASM-AND-OBJ: muli s0, s1, 2
 # CHECK-ASM: encoding: [0x0b,0x94,0x24,0x00]
 muli s0, s1, 2
-
-# CHECK-OBJ: beqi s0, 20, 0x3c
-# CHECK-ASM: encoding: [0x63,0x24,0x8a,0x02]
-beqi s0, 20, 40
-
-# CHECK-OBJ: bnei s0, 20, 0x40
-# CHECK-ASM: encoding: [0x63,0x34,0x8a,0x02]
-bnei s0, 20, 40
 
 # CHECK-ASM-AND-OBJ: tbljalm 6
 # CHECK-ASM: encoding: [0x18,0x88]
@@ -95,14 +79,6 @@ push.e {ra, s0-s2}, {a0-a2}, -16
 # CHECK-OBJ: push {ra, s0-s4}, {a0-a3}, -528
 # CHECK-ASM: encoding: [0xab,0x4f,0x1f,0x00]
 push.e {ra, s0-s4}, {a0-a3}, -528
-
-# CHECK-OBJ: c.decbnez s0, 0, 4
-# CHECK-ASM: encoding: [0x22,0xa0]
-c.decbnez s0, 1, -4
-
-# CHECK-OBJ: decbnez s0, 0, 0x48
-# CHECK-ASM: encoding: [0x07,0x34,0x40,0x80]
-decbnez s0, 1, 4
 
 # CHECK-ASM-AND-OBJ: lwgp s0, 32764(gp)
 # CHECK-ASM: encoding: [0x07,0xb4,0xf7,0x1f]

@@ -5,9 +5,9 @@
 # RUN:     | FileCheck --check-prefixes=CHECK-ASM-AND-OBJ %s
 
 # CHECK-ASM-AND-OBJ: c.not s0
-# CHECK-ASM: encoding: [0x1c,0x80]
+# CHECK-ASM: encoding: [0x75,0x9c]
 c.not s0
 
 # CHECK-ASM-AND-OBJ: c.not a5
-# CHECK-ASM: encoding: [0x9c,0x83]
+# CHECK-ASM: encoding: [0xf5,0x9f]
 not x15,x15

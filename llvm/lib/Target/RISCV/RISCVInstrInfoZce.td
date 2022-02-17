@@ -393,17 +393,17 @@ class ZceStore_ri<bits<3> funct3, bits<2> opcode, string opcodestr,
 // 6.1
 // echo "c.zext.b s0" | bin/llvm-mc -triple=riscv64 -mattr=+experimental-zce -show-encoding
 let Predicates = [EnableZceZext] in {
-def C_ZEXT_B  : RVZceArith_r<0b00, 0b000 , "c.zext.b">, Sched<[]>;
-def C_ZEXT_H  : RVZceArith_r<0b00, 0b010 , "c.zext.h">, Sched<[]>;
+def C_ZEXT_B  : RVZceArith_r<0b11, 0b000 , "c.zext.b">, Sched<[]>;
+def C_ZEXT_H  : RVZceArith_r<0b11, 0b010 , "c.zext.h">, Sched<[]>;
 }
 
 let Predicates = [EnableZceZext, IsRV64] in {
-def C_ZEXT_W : RVZceArith_r<0b00, 0b100 , "c.zext.w">, Sched<[]>;
+def C_ZEXT_W : RVZceArith_r<0b11, 0b100 , "c.zext.w">, Sched<[]>;
 }
 
 let Predicates = [EnableZceSext] in {
-def C_SEXT_B  : RVZceArith_r<0b00, 0b001 , "c.sext.b">, Sched<[]>;
-def C_SEXT_H  : RVZceArith_r<0b00, 0b011 , "c.sext.h">, Sched<[]>;
+def C_SEXT_B  : RVZceArith_r<0b11, 0b001 , "c.sext.b">, Sched<[]>;
+def C_SEXT_H  : RVZceArith_r<0b11, 0b011 , "c.sext.h">, Sched<[]>;
 }
 
 let Predicates = [HasStdExtC, EnableZceSext, IsRV64] in{
@@ -419,7 +419,7 @@ def C_NEG_ZCE : RVZceArith_r<0b00, 0b110 , "c.neg">, Sched<[]>;
 }
 
 let Predicates = [EnableZceCNot] in {
-def C_NOT_ZCE : RVZceArith_r<0b00, 0b111 , "c.not">, Sched<[]>;
+def C_NOT_ZCE : RVZceArith_r<0b11, 0b101 , "c.not">, Sched<[]>;
 }
 
 // 6.3 C.MVA01S07

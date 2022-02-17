@@ -14,39 +14,34 @@
 # RUN:     | FileCheck --check-prefix=CHECK-NO-RV64-AND-EXT %s
 
 # CHECK-ASM-AND-OBJ: c.zext.b s0
-# CHECK-ASM: encoding: [0x00,0x80]
+# CHECK-ASM: encoding: [0x61,0x9c]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zext' from 'Zcee' (high performance cores v0.50)
 c.zext.b s0
 
 # CHECK-ASM-AND-OBJ: c.sext.b s0
-# CHECK-ASM: encoding: [0x04,0x80]
+# CHECK-ASM: encoding: [0x65,0x9c]
 # CHECK-NO-EXT: error: instruction requires the following: 'Sext' from 'Zcee' (high performance cores v0.50)
 c.sext.b s0
 
 # CHECK-ASM-AND-OBJ: c.zext.h s0
-# CHECK-ASM: encoding: [0x08,0x80]
+# CHECK-ASM: encoding: [0x69,0x9c]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zext' from 'Zcee' (high performance cores v0.50)
 c.zext.h s0
 
 # CHECK-ASM-AND-OBJ: c.sext.h s0
-# CHECK-ASM: encoding: [0x0c,0x80]
+# CHECK-ASM: encoding: [0x6d,0x9c]
 # CHECK-NO-EXT: error: instruction requires the following: 'Sext' from 'Zcee' (high performance cores v0.50)
 c.sext.h s0
 
 # CHECK-ASM-AND-OBJ: c.zext.w s0
-# CHECK-ASM: encoding: [0x10,0x80]
+# CHECK-ASM: encoding: [0x71,0x9c]
 # CHECK-NO-EXT: error: instruction requires the following: 'Zext' from 'Zcee' (high performance cores v0.50)
 # CHECK-NO-RV64: error: instruction requires the following: RV64I Base Instruction Set
 # CHECK-NO-RV64-AND-EXT: error: instruction requires the following: 'Zext' from 'Zcee' (high performance cores v0.50), RV64I Base Instruction Set
 c.zext.w s0
 
-# CHECK-ASM-AND-OBJ: c.neg s0
-# CHECK-ASM: encoding: [0x18,0x80]
-# CHECK-NO-EXT: error: instruction requires the following: 'CNeg' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)
-c.neg s0
-
 # CHECK-ASM-AND-OBJ: c.not s0
-# CHECK-ASM: encoding: [0x1c,0x80]
+# CHECK-ASM: encoding: [0x75,0x9c]
 # CHECK-NO-EXT: error: instruction requires the following: 'CNot' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)
 c.not s0
 
