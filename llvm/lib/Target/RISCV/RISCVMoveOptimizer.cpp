@@ -34,16 +34,18 @@ struct RISCVMoveOpt : public MachineFunctionPass{
     // Track which register units have been modified and used.
     LiveRegUnits ModifiedRegUnits, UsedRegUnits;
     
-    bool isCandidateToMerge(DestSourcePair &RegPair);
+    bool isCandidateToMergeMVA01S(DestSourcePair &RegPair);
+    bool isCandidateToMergeMVSA01(DestSourcePair &RegPair);
     // Merge the two instructions indicated into a single pair instruction.
     MachineBasicBlock::iterator
     mergePairedInsns(MachineBasicBlock::iterator I,
-                     MachineBasicBlock::iterator Paired);
+                     MachineBasicBlock::iterator Paired,
+                     unsigned Opcode);
 
     //Look for C.MV instruction that can be combined with
-    //the given instruction into C.MVA01S07. Return the matching instruction if
+    //the given instruction into CM.MVA01S or CM.MVSA01. Return the matching instruction if
     //one exists.
-    MachineBasicBlock::iterator findMatchingInst(MachineBasicBlock::iterator &MBBI);
+    MachineBasicBlock::iterator findMatchingInst(MachineBasicBlock::iterator &MBBI, unsigned InstOpcode);
     bool MovOpt(MachineBasicBlock &MBB);
     bool runOnMachineFunction(MachineFunction &Fn) override;
 
@@ -57,43 +59,64 @@ char RISCVMoveOpt::ID = 0;
 INITIALIZE_PASS(RISCVMoveOpt, "riscv-mov-opt", RISCV_MOVE_OPT_NAME, false,
                 false)
 
-// Check if registers meet C.MVA01S07 constraints. 
-bool RISCVMoveOpt::isCandidateToMerge(DestSourcePair &RegPair){
+// Check if registers meet CM.MVA01S constraints. 
+bool RISCVMoveOpt::isCandidateToMergeMVA01S(DestSourcePair &RegPair){
   Register Destination = RegPair.Destination->getReg();
   Register Source = RegPair.Source->getReg();
   const TargetRegisterClass *SourceRC = TRI->getMinimalPhysRegClass(Source);
   // If destination is not a0 or a1.
-  if (Destination != RISCV::X10 &&
-      Destination != RISCV::X11)
-    return false;
-  
-  if (RISCV::SR07RegClass.hasSubClassEq(SourceRC))
-     return true;
-  else
-     return false;
+  if (Destination == RISCV::X10 || Destination == RISCV::X11)
+    if (RISCV::SR07RegClass.hasSubClassEq(SourceRC))
+      return true;
+  return false;
+}
+
+// Check if registers meet CM.MVSA01 constraints. 
+bool RISCVMoveOpt::isCandidateToMergeMVSA01(DestSourcePair &RegPair){
+  Register Destination = RegPair.Destination->getReg();
+  Register Source = RegPair.Source->getReg();
+  const TargetRegisterClass *DestinationRC = TRI->getMinimalPhysRegClass(Destination);
+  // If Source is s0 - s7.
+  if (RISCV::SR07RegClass.hasSubClassEq(DestinationRC))
+    if (Source == RISCV::X10 || Source == RISCV::X11)
+      return true;
+  return false;
 }
 
 MachineBasicBlock::iterator
 RISCVMoveOpt::mergePairedInsns(MachineBasicBlock::iterator I,
-                               MachineBasicBlock::iterator Paired){
+                               MachineBasicBlock::iterator Paired,
+                               unsigned Opcode){
   MachineBasicBlock::iterator E = I->getParent()->end();
   MachineBasicBlock::iterator NextI = next_nodbg(I, E);
   DestSourcePair FirstPair = TII->isCopyInstrImpl(*I).getValue();
   DestSourcePair PairedRegs = TII->isCopyInstrImpl(*Paired).getValue();
 
+  if(Opcode != RISCV::CM_MVA01S && Opcode !=RISCV::CM_MVSA01)
+    return I;
+
   if (NextI == Paired)
     NextI = next_nodbg(NextI, E);
   DebugLoc DL = I->getDebugLoc();
-  BuildMI(*I->getParent(), I, DL, TII->get(RISCV::C_MVA01S07))
+
+  if(Opcode == RISCV::CM_MVA01S){
+    BuildMI(*I->getParent(), I, DL, TII->get(Opcode))
       .add(*FirstPair.Source)
       .add(*PairedRegs.Source);
+  }
+  else if(Opcode == RISCV::CM_MVSA01){
+    BuildMI(*I->getParent(), I, DL, TII->get(Opcode))
+        .add(*FirstPair.Destination)
+        .add(*PairedRegs.Destination);
+  }
+
   I->eraseFromParent();
   Paired->eraseFromParent();
   return NextI;
 }
 
 MachineBasicBlock::iterator
-RISCVMoveOpt::findMatchingInst(MachineBasicBlock::iterator &MBBI){
+RISCVMoveOpt::findMatchingInst(MachineBasicBlock::iterator &MBBI, unsigned InstOpcode){
   MachineBasicBlock::iterator E = MBBI->getParent()->end();
   DestSourcePair FirstPair = TII->isCopyInstrImpl(*MBBI).getValue();
 
@@ -109,12 +132,15 @@ RISCVMoveOpt::findMatchingInst(MachineBasicBlock::iterator &MBBI){
 
     if (auto SecondPair = TII->isCopyInstrImpl(MI)){
       Register SourceReg = SecondPair->Source->getReg();
-      Register DestReg =   SecondPair->Destination->getReg();
+      Register DestReg = SecondPair->Destination->getReg();
 
-      // If register pair is valid and does not contain registers from first instruction.
-      if (isCandidateToMerge(*SecondPair) && (FirstPair.Source->getReg() != SourceReg) &&
-        (FirstPair.Destination->getReg() != DestReg)){
-
+      if((InstOpcode == RISCV::CM_MVA01S && isCandidateToMergeMVA01S(*SecondPair)) ||
+         (InstOpcode == RISCV::CM_MVSA01 && isCandidateToMergeMVSA01(*SecondPair))){
+        // If register pair is valid and does not contain registers from first instruction.
+        if ((FirstPair.Source->getReg() == SourceReg) ||
+          (FirstPair.Destination->getReg() == DestReg))
+          return E;
+        
         //  If paired destination register was modified or used, there is no possibility
         //  of finding matching instruction so exit early.
         if (!ModifiedRegUnits.available(DestReg) ||  !UsedRegUnits.available(DestReg))
@@ -130,8 +156,7 @@ RISCVMoveOpt::findMatchingInst(MachineBasicBlock::iterator &MBBI){
   return E;
 }
 
-
-// Finds instructions, which could be represented as C.MV instructions and merged into C.MVA01S07.
+// Finds instructions, which could be represented as C.MV instructions and merged into CM.MVA01S or CM.MVSA01.
 bool RISCVMoveOpt::MovOpt(MachineBasicBlock &MBB){
   bool Modified = false;
 
@@ -140,11 +165,18 @@ bool RISCVMoveOpt::MovOpt(MachineBasicBlock &MBB){
     // Check if the instruction can be compressed to C.MV instruction. If it can, return Dest/Src
     // register pair.
     auto RegPair = TII->isCopyInstrImpl(*MBBI);
-    if(RegPair.hasValue() && isCandidateToMerge(*RegPair)){
-      MachineBasicBlock::iterator Paired= findMatchingInst(MBBI);
+    if(RegPair.hasValue()){
+      unsigned Opcode;
+      
+      if(isCandidateToMergeMVA01S(*RegPair))
+        Opcode = RISCV::CM_MVA01S;
+      else if (isCandidateToMergeMVSA01(*RegPair))
+        Opcode = RISCV::CM_MVSA01;
+
+      MachineBasicBlock::iterator Paired = findMatchingInst(MBBI, Opcode);
       //If matching instruction could be found merge them.
       if(Paired != E){
-        MBBI= mergePairedInsns(MBBI, Paired);
+        MBBI = mergePairedInsns(MBBI, Paired, Opcode);
         Modified = true;
         continue;
       }
@@ -160,8 +192,7 @@ bool RISCVMoveOpt::runOnMachineFunction(MachineFunction &Fn) {
     return false;
 
   Subtarget = &static_cast<const RISCVSubtarget &>(Fn.getSubtarget());
-  if (!Subtarget->hasStdExtZcea()) {
-    if (!Subtarget->enableZceCMva01s07())
+  if (!Subtarget->hasStdExtZcmp()) {
     return false;
   }
 

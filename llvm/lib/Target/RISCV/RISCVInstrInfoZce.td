@@ -422,12 +422,17 @@ let Predicates = [EnableZceCNot] in {
 def C_NOT_ZCE : RVZceArith_r<0b11, 0b101 , "c.not">, Sched<[]>;
 }
 
-// 6.3 C.MVA01S07
-let Predicates = [EnableZceCMva01s07], Defs = [X10, X11],
-    hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-def C_MVA01S07 : RVInst16CA<0b100111, 0b11, 0b01, (outs),
-                            (ins SR07:$rs1, SR07:$rs2), "c.mva01s07", "$rs1, $rs2">,
+// 6.3 C.MV*
+let Predicates = [HasStdExtZcmp], Defs = [X10, X11],
+    hasSideEffects = 0, mayLoad = 0, mayStore = 0 in {
+def CM_MVA01S : RVInst16CA<0b101011, 0b11, 0b10, (outs),
+                            (ins SR07:$rs1, SR07:$rs2), "cm.mva01s", "$rs1, $rs2">,
                 Sched<[]>;
+
+def CM_MVSA01 : RVInst16CA<0b101011, 0b01, 0b10, (outs SR07:$rs1, SR07:$rs2),
+                            (ins), "cm.mvsa01", "$rs1, $rs2">,
+                Sched<[]>;
+}
 
 // 6.4 MULI
 // TODO: requires M or *Zmmul*, waiting for Zmmul ext
