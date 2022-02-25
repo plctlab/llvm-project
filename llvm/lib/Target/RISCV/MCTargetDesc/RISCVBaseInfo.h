@@ -435,12 +435,6 @@ inline unsigned encodeRlist(MCRegister EndReg, bool isCInst,
   return static_cast<unsigned int>(RlistEncode);
 }
 
-// TODO: MODIFY THIS SPIMM ENCODING PROCEDURE
-#define ENCODE_SPIMM(MAX_SPIMM, VAL, VAL64)                                    \
-  spimmVal = (stackAdjustment - (isRV64 ? VAL64 : VAL)) / 16;                  \
-  if ((isRV64 && VAL64 == 0) || (!isRV64 && VAL == 0) || spimmVal > MAX_SPIMM) \
-    return false;
-
 inline static unsigned getStackAdjBase(unsigned rlistVal, bool isRV64,
                                        bool isEABI) {
   if (isEABI) {
@@ -488,6 +482,7 @@ inline static unsigned getStackAdjBase(unsigned rlistVal, bool isRV64,
       return 112;
     }
   }
+  llvm_unreachable("Unexpected rlistVal");
 }
 
 inline static bool getSpimm(unsigned rlistVal, unsigned &spimmVal,

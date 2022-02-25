@@ -41,7 +41,7 @@ namespace{
       bool adjustRetVal(MachineBasicBlock::iterator &MBBI);
       bool runOnMachineFunction(MachineFunction &Fn) override;
 
-      std::map<MachineBasicBlock::iterator *, int> retValMap;
+      std::map<MachineInstr *, int> retValMap;
 
       StringRef getPassName() const override { return RISCV_PUSH_POP_OPT_NAME; }
   };
@@ -70,7 +70,7 @@ bool RISCVPushPopOpt::usePopRet(MachineBasicBlock::iterator &MBBI){
   // this will detect all ret instruction.
   if(NextI->getOpcode() == RISCV::PseudoRET){
     DebugLoc DL = NextI->getDebugLoc();
-    auto retValInfo = retValMap.find(&MBBI);
+    auto retValInfo = retValMap.find(&(*MBBI));
     if (retValInfo == retValMap.end())
       BuildMI(*NextI->getParent(), NextI, DL, TII->get(RISCV::CM_POPRET))
           .add(MBBI->getOperand(0))
@@ -105,13 +105,13 @@ bool RISCVPushPopOpt::adjustRetVal(MachineBasicBlock::iterator &MBBI){
     if (auto OperandPair = TII->isLoadImmImpl(MI)){
       Register DestReg =   OperandPair->Destination->getReg();
       int64_t RetVal = OperandPair->Source->getImm();
-      if (DestReg == RISCV::X10){
+      if (DestReg == RISCV::X10) {
         switch (RetVal)
         {
         default:
           return false;
         case 0:
-          retValMap[&MBBI] = 0;
+          retValMap[&(*MBBI)] = 0;
         }
         MI.removeFromParent();
         return true;

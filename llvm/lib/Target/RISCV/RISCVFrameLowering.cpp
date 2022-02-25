@@ -1177,7 +1177,9 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
     PushBuilder.addImm(RegEnc);
     // Calculate the number of 16 byte blocks required to store pushed registers.
     unsigned RegSize = TRI->getRegSizeInBits(RISCV::GPRRegClass) / 8;
-    unsigned StackAdj =  ((RegSize * (RegEnc + 1) + 15) / 16) * 16;
+    // Notice : this hard-coded calculation changes when encoding of registers
+    // change.
+    unsigned StackAdj = ((RegSize * (RegEnc - 3) + 15) / 16) * 16;
     PushBuilder.addImm(StackAdj);
   }
   else {  
@@ -1238,7 +1240,9 @@ bool RISCVFrameLowering::restoreCalleeSavedRegisters(
     PopBuilder.addImm(RegEnc);
     // Calculate the number of 16 byte blocks used by pushed registers.
     unsigned RegSize = TRI->getRegSizeInBits(RISCV::GPRRegClass) / 8;
-    unsigned StackAdj =  ((RegSize * (RegEnc + 1) + 15) / 16) * 16;
+    // Notice : this hard-coded calculation changes when encoding of registers
+    // change.
+    unsigned StackAdj = ((RegSize * (RegEnc - 3) + 15) / 16) * 16;
     PopBuilder.addImm(StackAdj);
   }
   else{

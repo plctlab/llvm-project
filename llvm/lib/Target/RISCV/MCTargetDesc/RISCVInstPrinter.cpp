@@ -187,23 +187,18 @@ void RISCVInstPrinter::printRlist(const MCInst *MI, unsigned OpNo,
   RISCVZCE::printRlist(Imm, O);
 }
 
-#define DECODE_SPIMM(MAX_BINARYVALUE, VAL, VAL64) \
-if (Imm <= MAX_BINARYVALUE){ \
-  int64_t res = isRV64 ? VAL64 : VAL; \
-  spimm = res + 16 * Imm; \
-}
-
 void RISCVInstPrinter::printSpimm(const MCInst *MI, unsigned OpNo,
                 const MCSubtargetInfo &STI, raw_ostream &O){
   int64_t Imm = MI->getOperand(OpNo).getImm();
-  Imm = Imm >> 4;
   unsigned opcode = MI->getOpcode();
   bool isRV64 = STI.getFeatureBits()[RISCV::Feature64Bit];
   int64_t spimm = 0;
   bool isEABI = false; // Reserved for future implementation
   auto base =
       RISCVZCE::getStackAdjBase(MI->getOperand(0).getImm(), isRV64, isEABI);
-  spimm = base + 16 * Imm;
+  spimm = Imm + base;
+  if (spimm < base || spimm > base + 48)
+    llvm_unreachable("Incorrect spimm");
   if (opcode == RISCV::CM_PUSH) {
     spimm *= -1;
   }

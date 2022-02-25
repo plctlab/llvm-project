@@ -394,44 +394,44 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 def CM_PUSH : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm), 
     "cm.push", "{$rlist}, $spimm">, Sched<[]> {
   bits<4> rlist;
-  bits<2> spimm;
+  bits<16> spimm;
 
   let Inst{12-8} = 0b11000;
   let Inst{7-4} = rlist;
-  let Inst{3-2} = spimm;
+  let Inst{3-2} = spimm{5-4};
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
 def CM_POPRET : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm), 
     "cm.popret", "{$rlist}, $spimm">, Sched<[]> {
   bits<4> rlist;
-  bits<2> spimm;
+  bits<16> spimm;
 
   let Inst{12-8} = 0b11110;
   let Inst{7-4} = rlist;
-  let Inst{3-2} = spimm;
+  let Inst{3-2} = spimm{5-4};
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
 def CM_POPRETZ : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm), 
     "cm.popretz", "{$rlist}, $spimm">, Sched<[]> {
   bits<4> rlist;
-  bits<2> spimm;
+  bits<16> spimm;
 
   let Inst{12-8} = 0b11100;
   let Inst{7-4} = rlist;
-  let Inst{3-2} = spimm;
+  let Inst{3-2} = spimm{5-4};
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
 def CM_POP : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm), 
     "cm.pop", "{$rlist}, $spimm">, Sched<[]> {
   bits<4> rlist;
-  bits<2> spimm;
+  bits<16> spimm;
 
   let Inst{12-8} = 0b11010;
   let Inst{7-4} = rlist;
-  let Inst{3-2} = spimm;
+  let Inst{3-2} = spimm{5-4};
 }
 
 }

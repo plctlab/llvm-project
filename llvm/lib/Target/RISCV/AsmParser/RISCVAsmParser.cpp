@@ -2060,7 +2060,7 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     StringRef RegName = getLexer().getTok().getIdentifier();
     matchRegisterNameHelper(IsEABI, RegStart, RegName);
     if (RegStart != RISCV::X1)
-      MatchOperand_NoMatch;
+      return MatchOperand_NoMatch;
     getLexer().Lex();
   }
 
@@ -2115,7 +2115,7 @@ OperandMatchResultTy RISCVAsmParser::parseZceSpimm(OperandVector &Operands) {
   bool IsEABI = isRV32E() || Memonic.endswith(".e");
   if (!RISCVZCE::getSpimm(RlistVal, Spimm, StackAdjustment, isRV64(), IsEABI))
     return MatchOperand_NoMatch;
-  Operands.push_back(RISCVOperand::createSpimm(Spimm, S, isRV64()));
+  Operands.push_back(RISCVOperand::createSpimm(Spimm << 4, S, isRV64()));
   getLexer().Lex();
   return MatchOperand_Success;
 }
