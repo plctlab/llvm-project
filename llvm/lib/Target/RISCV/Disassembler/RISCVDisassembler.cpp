@@ -380,13 +380,8 @@ static DecodeStatus decodeZceTableJump(MCInst &Inst, unsigned Imm,
                                            uint64_t Address,
                                            const void *Decoder);
 
-static DecodeStatus decodeZceRlist3(MCInst &Inst, unsigned Imm,
-                                           uint64_t Address,
-                                           const void *Decoder);
-
-static DecodeStatus decodeZceRlist2(MCInst &Inst, unsigned Imm,
-                                           uint64_t Address,
-                                           const void *Decoder);
+static DecodeStatus decodeZceRlist(MCInst &Inst, unsigned Imm, uint64_t Address,
+                                   const void *Decoder);
 
 static DecodeStatus decodeZceSpimm(MCInst &Inst, unsigned Imm,
                                            uint64_t Address,
@@ -461,66 +456,20 @@ static DecodeStatus decodeZceTableJump(MCInst &Inst, unsigned Imm,
   return MCDisassembler::Success;
 }
 
-static DecodeStatus decodeZceRlist3(MCInst &Inst, unsigned Imm,
-                                           uint64_t Address,
-                                           const void *Decoder) {  
+static DecodeStatus decodeZceRlist(MCInst &Inst, unsigned Imm, uint64_t Address,
+                                   const void *Decoder) {
   // Sign-extend the number in the bottom N bits of Imm
-  if(Imm<=7)
-    switch (Imm)
-    {
-    default:
-      Inst.addOperand(MCOperand::createImm(Imm));
-      break;
-    case 5: 
-      Inst.addOperand(MCOperand::createImm(6));
-      break;
-    case 6: 
-      Inst.addOperand(MCOperand::createImm(8));
-      break;
-    case 7: 
-      Inst.addOperand(MCOperand::createImm(12));
-      break;
-    }
-  else
+  if (Imm <= 3)
     return MCDisassembler::Fail;
-  if(Inst.getOpcode() == RISCV::C_POP)
-    Inst.addOperand(MCOperand::createImm(0));
-  if(Inst.getOpcode() == RISCV::C_PUSH)
-    Inst.addOperand(MCOperand::createImm(1));
+  Inst.addOperand(MCOperand::createImm(Imm));
   return MCDisassembler::Success;
 }
 
-static DecodeStatus decodeZceRlist2(MCInst &Inst, unsigned Imm,
-                                           uint64_t Address,
-                                           const void *Decoder) {  
-  // Sign-extend the number in the bottom N bits of Imm
-  if(Imm<=3)
-    Inst.addOperand(MCOperand::createImm(Imm));
-  else
-    return MCDisassembler::Fail;
-  if(Inst.getOpcode() == RISCV::C_POP_E)
-    Inst.addOperand(MCOperand::createImm(0));
-  if(Inst.getOpcode() == RISCV::C_PUSH_E)
-    Inst.addOperand(MCOperand::createImm(1));
-  return MCDisassembler::Success;
-}
-
+// spimm is based on rlist now.
 static DecodeStatus decodeZceSpimm(MCInst &Inst, unsigned Imm,
                                            uint64_t Address,
                                            const void *Decoder){
-  assert(isInt<16>(Imm) && "Invalid immediate");
-
-  unsigned ImmChecker = Imm >> 4;
-  if (Inst.getOpcode() == RISCV::C_PUSH_E || Inst.getOpcode() == RISCV::C_PUSH ||
-     Inst.getOpcode() == RISCV::C_POPRET || Inst.getOpcode() == RISCV::C_POPRET_E){
-    if(ImmChecker > 5)
-      return MCDisassembler::Fail;
-  } 
-  else if (Inst.getOpcode() == RISCV::C_POP || Inst.getOpcode() == RISCV::C_POP_E){
-    if(ImmChecker > 1)
-      return MCDisassembler::Fail;
-  }
-
+  // TODO: check if spimm matches rlist
   Inst.addOperand(MCOperand::createImm(Imm));
   return MCDisassembler::Success;
 }
@@ -545,30 +494,10 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
     Result = decodeInstruction(DecoderTable32, MI, Insn, Address, this, STI);
     Size = 4;
 
-    if (STI.getFeatureBits()[RISCV::FeatureStdExtZce] && 
-        Result == MCDisassembler::Fail){
-
-      if(STI.getFeatureBits()[RISCV::FeatureRV32E]) {
-        // handle c.push Instructions of Zce Ext
-        LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_PUSH_POP_POPRET_E table (32-bit Instruction):\n");
-        // Calling the auto-generated decoder function.
-        Result = decodeInstruction(DecoderTableZcePUSH_POP_POPRET_E32, MI, Insn, Address, this, STI);
-        if (Result != MCDisassembler::Fail) {
-          Size = 4;
-          return Result;
-        }
-      }
-
-      // handle c.push Instructions of Zce Ext
-      LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_PUSH table (32-bit Instruction):\n");
-      // Calling the auto-generated decoder function.
-      Result = decodeInstruction(DecoderTableZcePUSH_POP_POPRET32, MI, Insn, Address, this, STI);
-      if (Result != MCDisassembler::Fail) {
-        Size = 4;
-        return Result;
-      }
+    if (STI.getFeatureBits()[RISCV::FeatureStdExtZce] &&
+        Result == MCDisassembler::Fail) {
     }
-    
+
   } else {
     if (Bytes.size() < 2) {
       Size = 0;
@@ -601,33 +530,6 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
           Size = 2;
           return Result;
         }
-      }
-
-      // handle c.popret[.e] Instructions of Zce Ext
-      LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
-      // Calling the auto-generated decoder function.
-      Result = decodeInstruction(DecoderTableZcePOPRET16, MI, Insn, Address, this, STI);
-      if (Result != MCDisassembler::Fail) {
-        Size = 2;
-        return Result;
-      }
-
-      // handle c.push Instructions of Zce Ext
-      LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_[C.]PUSH table (16-bit Instruction):\n");
-      // Calling the auto-generated decoder function.
-      Result = decodeInstruction(DecoderTableZcePUSH16, MI, Insn, Address, this, STI);
-      if (Result != MCDisassembler::Fail) {
-        Size = 2;
-        return Result;
-      }
-
-      // handle c.push.e Instructions of Zce Ext
-      LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_[C.]PUSH_E table (16-bit Instruction):\n");
-      // Calling the auto-generated decoder function.
-      Result = decodeInstruction(DecoderTableZcePUSH_E16, MI, Insn, Address, this, STI);
-      if (Result != MCDisassembler::Fail) {
-        Size = 2;
-        return Result;
       }
 
       // handle TableJump Instructions of Zce Ext

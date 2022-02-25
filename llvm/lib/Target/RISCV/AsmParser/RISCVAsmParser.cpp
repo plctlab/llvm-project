@@ -271,9 +271,7 @@ struct RISCVOperand : public MCParsedAsmOperand {
     Immediate,
     SystemRegister,
     VType,
-    Alist,
-    Slist,
-    Retval,
+    Rlist,
     Spimm,
   } Kind;
 
@@ -299,17 +297,8 @@ struct RISCVOperand : public MCParsedAsmOperand {
     unsigned Val;
   };
 
-  struct AlistOp {
+  struct RlistOp {
     bool isCInst;
-    unsigned Val;
-  };
-
-  struct SlistOp {
-    bool isCInst;
-    unsigned Val;
-  };
-
-  struct RetvalOp {
     unsigned Val;
   };
 
@@ -324,9 +313,7 @@ struct RISCVOperand : public MCParsedAsmOperand {
     ImmOp Imm;
     struct SysRegOp SysReg;
     struct VTypeOp VType;
-    struct SlistOp Slist;
-    struct AlistOp Alist;
-    struct RetvalOp Retval;
+    struct RlistOp Rlist;
     struct SpimmOp Spimm;
   };
 
@@ -354,14 +341,8 @@ public:
     case KindTy::VType:
       VType = o.VType;
       break;
-    case KindTy::Slist:
-      Slist = o.Slist;
-      break;
-    case KindTy::Alist:
-      Alist = o.Alist;
-      break;
-    case KindTy::Retval:
-      Retval = o.Retval;
+    case KindTy::Rlist:
+      Rlist = o.Rlist;
       break;
     case KindTy::Spimm:
       Spimm = o.Spimm;
@@ -378,9 +359,7 @@ public:
   bool isMem() const override { return false; }
   bool isSystemRegister() const { return Kind == KindTy::SystemRegister; }
   bool isVType() const { return Kind == KindTy::VType; }
-  bool isAlist() const { return Kind == KindTy::Alist; }
-  bool isSlist() const { return Kind == KindTy::Slist; }
-  bool isRetval() const { return Kind == KindTy::Retval; }
+  bool isRlist() const { return Kind == KindTy::Rlist; }
   bool isSpimm() const { return Kind == KindTy::Spimm; }
 
   bool isGPR() const {
@@ -976,19 +955,9 @@ public:
       RISCVVType::printVType(getVType(), OS);
       OS << '>';
       break;
-    case KindTy::Alist:
-      // OS << "<alist: ";
-      // RISCVZCE::printAlist(Alist.Val, OS);
-      // OS << '>';
-      break;
-    case KindTy::Slist:
-      OS << "<slist: ";
-      RISCVZCE::printSlist(Slist.Val, OS);
-      OS << '>';
-      break;
-    case KindTy::Retval:
-      OS << "<retval: ";
-      RISCVZCE::printRetval(Retval.Val, OS);
+    case KindTy::Rlist:
+      OS << "<rlist: ";
+      RISCVZCE::printRlist(Rlist.Val, OS);
       OS << '>';
       break;
     case KindTy::Spimm:
@@ -1051,30 +1020,11 @@ public:
     return Op;
   }
 
-  static std::unique_ptr<RISCVOperand> createAlist(unsigned AlistEncode,
-                                                   SMLoc S, bool IsRV64, bool isCInst) {
-    auto Op = std::make_unique<RISCVOperand>(KindTy::Alist);
-    Op->Alist.Val = AlistEncode;
-    Op->Alist.isCInst = isCInst;
-    Op->StartLoc = S;
-    Op->IsRV64 = IsRV64;
-    return Op;
-  }
-
-  static std::unique_ptr<RISCVOperand> createSlist(unsigned SlistEncode,
-                                                   SMLoc S, bool IsRV64, bool isCInst) {
-    auto Op = std::make_unique<RISCVOperand>(KindTy::Slist);
-    Op->Slist.Val = SlistEncode;
-    Op->Slist.isCInst = isCInst;
-    Op->StartLoc = S;
-    Op->IsRV64 = IsRV64;
-    return Op;
-  }
-
-  static std::unique_ptr<RISCVOperand> createRetval(unsigned RetvalEncode,
-                                                    SMLoc S, bool IsRV64) {
-    auto Op = std::make_unique<RISCVOperand>(KindTy::Retval);
-    Op->Retval.Val = RetvalEncode;
+  static std::unique_ptr<RISCVOperand>
+  createRlist(unsigned RlistEncode, SMLoc S, bool IsRV64, bool isCInst) {
+    auto Op = std::make_unique<RISCVOperand>(KindTy::Rlist);
+    Op->Rlist.Val = RlistEncode;
+    Op->Rlist.isCInst = isCInst;
     Op->StartLoc = S;
     Op->IsRV64 = IsRV64;
     return Op;
@@ -1149,19 +1099,9 @@ public:
     Inst.addOperand(MCOperand::createImm(getVType()));
   }
 
-  void addSlistOperands(MCInst &Inst, unsigned N) const {
+  void addRlistOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
-    Inst.addOperand(MCOperand::createImm(Slist.Val));
-  }
-
-  void addAlistOperands(MCInst &Inst, unsigned N) const {
-    assert(N == 1 && "Invalid number of operands!");
-    Inst.addOperand(MCOperand::createImm(Alist.Val));
-  }
-
-  void addRetvalOperands(MCInst &Inst, unsigned N) const {
-    assert(N == 1 && "Invalid number of operands!");
-    Inst.addOperand(MCOperand::createImm(Retval.Val));
+    Inst.addOperand(MCOperand::createImm(Rlist.Val));
   }
 
   void addScaleOperands(MCInst &Inst, unsigned N) const {
@@ -1526,13 +1466,9 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                       (1 << 4),
                                       "immediate must be in the range");
   }
-  case Match_InvalidAlist: {
+  case Match_InvalidRlist: {
     SMLoc ErrorLoc = ((RISCVOperand &)*Operands[ErrorInfo]).getStartLoc();
     return Error(ErrorLoc, "operand must be {}, {a0}, or {a0-a[1|2|3]}");
-  }
-  case Match_InvalidRetval: {
-    SMLoc ErrorLoc = ((RISCVOperand &)*Operands[ErrorInfo]).getStartLoc();
-    return Error(ErrorLoc, "operand must be {}, {0}, {1}, or {-1}");
   }
   case Match_InvalidScale: {
     SMLoc ErrorLoc = ((RISCVOperand &)*Operands[ErrorInfo]).getStartLoc();
@@ -2106,8 +2042,7 @@ OperandMatchResultTy RISCVAsmParser::parseAtomicMemOp(OperandVector &Operands) {
 }
 
 OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
-  // Slist grammar: {ra [, s0[-sN]]} (UABI)
-  // Alist grammar: {[a0[-aN]]}
+  // Rlist grammar: {ra [, s0[-sN]]} (UABI)
   SMLoc S = getLoc();
   if (getLexer().isNot(AsmToken::LCurly))
     return MatchOperand_NoMatch;
@@ -2116,26 +2051,25 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
 
   StringRef Memonic =
       static_cast<RISCVOperand *>(Operands.front().get())->getToken();
-  bool Is16Bit = Memonic.startswith("c.");
+  bool Is16Bit = Memonic.startswith("cm.");
   bool IsEABI = isRV32E() || Memonic.endswith(".e");
 
   MCRegister RegStart = RISCV::NoRegister;
   MCRegister RegEnd = RISCV::NoRegister;
-  bool IsSlist = false;
   if (!IsEmptyList) {
     StringRef RegName = getLexer().getTok().getIdentifier();
     matchRegisterNameHelper(IsEABI, RegStart, RegName);
-    IsSlist = (RegStart == RISCV::X1); // start with ra
+    if (RegStart != RISCV::X1)
+      return MatchOperand_NoMatch;
     getLexer().Lex();
   }
 
   // parse case like ,s0
-  if (IsSlist && getLexer().is(AsmToken::Comma)) {
+  if (getLexer().is(AsmToken::Comma)) {
     getLexer().Lex();
     if (getLexer().isNot(AsmToken::Identifier))
       return MatchOperand_NoMatch;
     StringRef RegName = getLexer().getTok().getIdentifier();
-    // FixMe: the register mapping and checks of EABI is wrong
     if (matchRegisterNameHelper(/*IsEABI*/ false, RegStart, RegName))
       return MatchOperand_NoMatch;
     if (RegStart != RISCV::X8)
@@ -2160,50 +2094,9 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
   if (RegEnd == RISCV::NoRegister)
     RegEnd = RegStart;
 
-  if (IsSlist) {
-    auto Encode = RISCVZCE::encodeSlist(RegEnd, Is16Bit, IsEABI);
-    Operands.push_back(RISCVOperand::createSlist(Encode, S, isRV64(), Is16Bit));
-  } else { // is Alist
-    if (!IsEmptyList && RegStart != RISCV::X10)
-      return MatchOperand_NoMatch;
-    auto Slist = static_cast<RISCVOperand *>(Operands.back().get());
-    if (Slist->Kind != RISCVOperand::KindTy::Slist) {
-      Error(getLoc(), "Can't parse Alist if without a Slist parsed ahead");
-      return MatchOperand_NoMatch;
-    }
-    if (!RISCVZCE::isValidAlist(RegEnd, Slist->Slist.Val, Slist->Slist.isCInst, IsEABI)) {
-      Error(getLoc(), "Invalid Alist encode");
-      return MatchOperand_NoMatch;
-    }
-    auto Encode = RISCVZCE::encodeAlist(RegEnd, Slist->Slist.Val);
-    Operands.push_back(RISCVOperand::createAlist(Encode, S, isRV64(), Is16Bit));
-  }
+  auto Encode = RISCVZCE::encodeRlist(RegEnd, Is16Bit, IsEABI);
+  Operands.push_back(RISCVOperand::createRlist(Encode, S, isRV64(), Is16Bit));
 
-  return MatchOperand_Success;
-}
-
-OperandMatchResultTy RISCVAsmParser::parseRetval(OperandVector &Operands) {
-  SMLoc S = getLoc();
-  if (getLexer().isNot(AsmToken::LCurly))
-    return MatchOperand_NoMatch;
-  getLexer().Lex(); // eat '{'
-
-  // process the ret0 of c.popret
-  if (getLexer().is(AsmToken::Integer)) {
-    signed int retValue = getLexer().getTok().getIntVal();
-    if (-1 <= retValue && retValue <= 1)
-      Operands.push_back(RISCVOperand::createRetval(
-          RISCVZCE::encodeRetval(retValue), S, isRV64()));
-    else
-      return MatchOperand_NoMatch;
-    getLexer().Lex(); // eat Integer
-    getLexer().Lex(); // eat '}'
-    return MatchOperand_Success;
-  } else if (getLexer().is(AsmToken::RCurly)) {
-    Operands.push_back(RISCVOperand::createRetval(0, S, isRV64()));
-  } else
-    return MatchOperand_NoMatch;
-  getLexer().Lex(); // eat '}'
   return MatchOperand_Success;
 }
 
@@ -2217,35 +2110,11 @@ OperandMatchResultTy RISCVAsmParser::parseZceSpimm(OperandVector &Operands) {
       static_cast<RISCVOperand *>(Operands.front().get())->getToken();
   int64_t StackAdjustment = getLexer().getTok().getIntVal();
   unsigned Spimm = 0;
-  unsigned RlistVal =
-      static_cast<RISCVOperand *>(Operands[1].get())->Slist.Val;
+  unsigned RlistVal = static_cast<RISCVOperand *>(Operands[1].get())->Rlist.Val;
 
-  constexpr std::tuple<const char *, RISCVZCE::SPIMMINST> Instrs[] = {
-      {"push", RISCVZCE::SPIMMINST::PUSH},
-      {"push.e", RISCVZCE::SPIMMINST::PUSH_E},
-      {"popret", RISCVZCE::SPIMMINST::POPRET},
-      {"popret.e", RISCVZCE::SPIMMINST::POPRET_E},
-      {"pop", RISCVZCE::SPIMMINST::POP},
-      {"pop.e", RISCVZCE::SPIMMINST::POP_E},
-      {"c.push", RISCVZCE::SPIMMINST::C_PUSH},
-      {"c.push.e", RISCVZCE::SPIMMINST::C_PUSH_E},
-      {"c.popret", RISCVZCE::SPIMMINST::C_POPRET},
-      {"c.popret.e", RISCVZCE::SPIMMINST::C_POPRET_E},
-      {"c.pop", RISCVZCE::SPIMMINST::C_POP},
-      {"c.pop.e", RISCVZCE::SPIMMINST::C_POP_E},
-  };
-  bool HasMatch = false;
-  for (auto Tuple : Instrs) {
-    if (Memonic == std::get<0>(Tuple)) {
-      if (!RISCVZCE::getSpimm(std::get<1>(Tuple), RlistVal, Spimm,
-                              StackAdjustment, isRV64()))
-        return MatchOperand_NoMatch;
-      HasMatch = true;
-    }
-  }
-  if (!HasMatch)
+  bool IsEABI = isRV32E() || Memonic.endswith(".e");
+  if (!RISCVZCE::getSpimm(RlistVal, Spimm, StackAdjustment, isRV64(), IsEABI))
     return MatchOperand_NoMatch;
-
   Operands.push_back(RISCVOperand::createSpimm(Spimm << 4, S, isRV64()));
   getLexer().Lex();
   return MatchOperand_Success;
@@ -3124,85 +2993,14 @@ bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
     }
     return false;
   }
-  case RISCV::C_PUSH_E: {
-    int64_t rlist2 = Inst.getOperand(0).getImm();
-    unsigned Opc;
-    if ((RISCVZCE::RLIST2ENCODE)rlist2 >= RISCVZCE::RLIST2ENCODE::RA) {
-      Opc = RISCV::C_PUSH;
-      rlist2 = (int64_t)RISCVZCE::convertRlist2ToRlist3(
-          (RISCVZCE::RLIST2ENCODE)rlist2);
-    } else {
-      Opc = RISCV::C_PUSH_E;
-    }
-    emitToStreamer(Out, MCInstBuilder(Opc)
-                            .addImm(rlist2)
-                            .addOperand(Inst.getOperand(1))
-                            .addOperand(Inst.getOperand(2)));
-    return false;
-  }
-  case RISCV::C_POP_E: {
-    int64_t rlist2 = Inst.getOperand(0).getImm();
-    unsigned Opc;
-    if ((RISCVZCE::RLIST2ENCODE)rlist2 >= RISCVZCE::RLIST2ENCODE::RA) {
-      Opc = RISCV::C_POP;
-      rlist2 = (int64_t)RISCVZCE::convertRlist2ToRlist3(
-          (RISCVZCE::RLIST2ENCODE)rlist2);
-    } else {
-      Opc = RISCV::C_POP_E;
-    }
-    emitToStreamer(Out, MCInstBuilder(Opc)
-                            .addImm(rlist2)
-                            .addOperand(Inst.getOperand(1))
-                            .addOperand(Inst.getOperand(2)));
-    return false;
-  }
-  case RISCV::C_POPRET_E: {
-    int64_t rlist2 = Inst.getOperand(0).getImm();
-    unsigned Opc;
-    if ((RISCVZCE::RLIST2ENCODE)rlist2 >= RISCVZCE::RLIST2ENCODE::RA) {
-      Opc = RISCV::C_POPRET;
-      rlist2 = (int64_t)RISCVZCE::convertRlist2ToRlist3(
-          (RISCVZCE::RLIST2ENCODE)rlist2);
-    } else {
-      Opc = RISCV::C_POPRET_E;
-    }
-    emitToStreamer(Out, MCInstBuilder(Opc)
-                            .addImm(rlist2)
-                            .addOperand(Inst.getOperand(1))
-                            .addOperand(Inst.getOperand(2)));
-    return false;
-  }
-  case RISCV::POPRET: {
+  case RISCV::CM_POPRET:
+  case RISCV::CM_POPRETZ:
+  case RISCV::CM_POP:
+  case RISCV::CM_PUSH: {
     unsigned Opc = Inst.getOpcode();
-    if (isRV32E()) {
-      Opc = RISCV::POPRET_E;
-    }
     emitToStreamer(Out, MCInstBuilder(Opc)
                             .addOperand(Inst.getOperand(0))
-                            .addOperand(Inst.getOperand(1))
-                            .addOperand(Inst.getOperand(2)));
-    return false;
-  }
-  case RISCV::POP: {
-    unsigned Opc = Inst.getOpcode();
-    if (isRV32E()) {
-      Opc = RISCV::POP_E;
-    }
-    emitToStreamer(Out, MCInstBuilder(Opc)
-                            .addOperand(Inst.getOperand(0))
-                            .addOperand(Inst.getOperand(1))
-                            .addOperand(Inst.getOperand(2)));
-    return false;
-  }
-  case RISCV::PUSH: {
-    unsigned Opc = Inst.getOpcode();
-    if (isRV32E()) {
-      Opc = RISCV::PUSH_E;
-    }
-    emitToStreamer(Out, MCInstBuilder(Opc)
-                            .addOperand(Inst.getOperand(0))
-                            .addOperand(Inst.getOperand(1))
-                            .addOperand(Inst.getOperand(2)));
+                            .addOperand(Inst.getOperand(1)));
     return false;
   }
   }

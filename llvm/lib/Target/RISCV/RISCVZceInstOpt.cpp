@@ -50,7 +50,7 @@ bool RISCVZceInstOpt::runOnMachineFunction(MachineFunction &MF) {
   if (!(STI->enableZceCMul() || STI->enableZceZext() || STI->enableZceSext() ||
         STI->enableZceCNot() || STI->enableZceMuli() || STI->enableZceCMul() ||
         STI->enableZceCNeg() || STI->enableZceClbhu() ||
-        STI->enableZceClbh() || STI->enableZceCsbh() || STI->enableZcePushPop()))
+        STI->enableZceClbh() || STI->enableZceCsbh() || STI->enableZceCPushCPop()))
     return Modified;
 
   for (auto &MBB : MF) {

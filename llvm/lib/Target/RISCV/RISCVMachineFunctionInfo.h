@@ -65,10 +65,7 @@ public:
            VarArgsSaveSize == 0 && !MF.getFrameInfo().hasTailCall() &&
            !MF.getFunction().hasFnAttribute("interrupt") && 
            !(MF.getSubtarget<RISCVSubtarget>().hasStdExtZcea() ||
-             (MF.getSubtarget<RISCVSubtarget>().enableZcePushPop() ||
-              MF.getSubtarget<RISCVSubtarget>().enableZceCPushCPop() ||
-              MF.getSubtarget<RISCVSubtarget>().enableZcePushEPopE() ||
-              MF.getSubtarget<RISCVSubtarget>().enableZceCPushECPopE()));
+              MF.getSubtarget<RISCVSubtarget>().enableZceCPushCPop());
   }
 
   uint64_t getRVVStackSize() const { return RVVStackSize; }

@@ -175,183 +175,48 @@ void RISCVVType::printVType(unsigned VType, raw_ostream &OS) {
   else
     OS << ", mu";
 }
-// namespace RISCVZCE {
-// #define ALIST_PRINT(ENCODE, STR) \
-//   case (ENCODE): \
-//     OS << STR;
-void RISCVZCE::printAlist(unsigned opcode, unsigned SlistEncode,
-                          unsigned areg, raw_ostream &OS) {
-  OS << "{";
-  if (areg != 0) {
-    if (opcode == RISCV::C_PUSH
-            || opcode == RISCV::PUSH || opcode == RISCV::PUSH_E) {
-      switch ((SLISTENCODE)SlistEncode) {
-      default:
-        break;
-      case SLISTENCODE::RA:
-        break;
-      case SLISTENCODE::RA_S0:
-        OS << "a0";
-        break;
-      case SLISTENCODE::RA_S0_S1:
-        OS << "a0-a1";
-        break;
-      case SLISTENCODE::RA_S0_S2:
-      case SLISTENCODE::RA_S0_S2_E:
-        OS << "a0-a2";
-        break;
-      case SLISTENCODE::RA_S0_S3:
-      case SLISTENCODE::RA_S0_S4:
-      case SLISTENCODE::RA_S0_S5:
-      case SLISTENCODE::RA_S0_S6:
-      case SLISTENCODE::RA_S0_S7:
-      case SLISTENCODE::RA_S0_S8:
-      case SLISTENCODE::RA_S0_S9:
-      case SLISTENCODE::RA_S0_S10:
-      case SLISTENCODE::RA_S0_S11:
-      case SLISTENCODE::RA_S0_S3_E:
-      case SLISTENCODE::RA_S0_S4_E:
-        OS << "a0-a3";
-        break;
-      }
-    } else {
-      switch (SlistEncode) {
-        case 0:
-          OS << "a0-a2";
-          break;
-        case 1:
-        case 2:
-          OS << "a0-a3";
-          break;
-      }
-    }
-  }
-  OS << "}";
-}
 
-void RISCVZCE::printSlist(unsigned SlistEncode, raw_ostream &OS) {
+void RISCVZCE::printRlist(unsigned SlistEncode, raw_ostream &OS) {
   OS << "{";
   switch (SlistEncode) {
-    case 0:
+    case 4:
       OS << "ra";
       break;
-    case 1:
+    case 5:
       OS << "ra, s0";
       break;
-    case 2:
+    case 6:
       OS << "ra, s0-s1";
       break;
-    case 3:
-    case 13:
+    case 7:
       OS << "ra, s0-s2";
       break;
-    case 4:
-    case 14:
+    case 8:
       OS << "ra, s0-s3";
       break;
-    case 5:
-    case 15:
+    case 9:
       OS << "ra, s0-s4";
       break;
-    case 6:
+    case 10:
       OS << "ra, s0-s5";
       break;
-    case 7:
+    case 11:
       OS << "ra, s0-s6";
       break;
-    case 8:
+    case 12:
       OS << "ra, s0-s7";
       break;
-    case 9:
+    case 13:
       OS << "ra, s0-s8";
       break;
-    case 10:
+    case 14:
       OS << "ra, s0-s9";
       break;
-    case 11:
-      OS << "ra, s0-s10";
-      break;
-    case 12:
+    case 15:
       OS << "ra, s0-s11";
       break;
   }
   OS << "}";
-}
-
-void RISCVZCE::printRlist3(unsigned RlistEncode, raw_ostream &OS) {
-  switch ((RLIST3ENCODE)RlistEncode) {
-    case RLIST3ENCODE::NO_MATCH:
-      return;
-    case RLIST3ENCODE::RA:
-      OS << "{ra}";
-      return;
-    case RLIST3ENCODE::RA_S0:
-      OS << "{ra, s0}";
-      return;
-    case RLIST3ENCODE::RA_S0_S1:
-      OS << "{ra, s0-s1}";
-      return;
-    case RLIST3ENCODE::RA_S0_S2:
-      OS << "{ra, s0-s2}";
-      return;
-    case RLIST3ENCODE::RA_S0_S3:
-      OS << "{ra, s0-s3}";
-      return;
-    case RLIST3ENCODE::RA_S0_S5:
-      OS << "{ra, s0-s5}";
-      return;
-    case RLIST3ENCODE::RA_S0_S7:
-      OS << "{ra, s0-s7}";
-      return;
-    case RLIST3ENCODE::RA_S0_S11:
-      OS << "{ra, s0-s11}";
-      return;
-  }
-}
-
-void RISCVZCE::printRlist2(unsigned RlistEncode, raw_ostream &OS) {
-  switch ((RLIST2ENCODE)RlistEncode) {
-    case RLIST2ENCODE::NO_MATCH:
-      return;
-    case RLIST2ENCODE::RA_S0_S2:
-      OS << "{ra, s0-s2}";
-      return;
-    case RLIST2ENCODE::RA_S0_S3:
-      OS << "{ra, s0-s3}";
-      return;
-    case RLIST2ENCODE::RA_S0_S4:
-      OS << "{ra, s0-s4}";
-      return;
-    case RLIST2ENCODE::RA:
-      OS << "{ra}";
-      return;
-    case RLIST2ENCODE::RA_S0:
-      OS << "{ra, s0}";
-      return;
-    case RLIST2ENCODE::RA_S0_S1:
-      OS << "{ra, s0-s1}";
-      return;
-  }
-}
-// #undef ALIST_PRINT
-// }
-
-void RISCVZCE::printRetval(unsigned RetvalEncode, raw_ostream &OS) {
-  OS << '{';
-  switch (RetvalEncode) {
-    default:
-      break;
-    case 1:
-      OS << '0';
-      break;
-    case 2:
-      OS << '1';
-      break;
-    case 3:
-      OS << "-1";
-      break;
-  }
-  OS << '}';
 }
 
 void RISCVZCE::printSpimm(int64_t Spimm, raw_ostream &OS){

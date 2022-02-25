@@ -382,8 +382,8 @@ void printVType(unsigned VType, raw_ostream &OS);
 
 namespace RISCVZCE {
 
-enum class SLISTENCODE {
-  RA = 0,
+enum class RLISTENCODE {
+  RA = 4,
   RA_S0,
   RA_S0_S1,
   RA_S0_S2,
@@ -394,439 +394,107 @@ enum class SLISTENCODE {
   RA_S0_S7,
   RA_S0_S8,
   RA_S0_S9,
-  RA_S0_S10,
+  // note - to include s10, s11 must also be included
   RA_S0_S11,
-  RA_S0_S2_E,
-  RA_S0_S3_E,
-  RA_S0_S4_E,
 };
 
-enum class SLIST16ENCODE {
-  RA = 0,
-  RA_S0,
-  RA_S0_S1,
-  RA_S0_S2,
-  RA_S0_S3,
-  RA_S0_S5 = 6,
-  RA_S0_S7 = 8,
-  RA_S0_S11 = 12,
-};
-
-enum class RLIST3ENCODE {
-  NO_MATCH = -1,
-  RA = 0,
-  RA_S0,
-  RA_S0_S1,
-  RA_S0_S2,
-  RA_S0_S3,
-  RA_S0_S5 = 6,
-  RA_S0_S7 = 8,
-  RA_S0_S11 = 12,
-};
-
-enum class RLIST2ENCODE {
-  NO_MATCH = -1,
-  RA_S0_S2 = 0,
-  RA_S0_S3,
-  RA_S0_S4,
-  RA,
-  RA_S0,
-  RA_S0_S1,
-};
-
-enum class SPIMMINST {
-  PUSH,
-  PUSH_E,
-  POP,
-  POP_E,
-  POPRET,
-  POPRET_E,
-  C_POPRET,
-  C_POP,
-  C_PUSH,
-  C_POPRET_E,
-  C_POP_E,
-  C_PUSH_E,
-};
-
-enum class BINARYVALUE_OF_SPIMM {
-  B000 = 0,
-  B001,
-  B010,
-  B011,
-  B100,
-  B101,
-};
-
-inline static RLIST2ENCODE encodeRlist2(MCRegister EndReg) {
-  switch (EndReg) {
-  default:
-    llvm_unreachable("Unexpected register");
-  case RISCV::X18:
-    return RLIST2ENCODE::RA_S0_S2;
-  case RISCV::X19:
-    return RLIST2ENCODE::RA_S0_S3;
-  case RISCV::X20:
-    return RLIST2ENCODE::RA_S0_S4;
-  case RISCV::X1:
-    return RLIST2ENCODE::RA;
-  case RISCV::X8:
-    return RLIST2ENCODE::RA_S0;
-  case RISCV::X9:
-    return RLIST2ENCODE::RA_S0_S1;
-  }
-}
-
-inline static RLIST3ENCODE encodeRlist3(MCRegister EndReg) {
-  switch (EndReg) {
-  default:
-    llvm_unreachable("Unexpected register");
-  case RISCV::X1:
-    return RLIST3ENCODE::RA;
-  case RISCV::X8:
-    return RLIST3ENCODE::RA_S0;
-  case RISCV::X9:
-    return RLIST3ENCODE::RA_S0_S1;
-  case RISCV::X18:
-    return RLIST3ENCODE::RA_S0_S2;
-  case RISCV::X19:
-    return RLIST3ENCODE::RA_S0_S3;
-  case RISCV::X21:
-    return RLIST3ENCODE::RA_S0_S5;
-  case RISCV::X23:
-    return RLIST3ENCODE::RA_S0_S7;
-  case RISCV::X27:
-    return RLIST3ENCODE::RA_S0_S11;
-  }
-}
-
-inline unsigned encodeSlist(MCRegister EndReg, bool isCInst , bool IsRV32E = false) {
-  // process the Instructions with "c." and ".e"
-  // c.pop/c.push/c.popret[.e]
-  if(isCInst){
-    if (IsRV32E)
-      return static_cast<unsigned>(encodeRlist2(EndReg));
-    else
-      return static_cast<unsigned>(encodeRlist3(EndReg));
-  }
-
-  auto SlistEncode = [=] {
-    // process the Instructions with out "c."
-    // pop.e/push.e/popret.e
-    if (IsRV32E) {
-      switch (EndReg) {
-      case RISCV::X18:
-        return SLISTENCODE::RA_S0_S2_E;
-      case RISCV::X19:
-        return SLISTENCODE::RA_S0_S3_E;
-      case RISCV::X20:
-        return SLISTENCODE::RA_S0_S4_E;
-      // default:
-        // llvm_unreachable("Unexpected register");
-      }
-    }
-
-    // process the Instructions with out "c." and ".e"
-    // pop/push/popret
+inline unsigned encodeRlist(MCRegister EndReg, bool isCInst,
+                            bool IsRV32E = false) {
+  auto RlistEncode = [=] {
     switch (EndReg) {
     case RISCV::X1:
-      return SLISTENCODE::RA;
+      return RLISTENCODE::RA;
     case RISCV::X8:
-      return SLISTENCODE::RA_S0;
+      return RLISTENCODE::RA_S0;
     case RISCV::X9:
-      return SLISTENCODE::RA_S0_S1;
+      return RLISTENCODE::RA_S0_S1;
     case RISCV::X18:
-      return SLISTENCODE::RA_S0_S2;
+      return RLISTENCODE::RA_S0_S2;
     case RISCV::X19:
-      return SLISTENCODE::RA_S0_S3;
+      return RLISTENCODE::RA_S0_S3;
     case RISCV::X20:
-      return SLISTENCODE::RA_S0_S4;
+      return RLISTENCODE::RA_S0_S4;
     case RISCV::X21:
-      return SLISTENCODE::RA_S0_S5;
+      return RLISTENCODE::RA_S0_S5;
     case RISCV::X22:
-      return SLISTENCODE::RA_S0_S6;
+      return RLISTENCODE::RA_S0_S6;
     case RISCV::X23:
-      return SLISTENCODE::RA_S0_S7;
+      return RLISTENCODE::RA_S0_S7;
     case RISCV::X24:
-      return SLISTENCODE::RA_S0_S8;
+      return RLISTENCODE::RA_S0_S8;
     case RISCV::X25:
-      return SLISTENCODE::RA_S0_S9;
-    case RISCV::X26:
-      return SLISTENCODE::RA_S0_S10;
+      return RLISTENCODE::RA_S0_S9;
+    // case RISCV::X26:
+    //   return RLISTENCODE::RA_S0_S10;
     case RISCV::X27:
-      return SLISTENCODE::RA_S0_S11;
+      return RLISTENCODE::RA_S0_S11;
     default:
       llvm_unreachable("Unexpected register");
     }
   }();
-  return static_cast<unsigned int>(SlistEncode);
+  return static_cast<unsigned int>(RlistEncode);
 }
 
-inline static bool isValidAlist(MCRegister EndReg, unsigned SlistEncode, bool isCInst, bool isRV32E = false) {
-  // process the Instructions with out c.
-  // pop/push/popret[.e]
-  if (EndReg == RISCV::NoRegister && !isCInst)
-    return true;
-  if (!isCInst){
-    switch (static_cast<SLISTENCODE>(SlistEncode)) {
-    case SLISTENCODE::RA:
-      return EndReg == RISCV::NoRegister;
-    case SLISTENCODE::RA_S0:
-      return EndReg == RISCV::X10;
-    case SLISTENCODE::RA_S0_S1:
-      return EndReg == RISCV::X11;
-    case SLISTENCODE::RA_S0_S2:
-    case SLISTENCODE::RA_S0_S2_E:
-      return EndReg == RISCV::X12;
-    case SLISTENCODE::RA_S0_S3:
-    case SLISTENCODE::RA_S0_S4:
-    case SLISTENCODE::RA_S0_S5:
-    case SLISTENCODE::RA_S0_S6:
-    case SLISTENCODE::RA_S0_S7:
-    case SLISTENCODE::RA_S0_S8:
-    case SLISTENCODE::RA_S0_S9:
-    case SLISTENCODE::RA_S0_S10:
-    case SLISTENCODE::RA_S0_S11:
-    case SLISTENCODE::RA_S0_S3_E:
-    case SLISTENCODE::RA_S0_S4_E:
-      return EndReg == RISCV::X13;
-    default:
-      llvm_unreachable("Unexpected slist encode!");
-    }
+inline static unsigned getStackAdjBase(unsigned rlistVal, bool isRV64,
+                                       bool isEABI) {
+  if (isEABI) {
+    return 16;
   }
-
-  // process the Instructions with "c."
-  // c.pop/c.push/c.popret
-  if (!isRV32E) {
-    switch (static_cast<RLIST3ENCODE>(SlistEncode)) {
-    case RLIST3ENCODE::RA:
-      return EndReg == RISCV::NoRegister;
-    case RLIST3ENCODE::RA_S0:
-      return EndReg == RISCV::X10;
-    case RLIST3ENCODE::RA_S0_S1:
-      return EndReg == RISCV::X11;
-    case RLIST3ENCODE::RA_S0_S2:
-      return EndReg == RISCV::X12;
-    case RLIST3ENCODE::RA_S0_S3:
-    case RLIST3ENCODE::RA_S0_S5:
-    case RLIST3ENCODE::RA_S0_S7:
-    case RLIST3ENCODE::RA_S0_S11:
-      return EndReg == RISCV::X13;
-    default:
-      llvm_unreachable("Unexpected slist encode!");
-    }
-  }
-
-  // process the Instructions with "c." and ".e"
-  // c.pop.e/c.push.e/c.popret.e
-  switch (static_cast<RLIST2ENCODE>(SlistEncode)) {
-    case RLIST2ENCODE::RA_S0_S2:
-      return EndReg == RISCV::X12;
-    case RLIST2ENCODE::RA_S0_S3:
-    case RLIST2ENCODE::RA_S0_S4:
-      return EndReg == RISCV::X13;
-    case RLIST2ENCODE::RA:
-      return EndReg == RISCV::NoRegister;
-    case RLIST2ENCODE::RA_S0:
-      return EndReg == RISCV::X10;
-    case RLIST2ENCODE::RA_S0_S1:
-      return EndReg == RISCV::X11;
-    default:
-      llvm_unreachable("Unexpected slist encode!");
-    }
-}
-
-#define ENCODE_SPIMM(MAX_SPIMM, VAL, VAL64)                                    \
-  spimmVal = (stackAdjustment - (isRV64 ? VAL64 : VAL)) / 16;                  \
-  if ((isRV64 && VAL64 == 0) || (!isRV64 && VAL == 0) || spimmVal > MAX_SPIMM) \
-    return false;
-
-inline static bool getSpimm(SPIMMINST Inst, unsigned rlistVal,
-                            unsigned &spimmVal, int64_t stackAdjustment,
-                            bool isRV64) {
-  if (Inst >= SPIMMINST::C_POPRET_E) { // use rlist
-    RLIST2ENCODE rlist = (RLIST2ENCODE)rlistVal;
-    if (Inst == SPIMMINST::C_PUSH_E || Inst == SPIMMINST::C_POPRET_E) {
-      switch (rlist) {
-      case RLIST2ENCODE::RA_S0_S2:
-        ENCODE_SPIMM(5, 16, 0)
-        return true;
-      case RLIST2ENCODE::RA_S0_S3:
-      case RLIST2ENCODE::RA_S0_S4:
-        ENCODE_SPIMM(5, 32, 0)
-        return true;
-      case RLIST2ENCODE::RA:
-      case RLIST2ENCODE::RA_S0:
-      case RLIST2ENCODE::RA_S0_S1:
-        ENCODE_SPIMM(5, 16, 0)
-        return true;
-      default:
-        return false;
-      }
-    } else if (Inst == SPIMMINST::C_POP_E) {
-      switch (rlist) {
-      case RLIST2ENCODE::RA_S0_S2:
-        ENCODE_SPIMM(5, 16, 0)
-        return true;
-      case RLIST2ENCODE::RA_S0_S3:
-        ENCODE_SPIMM(5, 32, 0)
-        return true;
-      case RLIST2ENCODE::RA:
-      case RLIST2ENCODE::RA_S0:
-      case RLIST2ENCODE::RA_S0_S1:
-        ENCODE_SPIMM(1, 16, 0)
-        return true;
-      default:
-        return false;
-      }
-    }
-  }
-  RLIST3ENCODE rlist = (RLIST3ENCODE)rlistVal;
-  SLISTENCODE slist = (SLISTENCODE)rlistVal;
-  if (Inst == SPIMMINST::PUSH || Inst == SPIMMINST::PUSH_E ||
-      Inst == SPIMMINST::POP || Inst == SPIMMINST::POP_E ||
-      Inst == SPIMMINST::POPRET || Inst == SPIMMINST::POPRET_E) {
-    switch (slist) {
-    case SLISTENCODE::RA:
-    case SLISTENCODE::RA_S0:
-      ENCODE_SPIMM(31, 16, 16)
-      return true;
-    case SLISTENCODE::RA_S0_S1:
-    case SLISTENCODE::RA_S0_S2:
-    case SLISTENCODE::RA_S0_S2_E:
-      ENCODE_SPIMM(31, 16, 32)
-      return true;
-    case SLISTENCODE::RA_S0_S3:
-    case SLISTENCODE::RA_S0_S4:
-    case SLISTENCODE::RA_S0_S3_E:
-    case SLISTENCODE::RA_S0_S4_E:
-      ENCODE_SPIMM(31, 32, 48)
-      return true;
-    case SLISTENCODE::RA_S0_S5:
-    case SLISTENCODE::RA_S0_S6:
-      ENCODE_SPIMM(31, 32, 64)
-      return true;
-    case SLISTENCODE::RA_S0_S7:
-    case SLISTENCODE::RA_S0_S8:
-      ENCODE_SPIMM(31, 48, 80)
-      return true;
-    case SLISTENCODE::RA_S0_S9:
-    case SLISTENCODE::RA_S0_S10:
-      ENCODE_SPIMM(31, 48, 96)
-      return true;
-    case SLISTENCODE::RA_S0_S11:
-      ENCODE_SPIMM(31, 64, 112)
-      return true;
-    default:
-      return false;
-    }
-  } else if (Inst == SPIMMINST::C_POPRET) {
-    switch (rlist) {
-    case RLIST3ENCODE::RA:
-    case RLIST3ENCODE::RA_S0:
-      ENCODE_SPIMM(5, 16, 16)
-      return true;
-    case RLIST3ENCODE::RA_S0_S1:
-    case RLIST3ENCODE::RA_S0_S2:
-      ENCODE_SPIMM(5, 16, 32)
-      return true;
-    case RLIST3ENCODE::RA_S0_S3:
-      ENCODE_SPIMM(5, 32, 48)
-      return true;
-    case RLIST3ENCODE::RA_S0_S5:
-      ENCODE_SPIMM(5, 32, 64)
-      return true;
-    case RLIST3ENCODE::RA_S0_S7:
-      ENCODE_SPIMM(5, 48, 80)
-      return true;
-    case RLIST3ENCODE::RA_S0_S11:
-      ENCODE_SPIMM(5, 64, 112)
-      return true;
-    default:
-      return false;
-    }
-  } else if (Inst == SPIMMINST::C_PUSH) {
-    switch (rlist) {
-    case RLIST3ENCODE::RA:
-    case RLIST3ENCODE::RA_S0:
-      ENCODE_SPIMM(5, 16, 16)
-      return true;
-    case RLIST3ENCODE::RA_S0_S1:
-    case RLIST3ENCODE::RA_S0_S2:
-      ENCODE_SPIMM(5, 16, 32)
-      return true;
-    case RLIST3ENCODE::RA_S0_S3:
-      ENCODE_SPIMM(5, 32, 48)
-      return true;
-    case RLIST3ENCODE::RA_S0_S5:
-      ENCODE_SPIMM(5, 32, 64)
-      return true;
-    case RLIST3ENCODE::RA_S0_S7:
-      ENCODE_SPIMM(5, 48, 80)
-      return true;
-    case RLIST3ENCODE::RA_S0_S11:
-      ENCODE_SPIMM(5, 64, 112)
-      return true;
-    default:
-      return false;
-    }
-  } else if (Inst == SPIMMINST::C_POP) {
-    switch (rlist) {
-    case RLIST3ENCODE::RA:
-    case RLIST3ENCODE::RA_S0:
-      ENCODE_SPIMM(1, 16, 16)
-      return true;
-    case RLIST3ENCODE::RA_S0_S1:
-    case RLIST3ENCODE::RA_S0_S2:
-      ENCODE_SPIMM(1, 16, 32)
-      return true;
-    case RLIST3ENCODE::RA_S0_S3:
-      ENCODE_SPIMM(1, 32, 48)
-      return true;
-    case RLIST3ENCODE::RA_S0_S5:
-      ENCODE_SPIMM(1, 32, 64)
-      return true;
-    case RLIST3ENCODE::RA_S0_S7:
-      ENCODE_SPIMM(1, 48, 80)
-      return true;
-    case RLIST3ENCODE::RA_S0_S11:
-      ENCODE_SPIMM(1, 64, 112)
-      return true;
-    default:
-      return false;
+  if (!isRV64) {
+    switch (rlistVal) {
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+      return 16;
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+      return 32;
+    case 12:
+    case 13:
+    case 14:
+      return 48;
+    case 15:
+      return 64;
     }
   } else {
+    switch (rlistVal) {
+    case 4:
+    case 5:
+      return 16;
+    case 6:
+    case 7:
+      return 32;
+    case 8:
+    case 9:
+      return 48;
+    case 10:
+    case 11:
+      return 64;
+    case 12:
+    case 13:
+      return 80;
+    case 14:
+      return 96;
+    case 15:
+      return 112;
+    }
+  }
+  llvm_unreachable("Unexpected rlistVal");
+}
+
+inline static bool getSpimm(unsigned rlistVal, unsigned &spimmVal,
+                            int64_t stackAdjustment, bool isRV64, bool isEABI) {
+  unsigned stackAdj = getStackAdjBase(rlistVal, isRV64, isEABI);
+  spimmVal = (stackAdjustment - stackAdj) / 16;
+  if (spimmVal > 3)
     return false;
-  }
+  return true;
 }
 
-inline static unsigned encodeAlist(MCRegister EndReg, unsigned SlistEncode) {
-  return (SlistEncode != 0 && EndReg == RISCV::NoRegister) ? 0 : 1;
-}
-
-inline static unsigned encodeRetval(int Retval) {
-  return Retval == -1 ? 3 : (Retval + 1);
-}
-
-inline static RISCVZCE::RLIST3ENCODE
-convertRlist2ToRlist3(RISCVZCE::RLIST2ENCODE rlist2) {
-  switch ((RISCVZCE::RLIST2ENCODE)rlist2) {
-  case RISCVZCE::RLIST2ENCODE::RA:
-    return RISCVZCE::RLIST3ENCODE::RA;
-  case RISCVZCE::RLIST2ENCODE::RA_S0:
-    return RISCVZCE::RLIST3ENCODE::RA_S0;
-  case RISCVZCE::RLIST2ENCODE::RA_S0_S1:
-    return RISCVZCE::RLIST3ENCODE::RA_S0_S1;
-  default:
-    return RISCVZCE::RLIST3ENCODE::NO_MATCH;
-  }
-}
-
-void printAlist(unsigned opcode, unsigned SlistEncode, unsigned areg, raw_ostream &OS);
-void printSlist(unsigned SlistEncode, raw_ostream &OS);
-void printRetval(unsigned RetvalEncode, raw_ostream &OS);
-void printRlist3(unsigned RlistEncode, raw_ostream &OS);
-void printRlist2(unsigned RlistEncode, raw_ostream &OS);
+void printRlist(unsigned SlistEncode, raw_ostream &OS);
 void printSpimm(int64_t Spimm, raw_ostream &OS);
 
 } // namespace RISCVZCE

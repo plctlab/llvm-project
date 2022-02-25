@@ -71,9 +71,6 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   bool EnableRVCHintInstrs = true;
   bool EnableSaveRestore = false;
   bool EnableZceCPushCPop = false;
-  bool EnableZcePushPop = false;
-  bool EnableZceCPushECPopE = false;
-  bool EnableZcePushEPopE = false;
   bool EnableZceTbljal = false;
   bool EnableZceClbhu = false;
   bool EnableZceClbh = false;
@@ -170,9 +167,6 @@ public:
   bool enableRVCHintInstrs() const { return EnableRVCHintInstrs; }
   bool enableSaveRestore() const { return EnableSaveRestore; }
   bool enableZceCPushCPop() const { return EnableZceCPushCPop; }
-  bool enableZcePushPop() const { return EnableZcePushPop; }
-  bool enableZceCPushECPopE() const { return EnableZceCPushECPopE; }
-  bool enableZcePushEPopE() const { return EnableZcePushEPopE; }
   bool enableZceTbljal() const { return EnableZceTbljal; }
   bool enableZceClbhu() const { return EnableZceClbhu; }
   bool enableZceClbh() const { return EnableZceClbh; }

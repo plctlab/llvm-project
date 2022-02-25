@@ -3276,12 +3276,6 @@ def msmall_data_limit_EQ : Joined<["-"], "msmall-data-limit=">, Group<m_Group>,
 // RISCV Zce extension flags
 def mzce_cpush_cpop : Flag<["-"], "mzce-cpush-cpop">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.PUSH, C.POP, C.POPRET">;
-def mzce_push_pop : Flag<["-"], "mzce-push-pop">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce PUSH, POP, POPRET">;
-def mzce_cpushe_cpope : Flag<["-"], "mzce-cpushe-cpope">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.PUSH.E, C.POP.E, C.POPRET.E">;
-def mzce_pushe_pope : Flag<["-"], "mzce-pushe-pope">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce PUSH.E, POP.E, POPRET.E">;
 def mzce_tbljal : Flag<["-"], "mzce-tbljal">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.TBLJ, C.TBLJAL, C.TBLJALM">;
 def mzce_clbhu : Flag<["-"], "mzce-clbhu">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
