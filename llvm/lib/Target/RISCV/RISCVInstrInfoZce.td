@@ -219,22 +219,10 @@ def negimm7_lsb0nonzero : Operand<XLenVT>,
   }];
 }
 
-def AlistAsmOperand : AsmOperandClass {
-  let Name = "Alist";
+def RlistAsmOperand : AsmOperandClass {
+  let Name = "Rlist";
   let ParserMethod = "parseReglist";
-  let DiagnosticType = "InvalidAlist";
-}
-
-def SlistAsmOperand : AsmOperandClass {
-  let Name = "Slist";
-  let ParserMethod = "parseReglist";
-  let DiagnosticType = "InvalidSlist";
-}
-
-def RetvalAsmOperand : AsmOperandClass {
-  let Name = "Retval";
-  let ParserMethod = "parseRetval";
-  let DiagnosticType = "InvalidRetval";
+  let DiagnosticType = "InvalidRlist";
 }
 
 def SpimmAsmOperand : AsmOperandClass {
@@ -243,69 +231,20 @@ def SpimmAsmOperand : AsmOperandClass {
   let DiagnosticType = "InvalidSpimm";
 }
 
-def alist : Operand<OtherVT>, ImmLeaf<OtherVT, [{return isUInt<1>(Imm);}]> {
-   let ParserMatchClass = AlistAsmOperand;
-   let PrintMethod = "printAlist";
+def rlist : Operand<OtherVT>, ImmLeaf<OtherVT, [{return isUInt<4>(Imm);}]> {
+   let ParserMatchClass = RlistAsmOperand;
+   let PrintMethod = "printRlist";
+   let DecoderMethod = "decodeZceRlist";
+   let EncoderMethod = "getRlistOpValue";
    let MCOperandPredicate = [{
     int64_t Imm;
     if (!MCOp.evaluateAsConstantImm(Imm))
       return false;
-    return isUInt<1>(Imm);
+    if (!isUInt<4>(Imm)) return false;
+    // 0~3 Reserved for EABI
+    return (Imm>=4) && (Imm <=15);
   }];
  }
-
-def slist : Operand<OtherVT>, ImmLeaf<OtherVT, [{return isUInt<4>(Imm);}]> {
-   let ParserMatchClass = SlistAsmOperand;
-   let PrintMethod = "printSlist";
-   let MCOperandPredicate = [{
-    int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return isUInt<4>(Imm);
-  }];
- }
-
-def rlist3 : Operand<OtherVT>,  ImmLeaf<OtherVT, [{return Imm <= 12;}]> {
-   let ParserMatchClass = SlistAsmOperand;
-   let PrintMethod = "printRlist3";
-   let DecoderMethod = "decodeZceRlist3";
-    let EncoderMethod = "getRlist3OpValue";
-   let MCOperandPredicate = [{
-    int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return (Imm <= 4) || (Imm == 6) || 
-           (Imm == 8) || (Imm == 12);
-  }];
- }
-
-def rlist2 : Operand<OtherVT> {
-  let ParserMatchClass = SlistAsmOperand;
-  let PrintMethod = "printRlist2";
-  let DecoderMethod = "decodeZceRlist2";
-}
-
-def retval : Operand<OtherVT>, ImmLeaf<OtherVT, [{return  isUInt<2>(Imm);}]>{
-  let ParserMatchClass = RetvalAsmOperand;
-  let PrintMethod = "printRetval";
-  let MCOperandPredicate = [{
-    int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return  isUInt<2>(Imm);
-  }];
-}
-
-def retval1 : Operand<OtherVT>, ImmLeaf<OtherVT, [{return  isUInt<1>(Imm);}]>{
-  let ParserMatchClass = RetvalAsmOperand;
-  let PrintMethod = "printRetval";
-  let MCOperandPredicate = [{
-    int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return  isUInt<1>(Imm);
-  }];
-}
 
 def spimm : Operand<OtherVT>, ImmLeaf<OtherVT, [{return  isShiftedUInt<5, 4>(Imm);}]>{
   let ParserMatchClass = SpimmAsmOperand;
@@ -316,30 +255,6 @@ def spimm : Operand<OtherVT>, ImmLeaf<OtherVT, [{return  isShiftedUInt<5, 4>(Imm
     if (!MCOp.evaluateAsConstantImm(Imm))
       return false;
     return  isShiftedUInt<5, 4>(Imm);
-  }];
-}
-
-def spimm0_5 : Operand<OtherVT>, ImmLeaf<OtherVT, [{return (Imm < (0b110<<4)) && isShiftedUInt<3, 4>(Imm);}]>  {
-  let ParserMatchClass = SpimmAsmOperand;
-  let PrintMethod = "printSpimm";
-  let DecoderMethod = "decodeZceSpimm";
-  let MCOperandPredicate = [{
-    int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return (Imm < (0b110<<4)) && isShiftedUInt<3, 4>(Imm);
-  }];
-}
-
-def spimm1 : Operand<OtherVT>, ImmLeaf<OtherVT, [{return  isShiftedUInt<1, 4>(Imm);}]>  {
-  let ParserMatchClass = SpimmAsmOperand;
-  let PrintMethod = "printSpimm";
-  let DecoderMethod = "decodeZceSpimm";
-  let MCOperandPredicate = [{
-    int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return  isShiftedUInt<1, 4>(Imm);
   }];
 }
 
@@ -473,167 +388,50 @@ def TBLJAL  : RVInstZceTableJump_i<0b010, "tbljal", tbljal_uimm8>, Sched<[]>;
 }
 
 // 6.9 push, pop
-let Predicates = [EnableZcePushPop] in {
-let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
-def PUSH : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg, spimm:$imm),
-           "push", "$sreg, $areg, $imm">, Sched<[]> {
-  bits<1> areg;
-  bits<4> sreg;
-  bits<16> imm;
-  let DecoderNamespace  = "ZcePUSH_POP_POPRET";
-  let Inst{20} = areg;
-  let Inst{11-7} = imm{8-4};
-  let Inst{19-16} = sreg;
-}
-
-let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-def POP : RVInstZcePPP<0b101, (outs), (ins slist:$sreg, retval:$retval, spimm:$imm),
-          "pop", "$sreg, $retval, $imm">, Sched<[]> {
-  bits<2> retval;
-  bits<4> sreg;
-  bits<16> imm;
-  let DecoderNamespace  = "ZcePUSH_POP_POPRET";
-  let Inst{21-20} = retval;
-  let Inst{11-7} = imm{8-4};
-  let Inst{19-16} = sreg;
-}
-
-let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-def POPRET : RVInstZcePPP<0b110, (outs), (ins slist:$sreg, retval:$retval, spimm:$imm),
-          "popret", "$sreg, $retval, $imm">, Sched<[]> {
-  bits<2> retval;
-  bits<4> sreg;
-  bits<16> imm;
-  let DecoderNamespace  = "ZcePUSH_POP_POPRET";
-  let Inst{21-20} = retval;
-  let Inst{11-7} = imm{8-4};
-  let Inst{19-16} = sreg;
-}
-
-}
-
-let Predicates = [EnableZcePushEPopE] in {
-
-let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
-def PUSH_E : RVInstZcePPP<0b100, (outs), (ins slist:$sreg, alist:$areg,
-             spimm:$imm), "push.e", "$sreg, $areg, $imm">, Sched<[]> {
-  bits<1> areg;
-  bits<4> sreg;
-  bits<12> imm;
-  let DecoderNamespace  = "ZcePUSH_POP_POPRET_E";
-  let Inst{20} = areg;
-  let Inst{11-7} = imm{8-4};
-  let Inst{19-16} = sreg;
-}
-
-let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-def POP_E : RVInstZcePPP<0b101, (outs), (ins slist:$sreg, retval:$retval,
-            spimm:$imm), "pop.e", "$sreg, $retval, $imm">, Sched<[]> {
-  bits<2> retval;
-  bits<4> sreg;
-  bits<12> imm;
-  let DecoderNamespace  = "ZcePUSH_POP_POPRET_E";
-  let Inst{21-20} = retval;
-  let Inst{11-7} = imm{8-4};
-  let Inst{19-16} = sreg;
-}
-
-let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
-def POPRET_E : RVInstZcePPP<0b110, (outs), (ins slist:$sreg, retval:$retval,
-            spimm:$imm), "popret.e", "$sreg, $retval, $imm">, Sched<[]> {
-  bits<2> retval;
-  bits<4> sreg;
-  bits<12> imm;
-  let DecoderNamespace  = "ZcePUSH_POP_POPRET_E";
-  let Inst{21-20} = retval;
-  let Inst{11-7} = imm{8-4};
-  let Inst{19-16} = sreg;
-}
-
-}
-
 let Predicates = [EnableZceCPushCPop] in {
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
-def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, alist:$areg, spimm0_5:$spimm), 
-    "c.push", "{$rlist3}, {$areg}, $spimm">, Sched<[]> {
-  bits<3> rlist3;
-  bits<1> areg;
-  bits<16> spimm;
+def CM_PUSH : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm), 
+    "cm.push", "{$rlist}, $spimm">, Sched<[]> {
+  bits<4> rlist;
+  bits<2> spimm;
 
-  let DecoderNamespace  = "ZcePUSH";
-  let Inst{9-7} = spimm{6-4};
-  let Inst{6-5} = 0b10;
-  let Inst{4-2} = rlist3;
+  let Inst{12-8} = 0b11000;
+  let Inst{7-4} = rlist;
+  let Inst{3-2} = spimm;
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
-def C_POPRET : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval1:$ret, spimm0_5:$spimm), 
-    "c.popret", "{$rlist3}, {$ret}, $spimm">, Sched<[]> {
-  bits<3> rlist3;
-  bits<1> ret;
-  bits<16> spimm;
+def CM_POPRET : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm), 
+    "cm.popret", "{$rlist}, $spimm">, Sched<[]> {
+  bits<4> rlist;
+  bits<2> spimm;
 
-  let DecoderNamespace  = "ZcePOPRET";
-  let Inst{9-7} = spimm{6-4};
-  let Inst{6} = 0b0;
-  let Inst{5} = ret;
-  let Inst{4-2} = rlist3;
+  let Inst{12-8} = 0b11110;
+  let Inst{7-4} = rlist;
+  let Inst{3-2} = spimm;
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
-def C_POP : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval:$ret, spimm1:$spimm), 
-    "c.pop", "{$rlist3}, {$ret}, $spimm">, Sched<[]> {
-  bits<3> rlist3;
-  bits<16> spimm;
+def CM_POPRETZ : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm), 
+    "cm.popretz", "{$rlist}, $spimm">, Sched<[]> {
+  bits<4> rlist;
+  bits<2> spimm;
 
-  let Inst{9-8} = 0b11;
-  let Inst{7} = spimm{4};
-  let Inst{6-5} = 0b00;
-  let Inst{4-2} = rlist3;
-}
-
-}
-
-let Predicates = [EnableZceCPushECPopE, IsRV32] in {
-let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
-def C_POP_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, retval:$ret0, spimm:$spimm), 
-    "c.pop.e", "{$rlist2}, {$ret0}, $spimm">, Sched<[]> {
-  bits<2> rlist2;
-  bits<16> spimm;
-
-  let Inst{9-8} = 0b11;
-  let Inst{7} = spimm{4};
-  let Inst{6-4} = 0b010;
-  let Inst{3-2} = rlist2;
+  let Inst{12-8} = 0b11100;
+  let Inst{7-4} = rlist;
+  let Inst{3-2} = spimm;
 }
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
-def C_POPRET_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, retval:$ret0, spimm:$spimm), 
-    "c.popret.e", "{$rlist2}, {$ret0}, $spimm">, Sched<[]> {
-  bits<2> rlist2;
-  bits<16> spimm;
-  bits<1> ret0;
+def CM_POP : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm), 
+    "cm.pop", "{$rlist}, $spimm">, Sched<[]> {
+  bits<4> rlist;
+  bits<2> spimm;
 
-  let DecoderNamespace  = "ZcePOPRET";
-
-  let Inst{9-7} = spimm{6-4};
-  let Inst{6-5} = 0b11;
-  let Inst{4} = ret0;
-  let Inst{3-2} = rlist2;
-}
-
-let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
-def C_PUSH_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, alist:$areg, spimm:$spimm), 
-    "c.push.e", "{$rlist2}, {$areg}, $spimm">, Sched<[]> {
-  bits<2> rlist2;
-  bits<16> spimm;
-  let DecoderNamespace  = "ZcePUSH_E";
-  let Inst{9-8} = 0b11;
-  let Inst{7} = spimm{4};
-  let Inst{6} = 0b1;
-  let Inst{5-4} = spimm{6-5};
-  let Inst{3-2} = rlist2;
+  let Inst{12-8} = 0b11010;
+  let Inst{7-4} = rlist;
+  let Inst{3-2} = spimm;
 }
 
 }
@@ -788,14 +586,6 @@ def CM_SH : ZceStore_ri<0b101, 0b00, "cm.sh", GPRC, uimm5_lsb0>,
 }
 
 let isCompressOnly = true in {
-let Predicates = [EnableZceCPushCPop] in{
-def : CompressPat<(PUSH rlist3:$slist, alist:$areg, spimm0_5:$spimm),
-                  (C_PUSH rlist3:$slist, alist:$areg, spimm0_5:$spimm)>;
-def : CompressPat<(POP rlist3:$slist, 0, spimm1:$spimm),
-                  (C_POP rlist3:$slist, 0, spimm1:$spimm)>;
-def : CompressPat<(POPRET rlist3:$slist, retval1:$ret, spimm0_5:$spimm),
-                  (C_POPRET rlist3:$slist, retval1:$ret, spimm0_5:$spimm)>;
-} //Predicates = [HasStdExtZcea]
 
 let Predicates = [EnableZceCMul] in{
 def : CompressPat<(MUL GPRC:$rs1, GPRC:$rs1, GPRC:$rs2),

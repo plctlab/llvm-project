@@ -93,22 +93,9 @@ class RVInstZceTableJump_i<bits<3> funct3, string opcodestr, DAGOperand opnd>
   let Inst{9-2} = imm8;
 }
 
-class RVInstZcePPP<bits<3> funct3, dag outs, dag ins, string opcodestr, string argstr>
-    : RVInst<outs, ins, opcodestr, argstr, [], InstFormatOther> {
-  bits<5> spimm;
-  bits<4> rlist;
-
-  let Inst{31-22} = 0b0000000000;
-  let Inst{19-16} = rlist;
-  let Inst{15} = 0b0;
-  let Inst{14-12} = funct3;
-  let Inst{11-7} = spimm;
-  let Inst{6-0} = 0b0101011;
-}
-
 class RVInstZceCPPP<dag outs, dag ins, string opcodestr, string argstr>
     : RVInst16<outs, ins, opcodestr, argstr, [], InstFormatOther> {
 
-      let Inst{1-0} = 0b00;
-      let Inst{15-10} = 0b100011;
+      let Inst{1-0} = 0b10;
+      let Inst{15-13} = 0b101;
 }

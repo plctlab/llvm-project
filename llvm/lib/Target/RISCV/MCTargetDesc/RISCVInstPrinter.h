@@ -46,18 +46,8 @@ public:
                    raw_ostream &O);
   void printVMaskReg(const MCInst *MI, unsigned OpNo,
                      const MCSubtargetInfo &STI, raw_ostream &O);
-  void printAlist(const MCInst *MI, unsigned OpNo,
+  void printRlist(const MCInst *MI, unsigned OpNo,
                   const MCSubtargetInfo &STI, raw_ostream &O);
-  void printSlist(const MCInst *MI, unsigned OpNo,
-                  const MCSubtargetInfo &STI, raw_ostream &O);
-  void printRetval(const MCInst *MI, unsigned OpNo,
-                  const MCSubtargetInfo &STI, raw_ostream &O);
-  void printSlist16(const MCInst *MI, unsigned OpNo,
-                  const MCSubtargetInfo &STI, raw_ostream &O);
-  void printRlist2(const MCInst *MI, unsigned OpNo,
-                const MCSubtargetInfo &STI, raw_ostream &O);
-  void printRlist3(const MCInst *MI, unsigned OpNo,
-                const MCSubtargetInfo &STI, raw_ostream &O);
   void printSpimm(const MCInst *MI, unsigned OpNo,
                 const MCSubtargetInfo &STI, raw_ostream &O);
 

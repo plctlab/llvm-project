@@ -41,6 +41,8 @@ namespace{
       bool adjustRetVal(MachineBasicBlock::iterator &MBBI);
       bool runOnMachineFunction(MachineFunction &Fn) override;
 
+      std::map<MachineBasicBlock::iterator *, int> retValMap;
+
       StringRef getPassName() const override { return RISCV_PUSH_POP_OPT_NAME; }
   };
 
@@ -55,9 +57,9 @@ INITIALIZE_PASS(RISCVPushPopOpt, "riscv-push-pop-opt", RISCV_PUSH_POP_OPT_NAME, 
 static MachineBasicBlock::iterator containsPop (MachineBasicBlock &MBB){
   for (MachineBasicBlock::iterator MBBI = MBB.begin(); MBBI != MBB.end(); 
       MBBI = next_nodbg(MBBI,MBB.end()))
-        if(MBBI->getOpcode() == RISCV::POP)
-          return MBBI;
-    
+    if (MBBI->getOpcode() == RISCV::CM_POP)
+      return MBBI;
+
   return MBB.end();
 }
 
@@ -68,10 +70,18 @@ bool RISCVPushPopOpt::usePopRet(MachineBasicBlock::iterator &MBBI){
   // this will detect all ret instruction.
   if(NextI->getOpcode() == RISCV::PseudoRET){
     DebugLoc DL = NextI->getDebugLoc();
-    BuildMI(*NextI->getParent(), NextI, DL, TII->get(RISCV::POPRET))
-        .add(MBBI->getOperand(0))
-        .add(MBBI->getOperand(1))
-        .add(MBBI->getOperand(2));
+    auto retValInfo = retValMap.find(&MBBI);
+    if (retValInfo == retValMap.end())
+      BuildMI(*NextI->getParent(), NextI, DL, TII->get(RISCV::CM_POPRET))
+          .add(MBBI->getOperand(0))
+          .add(MBBI->getOperand(1));
+    else if (retValInfo->second == 0)
+      BuildMI(*NextI->getParent(), NextI, DL, TII->get(RISCV::CM_POPRETZ))
+          .add(MBBI->getOperand(0))
+          .add(MBBI->getOperand(1));
+    // If the return value is not 0 then POPRETZ is not used.
+    else
+      return false;
     MBBI->eraseFromParent();
     NextI->eraseFromParent();
     return true;
@@ -100,14 +110,8 @@ bool RISCVPushPopOpt::adjustRetVal(MachineBasicBlock::iterator &MBBI){
         {
         default:
           return false;
-        case -1:
-          MBBI->getOperand(1).setImm(3);
-          break;
         case 0:
-          MBBI->getOperand(1).setImm(1);
-          break;
-        case 1:
-          MBBI->getOperand(1).setImm(2);
+          retValMap[&MBBI] = 0;
         }
         MI.removeFromParent();
         return true;
@@ -130,9 +134,8 @@ bool RISCVPushPopOpt::runOnMachineFunction(MachineFunction &Fn) {
   // If Zcea extension is not supported abort.
   Subtarget = &static_cast<const RISCVSubtarget &>(Fn.getSubtarget());
   if (!Subtarget->hasStdExtZcea()) {
-    if (!(Subtarget->enableZcePushPop() || Subtarget->enableZceCPushCPop() ||
-          Subtarget->enableZcePushEPopE() || Subtarget->enableZceCPushECPopE()))
-    return false;
+    if (!Subtarget->enableZceCPushCPop())
+      return false;
   }
   TII = static_cast<const RISCVInstrInfo *>(Subtarget->getInstrInfo());
   TRI = Subtarget->getRegisterInfo();

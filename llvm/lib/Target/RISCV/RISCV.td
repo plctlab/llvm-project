@@ -149,24 +149,6 @@ def EnableZceCPushCPop : Predicate<"Subtarget->enableZceCPushCPop()">,
                            AssemblerPredicate<(all_of FeatureZceCPushCPop),
                            "'C.Push-C.Pop' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
 
-def FeatureZcePushPop : SubtargetFeature<"zce-push-pop", "EnableZcePushPop",
-                                          "true", "Enable PushPop.">;
-def EnableZcePushPop : Predicate<"Subtarget->enableZcePushPop()">,
-                           AssemblerPredicate<(all_of FeatureZcePushPop),
-                           "'Push-Pop' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
-
-def FeatureZceCPushECPopE : SubtargetFeature<"zce-cpushe-cpope", "EnableZceCPushECPopE",
-                                          "true", "Enable CPushECPopE.">;
-def EnableZceCPushECPopE : Predicate<"Subtarget->enableZceCPushECPopE()">,
-                           AssemblerPredicate<(all_of FeatureZceCPushECPopE),
-                           "'C.Push.E-C.Pop.E' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
-
-def FeatureZcePushEPopE : SubtargetFeature<"zce-pushe-pope", "EnableZcePushEPopE",
-                                          "true", "Enable PushEPopE.">;
-def EnableZcePushEPopE : Predicate<"Subtarget->enableZcePushEPopE()">,
-                           AssemblerPredicate<(all_of FeatureZcePushEPopE),
-                           "'Push.E-Pop.E' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
-
 def FeatureZceTbljal : SubtargetFeature<"zce-tbljal", "EnableZceTbljal",
                                           "true", "Enable Tbljal.">;
 def EnableZceTbljal : Predicate<"Subtarget->enableZceTbljal()">,
@@ -286,10 +268,8 @@ def FeatureExtZcea
                         FeatureZceBeqi,
                         FeatureZceBnei,
                         FeatureZceTbljal,
-                        FeatureZcePushPop,
-                        FeatureZcePushEPopE,
                         FeatureZceCPushCPop,
-                        FeatureZceCPushECPopE]>;
+                        ]>;
 def HasStdExtZcea : Predicate<"Subtarget->hasStdExtZcea()">,
                            AssemblerPredicate<(all_of FeatureExtZcea),
                            "'Zcea' (all existing standard extensions for small embedded cores v0.50)">;

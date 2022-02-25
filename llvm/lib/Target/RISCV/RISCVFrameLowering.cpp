@@ -23,9 +23,10 @@
 
 using namespace llvm;
 
-cl::opt<bool> EnablePushPop("mzce-push-pop",
-                            cl::desc("Enable use of push/pop/popret instructions."),
-                            cl::init(true), cl::Hidden);
+cl::opt<bool>
+    EnablePushPop("mzce-cpush-cpop",
+                  cl::desc("Enable use of [c.]push/pop/popret instructions."),
+                  cl::init(true), cl::Hidden);
 
 // For now we use x18, a.k.a s2, as pointer to shadow call stack.
 // User should explicitly set -ffixed-x18 and not use x18 in their asm.
@@ -230,19 +231,30 @@ static int getPushPopEncoding(const Register MaxReg) {
   switch (MaxReg) {
   default:
     llvm_unreachable("Something has gone wrong!");
-  case /*s11*/ RISCV::X27: return 12;
-  case /*s10*/ RISCV::X26: return 11;
-  case /*s9*/  RISCV::X25: return 10;
-  case /*s8*/  RISCV::X24: return 9;
-  case /*s7*/  RISCV::X23: return 8;
-  case /*s6*/  RISCV::X22: return 7;
-  case /*s5*/  RISCV::X21: return 6;
-  case /*s4*/  RISCV::X20: return 5;
-  case /*s3*/  RISCV::X19: return 4;
-  case /*s2*/  RISCV::X18: return 3;
-  case /*s1*/  RISCV::X9:  return 2;
-  case /*s0*/  RISCV::X8:  return 1;
-  case /*ra*/  RISCV::X1:  return 0;
+  case /*s11*/ RISCV::X27:
+    return 15;
+  case /*s9*/ RISCV::X25:
+    return 14;
+  case /*s8*/ RISCV::X24:
+    return 13;
+  case /*s7*/ RISCV::X23:
+    return 12;
+  case /*s6*/ RISCV::X22:
+    return 11;
+  case /*s5*/ RISCV::X21:
+    return 10;
+  case /*s4*/ RISCV::X20:
+    return 9;
+  case /*s3*/ RISCV::X19:
+    return 8;
+  case /*s2*/ RISCV::X18:
+    return 7;
+  case /*s1*/ RISCV::X9:
+    return 6;
+  case /*s0*/ RISCV::X8:
+    return 5;
+  case /*ra*/ RISCV::X1:
+    return 4;
   }
 }
 static uint64_t adjSPInPushPop(MachineBasicBlock::iterator MBBI, uint64_t StackAdj, bool isPop){
@@ -274,10 +286,7 @@ static uint64_t adjSPInPushPop(MachineBasicBlock::iterator MBBI, uint64_t StackA
 // Checks if Zce PUSH/POP instructions can be used with the given CSI.
 bool RISCVFrameLowering::isCSIpushable(
     const std::vector<CalleeSavedInfo> &CSI) const {
-  if (!(STI.hasStdExtZcea() || STI.enableZcePushPop() ||
-        STI.enableZceCPushCPop() || STI.enableZcePushEPopE() ||
-        STI.enableZceCPushECPopE()) ||
-      CSI.empty())
+  if (!(STI.hasStdExtZcea() || STI.enableZceCPushCPop() || CSI.empty()))
     return false;
   for (auto &CS: CSI){
       Register Reg = CS.getReg();
@@ -1161,11 +1170,11 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
         TII.storeRegToStackSlot(MBB, MI, Reg, true, CS.getFrameIdx(), RC, TRI);
     }
 
-    MachineInstrBuilder PushBuilder = BuildMI(MBB,MI, DL, TII.get(RISCV::PUSH));
+    MachineInstrBuilder PushBuilder =
+        BuildMI(MBB, MI, DL, TII.get(RISCV::CM_PUSH));
     // Use encoded number to represent registers to spill.
     int RegEnc = getPushPopEncoding(MaxReg);
     PushBuilder.addImm(RegEnc);
-    PushBuilder.addImm(0);
     // Calculate the number of 16 byte blocks required to store pushed registers.
     unsigned RegSize = TRI->getRegSizeInBits(RISCV::GPRRegClass) / 8;
     unsigned StackAdj =  ((RegSize * (RegEnc + 1) + 15) / 16) * 16;
@@ -1222,11 +1231,11 @@ bool RISCVFrameLowering::restoreCalleeSavedRegisters(
         TII.loadRegFromStackSlot(MBB, MI, Reg, CS.getFrameIdx(), RC, TRI);
     }
 
-    MachineInstrBuilder PopBuilder = BuildMI(MBB,MI, DL, TII.get(RISCV::POP));
+    MachineInstrBuilder PopBuilder =
+        BuildMI(MBB, MI, DL, TII.get(RISCV::CM_POP));
     // Use encoded number to represent registers to restore.
     int RegEnc = getPushPopEncoding(MaxReg);
     PopBuilder.addImm(RegEnc);
-    PopBuilder.addImm(0);
     // Calculate the number of 16 byte blocks used by pushed registers.
     unsigned RegSize = TRI->getRegSizeInBits(RISCV::GPRRegClass) / 8;
     unsigned StackAdj =  ((RegSize * (RegEnc + 1) + 15) / 16) * 16;

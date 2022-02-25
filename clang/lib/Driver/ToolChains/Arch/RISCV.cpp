@@ -152,15 +152,6 @@ void riscv::getRISCVTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   //  Handle the switch -mzce-cpush-cpop for Zce.
   if (Args.hasArg(options::OPT_mzce_cpush_cpop))
     Features.push_back("+zce-cpush-cpop");
-  // Handle the switch -mzce-push-pop for Zce.
-  if (Args.hasArg(options::OPT_mzce_push_pop))
-    Features.push_back("+zce-push-pop");
-  //  Handle the switch -mzce-cpushe-cpope for Zce.
-  if (Args.hasArg(options::OPT_mzce_cpushe_cpope))
-    Features.push_back("+zce-cpushe-cpope");
-  //  Handle the switch -mzce-pushe-pope for Zce.
-  if (Args.hasArg(options::OPT_mzce_pushe_pope))
-    Features.push_back("+zce-pushe-pope");
   //  Handle the switch -mzce-tbljal for Zce.
   if (Args.hasArg(options::OPT_mzce_tbljal))
     Features.push_back("+zce-tbljal");

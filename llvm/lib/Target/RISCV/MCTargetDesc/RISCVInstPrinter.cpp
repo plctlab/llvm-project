@@ -181,36 +181,10 @@ void RISCVInstPrinter::printVTypeI(const MCInst *MI, unsigned OpNo,
   RISCVVType::printVType(Imm, O);
 }
 
-void RISCVInstPrinter::printAlist(const MCInst *MI, unsigned OpNo,
-                                  const MCSubtargetInfo &STI, raw_ostream &O) {
-  unsigned SlistImm = MI->getOperand(OpNo - 1).getImm();
-  unsigned areg = MI->getOperand(OpNo).getImm();
-  unsigned opcode = MI->getOpcode();
-  RISCVZCE::printAlist(opcode, SlistImm, areg, O);
-}
-
-void RISCVInstPrinter::printSlist(const MCInst *MI, unsigned OpNo,
+void RISCVInstPrinter::printRlist(const MCInst *MI, unsigned OpNo,
                                   const MCSubtargetInfo &STI, raw_ostream &O) {
   unsigned Imm = MI->getOperand(OpNo).getImm();
-  RISCVZCE::printSlist(Imm, O);
-}
-
-void RISCVInstPrinter::printRetval(const MCInst *MI, unsigned OpNo,
-                                  const MCSubtargetInfo &STI, raw_ostream &O) {
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  RISCVZCE::printRetval(Imm, O);
-}
-
-void RISCVInstPrinter::printRlist2(const MCInst *MI, unsigned OpNo,
-                                  const MCSubtargetInfo &STI, raw_ostream &O) {
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  RISCVZCE::printRlist2(Imm, O);
-}
-
-void RISCVInstPrinter::printRlist3(const MCInst *MI, unsigned OpNo,
-                                  const MCSubtargetInfo &STI, raw_ostream &O) {
-  unsigned Imm = MI->getOperand(OpNo).getImm();
-  RISCVZCE::printRlist3(Imm, O);
+  RISCVZCE::printRlist(Imm, O);
 }
 
 #define DECODE_SPIMM(MAX_BINARYVALUE, VAL, VAL64) \
@@ -226,133 +200,11 @@ void RISCVInstPrinter::printSpimm(const MCInst *MI, unsigned OpNo,
   unsigned opcode = MI->getOpcode();
   bool isRV64 = STI.getFeatureBits()[RISCV::Feature64Bit];
   int64_t spimm = 0;
-
-  if (opcode == RISCV::PUSH || opcode == RISCV::PUSH_E ||
-      opcode == RISCV::POP || opcode == RISCV::POP_E ||
-      opcode == RISCV::POPRET || opcode == RISCV::POPRET_E){
-    switch ((RISCVZCE::SLISTENCODE)MI->getOperand(0).getImm())
-    {
-    default:
-      break;
-    case RISCVZCE::SLISTENCODE::RA:
-    case RISCVZCE::SLISTENCODE::RA_S0:
-      DECODE_SPIMM(31,16,16)
-      break;
-    case RISCVZCE::SLISTENCODE::RA_S0_S1:
-    case RISCVZCE::SLISTENCODE::RA_S0_S2:
-    case RISCVZCE::SLISTENCODE::RA_S0_S2_E:
-      DECODE_SPIMM(31,16,32)
-      break;
-    case RISCVZCE::SLISTENCODE::RA_S0_S3:
-    case RISCVZCE::SLISTENCODE::RA_S0_S4:
-    case RISCVZCE::SLISTENCODE::RA_S0_S3_E:
-    case RISCVZCE::SLISTENCODE::RA_S0_S4_E:
-      DECODE_SPIMM(31,32,48)
-      break;
-    case RISCVZCE::SLISTENCODE::RA_S0_S5:
-    case RISCVZCE::SLISTENCODE::RA_S0_S6:
-      DECODE_SPIMM(31,32,64)
-      break;
-    case RISCVZCE::SLISTENCODE::RA_S0_S7:
-    case RISCVZCE::SLISTENCODE::RA_S0_S8:
-      DECODE_SPIMM(31,48,80)
-      break;
-    case RISCVZCE::SLISTENCODE::RA_S0_S9:
-    case RISCVZCE::SLISTENCODE::RA_S0_S10:
-      DECODE_SPIMM(31,48,96)
-      break;
-    case RISCVZCE::SLISTENCODE::RA_S0_S11:
-      DECODE_SPIMM(31,64,112)
-      break;
-    }
-  }
-  if (opcode == RISCV::C_POPRET || opcode == RISCV::C_PUSH){
-    switch ((RISCVZCE::RLIST3ENCODE)MI->getOperand(0).getImm())
-    {
-    default:
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA:
-    case RISCVZCE::RLIST3ENCODE::RA_S0:
-      DECODE_SPIMM(5,16,16)
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S1:
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S2:
-      DECODE_SPIMM(5,16,32)
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S3:
-      DECODE_SPIMM(5,32,48)
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S5:
-      DECODE_SPIMM(5,32,64)
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S7:
-      DECODE_SPIMM(5,48,80)
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S11:
-      DECODE_SPIMM(5,64,112)
-      break;
-    }
-  }
-  if (opcode == RISCV::C_POP){
-    switch ((RISCVZCE::RLIST3ENCODE)MI->getOperand(0).getImm())
-    {
-    default:
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA:
-    case RISCVZCE::RLIST3ENCODE::RA_S0:
-      DECODE_SPIMM(1,16,16)
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S1:
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S2:
-      DECODE_SPIMM(1,16,32)
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S3:
-      DECODE_SPIMM(1,32,48)
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S5:
-      DECODE_SPIMM(1,32,64)
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S7:
-      DECODE_SPIMM(1,48,80)
-      break;
-    case RISCVZCE::RLIST3ENCODE::RA_S0_S11:
-      DECODE_SPIMM(1,64,112)
-      break;
-    }
-  }
-  if (opcode == RISCV::C_POP_E){
-    switch ((RISCVZCE::RLIST2ENCODE)MI->getOperand(0).getImm())
-    {
-    default:
-      break;
-    case RISCVZCE::RLIST2ENCODE::RA_S0_S2:
-      DECODE_SPIMM(1,16,0)
-      break;
-    case RISCVZCE::RLIST2ENCODE::RA_S0_S3:
-      DECODE_SPIMM(1,32,0)
-      break;
-    // case RISCVZCE::RLIST2ENCODE::RA_S0_S4:
-    //   DECODE_SPIMM(1,16,0)
-    //   break;
-    }
-  }
-  if (opcode == RISCV::C_POPRET_E || opcode == RISCV::C_PUSH_E){
-    int64_t rlist2 = MI->getOperand(0).getImm();
-    switch (rlist2)
-    {
-    default:
-      break;
-    case (int64_t)RISCVZCE::RLIST2ENCODE::RA_S0_S2:
-      DECODE_SPIMM(5,16,0)
-      break;
-    case (int64_t)RISCVZCE::RLIST2ENCODE::RA_S0_S3:
-    case (int64_t)RISCVZCE::RLIST2ENCODE::RA_S0_S4:
-      DECODE_SPIMM(5,32,0)
-      break;
-    }
-  }
-
-  if(opcode == RISCV::PUSH || opcode == RISCV::PUSH_E || opcode == RISCV::C_PUSH || opcode == RISCV::C_PUSH_E){
+  bool isEABI = false; // Reserved for future implementation
+  auto base =
+      RISCVZCE::getStackAdjBase(MI->getOperand(0).getImm(), isRV64, isEABI);
+  spimm = base + 16 * Imm;
+  if (opcode == RISCV::CM_PUSH) {
     spimm *= -1;
   }
 
