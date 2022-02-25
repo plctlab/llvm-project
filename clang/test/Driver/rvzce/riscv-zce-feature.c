@@ -1,8 +1,5 @@
 // RUN: %clang -target riscv32-unknown-elf -### %s 2>&1 | FileCheck %s -check-prefix=DEFAULT
 // RUN: %clang -target riscv32-unknown-elf -### %s -mzce-cpush-cpop  2>&1 | FileCheck %s -check-prefix=CPUSHCPOP
-// RUN: %clang -target riscv32-unknown-elf -### %s -mzce-push-pop  2>&1 | FileCheck %s -check-prefix=PUSHPOP
-// RUN: %clang -target riscv32-unknown-elf -### %s -mzce-cpushe-cpope  2>&1 | FileCheck %s -check-prefix=CPUSHECPOPE
-// RUN: %clang -target riscv32-unknown-elf -### %s -mzce-pushe-pope  2>&1 | FileCheck %s -check-prefix=PUSHEPOPE
 // RUN: %clang -target riscv32-unknown-elf -### %s -mzce-tbljal  2>&1 | FileCheck %s -check-prefix=TBLJAL
 // RUN: %clang -target riscv32-unknown-elf -### %s -mzce-clbhu  2>&1 | FileCheck %s -check-prefix=CLBHU
 // RUN: %clang -target riscv32-unknown-elf -### %s -mzce-clbh  2>&1 | FileCheck %s -check-prefix=CLBH
@@ -21,9 +18,6 @@
 // RUN: %clang -target riscv32-unknown-elf -### %s -mzce-decbnez  2>&1 | FileCheck %s -check-prefix=DECBNEZ
 
 // DEFAULT-NOT: "-target-feature" "+zce-cpush-cpop"
-// DEFAULT-NOT: "-target-feature" "+zce-push-pop"
-// DEFAULT-NOT: "-target-feature" "+zce-cpushe-cpope"
-// DEFAULT-NOT: "-target-feature" "+zce-pushe-pope"
 // DEFAULT-NOT: "-target-feature" "+zce-tbljal"
 // DEFAULT-NOT: "-target-feature" "+zce-clbhu"
 // DEFAULT-NOT: "-target-feature" "+zce-clbh"
@@ -42,9 +36,6 @@
 // DEFAULT-NOT: "-target-feature" "+zce-decbnez"
 
 // CPUSHCPOP: "-target-feature" "+zce-cpush-cpop"
-// PUSHPOP: "-target-feature" "+zce-push-pop"
-// CPUSHECPOPE: "-target-feature" "+zce-cpushe-cpope"
-// PUSHEPOPE: "-target-feature" "+zce-pushe-pope"
 // TBLJAL: "-target-feature" "+zce-tbljal"
 // CLBHU: "-target-feature" "+zce-clbhu"
 // CLBH: "-target-feature" "+zce-clbh"
