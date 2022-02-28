@@ -136,25 +136,25 @@ struct __mask_traits<_Tp, simd_abi::__scalar> {
     *__mem = static_cast<_Up>(__s.__data);
   }
 
-  static _Mask __logical_and(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data && __rhs.__data}; }
+  static _Mask __logical_and(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data && __rhs.__data}}; }
 
-  static _Mask __logical_or(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data || __rhs.__data}; }
+  static _Mask __logical_or(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data || __rhs.__data}}; }
 
   static _Mask __bitwise_and(_Mask __lhs, _Mask __rhs) noexcept {
-    return {static_cast<bool>(__lhs.__data & __rhs.__data)};
+    return {{static_cast<bool>(__lhs.__data & __rhs.__data)}};
   }
 
   static _Mask __bitwise_or(_Mask __lhs, _Mask __rhs) noexcept {
-    return {static_cast<bool>(__lhs.__data | __rhs.__data)};
+    return {{static_cast<bool>(__lhs.__data | __rhs.__data)}};
   }
 
   static _Mask __bitwise_xor(_Mask __lhs, _Mask __rhs) noexcept {
-    return {static_cast<bool>(__lhs.__data ^ __rhs.__data)};
+    return {{static_cast<bool>(__lhs.__data ^ __rhs.__data)}};
   }
 
-  static _Mask __equal_to(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data == __rhs.__data}; }
+  static _Mask __equal_to(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data == __rhs.__data}}; }
 
-  static _Mask __not_equal_to(_Mask __lhs, _Mask __rhs) noexcept { return {__lhs.__data != __rhs.__data}; }
+  static _Mask __not_equal_to(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data != __rhs.__data}}; }
 
   static bool __all_of(_Mask __s) noexcept { return __s.__data; }
 
