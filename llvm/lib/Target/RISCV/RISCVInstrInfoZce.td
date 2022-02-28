@@ -306,36 +306,23 @@ class ZceStore_ri<bits<3> funct3, bits<2> opcode, string opcodestr,
 // 6. Zcea
 
 // 6.1
-// echo "c.zext.b s0" | bin/llvm-mc -triple=riscv64 -mattr=+experimental-zce -show-encoding
-let Predicates = [EnableZceZext] in {
+let Predicates = [HasStdExtZcb] in {
 def C_ZEXT_B  : RVZceArith_r<0b11, 0b000 , "c.zext.b">, Sched<[]>;
 def C_ZEXT_H  : RVZceArith_r<0b11, 0b010 , "c.zext.h">, Sched<[]>;
+
+def C_SEXT_B  : RVZceArith_r<0b11, 0b001 , "c.sext.b">, Sched<[]>;
+def C_SEXT_H  : RVZceArith_r<0b11, 0b011 , "c.sext.h">, Sched<[]>;
+
+def C_MUL     : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
+
+def C_NOT_ZCE : RVZceArith_r<0b11, 0b101 , "c.not">, Sched<[]>;
 }
 
-let Predicates = [EnableZceZext, IsRV64] in {
+let Predicates = [HasStdExtZcb, IsRV64] in {
 def C_ZEXT_W : RVZceArith_r<0b11, 0b100 , "c.zext.w">, Sched<[]>;
 }
 
-let Predicates = [EnableZceSext] in {
-def C_SEXT_B  : RVZceArith_r<0b11, 0b001 , "c.sext.b">, Sched<[]>;
-def C_SEXT_H  : RVZceArith_r<0b11, 0b011 , "c.sext.h">, Sched<[]>;
-}
 
-let Predicates = [HasStdExtC, EnableZceSext, IsRV64] in{
-def : InstAlias<"c.sext.w $rd", (C_ADDIW GPRC:$rd, 0)>;
-}
-
-let Predicates = [EnableZceCMul] in {
-def C_MUL     : RVZceArith_rr<0b100111, 0b10, 0b01, "c.mul">, Sched<[]>;
-}
-
-let Predicates = [EnableZceCNeg] in {
-def C_NEG_ZCE : RVZceArith_r<0b00, 0b110 , "c.neg">, Sched<[]>;
-}
-
-let Predicates = [EnableZceCNot] in {
-def C_NOT_ZCE : RVZceArith_r<0b11, 0b101 , "c.not">, Sched<[]>;
-}
 
 // 6.3 C.MV*
 let Predicates = [HasStdExtZcmp], Defs = [X10, X11],
@@ -386,14 +373,14 @@ def : BccSwapPat<SETEQ, BEQI>;
 let Predicates = [EnableZceBnei] in 
 def : BccSwapPat<SETNE, BNEI>;
 
-let Predicates = [EnableZceTbljal] in {
+let Predicates = [HasStdExtZcmt] in {
 def TBLJALM : RVInstZceTableJump_i<0b010, "tbljalm", tbljalm_uimm8>, Sched<[]>;
 def TBLJ    : RVInstZceTableJump_i<0b010, "tblj", tblj_uimm8>, Sched<[]>;
 def TBLJAL  : RVInstZceTableJump_i<0b010, "tbljal", tbljal_uimm8>, Sched<[]>;
 }
 
 // 6.9 push, pop
-let Predicates = [EnableZceCPushCPop] in {
+let Predicates = [HasStdExtZcmpOrZcmpe] in {
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
 def CM_PUSH : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm), 
@@ -592,50 +579,45 @@ def CM_SH : ZceStore_ri<0b101, 0b00, "cm.sh", GPRC, uimm5_lsb0>,
 
 let isCompressOnly = true in {
 
-let Predicates = [EnableZceCMul] in{
+let Predicates = [HasStdExtZcb] in{
 def : CompressPat<(MUL GPRC:$rs1, GPRC:$rs1, GPRC:$rs2),
                   (C_MUL GPRC:$rs1, GPRC:$rs2)>;
 
 def : CompressPat<(MUL GPRC:$rs1, GPRC:$rs2, GPRC:$rs1),
                   (C_MUL GPRC:$rs1, GPRC:$rs2)>;
-} //Predicates = [EnableZceCMul]
+} //Predicates = [HasStdExtZcb]
 
-let Predicates = [EnableZceSext, HasStdExtZbb] in{
+let Predicates = [HasStdExtZcb, HasStdExtZbb] in{
 def : CompressPat<(SEXTB GPRC:$rs1, GPRC:$rs1),
                   (C_SEXT_B GPRC:$rs1, GPRC:$rs1)>;
 
 def : CompressPat<(SEXTH GPRC:$rs1, GPRC:$rs1),
                   (C_SEXT_H GPRC:$rs1, GPRC:$rs1)>;
-} //Predicates = [EnableZceSext, HasStdExtZbb]
+} //Predicates = [HasStdExtZcb, HasStdExtZbb]
 
-let Predicates = [EnableZceZext, HasStdExtZbb] in{
+let Predicates = [HasStdExtZcb, HasStdExtZbb] in{
 def : CompressPat<(ZEXTH_RV32 GPRC:$rs1, GPRC:$rs1),
                   (C_ZEXT_H GPRC:$rs1, GPRC:$rs1)>;
 
 def : CompressPat<(ZEXTH_RV64 GPRC:$rs1, GPRC:$rs1),
                   (C_ZEXT_H GPRC:$rs1, GPRC:$rs1)>;
-} //Predicates = [EnableZceSext, HasStdExtZbb]
+} //Predicates = [HasStdExtZcb, HasStdExtZbb]
 
 // zext.b
-let Predicates = [EnableZceZext] in{
+let Predicates = [HasStdExtZcb] in{
 def : CompressPat<(ANDI GPRC:$rs1, GPRC:$rs1, 255),
                   (C_ZEXT_B GPRC:$rs1, GPRC:$rs1)>;
-} //Predicates = [EnableZceSext, HasStdExtZbb]
+} //Predicates = [HasStdExtZcb, HasStdExtZbb]
 
 // zext.w
-let Predicates = [EnableZceZext, HasStdExtZba, IsRV64] in{
+let Predicates = [HasStdExtZcb, HasStdExtZba, IsRV64] in{
 def : CompressPat<(ADDUW GPRC:$rs1, GPRC:$rs1, X0),
                   (C_ZEXT_W GPRC:$rs1, GPRC:$rs1)>;
-} //Predicates = [EnableZceZext, HasStdExtZba, IsRV64]
+} //Predicates = [HasStdExtZcb, HasStdExtZba, IsRV64]
 
-let Predicates = [EnableZceCNot] in{
+let Predicates = [HasStdExtZcb] in{
 def : CompressPat<(XORI GPRC:$rs1, GPRC:$rs1, -1),
                   (C_NOT_ZCE GPRC:$rs1, GPRC:$rs1)>;
-}
-
-let Predicates = [EnableZceCNeg] in{
-def : CompressPat<(SUB GPRC:$rs1, X0, GPRC:$rs1),
-                  (C_NEG_ZCE GPRC:$rs1, GPRC:$rs1)>;
 }
 
 let Predicates = [HasStdExtZcb] in{

@@ -72,7 +72,7 @@ bool RISCVDecbnez::runOnMachineFunction(MachineFunction &MF) {
   MRI = &MF.getRegInfo();
   bool Modified = false;
 
-  if (!(STI->hasStdExtZce() || STI->enableZceDecbnez())) {
+  if (!(STI->enableZceDecbnez())) {
     return Modified;
   }
   
@@ -95,7 +95,7 @@ bool RISCVDecbnez::runOnMachineFunction(MachineFunction &MF) {
         Register X0Reg = MBBI->getOperand(1).getReg();
         MachineBasicBlock *   BrLabel = MBBI->getOperand(2).getMBB();
         //place-holder for scale parameter
-        Register SourceImm = 0;
+        int64_t SourceImm = 0;
         DebugLoc DL = MBBI->getDebugLoc();
         //////////////get regdef, Maybe this should be a function////////////
         //traverse back to the regdef

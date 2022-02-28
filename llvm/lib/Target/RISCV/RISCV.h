@@ -52,9 +52,6 @@ void initializeRISCVExpandAtomicPseudoPass(PassRegistry &);
 FunctionPass *createRISCVInsertVSETVLIPass();
 void initializeRISCVInsertVSETVLIPass(PassRegistry &);
 
-FunctionPass *createRISCVZceInstOptPass();
-void initializeRISCVZceInstOptPass(PassRegistry &);
-
 FunctionPass *createRISCVMoveOptimizationPass();
 void initializeRISCVMoveOptPass(PassRegistry&);
 

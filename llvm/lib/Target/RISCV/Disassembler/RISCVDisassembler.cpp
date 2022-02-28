@@ -494,10 +494,6 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
     Result = decodeInstruction(DecoderTable32, MI, Insn, Address, this, STI);
     Size = 4;
 
-    if (STI.getFeatureBits()[RISCV::FeatureStdExtZce] &&
-        Result == MCDisassembler::Fail) {
-    }
-
   } else {
     if (Bytes.size() < 2) {
       Size = 0;
@@ -517,21 +513,20 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
       }
     }
 
-    if (STI.getFeatureBits()[RISCV::FeatureStdExtZce]) {
-      
-      if (STI.getFeatureBits()[RISCV::FeatureExtZceb]) {
-        LLVM_DEBUG(
-          dbgs() << "Trying RISCV32Zceb table (code-size reduction "
-                    "16-bit Instruction):\n");
-        // Calling the auto-generated decoder function.
-        Result = decodeInstruction(DecoderTableRVZceb_16, MI, Insn, Address,
-                                  this, STI);
-        if (Result != MCDisassembler::Fail) {
-          Size = 2;
-          return Result;
-        }
+    if (STI.getFeatureBits()[RISCV::FeatureZceCDecbnez]) {
+      LLVM_DEBUG(
+        dbgs() << "Trying RISCV32Zceb table (code-size reduction "
+                  "16-bit Instruction):\n");
+      // Calling the auto-generated decoder function.
+      Result = decodeInstruction(DecoderTableRVZceb_16, MI, Insn, Address,
+                                this, STI);
+      if (Result != MCDisassembler::Fail) {
+        Size = 2;
+        return Result;
       }
+    }
 
+    if (STI.getFeatureBits()[RISCV::FeatureExtZcmt]) {
       // handle TableJump Instructions of Zce Ext
       LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
       unsigned imm = fieldFromInstruction(Insn, 2, 8);

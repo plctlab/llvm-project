@@ -41,7 +41,7 @@ bool RISCVBeqiBnei::runOnMachineFunction(MachineFunction &MF) {
   MRI = &MF.getRegInfo();
   bool Modified = false;
 
-  if (!(STI->hasStdExtZce() || STI->enableZceBnei() || STI->enableZceBeqi())) {
+  if (!(STI->enableZceBnei() || STI->enableZceBeqi())) {
     return Modified;
   }
 

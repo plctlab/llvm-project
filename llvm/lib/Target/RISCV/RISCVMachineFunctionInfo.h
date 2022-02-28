@@ -64,8 +64,8 @@ public:
     return MF.getSubtarget<RISCVSubtarget>().enableSaveRestore() &&
            VarArgsSaveSize == 0 && !MF.getFrameInfo().hasTailCall() &&
            !MF.getFunction().hasFnAttribute("interrupt") && 
-           !(MF.getSubtarget<RISCVSubtarget>().hasStdExtZcea() ||
-              MF.getSubtarget<RISCVSubtarget>().enableZceCPushCPop());
+           !(MF.getSubtarget<RISCVSubtarget>().hasStdExtZcmp() ||
+              MF.getSubtarget<RISCVSubtarget>().hasStdExtZcmpe());
   }
 
   uint64_t getRVVStackSize() const { return RVVStackSize; }

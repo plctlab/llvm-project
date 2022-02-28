@@ -67,58 +67,27 @@ static const RISCVSupportedExtension SupportedExperimentalExtensions[] = {
     {"zfhmin", RISCVExtensionVersion{0, 1}},
     {"zfh", RISCVExtensionVersion{0, 1}},
 
-    {"zce", RISCVExtensionVersion{0, 50}},
-    {"zcee", RISCVExtensionVersion{0, 50}},
-    {"zcea", RISCVExtensionVersion{0, 50}},
-    {"zceb", RISCVExtensionVersion{0, 50}},
-    {"zce-cpush-cpop", RISCVExtensionVersion{0, 50}},
-    {"zce-push-pop", RISCVExtensionVersion{0, 50}},
-    {"zce-cpushe-cpope", RISCVExtensionVersion{0, 50}},
-    {"zce-pushe-pope", RISCVExtensionVersion{0, 50}},
-    {"zce-tbljal", RISCVExtensionVersion{0, 50}},
-    {"zce-clbhu", RISCVExtensionVersion{0, 50}},
-    {"zce-clbh", RISCVExtensionVersion{0, 50}},
-    {"zce-csbh", RISCVExtensionVersion{0, 50}},
+    {"zca", RISCVExtensionVersion{0, 70}},
+    {"zcf", RISCVExtensionVersion{0, 70}},
+    {"zcb", RISCVExtensionVersion{0, 70}},
+    {"zcmb", RISCVExtensionVersion{0, 70}},
+    {"zcmp", RISCVExtensionVersion{0, 70}},
+    {"zcmpe", RISCVExtensionVersion{0, 70}},
+    {"zcmt", RISCVExtensionVersion{0, 70}},
     {"zce-lsgp", RISCVExtensionVersion{0, 50}},
     {"zce-muli", RISCVExtensionVersion{0, 50}},
-    {"zce-cmul", RISCVExtensionVersion{0, 50}},
-    {"zce-sext", RISCVExtensionVersion{0, 50}},
-    {"zce-zext", RISCVExtensionVersion{0, 50}},
     {"zce-beqi", RISCVExtensionVersion{0, 50}},
     {"zce-bnei", RISCVExtensionVersion{0, 50}},
-    {"zce-cnot", RISCVExtensionVersion{0, 50}},
-    {"zce-cneg", RISCVExtensionVersion{0, 50}},
-    {"zce-cmva01s07", RISCVExtensionVersion{0, 50}},
     {"zce-cdecbnez", RISCVExtensionVersion{0, 50}},
     {"zce-decbnez", RISCVExtensionVersion{0, 50}},
 };
 
-static const StringRef SupportedZceeSwitchs[] = {
-    "zce-cmul",
-    "zce-sext",
-    "zce-zext",
-};
-
-static const StringRef SupportedZceaSwitchs[] = {
-    "zce-cpush-cpop",
-    "zce-push-pop",
-    "zce-cpushe-cpope",
-    "zce-pushe-pope",
-    "zce-tbljal",
+static const StringRef SupportedZcSwitchs[] = {
     "zce-muli",
     "zce-beqi",
     "zce-bnei",
-    "zce-cnot",
-    "zce-cneg",
-    "zce-cmva01s07",
-};
-
-static const StringRef SupportedZcebSwitchs[] = {
     "zce-cdecbnez",
     "zce-decbnez",
-    "zce-clbhu",
-    "zce-clbh",
-    "zce-csbh",
     "zce-lsgp",
 };
 
@@ -759,8 +728,6 @@ void RISCVISAInfo::updateImplication() {
   bool HasI = Exts.count("i") == 1;
   bool HasV = Exts.count("v") == 1;
   bool HasZfh = Exts.count("zfh") == 1;
-  bool HasZce = Exts.count("zce") == 1;
-  bool HasZcea = Exts.count("zcea") == 1;
 
   // If not in e extension and i extension does not exist, i extension is
   // implied
@@ -779,19 +746,6 @@ void RISCVISAInfo::updateImplication() {
     addExtension("zfhmin", Version->Major, Version->Minor);
   }
 
-  if (HasZce){
-    auto zceaVersion = findDefaultVersion("zcea");
-    addExtension("zcea", zceaVersion->Major, zceaVersion->Minor);
-    HasZcea = true;
-    auto zcebVersion = findDefaultVersion("zceb");
-    addExtension("zceb", zcebVersion->Major, zcebVersion->Minor);
-  }
-
-  if(HasZcea){
-    auto zceeVersion = findDefaultVersion("zcee");
-    addExtension("zcee", zceeVersion->Major, zceeVersion->Minor);
-  }
-
 }
 
 void RISCVISAInfo::updateFLen() {
@@ -804,10 +758,6 @@ void RISCVISAInfo::updateFLen() {
 }
 
 std::string RISCVISAInfo::toString() const {
-  bool hasZce = hasExtension("zce");
-  bool hasZcee = hasExtension("zcee");
-  bool hasZcea = hasExtension("zcea");
-  bool hasZceb = hasExtension("zceb");
 
   std::string Buffer;
   raw_string_ostream Arch(Buffer);
@@ -820,16 +770,7 @@ std::string RISCVISAInfo::toString() const {
     auto ExtInfo = Ext.second;
 
     if(ExtName.startswith("zce-")){
-      if(hasZce)
-        continue;
-      if(llvm::find(SupportedZceeSwitchs,ExtName) != std::end(SupportedZceeSwitchs)
-        && hasZcee)
-        continue;
-      if(llvm::find(SupportedZceaSwitchs,ExtName) != std::end(SupportedZceaSwitchs)
-        && hasZcea)
-        continue;
-      if(llvm::find(SupportedZcebSwitchs,ExtName) != std::end(SupportedZcebSwitchs)
-        && hasZceb)
+      if(llvm::find(SupportedZcSwitchs,ExtName) == std::end(SupportedZcSwitchs))
         continue;
     }
 

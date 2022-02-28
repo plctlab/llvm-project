@@ -1,7 +1,7 @@
-# RUN: llvm-mc %s -triple=riscv32 -mattr=+zce-cdecbnez -mattr=m -riscv-no-aliases -show-encoding \
+# RUN: llvm-mc %s -triple=riscv32 -mattr=+zce-cdecbnez -riscv-no-aliases -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK-ASM %s
-# RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=+zce-cdecbnez -mattr=m < %s \
-# RUN:     | llvm-objdump --mattr=experimental-zce  --mattr=m -M no-aliases -d -r - \
+# RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=+zce-cdecbnez < %s \
+# RUN:     | llvm-objdump --mattr=+zce-cdecbnez -M no-aliases -d -r - \
 # RUN:     | FileCheck --check-prefixes=CHECK-OBJ %s
 
 

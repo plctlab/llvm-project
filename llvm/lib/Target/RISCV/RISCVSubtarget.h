@@ -50,9 +50,6 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   bool HasStdExtZbs = false;
   bool HasStdExtZbt = false;
   bool HasStdExtZce = false;
-  bool HasStdExtZcea = false;
-  bool HasStdExtZceb = false;
-  bool HasStdExtZcee = false;
   bool HasStdExtZca = false;
   bool HasStdExtZcb = false;
   bool HasStdExtZcf = false;
@@ -70,21 +67,10 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   bool EnableLinkerRelax = false;
   bool EnableRVCHintInstrs = true;
   bool EnableSaveRestore = false;
-  bool EnableZceCPushCPop = false;
-  bool EnableZceTbljal = false;
-  bool EnableZceClbhu = false;
-  bool EnableZceClbh = false;
-  bool EnableZceCsbh = false;
   bool EnableZceLsgp = false;
   bool EnableZceMuli = false;
-  bool EnableZceCMul = false;
-  bool EnableZceSext = false;
-  bool EnableZceZext = false;
   bool EnableZceBeqi = false;
   bool EnableZceBnei = false;
-  bool EnableZceCNot = false;
-  bool EnableZceCNeg = false;
-  bool EnableZceCMva01s07 = false;
   bool EnableZceCDecbnez = false;
   bool EnableZceDecbnez = false;
 
@@ -144,11 +130,7 @@ public:
   bool hasStdExtZbp() const { return HasStdExtZbp; }
   bool hasStdExtZbr() const { return HasStdExtZbr; }
   bool hasStdExtZbs() const { return HasStdExtZbs; }
-  bool hasStdExtZcea() const { return HasStdExtZcea; }
-  bool hasStdExtZceb() const { return HasStdExtZceb; }
-  bool hasStdExtZcee() const { return HasStdExtZcee; }
   bool hasStdExtZbt() const { return HasStdExtZbt; }
-  bool hasStdExtZce() const { return HasStdExtZce; }
   bool hasStdExtZca() const { return HasStdExtZca; }
   bool hasStdExtZcb() const { return HasStdExtZcb; }
   bool hasStdExtZcf() const { return HasStdExtZcf; }
@@ -166,21 +148,10 @@ public:
   bool enableLinkerRelax() const { return EnableLinkerRelax; }
   bool enableRVCHintInstrs() const { return EnableRVCHintInstrs; }
   bool enableSaveRestore() const { return EnableSaveRestore; }
-  bool enableZceCPushCPop() const { return EnableZceCPushCPop; }
-  bool enableZceTbljal() const { return EnableZceTbljal; }
-  bool enableZceClbhu() const { return EnableZceClbhu; }
-  bool enableZceClbh() const { return EnableZceClbh; }
-  bool enableZceCsbh() const { return EnableZceCsbh; }
   bool enableZceLsgp() const { return EnableZceLsgp; }
   bool enableZceMuli() const { return EnableZceMuli; }
-  bool enableZceCMul() const { return EnableZceCMul; }
-  bool enableZceSext() const { return EnableZceSext; }
-  bool enableZceZext() const { return EnableZceZext; }
   bool enableZceBeqi() const { return EnableZceBeqi; }
   bool enableZceBnei() const { return EnableZceBnei; }
-  bool enableZceCNot() const { return EnableZceCNot; }
-  bool enableZceCNeg() const { return EnableZceCNeg; }
-  bool enableZceCMva01s07() const { return EnableZceCMva01s07; }
   bool enableZceCDecbnez() const { return EnableZceCDecbnez; }
   bool enableZceDecbnez() const { return EnableZceDecbnez; }
   MVT getXLenVT() const { return XLenVT; }

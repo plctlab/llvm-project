@@ -133,9 +133,8 @@ bool RISCVPushPopOpt::runOnMachineFunction(MachineFunction &Fn) {
 
   // If Zcea extension is not supported abort.
   Subtarget = &static_cast<const RISCVSubtarget &>(Fn.getSubtarget());
-  if (!Subtarget->hasStdExtZcea()) {
-    if (!Subtarget->enableZceCPushCPop())
-      return false;
+  if (!(Subtarget->hasStdExtZcmp() || Subtarget->hasStdExtZcmpe())) {
+    return false;
   }
   TII = static_cast<const RISCVInstrInfo *>(Subtarget->getInstrInfo());
   TRI = Subtarget->getRegisterInfo();

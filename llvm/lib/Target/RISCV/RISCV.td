@@ -143,36 +143,6 @@ def HasStdExtZbbOrZbp
                                    "'Zbb' (Base 'B' Instructions) or "
                                    "'Zbp' (Permutation 'B' Instructions)">;
 
-def FeatureZceCPushCPop : SubtargetFeature<"zce-cpush-cpop", "EnableZceCPushCPop",
-                                          "true", "Enable Zce CPush CPop.">;
-def EnableZceCPushCPop : Predicate<"Subtarget->enableZceCPushCPop()">,
-                           AssemblerPredicate<(all_of FeatureZceCPushCPop),
-                           "'C.Push-C.Pop' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
-
-def FeatureZceTbljal : SubtargetFeature<"zce-tbljal", "EnableZceTbljal",
-                                          "true", "Enable Tbljal.">;
-def EnableZceTbljal : Predicate<"Subtarget->enableZceTbljal()">,
-                           AssemblerPredicate<(all_of FeatureZceTbljal),
-                           "'Tbljal' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
-
-def FeatureZceClbhu : SubtargetFeature<"zce-clbhu", "EnableZceClbhu",
-                                          "true", "Enable Clbhu.">;
-def EnableZceClbhu : Predicate<"Subtarget->enableZceClbhu()">,
-                           AssemblerPredicate<(all_of FeatureZceClbhu),
-                           "'Clbhu' from 'Zceb' (all existing standard extensions for small embedded cores v0.50)">;
-
-def FeatureZceClbh : SubtargetFeature<"zce-clbh", "EnableZceClbh",
-                                          "true", "Enable Clbh.">;
-def EnableZceClbh : Predicate<"Subtarget->enableZceClbh()">,
-                           AssemblerPredicate<(all_of FeatureZceClbh),
-                           "'Clbh' from 'Zceb' (all existing standard extensions for small embedded cores v0.50)">;
-
-def FeatureZceCsbh : SubtargetFeature<"zce-csbh", "EnableZceCsbh",
-                                          "true", "Enable Csbh.">;
-def EnableZceCsbh : Predicate<"Subtarget->enableZceCsbh()">,
-                           AssemblerPredicate<(all_of FeatureZceCsbh),
-                           "'Csbh' from 'Zceb' (all existing standard extensions for small embedded cores v0.50)">;
-
 def FeatureZceLsgp : SubtargetFeature<"zce-lsgp", "EnableZceLsgp",
                                           "true", "Enable Lsgp.">;
 def EnableZceLsgp : Predicate<"Subtarget->enableZceLsgp()">,
@@ -185,24 +155,6 @@ def EnableZceMuli : Predicate<"Subtarget->enableZceMuli()">,
                            AssemblerPredicate<(all_of FeatureZceMuli),
                            "'Muli' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
 
-def FeatureZceCMul : SubtargetFeature<"zce-cmul", "EnableZceCMul",
-                                          "true", "Enable CMul.">;
-def EnableZceCMul : Predicate<"Subtarget->enableZceCMul()">,
-                           AssemblerPredicate<(all_of FeatureZceCMul),
-                           "'CMul' from 'Zcee' (high performance cores v0.50)">;
-
-def FeatureZceSext : SubtargetFeature<"zce-sext", "EnableZceSext",
-                                          "true", "Enable Sext.">;
-def EnableZceSext : Predicate<"Subtarget->enableZceSext()">,
-                           AssemblerPredicate<(all_of FeatureZceSext),
-                           "'Sext' from 'Zcee' (high performance cores v0.50)">;
-
-def FeatureZceZext : SubtargetFeature<"zce-zext", "EnableZceZext",
-                                          "true", "Enable Zext.">;
-def EnableZceZext : Predicate<"Subtarget->enableZceZext()">,
-                           AssemblerPredicate<(all_of FeatureZceZext),
-                           "'Zext' from 'Zcee' (high performance cores v0.50)">;
-
 def FeatureZceBeqi : SubtargetFeature<"zce-beqi", "EnableZceBeqi",
                                           "true", "Enable Beqi.">;
 def EnableZceBeqi : Predicate<"Subtarget->enableZceBeqi()">,
@@ -214,24 +166,6 @@ def FeatureZceBnei : SubtargetFeature<"zce-bnei", "EnableZceBnei",
 def EnableZceBnei : Predicate<"Subtarget->enableZceBnei()">,
                            AssemblerPredicate<(all_of FeatureZceBnei),
                            "'Bnei' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
-
-def FeatureZceCNot : SubtargetFeature<"zce-cnot", "EnableZceCNot",
-                                          "true", "Enable CNot.">;
-def EnableZceCNot : Predicate<"Subtarget->enableZceCNot()">,
-                           AssemblerPredicate<(all_of FeatureZceCNot),
-                           "'CNot' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
-
-def FeatureZceCNeg : SubtargetFeature<"zce-cneg", "EnableZceCNeg",
-                                          "true", "Enable CNeg.">;
-def EnableZceCNeg : Predicate<"Subtarget->enableZceCNeg()">,
-                           AssemblerPredicate<(all_of FeatureZceCNeg),
-                           "'CNeg' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
-          
-def FeatureZceCMva01s07 : SubtargetFeature<"zce-cmva01s07", "EnableZceCMva01s07",
-                                          "true", "Enable CMva01s07.">;
-def EnableZceCMva01s07 : Predicate<"Subtarget->enableZceCMva01s07()">,
-                           AssemblerPredicate<(all_of FeatureZceCMva01s07),
-                           "'CMva01s07' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
 
 def FeatureZceCDecbnez : SubtargetFeature<"zce-cdecbnez", "EnableZceCDecbnez",
                                           "true", "Enable CDecbnez.">;
@@ -246,55 +180,6 @@ def FeatureZceDecbnez : SubtargetFeature<"zce-decbnez", "EnableZceDecbnez",
 def EnableZceDecbnez : Predicate<"Subtarget->enableZceDecbnez()">,
                            AssemblerPredicate<(all_of FeatureZceDecbnez),
                            "'Decbnez' from 'Zceb' (all existing standard extensions for small embedded cores v0.50)">;
-
-def FeatureExtZcee
-    : SubtargetFeature<"experimental-zcee", "HasStdExtZcee", "true",
-                       "'Zcee' (high performance cores v0.50)",
-                       [FeatureZceSext,
-                        FeatureZceZext,
-                        FeatureZceCMul]>;
-def HasStdExtZcee : Predicate<"Subtarget->hasStdExtZcee()">,
-                           AssemblerPredicate<(all_of FeatureExtZcee),
-                           "'Zcee' (high performance cores v0.50)">;
-
-def FeatureExtZcea
-    : SubtargetFeature<"experimental-zcea", "HasStdExtZcea", "true",
-                       "'Zcea' (all existing standard extensions for small embedded cores v0.50)",
-                       [FeatureExtZcee,
-                        FeatureZceCNot,
-                        FeatureZceCNeg,
-                        FeatureZceCMva01s07,
-                        FeatureZceMuli,
-                        FeatureZceBeqi,
-                        FeatureZceBnei,
-                        FeatureZceTbljal,
-                        FeatureZceCPushCPop,
-                        ]>;
-def HasStdExtZcea : Predicate<"Subtarget->hasStdExtZcea()">,
-                           AssemblerPredicate<(all_of FeatureExtZcea),
-                           "'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
-
-def FeatureExtZceb
-    : SubtargetFeature<"experimental-zceb", "HasStdExtZceb", "true",
-                       "'Zceb' (all existing standard extensions for small embedded cores v0.50)", 
-                       [FeatureZceCDecbnez,
-                        FeatureZceDecbnez,
-                        FeatureZceLsgp,
-                        FeatureZceClbh,
-                        FeatureZceClbhu,
-                        FeatureZceCsbh]>;
-def HasStdExtZceb : Predicate<"Subtarget->hasStdExtZceb() && !Subtarget->hasStdExtD()">,
-                           AssemblerPredicate<(all_of FeatureExtZceb, (not FeatureStdExtD)),
-                           "'Zceb' (reuses encoding from the D-extension, incompatible with D v0.50)">;
-
-def FeatureStdExtZce
-    : SubtargetFeature<"experimental-zce", "HasStdExtZce", "true",
-                       "'Zce' (code-size reduction extension proposal v0.50)",
-                       [FeatureExtZcea,
-                        FeatureExtZceb]>;
-def HasStdExtZce : Predicate<"Subtarget->hasStdExtZce()">,
-                           AssemblerPredicate<(all_of FeatureStdExtZce),
-                           "'Zce' (code-size reduction extension proposal v0.50)">;
 
 def FeatureExtZca
     : SubtargetFeature<"experimental-zca", "HasStdExtZca", "true",
@@ -348,6 +233,12 @@ def FeatureExtZcmt
 def HasStdExtZcmt : Predicate<"Subtarget->hasStdExtZcmt() && !Subtarget->hasStdExtC()">,
                            AssemblerPredicate<(all_of FeatureExtZcmt, (not FeatureStdExtC)),
                            "'Zcmt' (table jump instuctions for code-size reduction)">;
+
+def HasStdExtZcmpOrZcmpe
+    : Predicate<"Subtarget->hasStdExtZcmp() || Subtarget->hasStdExtZcmpe()">,
+                AssemblerPredicate<(any_of FeatureStdExtZbb, FeatureStdExtZbp),
+                                   "'Zcmp' (sequenced instuctions for code-size reduction.) or "
+                                   "'Zcmpe' (EABI support of Zcmp)">;
 
 def FeatureNoRVCHints
     : SubtargetFeature<"no-rvc-hints", "EnableRVCHintInstrs", "false",

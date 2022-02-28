@@ -286,7 +286,7 @@ static uint64_t adjSPInPushPop(MachineBasicBlock::iterator MBBI, uint64_t StackA
 // Checks if Zce PUSH/POP instructions can be used with the given CSI.
 bool RISCVFrameLowering::isCSIpushable(
     const std::vector<CalleeSavedInfo> &CSI) const {
-  if (!(STI.hasStdExtZcea() || STI.enableZceCPushCPop() || CSI.empty()))
+  if (!(STI.hasStdExtZcmpe() || STI.hasStdExtZcmp() || CSI.empty()))
     return false;
   for (auto &CS: CSI){
       Register Reg = CS.getReg();
