@@ -7,8 +7,8 @@
 # RUN: ld.lld --undefined=__global_pointer$ %t.rv64relax.o %t.lds -o %t.rv64relax -mzce-lsgp
 # RUN: ld.lld --undefined=__global_pointer$ %t.rv64.o %t.lds -o %t.rv64 -mzce-lsgp --no-relax
 
-# RUN: llvm-objdump  --triple=riscv64 --mattr=+c,+m,+a,+experimental-zce -d -M no-aliases --no-show-raw-insn %t.rv64 | FileCheck --check-prefix=LSGP %s
-# RUN: llvm-objdump  --triple=riscv64 --mattr=+c,+m,+a,+experimental-zce -d -M no-aliases --no-show-raw-insn %t.rv64relax | FileCheck --check-prefix=LSGP-RELAX %s
+# RUN: llvm-objdump  --triple=riscv64 -d  --mattr=+c,+m,+a,+zce-lsgp -M no-aliases --no-show-raw-insn %t.rv64 | FileCheck --check-prefix=LSGP %s
+# RUN: llvm-objdump  --triple=riscv64 -d --mattr=+c,+m,+a,+zce-lsgp -M no-aliases --no-show-raw-insn %t.rv64relax | FileCheck --check-prefix=LSGP-RELAX %s
 
 
 # LSGP:       lui   a0, 512

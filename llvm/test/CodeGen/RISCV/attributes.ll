@@ -23,7 +23,7 @@
 ; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcf %s -o - | FileCheck --check-prefix=RV32ZCF %s
 ; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcb %s -o - | FileCheck --check-prefix=RV32ZCB %s
 ; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcmb %s -o - | FileCheck --check-prefix=RV32ZCMB %s
-; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcmpe %s -o - | FileCheck --check-prefix=RV32ZCMP %s
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcmp %s -o - | FileCheck --check-prefix=RV32ZCMP %s
 ; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcmpe %s -o - | FileCheck --check-prefix=RV32ZCMPE %s
 ; RUN: llc -mtriple=riscv32 -mattr=+experimental-zcmt %s -o - | FileCheck --check-prefix=RV32ZCMT %s
 ; RUN: llc -mtriple=riscv64 -mattr=+m %s -o - | FileCheck --check-prefix=RV64M %s
@@ -49,7 +49,7 @@
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcf %s -o - | FileCheck --check-prefix=RV64ZCF %s
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcb %s -o - | FileCheck --check-prefix=RV64ZCB %s
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcmb %s -o - | FileCheck --check-prefix=RV64ZCMB %s
-; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcmpe %s -o - | FileCheck --check-prefix=RV64ZCMP %s
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcmp %s -o - | FileCheck --check-prefix=RV64ZCMP %s
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcmpe %s -o - | FileCheck --check-prefix=RV64ZCMPE %s
 ; RUN: llc -mtriple=riscv64 -mattr=+experimental-zcmt %s -o - | FileCheck --check-prefix=RV64ZCMT %s
 
@@ -74,10 +74,10 @@
 ; RV32COMBINED: .attribute 5, "rv32i2p0_f2p0_v0p10_zfh0p1_zfhmin0p1_zbb1p0_zvamo0p10_zvlsseg0p10"
 ; RV32ZCA: .attribute 5, "rv32i2p0_zca0p70"
 ; RV32ZCF: .attribute 5, "rv32i2p0_zcf0p70"
-; RV32ZCB: .attribute 5, "rv32i2p0_zcb0p70_zca0p70"
-; RV32ZCMB: .attribute 5, "rv32i2p0_zcmb0p70_zcb0p70_zca0p70"
-; RV32ZCMP: .attribute 5, "rv32i2p0_zcmp0p70_zca0p70"
-; RV32ZCMPE: .attribute 5, "rv32i2p0_zcmpe0p70_zca0p70"
+; RV32ZCB: .attribute 5, "rv32i2p0_zca0p70_zcb0p70"
+; RV32ZCMB: .attribute 5, "rv32i2p0_zca0p70_zcb0p70_zcmb0p70"
+; RV32ZCMP: .attribute 5, "rv32i2p0_zca0p70_zcmp0p70"
+; RV32ZCMPE: .attribute 5, "rv32i2p0_zca0p70_zcmpe0p70"
 ; RV32ZCMT: .attribute 5, "rv32i2p0_zcmt0p70"
 
 ; RV64M: .attribute 5, "rv64i2p0_m2p0"
@@ -101,10 +101,10 @@
 ; RV64COMBINED: .attribute 5, "rv64i2p0_f2p0_v0p10_zfh0p1_zfhmin0p1_zbb1p0_zvamo0p10_zvlsseg0p10"
 ; RV64ZCA: .attribute 5, "rv64i2p0_zca0p70"
 ; RV64ZCF: .attribute 5, "rv64i2p0_zcf0p70"
-; RV64ZCB: .attribute 5, "rv64i2p0_zcb0p70_zca0p70"
-; RV64ZCMB: .attribute 5, "rv64i2p0_zcmb0p70_zcb0p70_zca0p70"
-; RV64ZCMP: .attribute 5, "rv64i2p0_zcmp0p70_zca0p70"
-; RV64ZCMPE: .attribute 5, "rv64i2p0_zcmpe0p70_zca0p70"
+; RV64ZCB: .attribute 5, "rv64i2p0_zca0p70_zcb0p70"
+; RV64ZCMB: .attribute 5, "rv64i2p0_zca0p70_zcb0p70_zcmb0p70"
+; RV64ZCMP: .attribute 5, "rv64i2p0_zca0p70_zcmp0p70"
+; RV64ZCMPE: .attribute 5, "rv64i2p0_zca0p70_zcmpe0p70"
 ; RV64ZCMT: .attribute 5, "rv64i2p0_zcmt0p70"
 
 

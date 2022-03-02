@@ -149,51 +149,17 @@ void riscv::getRISCVTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   else
     Features.push_back("-save-restore");
 
-  //  Handle the switch -mzce-cpush-cpop for Zce.
-  if (Args.hasArg(options::OPT_mzce_cpush_cpop))
-    Features.push_back("+zce-cpush-cpop");
-  //  Handle the switch -mzce-tbljal for Zce.
-  if (Args.hasArg(options::OPT_mzce_tbljal))
-    Features.push_back("+zce-tbljal");
-  //  Handle the switch -mzce-clbhu for Zce.
-  if (Args.hasArg(options::OPT_mzce_clbhu))
-    Features.push_back("+zce-clbhu");
-  //  Handle the switch -mzce-clbh for Zce.
-  if (Args.hasArg(options::OPT_mzce_clbh))
-    Features.push_back("+zce-clbh");
-  //  Handle the switch -mzce-csbh for Zce.
-  if (Args.hasArg(options::OPT_mzce_csbh))
-    Features.push_back("+zce-csbh");
   //  Handle the switch -mzce-lsgp for Zce.
   if (Args.hasArg(options::OPT_mzce_lsgp))
     Features.push_back("+zce-lsgp");
   //  Handle the switch -mzce-muli for Zce.
   if (Args.hasArg(options::OPT_mzce_muli))
     Features.push_back("+zce-muli");
-  //  Handle the switch -mzce-cmul for Zce.
-  if (Args.hasArg(options::OPT_mzce_cmul))
-    Features.push_back("+zce-cmul");
-  //  Handle the switch -mzce-sext for Zce.
-  if (Args.hasArg(options::OPT_mzce_sext))
-    Features.push_back("+zce-sext");
-  //  Handle the switch -mzce-zext for Zce.
-  if (Args.hasArg(options::OPT_mzce_zext))
-    Features.push_back("+zce-zext");
-  //  Handle the switch -mzce-beqi for Zce.
   if (Args.hasArg(options::OPT_mzce_beqi))
     Features.push_back("+zce-beqi");
   //  Handle the switch -mzce-bnei for Zce.
   if (Args.hasArg(options::OPT_mzce_bnei))
     Features.push_back("+zce-bnei");
-  //  Handle the switch -mzce-cnot for Zce.
-  if (Args.hasArg(options::OPT_mzce_cnot))
-    Features.push_back("+zce-cnot");
-  //  Handle the switch -mzce-cneg for Zce.
-  if (Args.hasArg(options::OPT_mzce_cneg))
-    Features.push_back("+zce-cneg");
-  //  Handle the switch -mzce-cmva01s07 for Zce.
-  if (Args.hasArg(options::OPT_mzce_cmva01s07))
-    Features.push_back("+zce-cmva01s07");
   //  Handle the switch -mzce-cdecbnez for Zce.
   if (Args.hasArg(options::OPT_mzce_cdecbnez))
     Features.push_back("+zce-cdecbnez");

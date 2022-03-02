@@ -3274,36 +3274,14 @@ def msmall_data_limit_EQ : Joined<["-"], "msmall-data-limit=">, Group<m_Group>,
   HelpText<"Put global and static data smaller than the limit into a special section">;
 
 // RISCV Zce extension flags
-def mzce_cpush_cpop : Flag<["-"], "mzce-cpush-cpop">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.PUSH, C.POP, C.POPRET">;
-def mzce_tbljal : Flag<["-"], "mzce-tbljal">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.TBLJ, C.TBLJAL, C.TBLJALM">;
-def mzce_clbhu : Flag<["-"], "mzce-clbhu">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.LBU, C.LHU">;
-def mzce_clbh : Flag<["-"], "mzce-clbh">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.LB, C.LH">;
-def mzce_csbh : Flag<["-"], "mzce-csbh">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.SB, C.SH">;
 def mzce_lsgp : Flag<["-"], "mzce-lsgp">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce LWGP, SWGP, LDGP (RV64), SDGP (RV64)">;
 def mzce_muli : Flag<["-"], "mzce-muli">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce MULI">;
-def mzce_cmul : Flag<["-"], "mzce-cmul">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.MUL">;
-def mzce_sext : Flag<["-"], "mzce-sext">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.SEXT.B, C.SEXT.H, (C.SEXT.W RV64 pseudo-instruction)">;
-def mzce_zext : Flag<["-"], "mzce-zext">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.ZEXT.B, C.ZEXT.H, C.ZEXT.W (RV64)">;
 def mzce_beqi : Flag<["-"], "mzce-beqi">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce BEQI">;
 def mzce_bnei : Flag<["-"], "mzce-bnei">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce BNEI">;
-def mzce_cnot : Flag<["-"], "mzce-cnot">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.NOT">;
-def mzce_cneg : Flag<["-"], "mzce-cneg">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.NEG">;
-def mzce_cmva01s07 : Flag<["-"], "mzce-cmva01s07">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.MVA01S07">;
 def mzce_cdecbnez : Flag<["-"], "mzce-cdecbnez">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce C.DECBNEZ">;
 def mzce_decbnez : Flag<["-"], "mzce-decbnez">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,

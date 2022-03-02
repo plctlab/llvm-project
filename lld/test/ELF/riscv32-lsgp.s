@@ -7,8 +7,8 @@
 # RUN: ld.lld --undefined=__global_pointer$ %t.rv32relax.o %t.lds -o %t.rv32relax -mzce-lsgp
 # RUN: ld.lld --undefined=__global_pointer$ %t.rv32.o %t.lds -o %t.rv32 -mzce-lsgp --no-relax
 
-# RUN: llvm-objdump  --triple=riscv32 --mattr=+c,+m,+a,+zce-lsgp -M no-aliases --no-show-raw-insn  %t.rv32 | FileCheck --check-prefix=LSGP %s
-# RUN: llvm-objdump  --triple=riscv32 --mattr=+c,+m,+a,+zce-lsgp -d -M no-aliases --no-show-raw-insn  %t.rv32relax | FileCheck --check-prefix=LSGP-RELAX %s
+# RUN: llvm-objdump  --triple=riscv32 -d --mattr=+c,+m,+a,+zce-lsgp -M no-aliases --no-show-raw-insn  %t.rv32 | FileCheck --check-prefix=LSGP %s
+# RUN: llvm-objdump  --triple=riscv32 -d --mattr=+c,+m,+a,+zce-lsgp -M no-aliases --no-show-raw-insn  %t.rv32relax | FileCheck --check-prefix=LSGP-RELAX %s
 
 # LSGP:       lui   a0, 512
 # LSGP-NEXT:  addi  a1, a0, 256
