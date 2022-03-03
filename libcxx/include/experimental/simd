@@ -1191,7 +1191,7 @@ simd<_Tp, _Abi> max(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noex
 
 template <class _Tp, class _Abi>
 std::pair<simd<_Tp, _Abi>, simd<_Tp, _Abi>> minmax(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
-  auto [__min, __max] = __simd_traits<_Tp, _Abi>::__min(__a.__s_, __b.__s_);
+  auto [__min, __max] = __simd_traits<_Tp, _Abi>::__minmax(__a.__s_, __b.__s_);
   return {__min, __max};
 }
 
