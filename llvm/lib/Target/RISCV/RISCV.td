@@ -187,7 +187,7 @@ def FeatureExtZca
                        "'Zca' (part of the C extension, excluding all 16-bit floating point loads and stores)">;
 def HasStdExtZca : Predicate<"Subtarget->hasStdExtZca()">,
                            AssemblerPredicate<(all_of FeatureExtZca),
-                           "'Zca' (part of the C extension, excluding all 16-bit floating point loads and stores)">;
+                           "'Zca' (part of the C extension)">;
 
 def FeatureExtZcb
     : SubtargetFeature<"experimental-zcb", "HasStdExtZcb", "true",
@@ -234,6 +234,12 @@ def FeatureExtZcmt
 def HasStdExtZcmt : Predicate<"Subtarget->hasStdExtZcmt() && !Subtarget->hasStdExtC()">,
                            AssemblerPredicate<(all_of FeatureExtZcmt, (not FeatureStdExtC)),
                            "'Zcmt' (table jump instuctions for code-size reduction)">;
+
+def HasStdExtCOrZca
+    : Predicate<"Subtarget->hasStdExtC() || Subtarget->hasStdExtZca()">,
+                AssemblerPredicate<(any_of FeatureStdExtC, FeatureExtZca),
+                                   "'C' (Compressed Instructions) or "
+                                   "'Zca' (part of the C extension)">;
 
 def HasStdExtZcmpOrZcmpe
     : Predicate<"Subtarget->hasStdExtZcmp() || Subtarget->hasStdExtZcmpe()">,
