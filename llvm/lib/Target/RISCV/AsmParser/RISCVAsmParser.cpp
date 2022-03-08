@@ -1478,7 +1478,7 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
     SMLoc ErrorLoc = ((RISCVOperand &)*Operands[ErrorInfo]).getStartLoc();
     return Error(
         ErrorLoc,
-        "This stack adjustment is invalide for this instruction and register "
+        "This stack adjustment is invalid for this instruction and register "
         "list, "
         "Please refer to Zce spec for a detailed range of stack adjustment.");
   }
@@ -2095,6 +2095,8 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     RegEnd = RegStart;
 
   auto Encode = RISCVZCE::encodeRlist(RegEnd, Is16Bit, IsEABI);
+  if (Encode == 16)
+    Error(getLoc(), "invalid register list, {ra, s0-s10} is not supported.");
   Operands.push_back(RISCVOperand::createRlist(Encode, S, isRV64(), Is16Bit));
 
   return MatchOperand_Success;

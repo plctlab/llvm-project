@@ -396,6 +396,7 @@ enum class RLISTENCODE {
   RA_S0_S9,
   // note - to include s10, s11 must also be included
   RA_S0_S11,
+  RA_S0_S10, // This is for error checking.
 };
 
 inline unsigned encodeRlist(MCRegister EndReg, bool isCInst,
@@ -424,12 +425,12 @@ inline unsigned encodeRlist(MCRegister EndReg, bool isCInst,
       return RLISTENCODE::RA_S0_S8;
     case RISCV::X25:
       return RLISTENCODE::RA_S0_S9;
-    // case RISCV::X26:
-    //   return RLISTENCODE::RA_S0_S10;
+    case RISCV::X26:
+      return RLISTENCODE::RA_S0_S10;
     case RISCV::X27:
       return RLISTENCODE::RA_S0_S11;
     default:
-      llvm_unreachable("Unexpected register");
+      llvm_unreachable("Undefined input.");
     }
   }();
   return static_cast<unsigned int>(RlistEncode);
@@ -437,6 +438,8 @@ inline unsigned encodeRlist(MCRegister EndReg, bool isCInst,
 
 inline static unsigned getStackAdjBase(unsigned rlistVal, bool isRV64,
                                        bool isEABI) {
+  if (rlistVal == 16)
+    assert(0 && "{ra, s0-s10} is not supported, s11 must be included.");
   if (isEABI) {
     return 16;
   }
@@ -487,6 +490,8 @@ inline static unsigned getStackAdjBase(unsigned rlistVal, bool isRV64,
 
 inline static bool getSpimm(unsigned rlistVal, unsigned &spimmVal,
                             int64_t stackAdjustment, bool isRV64, bool isEABI) {
+  if (rlistVal == 16)
+    return false;
   unsigned stackAdj = getStackAdjBase(rlistVal, isRV64, isEABI);
   spimmVal = (stackAdjustment - stackAdj) / 16;
   if (spimmVal > 3)

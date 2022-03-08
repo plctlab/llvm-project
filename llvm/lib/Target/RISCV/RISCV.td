@@ -237,7 +237,7 @@ def HasStdExtZcmt : Predicate<"Subtarget->hasStdExtZcmt() && !Subtarget->hasStdE
 
 def HasStdExtZcmpOrZcmpe
     : Predicate<"Subtarget->hasStdExtZcmp() || Subtarget->hasStdExtZcmpe()">,
-                AssemblerPredicate<(any_of FeatureStdExtZbb, FeatureStdExtZbp),
+                AssemblerPredicate<(any_of FeatureExtZcmp, FeatureExtZcmpe),
                                    "'Zcmp' (sequenced instuctions for code-size reduction.) or "
                                    "'Zcmpe' (EABI support of Zcmp)">;
 

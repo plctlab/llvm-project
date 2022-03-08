@@ -194,8 +194,10 @@ void RISCVInstPrinter::printSpimm(const MCInst *MI, unsigned OpNo,
   bool isRV64 = STI.getFeatureBits()[RISCV::Feature64Bit];
   int64_t spimm = 0;
   bool isEABI = false; // Reserved for future implementation
-  auto base =
-      RISCVZCE::getStackAdjBase(MI->getOperand(0).getImm(), isRV64, isEABI);
+  auto rlistVal = MI->getOperand(0).getImm();
+  if (rlistVal == 16)
+    assert(0 && "Incorrect rlist.");
+  auto base = RISCVZCE::getStackAdjBase(rlistVal, isRV64, isEABI);
   spimm = Imm + base;
   if (spimm < base || spimm > base + 48)
     llvm_unreachable("Incorrect spimm");
