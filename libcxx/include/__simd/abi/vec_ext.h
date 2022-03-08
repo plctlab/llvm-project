@@ -199,8 +199,19 @@ struct __mask_traits<_Tp, simd_abi::__vec_ext<_Np>> {
   using _Mask = __mask_storage_vec_ext<_Tp, _Np>;
 
   static _Mask __broadcast(_Tp __v) noexcept {
-    return __generate([=](size_t) { return __v; });
+    return __generate([=](size_t) { return  static_cast<decltype(__choose_mask_type<_Tp>())>(__v); });
   }
+ template <class _Generator, size_t... _Is>
+  static _Mask __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
+    // _Simd specified here is to work around GCC
+    return _Mask{{__g(std::integral_constant<size_t, _Is>())...}};
+  }
+
+  template <class _Generator>
+  static _Mask __generate(_Generator&& __g) noexcept {
+    return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Np>());
+  }
+
 
   template <class _Up, class _Flags>
   static _Mask __load(const _Up* __mem, _Flags) noexcept {
