@@ -167,12 +167,13 @@ def EnableZceBnei : Predicate<"Subtarget->enableZceBnei()">,
                            AssemblerPredicate<(all_of FeatureZceBnei),
                            "'Bnei' from 'Zcea' (all existing standard extensions for small embedded cores v0.50)">;
 
-def FeatureZceCDecbnez : SubtargetFeature<"zce-cdecbnez", "EnableZceCDecbnez",
-                                          "true", "Enable CDecbnez.">;
+// Disabled due to confilct encoding.
+// def FeatureZceCDecbnez : SubtargetFeature<"zce-cdecbnez", "EnableZceCDecbnez",
+//                                           "true", "Enable CDecbnez.">;
 
-def EnableZceCDecbnez : Predicate<"Subtarget->enableZceCDecbnez()">,
-                           AssemblerPredicate<(all_of FeatureZceCDecbnez),
-                           "'CDecbnez' from 'Zceb' (all existing standard extensions for small embedded cores v0.50)">;
+// def EnableZceCDecbnez : Predicate<"Subtarget->enableZceCDecbnez()">,
+//                            AssemblerPredicate<(all_of FeatureZceCDecbnez),
+//                            "'CDecbnez' from 'Zceb' (all existing standard extensions for small embedded cores v0.50)">;
 
 def FeatureZceDecbnez : SubtargetFeature<"zce-decbnez", "EnableZceDecbnez",
                                           "true", "Enable Decbnez.">;

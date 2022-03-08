@@ -1,7 +1,7 @@
-# RUN: llvm-mc %s -triple=riscv32 -mattr=+m,+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-cdecbnez,+zce-decbnez,+zce-lsgp,+zce-muli \
+# RUN: llvm-mc %s -triple=riscv32 -mattr=+m,+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-decbnez,+zce-lsgp,+zce-muli \
 # RUN:  -riscv-no-aliases -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK-ASM,CHECK-ASM-AND-OBJ %s
-# RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-cdecbnez,+zce-decbnez,+zce-lsgp,+zce-muli \
+# RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-decbnez,+zce-lsgp,+zce-muli \
 # RUN:  -mattr=m < %s \
 # RUN:     | llvm-objdump --mattr=+m,+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-cdecbnez,+zce-decbnez,+zce-lsgp,+zce-muli \
 # RUN:  -M no-aliases -d -r - \
@@ -31,11 +31,7 @@ tblj 40
 # CHECK-ASM: encoding: [0xf8,0x8b]
 tbljal 190
 
-# CHECK-OBJ: c.decbnez s0, 0, 4
-# CHECK-ASM: encoding: [0x22,0xa0]
-c.decbnez s0, 1, -4
-
-# CHECK-OBJ: decbnez s0, 0, 0x18
+# CHECK-OBJ: decbnez s0, 0, 0x16
 # CHECK-ASM: encoding: [0x07,0x34,0x40,0x80]
 decbnez s0, 1, 4
 

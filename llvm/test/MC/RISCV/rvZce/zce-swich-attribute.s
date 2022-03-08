@@ -12,9 +12,6 @@
 .attribute arch, "rv32i_zce-bnei0p50"
 # CHECK: attribute      5, "rv32i2p0_zce-bnei0p50"
 
-.attribute arch, "rv32i_zce-cdecbnez0p50"
-# CHECK: attribute      5, "rv32i2p0_zce-cdecbnez0p50"
-
 .attribute arch, "rv32i_zce-decbnez0p50"
 # CHECK: attribute      5, "rv32i2p0_zce-decbnez0p50"
 

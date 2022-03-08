@@ -431,20 +431,20 @@ def CM_POP : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm),
 // 7. Zceb
 
 // 7.1 C.DECBNEZ, DECBNEZ
-let Predicates = [EnableZceCDecbnez],
-    DecoderNamespace = "RVZceb_",
-    hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-def C_DECBNEZ : RVInst16CIW<0b101, 0b10, (outs GPRC:$rd),
-                            (ins scale:$scale, negimm7_lsb0nonzero:$imm),
-                            "c.decbnez", "$rd, $scale, $imm">,
-                Sched<[]> {
-  bits<3> rd;
-  bits<2> scale;
-  let Inst{12-10} = imm{6-4};
-  let Inst{9-7} = rd;
-  let Inst{6-4} = imm{3-1};
-  let Inst{3-2} = scale;
-}
+// let Predicates = [EnableZceCDecbnez],
+//     DecoderNamespace = "RVZceb_",
+//     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
+// def C_DECBNEZ : RVInst16CIW<0b101, 0b10, (outs GPRC:$rd),
+//                             (ins scale:$scale, negimm7_lsb0nonzero:$imm),
+//                             "c.decbnez", "$rd, $scale, $imm">,
+//                 Sched<[]> {
+//   bits<3> rd;
+//   bits<2> scale;
+//   let Inst{12-10} = imm{6-4};
+//   let Inst{9-7} = rd;
+//   let Inst{6-4} = imm{3-1};
+//   let Inst{3-2} = scale;
+// }
 
 let Predicates = [EnableZceDecbnez],
     hasSideEffects = 0, mayLoad = 0, mayStore = 0 in

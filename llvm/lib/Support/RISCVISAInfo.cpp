@@ -78,7 +78,7 @@ static const RISCVSupportedExtension SupportedExperimentalExtensions[] = {
     {"zce-muli", RISCVExtensionVersion{0, 50}},
     {"zce-beqi", RISCVExtensionVersion{0, 50}},
     {"zce-bnei", RISCVExtensionVersion{0, 50}},
-    {"zce-cdecbnez", RISCVExtensionVersion{0, 50}},
+    // {"zce-cdecbnez", RISCVExtensionVersion{0, 50}},
     {"zce-decbnez", RISCVExtensionVersion{0, 50}},
 };
 
@@ -86,7 +86,7 @@ static const StringRef SupportedZcSwitchs[] = {
     "zce-muli",
     "zce-beqi",
     "zce-bnei",
-    "zce-cdecbnez",
+    // "zce-cdecbnez",
     "zce-decbnez",
     "zce-lsgp",
 };

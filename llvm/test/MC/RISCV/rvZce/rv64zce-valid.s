@@ -1,9 +1,9 @@
-# RUN: llvm-mc %s -triple=riscv64 -mattr=+m,+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-cdecbnez,+zce-decbnez,+zce-lsgp \
+# RUN: llvm-mc %s -triple=riscv64 -mattr=+m,+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-decbnez,+zce-lsgp \
 # RUN:  -riscv-no-aliases -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK-ASM,CHECK-ASM-AND-OBJ %s
-# RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-cdecbnez,+zce-decbnez,+zce-lsgp \
+# RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-decbnez,+zce-lsgp \
 # RUN:  -mattr=m < %s \
-# RUN:     | llvm-objdump --mattr=+m,+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-cdecbnez,+zce-decbnez,+zce-lsgp \
+# RUN:     | llvm-objdump --mattr=+m,+experimental-zcmt,+zce-beqi,+zce-bnei,+zce-decbnez,+zce-lsgp \
 # RUN:   --mattr=m -M no-aliases -d -r - \
 # RUN:     | FileCheck --check-prefix=CHECK-ASM-AND-OBJ %s
 

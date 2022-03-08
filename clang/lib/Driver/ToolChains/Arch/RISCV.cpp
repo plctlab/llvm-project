@@ -161,8 +161,9 @@ void riscv::getRISCVTargetFeatures(const Driver &D, const llvm::Triple &Triple,
   if (Args.hasArg(options::OPT_mzce_bnei))
     Features.push_back("+zce-bnei");
   //  Handle the switch -mzce-cdecbnez for Zce.
-  if (Args.hasArg(options::OPT_mzce_cdecbnez))
-    Features.push_back("+zce-cdecbnez");
+  // Disables Cdecbnez due to conflict encoding.
+  // if (Args.hasArg(options::OPT_mzce_cdecbnez))
+  //   Features.push_back("+zce-cdecbnez");
   //  Handle the switch -mzce-decbnez for Zce.
   if (Args.hasArg(options::OPT_mzce_decbnez))
     Features.push_back("+zce-decbnez");

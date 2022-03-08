@@ -3282,8 +3282,8 @@ def mzce_beqi : Flag<["-"], "mzce-beqi">, Group<m_riscv_Features_Group>, Flags<[
   HelpText<"Enable zce BEQI">;
 def mzce_bnei : Flag<["-"], "mzce-bnei">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce BNEI">;
-def mzce_cdecbnez : Flag<["-"], "mzce-cdecbnez">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
-  HelpText<"Enable zce C.DECBNEZ">;
+// def mzce_cdecbnez : Flag<["-"], "mzce-cdecbnez">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
+//   HelpText<"Enable zce C.DECBNEZ">;
 def mzce_decbnez : Flag<["-"], "mzce-decbnez">, Group<m_riscv_Features_Group>, Flags<[CC1Option,CC1AsOption]>,
   HelpText<"Enable zce DECBNEZ">;
 

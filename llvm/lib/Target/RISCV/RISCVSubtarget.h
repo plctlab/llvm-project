@@ -71,7 +71,7 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   bool EnableZceMuli = false;
   bool EnableZceBeqi = false;
   bool EnableZceBnei = false;
-  bool EnableZceCDecbnez = false;
+  // bool EnableZceCDecbnez = false;
   bool EnableZceDecbnez = false;
 
   unsigned XLen = 32;
@@ -152,7 +152,7 @@ public:
   bool enableZceMuli() const { return EnableZceMuli; }
   bool enableZceBeqi() const { return EnableZceBeqi; }
   bool enableZceBnei() const { return EnableZceBnei; }
-  bool enableZceCDecbnez() const { return EnableZceCDecbnez; }
+  // bool enableZceCDecbnez() const { return EnableZceCDecbnez; }
   bool enableZceDecbnez() const { return EnableZceDecbnez; }
   MVT getXLenVT() const { return XLenVT; }
   unsigned getXLen() const { return XLen; }
