@@ -199,10 +199,10 @@ def HasStdExtZcb : Predicate<"Subtarget->hasStdExtZcb()">,
 
 def FeatureExtZcf
     : SubtargetFeature<"experimental-zcf", "HasStdExtZcf", "true",
-                       "'Zcf' (single precision floating point loads and stores)">;
+                       "'Zcf' (c.flw, c.flwsp, c.fsw, c.fswsp)">;
 def HasStdExtZcf : Predicate<"Subtarget->hasStdExtZcf()">,
                            AssemblerPredicate<(all_of FeatureExtZcf),
-                           "'Zcf' (single precision floating point loads and stores)">;
+                           "'Zcf' (c.flw, c.flwsp, c.fsw, c.fswsp)">;
 
 def FeatureExtZcmb
     : SubtargetFeature<"experimental-zcmb", "HasStdExtZcmb", "true",
@@ -240,6 +240,12 @@ def HasStdExtCOrZca
                 AssemblerPredicate<(any_of FeatureStdExtC, FeatureExtZca),
                                    "'C' (Compressed Instructions) or "
                                    "'Zca' (part of the C extension)">;
+
+def HasStdExtCOrZcf
+    : Predicate<"Subtarget->hasStdExtC() || Subtarget->hasStdExtZcf()">,
+                AssemblerPredicate<(any_of FeatureStdExtC, FeatureExtZcf),
+                                   "'C' (Compressed Instructions) or "
+                                   "'Zcf' (c.flw, c.flwsp, c.fsw, c.fswsp)">;
 
 def HasStdExtZcmpOrZcmpe
     : Predicate<"Subtarget->hasStdExtZcmp() || Subtarget->hasStdExtZcmpe()">,

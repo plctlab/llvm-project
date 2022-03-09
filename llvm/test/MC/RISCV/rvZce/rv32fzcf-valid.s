@@ -1,7 +1,7 @@
-# RUN: llvm-mc %s -triple=riscv32 -mattr=+c,+f -riscv-no-aliases -show-encoding \
+# RUN: llvm-mc %s -triple=riscv32 -mattr=+experimental-zcf,+f -riscv-no-aliases -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK-ASM,CHECK-ASM-AND-OBJ %s
-# RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=+c,+f < %s \
-# RUN:     | llvm-objdump --mattr=+c,+f -M no-aliases -d -r - \
+# RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=+experimental-zcf,+f < %s \
+# RUN:     | llvm-objdump --mattr=+experimental-zcf,+f -M no-aliases -d -r - \
 # RUN:     | FileCheck --check-prefix=CHECK-ASM-AND-OBJ %s
 #
 # RUN: not llvm-mc -triple riscv32 -mattr=+c \
