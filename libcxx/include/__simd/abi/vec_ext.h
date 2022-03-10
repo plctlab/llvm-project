@@ -216,7 +216,7 @@ struct __mask_traits<_Tp, simd_abi::__vec_ext<_Np>> {
   template <class _Up, class _Flags>
   static _Mask __load(const _Up* __mem, _Flags) noexcept {
     // TODO: optimized implementation
-    return __generate([=](size_t __i) { return static_cast<_Tp>(__mem[__i]); });
+    return __generate([=](size_t __i) { return static_cast<decltype(__choose_mask_type<_Tp>())>(__mem[__i]); });
   }
 
   template <class _Up, class _Flags>
