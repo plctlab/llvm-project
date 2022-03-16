@@ -9,7 +9,8 @@
 #ifndef _LIBCPP___SIMD_ABI_ALL_H
 #define _LIBCPP___SIMD_ABI_ALL_H
 
-#include <__simd/abi/scalar.h>
-#include <__simd/abi/vec_ext.h>
+#include <__simd/abi/builtin.h>
+//#include <__simd/abi/scalar.h>
+//#include <__simd/abi/vec_ext.h>
 
 #endif // _LIBCPP___SIMD_ABI_ALL_H
