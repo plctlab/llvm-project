@@ -1003,22 +1003,54 @@ auto static_simd_cast(const simd<_Up, _Abi>& __v) -> decltype(__static_simd_cast
 }
 
 template <class _Tp, class _Abi>
-fixed_size_simd<_Tp, simd_size_v<_Tp, _Abi>> to_fixed_size(const simd<_Tp, _Abi>&) noexcept;
+fixed_size_simd<_Tp, simd_size_v<_Tp, _Abi>> to_fixed_size(const simd<_Tp, _Abi>& __v) noexcept{
+  return static_cast<fixed_size_simd<_Tp,simd_size_v<_Tp,_Abi>>>(__v);
+}
 
 template <class _Tp, class _Abi>
-fixed_size_simd_mask<_Tp, simd_size_v<_Tp, _Abi>> to_fixed_size(const simd_mask<_Tp, _Abi>&) noexcept;
+fixed_size_simd_mask<_Tp, simd_size_v<_Tp, _Abi>> to_fixed_size(const simd_mask<_Tp, _Abi>& __m) noexcept{
+  return static_cast<fixed_size_simd_mask<_Tp,simd_size_v<_Tp,_Abi>>>(__m);
+}
 
-template <class _Tp, size_t _Np>
-native_simd<_Tp> to_native(const fixed_size_simd<_Tp, _Np>&) noexcept;
+template <class _Tp, size_t _Np, std::enable_if_t<_Np == simd_size_v<_Tp,simd_abi::native<_Tp>>>* =nullptr>
+native_simd<_Tp> to_native(const fixed_size_simd<_Tp, _Np>& __v) noexcept{
+  return static_cast<native_simd<_Tp>>(__v);
+}
 
-template <class _Tp, size_t _Np>
-native_simd_mask<_Tp> to_native(const fixed_size_simd_mask<_Tp, _Np>&) noexcept;
+template <class _Tp, size_t _Np, std::enable_if_t<_Np != simd_size_v<_Tp,simd_abi::native<_Tp>>>* = nullptr>
+auto to_native(const fixed_size_simd<_Tp, _Np>& __v) noexcept{
+  return __v;
+}
 
-template <class _Tp, size_t _Np>
-simd<_Tp> to_compatible(const fixed_size_simd<_Tp, _Np>&) noexcept;
+template <class _Tp, size_t _Np, std::enable_if_t<_Np == simd_size_v<_Tp,simd_abi::native<_Tp>>>* = nullptr>
+native_simd_mask<_Tp> to_native(const fixed_size_simd_mask<_Tp, _Np>& __m) noexcept{
+  return static_cast<native_simd_mask<_Tp>>(__m);
+}
 
-template <class _Tp, size_t _Np>
-simd_mask<_Tp> to_compatible(const fixed_size_simd_mask<_Tp, _Np>&) noexcept;
+template <class _Tp, size_t _Np, std::enable_if_t<_Np != simd_size_v<_Tp,simd_abi::native<_Tp>>>* = nullptr>
+auto to_native(const fixed_size_simd_mask<_Tp, _Np>& __m) noexcept{
+  return __m;
+}
+
+template <class _Tp, size_t _Np, std::enable_if_t<_Np == simd_size_v<_Tp>>* = nullptr>
+simd<_Tp> to_compatible(const fixed_size_simd<_Tp, _Np>& __v) noexcept{
+  return static_cast<simd<_Tp>>(__v);
+}
+
+template <class _Tp, size_t _Np, std::enable_if_t<_Np != simd_size_v<_Tp>>* = nullptr>
+auto to_compatible(const fixed_size_simd<_Tp, _Np>& __v) noexcept{
+  return __v;
+}
+
+template <class _Tp, size_t _Np, std::enable_if_t<_Np == simd_size_v<_Tp>>* = nullptr>
+simd_mask<_Tp> to_compatible(const fixed_size_simd_mask<_Tp, _Np>& __m) noexcept{
+  return static_cast<simd_mask<_Tp>>(__m);
+}
+
+template <class _Tp, size_t _Np, std::enable_if_t<_Np != simd_size_v<_Tp>>* = nullptr>
+auto to_compatible(const fixed_size_simd_mask<_Tp, _Np>& __m) noexcept{
+  return __m;
+}
 
 template <size_t... __sizes, class _Tp, class _Abi>
 tuple<simd<_Tp, abi_for_size_t<_Tp, __sizes>>...> split(const simd<_Tp, _Abi>&);
