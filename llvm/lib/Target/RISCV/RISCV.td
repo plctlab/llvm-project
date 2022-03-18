@@ -428,6 +428,9 @@ def FeatureSaveRestore : SubtargetFeature<"save-restore", "EnableSaveRestore",
 def TuneSiFive7 : SubtargetFeature<"sifive7", "RISCVProcFamily", "SiFive7",
                                    "SiFive 7-Series processors">;
 
+// def TuneXiangShan : SubtargetFeature<"XiangShan", "RISCVProcFamily", "XiangShan",
+//                                      "XiangShan series procesors">;
+
 //===----------------------------------------------------------------------===//
 // Named operands for CSR instructions.
 //===----------------------------------------------------------------------===//
@@ -530,6 +533,29 @@ def : ProcessorModel<"sifive-u74", SiFive7Model, [Feature64Bit,
                                                   FeatureStdExtD,
                                                   FeatureStdExtC],
                      [TuneSiFive7]>;
+
+def : ProcessorModel<"xiangshan-yanqihu", NoSchedModel, [Feature64Bit,
+                                                           FeatureStdExtM,
+                                                           FeatureStdExtA,
+                                                           FeatureStdExtF,
+                                                           FeatureStdExtD,
+                                                           FeatureStdExtC]>;
+
+def : ProcessorModel<"xiangshan-nanhu", NoSchedModel, [Feature64Bit,
+                                                         FeatureStdExtM,
+                                                         FeatureStdExtA,
+                                                         FeatureStdExtF,
+                                                         FeatureStdExtD,
+                                                         FeatureStdExtC,
+                                                         FeatureStdExtZba,
+                                                         FeatureStdExtZbb,
+                                                         FeatureStdExtZbc,
+                                                         FeatureStdExtZbs,
+                                                         FeatureStdExtZkn,
+                                                         FeatureStdExtZksed,
+                                                         FeatureStdExtZksh,
+                                                         //FeatureStdExtSvinval
+                                                         ]>;
 
 //===----------------------------------------------------------------------===//
 // Define the RISC-V target.
