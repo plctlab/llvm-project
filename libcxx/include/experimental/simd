@@ -653,7 +653,7 @@ public:
 #include <array>
 #include <cstddef>
 #include <functional>
-#include <__simd/abi/all.h>
+#include <__simd/abi/builtin.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header

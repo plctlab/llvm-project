@@ -256,9 +256,11 @@ set(files
   __ranges/take_view.h
   __ranges/transform_view.h
   __ranges/view_interface.h
-  __simd/abi/all.h
   __simd/abi/builtin.h
   __simd/abi/simd_storage.h
+  __simd/abi/vec_ext.h
+  __simd/abi/neon.h
+  __simd/abi/ppc.h
   __simd/arch/config.h
   __split_buffer
   __std_stream
