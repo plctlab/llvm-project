@@ -16,6 +16,9 @@
 #include <type_traits>
 #include <utility>
 #include <__simd/abi/simd_storage.h>
+#include <__simd/abi/vec_ext.h>
+#include <__simd/abi/neon.h>
+#include <__simd/abi/ppc.h>
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
@@ -52,9 +55,9 @@ struct __simd_traits {
       __mem[__i] = static_cast<_Up>(__s.__data[__i]);
   }
 
-  static void __increment(_Simd& __s) noexcept { ++__s.__data; }
+  static void __increment(_Simd& __s) noexcept { __s.__data = __s.__data + 1; }
 
-  static void __decrement(_Simd& __s) noexcept { --__s.__data; }
+  static void __decrement(_Simd& __s) noexcept { __s.__data = __s.__data - 1; }
 
   static _Simd __negate(_Simd __s) noexcept { return {!__s.__data}; }
 

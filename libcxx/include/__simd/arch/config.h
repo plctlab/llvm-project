@@ -178,16 +178,59 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 #define _LIBCPP_SIMD_HAVE_FULL_AVX512_ABI 0
 #endif
 
+#if _LIBCPP_SIMD_HAVE_SSE || _LIBCPP_SIMD_HAVE_MMX
+#define _LIBCPP_SIMD_X86INTRIN 1
+#else
+#define _LIBCPP_SIMD_X86INTRIN 0
+#endif
+
 #ifdef __ARM_NEON
 #define _LIBCPP_SIMD_HAVE_NEON 1
 #else
 #define _LIBCPP_SIMD_HAVE_NEON 0
 #endif
 
+#if defined __ARM_NEON && (__ARM_ARCH >= 8 || defined __aarch64__)
+#define _LIBCPP_SIMD_HAVE_NEON_A32 1
+#else
+#define _LIBCPP_SIMD_HAVE_NEON_A32 0
+#endif
+
+#if defined __ARM_NEON && defined __aarch64__
+#define _LIBCPP_SIMD_HAVE_NEON_A64 1
+#else
+#define _LIBCPP_SIMD_HAVE_NEON_A64 0
+#endif
+
+
+#ifdef _ARCH_PWR10
+#define _LIBCPP_SIMD_HAVE_POWER10VEC 1
+#else
+#define _LIBCPP_SIMD_HAVE_POWER10VEC 0
+#endif
+
+#ifdef __POWER9_VECTOR__
+#define _LIBCPP_SIMD_HAVE_POWER9VEC 1
+#else
+#define _LIBCPP_SIMD_HAVE_POWER9VEC 0
+#endif
+
+#ifdef __POWER8_VECTOR__
+#define _LIBCPP_SIMD_HAVE_POWER8VEC 1
+#else
+#define _LIBCPP_SIMD_HAVE_POWER8VEC _LIBCPP_SIMD_HAVE_POWER9VEC
+#endif
+
+#ifdef __VSX__
+#define _LIBCPP_SIMD_HAVE_VSX 1
+#else
+#define _LIBCPP_SIMD_HAVE_VSX _LIBCPP_SIMD_HAVE_POWER8VEC
+#endif
+
 #ifdef __ALTIVEC__
 #define _LIBCPP_SIMD_HAVE_PPC 1
 #else
-#define _LIBCPP_SIMD_HAVE_PPC 0
+#define _LIBCPP_SIMD_HAVE_PPC _LIBCPP_SIMD_HAVE_VSX
 #endif
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
