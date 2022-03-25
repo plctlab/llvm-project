@@ -431,6 +431,13 @@ def TuneSiFive7 : SubtargetFeature<"sifive7", "RISCVProcFamily", "SiFive7",
 // def TuneXiangShan : SubtargetFeature<"XiangShan", "RISCVProcFamily", "XiangShan",
 //                                      "XiangShan series procesors">;
 
+def FeatureXiangshanFusion
+    : SubtargetFeature<"Macro Fusion", "HasXiangshanFusion", "true",
+                       "Macro Fusion for Xiangshan Nanhu processor">;
+def HasXiangshanFusion : Predicate<"Subtarget->hasXiangshanFusion()">,
+                             AssemblerPredicate<(all_of FeatureXiangshanFusion),
+                             "Macro Fusion for Xiangshan Nanhu processor">;
+
 //===----------------------------------------------------------------------===//
 // Named operands for CSR instructions.
 //===----------------------------------------------------------------------===//
@@ -554,6 +561,7 @@ def : ProcessorModel<"xiangshan-nanhu", NoSchedModel, [Feature64Bit,
                                                          FeatureStdExtZkn,
                                                          FeatureStdExtZksed,
                                                          FeatureStdExtZksh,
+                                                         FeatureXiangshanFusion,
                                                          //FeatureStdExtSvinval
                                                          ]>;
 

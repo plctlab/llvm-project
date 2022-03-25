@@ -13,6 +13,7 @@
 #include "RISCVTargetMachine.h"
 #include "MCTargetDesc/RISCVBaseInfo.h"
 #include "RISCV.h"
+#include "RISCVMacroFusion.h"
 #include "RISCVTargetObjectFile.h"
 #include "RISCVTargetTransformInfo.h"
 #include "TargetInfo/RISCVTargetInfo.h"
@@ -135,6 +136,26 @@ public:
 
   RISCVTargetMachine &getRISCVTargetMachine() const {
     return getTM<RISCVTargetMachine>();
+  }
+
+  ScheduleDAGInstrs *
+  createMachineScheduler(MachineSchedContext *C) const override {
+    ScheduleDAGMILive *DAG = createGenericSchedLive(C);
+    const RISCVSubtarget &ST = C->MF->getSubtarget<RISCVSubtarget>();
+    if (ST.hasMacroFusion())
+      DAG->addMutation(createRISCVMacroFusionDAGMutation());
+    return DAG;
+  }
+
+  ScheduleDAGInstrs *
+  createPostMachineScheduler(MachineSchedContext *C) const override {
+    const RISCVSubtarget &ST = C->MF->getSubtarget<RISCVSubtarget>();
+    if (ST.hasMacroFusion()) {
+      ScheduleDAGMI *DAG = createGenericSchedPostRA(C);
+      DAG->addMutation(createRISCVMacroFusionDAGMutation());
+      return DAG;
+    }
+    return nullptr;
   }
 
   void addIRPasses() override;
