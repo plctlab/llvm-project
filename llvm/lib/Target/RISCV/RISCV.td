@@ -455,6 +455,7 @@ include "RISCVInstrInfo.td"
 include "RISCVRegisterBanks.td"
 include "RISCVSchedRocket.td"
 include "RISCVSchedSiFive7.td"
+include "RISCVSchedXiangShan.td"
 
 //===----------------------------------------------------------------------===//
 // RISC-V processors supported.
@@ -548,7 +549,7 @@ def : ProcessorModel<"xiangshan-yanqihu", NoSchedModel, [Feature64Bit,
                                                            FeatureStdExtD,
                                                            FeatureStdExtC]>;
 
-def : ProcessorModel<"xiangshan-nanhu", NoSchedModel, [Feature64Bit,
+def : ProcessorModel<"xiangshan-nanhu", XiangShanNanHuModel, [Feature64Bit,
                                                          FeatureStdExtM,
                                                          FeatureStdExtA,
                                                          FeatureStdExtF,
