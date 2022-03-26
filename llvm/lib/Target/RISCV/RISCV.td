@@ -425,6 +425,13 @@ foreach i = {1-31} in
 def FeatureSaveRestore : SubtargetFeature<"save-restore", "EnableSaveRestore",
                                           "true", "Enable save/restore.">;
 
+def FeatureStdExtSvinval
+    : SubtargetFeature<"svinval", "HasStdExtSvinval", "true",
+                       "'Svinval' (Standard Extension for Fine-Grained Address-Translation Cache Invalidation)">;
+def HasStdExtSvinval : Predicate<"Subtarget->hasStdExtSvinval()">,
+                             AssemblerPredicate<(all_of FeatureStdExtZksed),
+                             "'Svinval' (Standard Extension for Fine-Grained Address-Translation Cache Invalidation)">;
+
 def TuneSiFive7 : SubtargetFeature<"sifive7", "RISCVProcFamily", "SiFive7",
                                    "SiFive 7-Series processors">;
 
@@ -554,7 +561,7 @@ def : ProcessorModel<"xiangshan-nanhu", NoSchedModel, [Feature64Bit,
                                                          FeatureStdExtZkn,
                                                          FeatureStdExtZksed,
                                                          FeatureStdExtZksh,
-                                                         //FeatureStdExtSvinval
+                                                         FeatureStdExtSvinval
                                                          ]>;
 
 //===----------------------------------------------------------------------===//
