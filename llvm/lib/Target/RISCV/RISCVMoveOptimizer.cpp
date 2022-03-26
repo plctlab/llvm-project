@@ -92,9 +92,6 @@ RISCVMoveOpt::mergePairedInsns(MachineBasicBlock::iterator I,
   DestSourcePair FirstPair = TII->isCopyInstrImpl(*I).getValue();
   DestSourcePair PairedRegs = TII->isCopyInstrImpl(*Paired).getValue();
 
-  if(Opcode != RISCV::CM_MVA01S && Opcode !=RISCV::CM_MVSA01)
-    return I;
-
   if (NextI == Paired)
     NextI = next_nodbg(NextI, E);
   DebugLoc DL = I->getDebugLoc();
@@ -130,23 +127,36 @@ RISCVMoveOpt::findMatchingInst(MachineBasicBlock::iterator &MBBI, unsigned InstO
 
     MachineInstr &MI = *I;
 
-    if (auto SecondPair = TII->isCopyInstrImpl(MI)){
+    if (auto SecondPair = TII->isCopyInstrImpl(MI)) {
       Register SourceReg = SecondPair->Source->getReg();
       Register DestReg = SecondPair->Destination->getReg();
 
-      if((InstOpcode == RISCV::CM_MVA01S && isCandidateToMergeMVA01S(*SecondPair)) ||
-         (InstOpcode == RISCV::CM_MVSA01 && isCandidateToMergeMVSA01(*SecondPair))){
-        // If register pair is valid and does not contain registers from first instruction.
-        if ((FirstPair.Source->getReg() == SourceReg) ||
-          (FirstPair.Destination->getReg() == DestReg))
-          return E;
-        
-        //  If paired destination register was modified or used, there is no possibility
-        //  of finding matching instruction so exit early.
-        if (!ModifiedRegUnits.available(DestReg) ||  !UsedRegUnits.available(DestReg))
+      if (InstOpcode == RISCV::CM_MVA01S && isCandidateToMergeMVA01S(*SecondPair)) {
+        // If register pair is valid and destination registers are different.
+        if ((FirstPair.Destination->getReg() == DestReg))
           return E;
 
+        //  If paired destination register was modified or used, there is no possibility
+        //  of finding matching instruction so exit early.
+        if (!ModifiedRegUnits.available(DestReg) || !UsedRegUnits.available(DestReg))
+          return E;
+
+        // We need to check if the source register in the second paired instruction is
+        // defined in between.
         if (ModifiedRegUnits.available(SourceReg))
+          return I;
+
+      } else if (InstOpcode == RISCV::CM_MVSA01 && isCandidateToMergeMVSA01(*SecondPair)) {
+        if ((FirstPair.Source->getReg() == SourceReg) ||
+              (FirstPair.Destination->getReg() == DestReg))
+          return E;
+
+        if (!ModifiedRegUnits.available(SourceReg) || !UsedRegUnits.available(SourceReg))
+          return E;
+
+        // As for mvsa01, we need to make sure the dest register of the second paired
+        // instruction is not used in between, since we would move its definition ahead.
+        if (UsedRegUnits.available(DestReg))
           return I;
       }
     }
@@ -165,17 +175,21 @@ bool RISCVMoveOpt::MovOpt(MachineBasicBlock &MBB){
     // Check if the instruction can be compressed to C.MV instruction. If it can, return Dest/Src
     // register pair.
     auto RegPair = TII->isCopyInstrImpl(*MBBI);
-    if(RegPair.hasValue()){
-      unsigned Opcode;
-      
-      if(isCandidateToMergeMVA01S(*RegPair))
+    if(RegPair.hasValue()) {
+      unsigned Opcode = 0;
+
+      if (isCandidateToMergeMVA01S(*RegPair))
         Opcode = RISCV::CM_MVA01S;
       else if (isCandidateToMergeMVSA01(*RegPair))
         Opcode = RISCV::CM_MVSA01;
+      else {
+        ++MBBI;
+        continue;
+      }
 
       MachineBasicBlock::iterator Paired = findMatchingInst(MBBI, Opcode);
       //If matching instruction could be found merge them.
-      if(Paired != E){
+      if (Paired != E) {
         MBBI = mergePairedInsns(MBBI, Paired, Opcode);
         Modified = true;
         continue;
