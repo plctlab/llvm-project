@@ -15,6 +15,10 @@
 // This cc1 test is similar to clang with -march=rv64i -mcpu=sifive-u74, default abi is lp64
 // RUN: %clang_cc1 -triple riscv64 -emit-llvm -o - -target-cpu sifive-u74 %s | FileCheck -check-prefix=EMPTY-LP64 %s
 
+// Test for XiangShan processor
+// RUN: %clang_cc1 -triple riscv64 -emit-llvm -o - -target-cpu xiangshan-yanqihu %s | FileCheck -check-prefix=EMPTY-LP64 %s
+// RUN: %clang_cc1 -triple riscv64 -emit-llvm -o - -target-cpu xiangshan-nanhu %s | FileCheck -check-prefix=EMPTY-LP64 %s
+
 // EMPTY-ILP32: !{{[0-9]+}} = !{i32 1, !"target-abi", !"ilp32"}
 // EMPTY-ILP32D: !{{[0-9]+}} = !{i32 1, !"target-abi", !"ilp32d"}
 // ILP32: !{{[0-9]+}} = !{i32 1, !"target-abi", !"ilp32"}
