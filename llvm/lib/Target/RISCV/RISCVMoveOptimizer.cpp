@@ -86,26 +86,43 @@ bool RISCVMoveOpt::isCandidateToMergeMVSA01(DestSourcePair &RegPair){
 MachineBasicBlock::iterator
 RISCVMoveOpt::mergePairedInsns(MachineBasicBlock::iterator I,
                                MachineBasicBlock::iterator Paired,
-                               unsigned Opcode){
+                               unsigned Opcode) {
+  const MachineOperand *Sreg1, *Sreg2;
   MachineBasicBlock::iterator E = I->getParent()->end();
   MachineBasicBlock::iterator NextI = next_nodbg(I, E);
   DestSourcePair FirstPair = TII->isCopyInstrImpl(*I).getValue();
   DestSourcePair PairedRegs = TII->isCopyInstrImpl(*Paired).getValue();
+  Register ARegInFirstPair = Opcode == RISCV::CM_MVA01S ?
+        FirstPair.Destination->getReg()
+        : FirstPair.Source->getReg();
 
   if (NextI == Paired)
     NextI = next_nodbg(NextI, E);
   DebugLoc DL = I->getDebugLoc();
 
-  if(Opcode == RISCV::CM_MVA01S){
-    BuildMI(*I->getParent(), I, DL, TII->get(Opcode))
-      .add(*FirstPair.Source)
-      .add(*PairedRegs.Source);
+  // The order of S-reg depends on which instruction holds A0, instead of
+  // the order of register pair.
+  // e,g.
+  //   mv a1, s1
+  //   mv a0, s2    =>  cm.mva01s s2,s1
+  //
+  //   mv a0, s2
+  //   mv a1, s1    =>  cm.mva01s s2,s1
+  if (Opcode == RISCV::CM_MVA01S) {
+    Sreg1 = ARegInFirstPair == RISCV::X10 ?
+                FirstPair.Source : PairedRegs.Source;
+    Sreg2 = ARegInFirstPair == RISCV::X10 ?
+                PairedRegs.Source : FirstPair.Source;
+  } else {
+    Sreg1 = ARegInFirstPair == RISCV::X10 ?
+                FirstPair.Destination : PairedRegs.Destination;
+    Sreg2 = ARegInFirstPair == RISCV::X10 ?
+                PairedRegs.Destination : FirstPair.Destination;
   }
-  else if(Opcode == RISCV::CM_MVSA01){
-    BuildMI(*I->getParent(), I, DL, TII->get(Opcode))
-        .add(*FirstPair.Destination)
-        .add(*PairedRegs.Destination);
-  }
+
+  BuildMI(*I->getParent(), I, DL, TII->get(Opcode))
+    .add(*Sreg1)
+    .add(*Sreg2);
 
   I->eraseFromParent();
   Paired->eraseFromParent();
