@@ -258,8 +258,8 @@ static int getPushPopEncoding(const Register MaxReg) {
   }
 }
 static uint64_t adjSPInPushPop(MachineBasicBlock::iterator MBBI, uint64_t StackAdj, bool isPop){
-  // The spec allocates 5 bits to specify number of extra 16 byte blocks.
-  uint32_t AvailableAdj = 496; 
+  // The spec allocates 2 bits to specify number of extra 16 byte blocks.
+  uint32_t AvailableAdj = 48;
   uint64_t RequiredAdj = StackAdj;
 
   // Use available stack adjustment in Zce PUSH/POP instruction
@@ -274,8 +274,8 @@ static uint64_t adjSPInPushPop(MachineBasicBlock::iterator MBBI, uint64_t StackA
     StackAdj = AvailableAdj;
   }
   else {
-    // Round to the nearest 16  byte block able to fit RequiredAdj.
-    StackAdj = ((RequiredAdj + 15) / 16) * 16 ;     
+    // Round to the nearest 16 byte block able to fit RequiredAdj.
+    StackAdj = alignTo(RequiredAdj, 16);
     RequiredAdj = 0;     
   }
   Operand.setImm(StackAdj);
@@ -1175,14 +1175,14 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
     // Use encoded number to represent registers to spill.
     int RegEnc = getPushPopEncoding(MaxReg);
     PushBuilder.addImm(RegEnc);
-    // Calculate the number of 16 byte blocks required to store pushed registers.
-    unsigned RegSize = TRI->getRegSizeInBits(RISCV::GPRRegClass) / 8;
-    // Notice : this hard-coded calculation changes when encoding of registers
-    // change.
-    unsigned StackAdj = ((RegSize * (RegEnc - 3) + 15) / 16) * 16;
-    PushBuilder.addImm(StackAdj);
+    // Calculate SpImm Base adjustment, and SpImm field will be updated
+    // through adjSPInPushPop.
+    bool isRV64 = STI.getFeatureBits()[RISCV::Feature64Bit];
+    bool isEABI = false; // Reserved for future implementation
+    uint32_t SpImmBase = RISCVZCE::getStackAdjBase(RegEnc, isRV64, isEABI);
+    PushBuilder.addImm(SpImmBase);
   }
-  else {  
+  else {
     const char *SpillLibCall = getSpillLibCallName(*MF, CSI);
     if (SpillLibCall) {
       // Add spill libcall via non-callee-saved register t0.
@@ -1238,12 +1238,12 @@ bool RISCVFrameLowering::restoreCalleeSavedRegisters(
     // Use encoded number to represent registers to restore.
     int RegEnc = getPushPopEncoding(MaxReg);
     PopBuilder.addImm(RegEnc);
-    // Calculate the number of 16 byte blocks used by pushed registers.
-    unsigned RegSize = TRI->getRegSizeInBits(RISCV::GPRRegClass) / 8;
-    // Notice : this hard-coded calculation changes when encoding of registers
-    // change.
-    unsigned StackAdj = ((RegSize * (RegEnc - 3) + 15) / 16) * 16;
-    PopBuilder.addImm(StackAdj);
+    // Calculate SpImm Base adjustment, and SpImm field will be updated
+    // through adjSPInPushPop.
+    bool isRV64 = STI.getFeatureBits()[RISCV::Feature64Bit];
+    bool isEABI = false; // Reserved for future implementation
+    uint32_t SpImmBase = RISCVZCE::getStackAdjBase(RegEnc, isRV64, isEABI);
+    PopBuilder.addImm(SpImmBase);
   }
   else{
     // Manually restore values not restored by libcall.
