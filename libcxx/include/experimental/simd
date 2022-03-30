@@ -1341,13 +1341,13 @@ public:
   void operator++(){
      _Impl::__masked_incre(__s_.__s_, __m_.__s_);
   }
-  void operator++(int _n){
+  void operator++(int){
      _Impl::__masked_incre(__s_.__s_, __m_.__s_);
   }
   void operator--(){
      _Impl::__masked_decre(__s_.__s_, __m_.__s_);
   }
-  void operator--(int _n){
+  void operator--(int){
      _Impl::__masked_decre(__s_.__s_, __m_.__s_);
   }
 
