@@ -172,7 +172,7 @@ struct __simd_storage <_Tp, simd_abi::__neon<_Np>> {        \
   { return vget_lane_##_Suffix(__data, __idx); }            \
   void __set(size_t __idx, _Tp __v) noexcept                \
   { vset_lane_##_Suffix(__v, __data, __idx); }              \
-}
+};
 // 64-bits NEON Storage
 _LIBCPP_SIMD_ARM_NEON_STORAGE64(unsigned char,      8,  u8)
 _LIBCPP_SIMD_ARM_NEON_STORAGE64(signed char,        8,  s8)
