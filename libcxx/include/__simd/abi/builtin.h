@@ -153,6 +153,47 @@ struct __simd_traits {
       __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
     return __s;
   }
+#define _LIBCXX_MASKED_OP_(__op, __name)				\
+  static _Simd __masked##__name(_Simd&__s, _Mask __m, _Tp __v) noexcept \
+  {									\
+     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)		\
+       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :   \
+	  __s.__data[__i];						\
+     return __s;							\
+  }
+  _LIBCXX_MASKED_OP_(+, _plus)
+  _LIBCXX_MASKED_OP_(-, _minus)
+  _LIBCXX_MASKED_OP_(*, _multiplues)
+  _LIBCXX_MASKED_OP_(/, _divides)
+  _LIBCXX_MASKED_OP_(%, _modulus)
+  _LIBCXX_MASKED_OP_(&, _bit_and)
+  _LIBCXX_MASKED_OP_(|, _bit_or)
+  _LIBCXX_MASKED_OP_(^, _bit_xor)
+  _LIBCXX_MASKED_OP_(<<, _shift_left)
+  _LIBCXX_MASKED_OP_(>>, _shift_right)
+#undef _LIBCXX_MASKED_OP_
+  static _Simd __masked_incre(_Simd& __s, _Mask __m) noexcept {
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]++ : __s.__data[__i];
+    return __s;
+  }
+  static _Simd __masked_decre(_Simd& __s, _Mask __m) noexcept {
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]-- : __s.__data[__i];
+    return __s;
+  }
+  template<class _Up>
+  static _Simd __masked_load(_Simd& __s, _Mask __m, _Up* __mem) noexcept {
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __s.__data[__i] = __m.__data[__i] ? __mem[__i] : __s.__data[__i];
+    return __s;
+  }
+ template<class _Up>
+ static _Simd __masked_store(_Simd& __s, _Mask __m, _Up* __mem) noexcept {
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __mem[__i] = __m.__data[__i] ? __s.__data[__i] : __mem[__i];
+    return __s;
+  }
 };
 
 
@@ -252,6 +293,59 @@ struct __mask_traits {
         break;
     return __i;
   }
+  static _Mask __masked_unary_minus(_Mask __s, _Mask __m) noexcept {
+    _Mask __r;
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __r.__data[__i] = __m.__data[__i] ? -__s.__data[__i] : __s.__data[__i];
+    return __r;
+  }
+
+  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept {
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
+    return __s;
+  }
+#define _LIBCXX_MASKED_OP_M(__op, __name)				\
+  static _Mask __masked##__name(_Mask&__s, _Mask __m, _Tp __v) noexcept \
+  {									\
+     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)		\
+       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :   \
+	  __s.__data[__i];						\
+     return __s;							\
+  }
+  _LIBCXX_MASKED_OP_M(+, _plus)
+  _LIBCXX_MASKED_OP_M(-, _minus)
+  _LIBCXX_MASKED_OP_M(*, _multiplues)
+  _LIBCXX_MASKED_OP_M(/, _divides)
+  _LIBCXX_MASKED_OP_M(%, _modulus)
+  _LIBCXX_MASKED_OP_M(&, _bit_and)
+  _LIBCXX_MASKED_OP_M(|, _bit_or)
+  _LIBCXX_MASKED_OP_M(^, _bit_xor)
+  _LIBCXX_MASKED_OP_M(<<, _shift_left)
+  _LIBCXX_MASKED_OP_M(>>, _shift_right)
+#undef _LIBCXX_MASKED_OP_M
+  static _Mask __masked_incre(_Mask& __s, _Mask __m) noexcept {
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]++ : __s.__data[__i];
+    return __s;
+  }
+  static _Mask __masked_decre(_Mask& __s, _Mask __m) noexcept {
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]-- : __s.__data[__i];
+    return __s;
+  }
+  template<class _Up>
+  static _Mask __masked_load(_Mask& __s, _Mask __m, _Up* __mem) noexcept {
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __s.__data[__i] = __m.__data[__i] ? __mem[__i] : __s.__data[__i];
+    return __s;
+  }
+ template<class _Up>
+ static _Mask __masked_store(_Mask& __s, _Mask __m, _Up* __mem) noexcept {
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __mem[__i] = __m.__data[__i] ? __s.__data[__i] : __mem[__i];
+    return __s;
+  } 
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD

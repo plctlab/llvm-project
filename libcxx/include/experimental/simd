@@ -1248,9 +1248,9 @@ template <class _MaskType, class _SimdType>
 class const_where_expression {
   using _Impl = typename _SimdType::_Impl;
 
-  friend const_where_expression where<>(const _MaskType&, const _SimdType&) noexcept;
-  friend const_where_expression where<>(const __nodeduce_t<_MaskType>&, const _SimdType&) noexcept;
-  friend const_where_expression where<>(bool, const _SimdType&) noexcept;
+  //friend const_where_expression where<>(const _MaskType&, const _SimdType&) noexcept;
+  //friend const_where_expression where<>(const __nodeduce_t<_MaskType>&, const _SimdType&) noexcept;
+  //friend const_where_expression where<>(bool, const _SimdType&) noexcept;
 
 protected:
   const _MaskType& __m_;
@@ -1259,12 +1259,41 @@ protected:
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
-
+  const_where_expression(const _MaskType& __m, const _SimdType& s)
+	  : __m_(__m), __s_(const_cast<_SimdType&>(s)) {}
   remove_const_t<_SimdType> operator-() const&& { return _Impl::__masked_unary_minus(__s_.__s_, __m_.__s_); }
 
   template <class _Tp, class _Flags>
-  void copy_to(_Tp*, _Flags) const&&;
+  void copy_to(_Tp* __mem, _Flags) const&&{
+     _Impl:: __masked_store(__s_.__s_, __m_.__s_, __mem/*_Flags::template _S_apply<_V>(__mem)*/);
+  };
 };
+
+template <class _SimdType>
+class const_where_expression<bool, _SimdType> {
+  using _Impl = typename _SimdType::_Impl;
+
+  //friend const_where_expression where<>(const _MaskType&, const _SimdType&) noexcept;
+  //friend const_where_expression where<>(const __nodeduce_t<_MaskType>&, const _SimdType&) noexcept;
+  //friend const_where_expression where<>(bool, const _SimdType&) noexcept;
+
+protected:
+  const bool __m_;
+  _SimdType& __s_;
+
+public:
+  const_where_expression(const const_where_expression&) = delete;
+  const_where_expression& operator=(const const_where_expression&) = delete;
+  const_where_expression(const bool __m, const _SimdType& s)
+	  : __m_(__m), __s_(const_cast<_SimdType&>(s)) {}
+  remove_const_t<_SimdType> operator-() const&& { return __m_ ? -__s_ : __s_; }
+
+  template <class _Tp, class _Flags>
+  void copy_to(_Tp* __mem, _Flags) const&&{
+    if(__m_)__mem[0] = __m_ ? __s_ : __mem[0];
+  };
+};
+
 
 template <class _MaskType, class _SimdType>
 class where_expression : public const_where_expression<_MaskType, _SimdType> {
@@ -1273,10 +1302,9 @@ class where_expression : public const_where_expression<_MaskType, _SimdType> {
   using const_where_expression<_MaskType, _SimdType>::__m_;
   using const_where_expression<_MaskType, _SimdType>::__s_;
 
-  friend where_expression where<>(const _MaskType&, _SimdType&) noexcept;
-  friend where_expression where<>(const __nodeduce_t<_MaskType>&, _SimdType&) noexcept;
-  friend where_expression where<>(bool, _SimdType&) noexcept;
-
+  //friend where_expression where<>(const _MaskType&, _SimdType&) noexcept;
+  //friend where_expression where<>(const __nodeduce_t<_MaskType>&, _SimdType&) noexcept;
+  //friend where_expression where<>(bool, _SimdType&) noexcept;
   template <class _Tp>
   typename _SimdType::value_type __to_value_type(_Tp&& __v) const {
     return static_cast<typename _SimdType::value_type>(std::forward<_Tp>(__v));
@@ -1285,54 +1313,111 @@ class where_expression : public const_where_expression<_MaskType, _SimdType> {
 public:
   where_expression(const where_expression&) = delete;
   where_expression& operator=(const where_expression&) = delete;
+  where_expression(const _MaskType& __m, _SimdType& s)
+	  :const_where_expression<_MaskType, _SimdType>(__m, s){}
 
   template <class _Tp>
   void operator=(_Tp&& __v) {
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __to_value_type(std::forward<_Tp>(__v)));
   }
-
-  // TODO: implement
-  template <class _Tp>
-  void operator+=(_Tp&&);
-
-  template <class _Tp>
-  void operator-=(_Tp&&);
-
-  template <class _Tp>
-  void operator*=(_Tp&&);
-
-  template <class _Tp>
-  void operator/=(_Tp&&);
-
-  template <class _Tp>
-  void operator%=(_Tp&&);
-
-  template <class _Tp>
-  void operator&=(_Tp&&);
-
-  template <class _Tp>
-  void operator|=(_Tp&&);
-
-  template <class _Tp>
-  void operator^=(_Tp&&);
-
-  template <class _Tp>
-  void operator<<=(_Tp&&);
-
-  template <class _Tp>
-  void operator>>=(_Tp&&);
-
-  void operator++();
-
-  void operator++(int);
-
-  void operator--();
-
-  void operator--(int);
+#define _LIBCXX_SIMD_MASK_OP_(__op,__name)			\
+  template <class _Tp>						\
+    void operator __op##=(_Tp&& __v)				\
+    {								\
+       _Impl::__masked##__name(__s_.__s_, __m_.__s_,		\
+		__to_value_type(std::forward<_Tp>(__v)));	\
+    }								
+  _LIBCXX_SIMD_MASK_OP_(+, _plus)
+  _LIBCXX_SIMD_MASK_OP_(-, _minus)
+  _LIBCXX_SIMD_MASK_OP_(*, _multiplues)
+  _LIBCXX_SIMD_MASK_OP_(/, _divides)
+  _LIBCXX_SIMD_MASK_OP_(%, _modulus)
+  _LIBCXX_SIMD_MASK_OP_(&, _bit_and)
+  _LIBCXX_SIMD_MASK_OP_(|, _bit_or)
+  _LIBCXX_SIMD_MASK_OP_(^, _bit_xor)
+  _LIBCXX_SIMD_MASK_OP_(<<, _shift_left)
+  _LIBCXX_SIMD_MASK_OP_(>>, _shift_right)
+#undef _LIBCXX_SIMD_MASK_OP_
+  void operator++(){
+     _Impl::__masked_incre(__s_.__s_, __m_.__s_);
+  }
+  void operator++(int _n){
+     _Impl::__masked_incre(__s_.__s_, __m_.__s_);
+  }
+  void operator--(){
+     _Impl::__masked_decre(__s_.__s_, __m_.__s_);
+  }
+  void operator--(int _n){
+     _Impl::__masked_decre(__s_.__s_, __m_.__s_);
+  }
 
   template <class _Tp, class _Flags>
-  void copy_from(const _Tp*, _Flags);
+  void copy_from(const _Tp* __mem, _Flags){
+     _Impl:: __masked_load(__s_.__s_, __m_.__s_, __mem/*_Flags::template _S_apply<_V>(__mem)*/);
+	}
 };
+
+template <class _SimdType>
+class where_expression<bool, _SimdType> : public const_where_expression<bool, _SimdType> {
+  using _Impl = typename _SimdType::_Impl;
+
+  using const_where_expression<bool, _SimdType>::__m_;
+  using const_where_expression<bool, _SimdType>::__s_;
+
+  //friend where_expression where<>(const _MaskType&, _SimdType&) noexcept;
+  //friend where_expression where<>(const __nodeduce_t<_MaskType>&, _SimdType&) noexcept;
+  //friend where_expression where<>(bool, _SimdType&) noexcept;
+  template <class _Tp>
+  typename _SimdType::value_type __to_value_type(_Tp&& __v) const {
+    return static_cast<typename _SimdType::value_type>(std::forward<_Tp>(__v));
+  }
+
+public:
+  where_expression(const where_expression&) = delete;
+  where_expression& operator=(const where_expression&) = delete;
+  where_expression(const bool __m, _SimdType& s)
+	  :const_where_expression<bool, _SimdType>(__m, s){}
+
+  template <class _Tp>
+  void operator=(_Tp&& __v) {
+    __s_ = __m_ ? __v : __s_;
+  }
+#define _LIBCXX_SIMD_MASK_OP_(__op,__name)			\
+  template <class _Tp>						\
+    void operator __op##=(_Tp&& __v)				\
+    {								\
+	__s_ = __m_ ? __s_ __op __v : __s_;			\
+    }								
+  _LIBCXX_SIMD_MASK_OP_(+, _plus)
+  _LIBCXX_SIMD_MASK_OP_(-, _minus)
+  _LIBCXX_SIMD_MASK_OP_(*, _multiplues)
+  _LIBCXX_SIMD_MASK_OP_(/, _divides)
+  _LIBCXX_SIMD_MASK_OP_(%, _modulus)
+  _LIBCXX_SIMD_MASK_OP_(&, _bit_and)
+  _LIBCXX_SIMD_MASK_OP_(|, _bit_or)
+  _LIBCXX_SIMD_MASK_OP_(^, _bit_xor)
+  _LIBCXX_SIMD_MASK_OP_(<<, _shift_left)
+  _LIBCXX_SIMD_MASK_OP_(>>, _shift_right)
+#undef _LIBCXX_SIMD_MASK_OP_
+  void operator++(){
+    if(__m_) __s_++;
+  }
+  void operator++(int){
+    if(__m_) ++__s_;
+  }
+  void operator--(){
+    if(__m_) __s_--;
+  }
+  void operator--(int){
+    if(__m_) --__s_;
+  }
+
+  template <class _Tp, class _Flags>
+  void copy_from(const _Tp* __mem, _Flags){
+    __s_ = __m_ ? __mem[0] : __s_;
+  }
+};
+
 
 // [simd.class]
 template <class _Tp, class _Abi>
