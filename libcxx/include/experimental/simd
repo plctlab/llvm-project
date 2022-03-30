@@ -842,8 +842,19 @@ using fixed_size = __vec_ext<_Np>;
 template <class _Tp>
 inline constexpr size_t max_fixed_size = 32;
 
+#if _LIBCPP_SIMD_X86INTRIN
 template <class _Tp>
-using compatible = fixed_size<16 / sizeof(_Tp)>;
+using compatible = __vec_ext<16 / sizeof(_Tp)>;
+#elif _LIBCPP_SIMD_HAVE_NEON
+template <class _Tp>
+using compatible = __neon<16 / sizeof(_Tp)>;
+#elif _LIBCPP_SIMD_HAVE_PPC
+template <class _Tp>
+using compatible = __ppc;
+#else
+template <class>
+  using compatible = scalar;
+#endif
 
 template <class _Tp>
 using native = __vec_ext<_LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp)>;
