@@ -168,11 +168,12 @@ _LIBCPP_SIMD_ARM_NEON_TYPES(double,             float64,  2)
 template <>                                                 \
 struct __simd_storage <_Tp, simd_abi::__neon<_Np>> {        \
   __neon_type_t<_Tp, _Np> __data;                           \
-  _Tp __get(size_t __idx) const noexcept                    \
-  { return vget_lane_##_Suffix(__data, __idx); }            \
-  void __set(size_t __idx, _Tp __v) noexcept                \
-  { vset_lane_##_Suffix(__v, __data, __idx); }              \
 };
+//   _Tp __get(size_t __idx) const noexcept                    \
+//   { return vget_lane_##_Suffix(__data, __idx); }            \
+//   void __set(size_t __idx, _Tp __v) noexcept                \
+//   { vset_lane_##_Suffix(__v, __data, __idx); }              \
+// };
 // 64-bits NEON Storage
 _LIBCPP_SIMD_ARM_NEON_STORAGE64(unsigned char,      8,  u8)
 _LIBCPP_SIMD_ARM_NEON_STORAGE64(signed char,        8,  s8)
@@ -189,11 +190,12 @@ _LIBCPP_SIMD_ARM_NEON_STORAGE64(double,             1,  f64)
 template <>                                                 \
 struct __simd_storage <_Tp, simd_abi::__neon<_Np>> {        \
   __neon_type_t<_Tp, _Np> __data;                           \
-  _Tp __get(size_t __idx) const noexcept                    \
-  { return vgetq_lane_##_Suffix(__data, __idx); }           \
-  void __set(size_t __idx, _Tp __v) noexcept                \
-  { vsetq_lane_##_Suffix(__v, __data, __idx); }             \
 };
+//   _Tp __get(size_t __idx) const noexcept                    \
+//   { return vgetq_lane_##_Suffix(__data, __idx); }           \
+//   void __set(size_t __idx, _Tp __v) noexcept                \
+//   { vsetq_lane_##_Suffix(__v, __data, __idx); }             \
+// };
 // 128-bits NEON Storage
 _LIBCPP_SIMD_ARM_NEON_STORAGE128(unsigned char,      16,  u8)
 _LIBCPP_SIMD_ARM_NEON_STORAGE128(signed char,        16,  s8)
