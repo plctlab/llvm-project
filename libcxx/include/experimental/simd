@@ -836,28 +836,41 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 
 using scalar = __scalar;
 
-template <int _Np>
-using fixed_size = __vec_ext<_Np>;
-
 template <class _Tp>
 inline constexpr size_t max_fixed_size = 32;
 
 #if _LIBCPP_SIMD_X86INTRIN
+template <int _Np>
+using fixed_size = __vec_ext<_Np>;
 template <class _Tp>
 using compatible = __vec_ext<16 / sizeof(_Tp)>;
-#elif _LIBCPP_SIMD_HAVE_NEON
-template <class _Tp>
-using compatible = __neon<16 / sizeof(_Tp)>;
-#elif _LIBCPP_SIMD_HAVE_PPC
-template <class _Tp>
-using compatible = __ppc;
-#else
-template <class>
-  using compatible = scalar;
-#endif
-
 template <class _Tp>
 using native = __vec_ext<_LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp)>;
+
+#elif _LIBCPP_SIMD_HAVE_NEON
+template <int _Np>
+using fixed_size = __neon<_Np>;
+template <class _Tp>
+using compatible = __neon<16 / sizeof(_Tp)>;
+template <class _Tp>
+using native = __neon<16 / sizeof(_Tp)>;
+
+#elif _LIBCPP_SIMD_HAVE_PPC
+template <int>
+using fixed_size = __ppc;
+template <class>
+using compatible = __ppc;
+template <class>
+using native = __ppc;
+
+#else
+template <int>
+using fixed_size = scalar;
+template <class>
+using compatible = scalar;
+template <class>
+using native = scalar;
+#endif
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 
