@@ -96,6 +96,7 @@ bool RISCVPushPopOpt::adjustRetVal(MachineBasicBlock::iterator &MBBI){
   // insn and the last assignment to register a0.
   ModifiedRegUnits.clear();
   UsedRegUnits.clear();
+  retValMap.clear();
   Register A0(RISCV::X10);
   // Since POP instruction is in Epilogue no normal instructions will follow after it.
   // Therefore search only previous ones to find the return value.

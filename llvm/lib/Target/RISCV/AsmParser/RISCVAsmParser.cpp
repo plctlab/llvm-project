@@ -2043,6 +2043,7 @@ OperandMatchResultTy RISCVAsmParser::parseAtomicMemOp(OperandVector &Operands) {
 
 OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
   // Rlist grammar: {ra [, s0[-sN]]} (UABI)
+  // XRlist :{x1 [, x8[-x9][, x18[-xN]]]} (UABI)
   SMLoc S = getLoc();
   if (getLexer().isNot(AsmToken::LCurly))
     return MatchOperand_NoMatch;
@@ -2053,6 +2054,7 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
       static_cast<RISCVOperand *>(Operands.front().get())->getToken();
   bool Is16Bit = Memonic.startswith("cm.");
   bool IsEABI = isRV32E() || Memonic.endswith(".e");
+  bool IsXReglist = Memonic.find("x");
 
   MCRegister RegStart = RISCV::NoRegister;
   MCRegister RegEnd = RISCV::NoRegister;
@@ -2085,6 +2087,33 @@ OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
     if (matchRegisterNameHelper(/*IsEABI*/ false, RegEnd, EndName))
       return MatchOperand_NoMatch;
     getLexer().Lex();
+  }
+
+  // parse extra part like ', x18[-x20]' for XRegList
+  if (IsXReglist && getLexer().is(AsmToken::Comma)){
+    if (RegEnd != RISCV::X9)
+      return MatchOperand_NoMatch;
+
+    // parse ', x18' for extra part
+    getLexer().Lex();
+    if (getLexer().isNot(AsmToken::Identifier))
+      return MatchOperand_NoMatch;
+    StringRef EndName = getLexer().getTok().getIdentifier();
+    if (MatchRegisterName(EndName) != RISCV::X18)
+      return MatchOperand_NoMatch;
+    getLexer().Lex();
+
+    // parse '-x20' for extra part
+    if (getLexer().is(AsmToken::Minus)){
+      getLexer().Lex();
+      if (getLexer().isNot(AsmToken::Identifier))
+        return MatchOperand_NoMatch;
+      EndName = getLexer().getTok().getIdentifier();
+      if (MatchRegisterName(EndName) == RISCV::NoRegister)
+        return MatchOperand_NoMatch;
+      getLexer().Lex();
+    }
+    RegEnd = MatchRegisterName(EndName);
   }
 
   if (getLexer().isNot(AsmToken::RCurly))

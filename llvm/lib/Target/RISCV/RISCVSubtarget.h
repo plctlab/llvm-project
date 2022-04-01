@@ -49,7 +49,6 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   bool HasStdExtZbr = false;
   bool HasStdExtZbs = false;
   bool HasStdExtZbt = false;
-  bool HasStdExtZce = false;
   bool HasStdExtZca = false;
   bool HasStdExtZcb = false;
   bool HasStdExtZcf = false;
