@@ -247,7 +247,7 @@ def rlist3 : Operand<OtherVT>,  ImmLeaf<OtherVT, [{return Imm <= 12;}]> {
     int64_t Imm;
     if (!MCOp.evaluateAsConstantImm(Imm))
       return false;
-    return (Imm <= 4) || (Imm == 6) || 
+    return (Imm <= 4) || (Imm == 6) ||
            (Imm == 8) || (Imm == 12);
   }];
  }
@@ -436,7 +436,7 @@ class BccSwapPat<CondCode Cond, RVInstB Inst>
 let Predicates = [EnableZceBeqi] in
 def : BccSwapPat<SETEQ, BEQI>;
 
-let Predicates = [EnableZceBnei] in 
+let Predicates = [EnableZceBnei] in
 def : BccSwapPat<SETNE, BNEI>;
 
 let Predicates = [EnableZceTbljal] in {
@@ -527,8 +527,8 @@ def POPRET_E : RVInstZcePPP<0b110, (outs), (ins slist:$sreg, retval:$retval,
 
 let Predicates = [EnableZceCPushCPop] in {
 
-let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
-def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, alist:$areg, spimm0_5:$spimm), 
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, alist:$areg, spimm0_5:$spimm),
     "c.push", "{$rlist3}, {$areg}, $spimm">, Sched<[]> {
   bits<3> rlist3;
   bits<1> areg;
@@ -540,8 +540,8 @@ def C_PUSH : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, alist:$areg, spimm0_5:$s
   let Inst{4-2} = rlist3;
 }
 
-let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
-def C_POPRET : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval1:$ret, spimm0_5:$spimm), 
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def C_POPRET : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval1:$ret, spimm0_5:$spimm),
     "c.popret", "{$rlist3}, {$ret}, $spimm">, Sched<[]> {
   bits<3> rlist3;
   bits<1> ret;
@@ -554,8 +554,8 @@ def C_POPRET : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval1:$ret, spimm0_5
   let Inst{4-2} = rlist3;
 }
 
-let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
-def C_POP : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval:$ret, spimm1:$spimm), 
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def C_POP : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval:$ret, spimm1:$spimm),
     "c.pop", "{$rlist3}, {$ret}, $spimm">, Sched<[]> {
   bits<3> rlist3;
   bits<16> spimm;
@@ -569,8 +569,8 @@ def C_POP : RVInstZceCPPP<(outs), (ins rlist3:$rlist3, retval:$ret, spimm1:$spim
 }
 
 let Predicates = [EnableZceCPushECPopE, IsRV32] in {
-let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
-def C_POP_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, retval:$ret0, spimm:$spimm), 
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def C_POP_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, retval:$ret0, spimm:$spimm),
     "c.pop.e", "{$rlist2}, {$ret0}, $spimm">, Sched<[]> {
   bits<2> rlist2;
   bits<16> spimm;
@@ -581,8 +581,8 @@ def C_POP_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, retval:$ret0, spimm:$sp
   let Inst{3-2} = rlist2;
 }
 
-let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in 
-def C_POPRET_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, retval:$ret0, spimm:$spimm), 
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def C_POPRET_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, retval:$ret0, spimm:$spimm),
     "c.popret.e", "{$rlist2}, {$ret0}, $spimm">, Sched<[]> {
   bits<2> rlist2;
   bits<16> spimm;
@@ -596,8 +596,8 @@ def C_POPRET_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, retval:$ret0, spimm:
   let Inst{3-2} = rlist2;
 }
 
-let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
-def C_PUSH_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, alist:$areg, spimm:$spimm), 
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+def C_PUSH_E : RVInstZceCPPP<(outs), (ins rlist2:$rlist2, alist:$areg, spimm:$spimm),
     "c.push.e", "{$rlist2}, {$areg}, $spimm">, Sched<[]> {
   bits<2> rlist2;
   bits<16> spimm;

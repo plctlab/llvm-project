@@ -20,6 +20,9 @@ using namespace llvm::ELF;
 using namespace lld;
 using namespace lld::elf;
 
+  using DeleteRange = InputSectionBase::DeleteRange;
+  using DeleteRanges = std::vector<InputSectionBase::DeleteRange>;
+
 namespace {
 
 class RISCV final : public TargetInfo {
@@ -43,7 +46,7 @@ public:
   void insertTableJumps(InputSection &inputSection) const;
   void insertTableJump(
       InputSection &inputSection, Relocation &rel,
-      std::vector<std::pair<const uint64_t, const uint64_t>> &bytesToDelete,
+      DeleteRanges &deleteRanges,
       std::vector<std::pair<const std::string, const uint64_t>> &tblJumpSymbols)
       const;
 };
@@ -293,13 +296,10 @@ RelExpr RISCV::getRelExpr(const RelType type, const Symbol &s,
 }
 
 void RISCV::processSection(InputSection &inputSection) const {
-  if (config->zce_tbljal)
-    insertTableJumps(inputSection);
 }
 
 void RISCV::insertTableJumps(InputSection &inputSection) const {
-
-  std::vector<std::pair<const uint64_t, const uint64_t>> bytesToDelete;
+  DeleteRanges deleteRanges;
   std::vector<std::pair<const std::string, const uint64_t>> tblJumpSymbols;
 
   for (auto it = std::begin(inputSection.relocations); it < std::end(inputSection.relocations); ++it) {
@@ -312,57 +312,23 @@ void RISCV::insertTableJumps(InputSection &inputSection) const {
         case R_RISCV_LO12_S:
         case R_RISCV_PCREL_LO12_I:
         case R_RISCV_PCREL_LO12_S:*/{
-            insertTableJump(inputSection, *it, bytesToDelete, tblJumpSymbols);
+            insertTableJump(inputSection, *it, deleteRanges, tblJumpSymbols);
             inputSection.relocations.erase(it);
             --it; // Iterator has been deleted, shifting the list.
         }
       }
   }
-  if (bytesToDelete.size() > 0)
-    inputSection.deleteBytes(bytesToDelete);
-}
 
-void RISCV::insertTableJump(
-    InputSection &inputSection, Relocation &rel,
-    std::vector<std::pair<const uint64_t, const uint64_t>> &bytesToDelete,
-    std::vector<std::pair<const std::string, const uint64_t>> &tblJumpSymbols)
-    const {
-  // The address to be jumped to.
-  const uint64_t targetLoc = rel.sym->getVA();
-  // The address we are jumping from.
-  const auto loc = inputSection.getVA() + rel.offset;
-  //const auto jalr = loc + 4;
-  //const uint8_t rd = (jalr & 0x00000fe0) >> 7;
+  using DeleteRange = InputSectionBase::DeleteRange;
+  llvm::sort(deleteRanges,
+              [](const DeleteRange &lhs, const DeleteRange &rhs) {
+                return lhs.offset < rhs.offset;
+              });
 
-  const auto jalr = inputSection.data()[rel.offset + 4];
-  const uint8_t rd = extractBits(jalr, 11, 7);
+  inputSection.deleteRanges(deleteRanges);
 
-  //const bool rvc = config->eflags & EF_RISCV_RVC;
-
-  uint32_t tblEntryAddress;
-  if (rd == X_T0)
-    tblEntryAddress = in.riscvTableJumpSection->addEntryT0(*rel.sym);
-  else if (rd == 0)
-    tblEntryAddress = in.riscvTableJumpSection->addEntryZero(*rel.sym);
-  else if (rd == X_RA)
-    tblEntryAddress = in.riscvTableJumpSection->addEntryRa(*rel.sym);
-  else
-    return; // Unknown link register, do not modify.
-
-  const auto deleteStartOffset = 4;
-  const auto deleteSize = 4;
-
-  // Write over the auipc instruction
-  inputSection.edit(rel.offset, tbljumptype(tblEntryAddress));
-  //inputSection.edit(rel.offset + deleteStartOffset, tblEntryAddress);
-
-  //if (inputSection.getVA() + inputSection.data().size() <= rel.offset + deleteSize)
-    //return;
-  bytesToDelete.emplace_back(rel.offset + 2, 6);
-
-  //bytesToDelete.emplace_back(rel.offset + 2, deleteSize);
-  //bytesToDelete.emplace_back(rel.offset, deleteSize);
-  return;
+  //if (bytesToDelete.size() > 0)
+  //  inputSection.deleteBytes(bytesToDelete);
 }
 
 void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
@@ -549,7 +515,7 @@ void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
   case R_RISCV_RELAX:
   case R_RISCV_TPREL_ADD:
     return; // Ignored (for now)
-  
+
   case R_RISCV_GPREL_ZCE_LWGP: {
     bool enableZceLsgp = config->optmizeZceLsgp;
 
@@ -655,11 +621,54 @@ static int64_t addWorstCaseAlignment(int64_t offset, uint64_t alignment) {
   return offset >= 0 ? offset + alignment : offset - alignment;
 }
 
-using DeleteRanges = std::vector<InputSectionBase::DeleteRange>;
 
 static void addDeleteRange(DeleteRanges &ranges, uint64_t offset,
                            uint64_t size) {
   ranges.push_back({offset, size});
+}
+
+void RISCV::insertTableJump(
+    InputSection &inputSection, Relocation &rel,
+    DeleteRanges &deleteRanges,
+    std::vector<std::pair<const std::string, const uint64_t>> &tblJumpSymbols)
+    const {
+  // The address to be jumped to.
+  const uint64_t targetLoc = rel.sym->getVA();
+  // The address we are jumping from.
+  const auto loc = inputSection.getVA() + rel.offset;
+  //const auto jalr = loc + 4;
+  //const uint8_t rd = (jalr & 0x00000fe0) >> 7;
+
+  const auto jalr = inputSection.data()[rel.offset + 4];
+  const uint8_t rd = extractBits(jalr, 11, 7);
+
+  //const bool rvc = config->eflags & EF_RISCV_RVC;
+
+  uint32_t tblEntryAddress;
+  if (rd == X_T0)
+    tblEntryAddress = in.riscvTableJumpSection->addEntryT0(*rel.sym);
+  else if (rd == 0)
+    tblEntryAddress = in.riscvTableJumpSection->addEntryZero(*rel.sym);
+  else if (rd == X_RA)
+    tblEntryAddress = in.riscvTableJumpSection->addEntryRa(*rel.sym);
+  else
+    return; // Unknown link register, do not modify.
+
+  const auto deleteStartOffset = 4;
+  const auto deleteSize = 4;
+
+  // Write over the auipc instruction
+  inputSection.edit(rel.offset, tbljumptype(tblEntryAddress));
+  //inputSection.edit(rel.offset + deleteStartOffset, tblEntryAddress);
+
+  //if (inputSection.getVA() + inputSection.data().size() <= rel.offset + deleteSize)
+    //return;
+  //bytesToDelete.emplace_back(rel.offset + 2, 6);
+  addDeleteRange(deleteRanges, rel.offset + 2, 6);
+
+  //bytesToDelete.emplace_back(rel.offset + 2, deleteSize);
+  //bytesToDelete.emplace_back(rel.offset, deleteSize);
+  return;
 }
 
 // Relax R_RISCV_CALL to jal or c.jal.
@@ -976,6 +985,12 @@ void RISCV::finalizeSections() const {
   // Can't perform relaxation if it is not a final link.
   if (config->relocatable)
     return;
+
+  if (config->zce_tbljal) {
+    for (InputSectionBase* inputSection : inputSections) {
+      insertTableJumps(cast<InputSection>(*inputSection));
+    }
+  }
 
   if (config->relax)
     while (relax())

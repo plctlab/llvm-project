@@ -281,7 +281,6 @@ protected:
   void uncompress() const;
 
   mutable ArrayRef<uint8_t> rawData;
-  mutable bool copiedData;
 
   // This field stores the uncompressed size of the compressed data in rawData,
   // or -1 if rawData is not compressed (either because the section wasn't

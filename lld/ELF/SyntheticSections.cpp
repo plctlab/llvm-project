@@ -1177,15 +1177,15 @@ TableJumpSection::TableJumpSection()
                        ".tbljalentries") {}
 
 size_t TableJumpSection::addEntryT0(const Symbol& symbol) {
-  return addEntry(symbol, entriesT0, maxSizeT0);
+  return startT0 + addEntry(symbol, entriesT0, maxSizeT0);
 }
 
 size_t TableJumpSection::addEntryZero(const Symbol& symbol) {
-  return addEntry(symbol, entriesZero, maxSizeZero);
+  return startZero + addEntry(symbol, entriesZero, maxSizeZero);
 }
 
 size_t TableJumpSection::addEntryRa(const Symbol& symbol) {
-  return addEntry(symbol, entriesRa, maxSizeRa);
+  return startRa + addEntry(symbol, entriesRa, maxSizeRa);
 }
 
 size_t TableJumpSection::addEntry(const Symbol& symbol,

@@ -2,8 +2,8 @@
 
 // Check that relaxation correctly adjusts symbol addresses and sizes.
 
-#TODO: llvm-mc -filetype=obj -triple=riscv32 -mattr=+relax %s -o %t.rv32.o
-# RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=+relax %s -o %t.rv64.o
+#TODO: llvm-mc -filetype=obj -triple=riscv32 -mattr=+relax -mattr=+experimental-zce %s -o %t.rv32.o
+# RUN: llvm-mc -filetype=obj -triple=riscv64 -mattr=+relax -mattr=+experimental-zce %s -o %t.rv64.o
 #TODO: ld.lld -Ttext=0x100000 -zce-tbljal %t.rv32.o -o %t.rv32
 # RUN: ld.lld -Ttext=0x100000 -zce-tbljal %t.rv64.o -o %t.rv64
 
