@@ -34,6 +34,6 @@ PROC(SIFIVE_U74, {"sifive-u74"}, FK_64BIT, {"rv64gc"})
 PROC(XIANGSHAN_YANQIHU,{"xiangshan-yanqihu"},FK_64BIT,{"rv64gc"})
 
 // svinval is currently not supported by llvm, hence not in the arch string.
-PROC(XIANGSHAN_NANHU,{"xiangshan-nanhu"},FK_64BIT,{"rv64imafdc_zba_zbb_zbc_zbs_zbkb_zbkc_zbkx_zknd_zkne_zknh_zksed_zksh"})
+PROC(XIANGSHAN_NANHU,{"xiangshan-nanhu"},FK_64BIT,{"rv64gc_zba_zbb_zbc_zbs_zbkb_zbkc_zbkx_zknd_zkne_zknh_zksed_zksh"})
 
 #undef PROC
