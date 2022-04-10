@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <__simd/abi/simd_storage.h>
@@ -347,6 +348,17 @@ struct __mask_traits {
     return __s;
   } 
 };
+
+template <typename Tuple, typename Func, size_t ... N>
+void call_tuple( Tuple& t, Func&& func, std::index_sequence<N...>) {
+    static_cast<void>(std::initializer_list<int>{(func(std::get<N>(t)), 0)...});
+}
+
+template <typename ... Args, typename Func>
+void for_tuple( std::tuple<Args...>& t, Func&& func) {
+    call_tuple(t, std::forward<Func>(func), std::make_index_sequence<sizeof...(Args)>{});
+}
+
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
