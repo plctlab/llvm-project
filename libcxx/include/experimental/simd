@@ -1076,25 +1076,122 @@ auto to_compatible(const fixed_size_simd_mask<_Tp, _Np>& __m) noexcept{
   return __m;
 }
 
-template <size_t... __sizes, class _Tp, class _Abi>
-tuple<simd<_Tp, abi_for_size_t<_Tp, __sizes>>...> split(const simd<_Tp, _Abi>&);
+//TODO: Put variadic template parameters in the first position of the template parameter list
+template < class _Tp ,class _Abi,size_t... __sizes>
+std::enable_if_t<((0 + ... + __sizes) == simd_size_v<_Tp,_Abi>),tuple<simd<_Tp, abi_for_size_t<_Tp, __sizes>>...>> 
+split(const simd<_Tp, _Abi>& __v){      
+  if constexpr(sizeof...(__sizes) == 1){
+      return make_tuple(__v);
+  }else{
+    auto temp = make_tuple(simd<_Tp, simd_abi::fixed_size<__sizes>>()...);
+    size_t k = 0;
+    for_tuple(temp,[__v,&k](auto&& item)
+    {
+      size_t i=0;
+      while( i < item.size() ){
+      item[i] = __v[k];
+      ++k;
+      ++i;
+      }
+    });
+    return temp;
+  }
+}
 
-template <size_t... __sizes, class _Tp, class _Abi>
-tuple<simd_mask<_Tp, abi_for_size_t<_Tp, __sizes>>...> split(const simd_mask<_Tp, _Abi>&);
+template < class _Tp ,class _Abi,size_t... __sizes>
+std::enable_if_t<((0 + ... + __sizes) == simd_size_v<_Tp,_Abi>),tuple<simd_mask<_Tp, abi_for_size_t<_Tp, __sizes>>...>>
+split(const simd_mask<_Tp, _Abi>& __m){     
+  if constexpr(sizeof...(__sizes) == 1){
+      return make_tuple(__m);
+  }else{
+    auto temp = make_tuple(simd_mask<_Tp, simd_abi::fixed_size<__sizes>>()...);
+    size_t k = 0;
+    for_tuple(temp,[__m,&k](auto&& item)
+    {
+      size_t i=0;
+      while( i < item.size() ){
+      item[i] = __m[k];
+      ++k;
+      ++i;
+      }
+    });
+    return temp;
+  }
+}
+//TODO: There is ambiguity with split_to_tuple because of the order of template parameter of split_to_tuple
+template <class _SimdType, class _Abi>
+std::enable_if_t<( is_simd_v<_SimdType> && (simd_size_v<typename _SimdType::value_type, _Abi> % _SimdType::size() == 0) )
+,array<_SimdType, simd_size_v<typename _SimdType::value_type, _Abi> / _SimdType::size()>>
+split(const simd<typename _SimdType::value_type, _Abi>& __v){
+
+  if constexpr(simd_size_v<typename _SimdType::value_type, _Abi> / _SimdType::size() == 1){
+    auto temp = std::array<simd<typename _SimdType::value_type, _Abi>,1>{};
+    for(size_t i = 0; i < temp[0].size(); ++i){
+      temp[0][i] = __v[i];
+    }
+    return temp;
+  }else{
+    auto temp = std::array<_SimdType, simd_size_v<typename _SimdType::value_type, _Abi> / _SimdType::size() >{};
+    size_t k = 0;
+    for(int i = 0; i < temp.size(); ++i){
+      for(size_t j = 0; j < temp[i].size(); ++j){
+        temp[i][j] = __v[k];
+        ++k;
+      }
+    }
+    return temp;
+  }
+}
 
 template <class _SimdType, class _Abi>
-array<_SimdType, simd_size_v<typename _SimdType::value_type, _Abi> / _SimdType::size()>
-split(const simd<typename _SimdType::value_type, _Abi>&);
+std::enable_if_t<( is_simd_mask_v<_SimdType> && (simd_size_v<typename _SimdType::value_type, _Abi> % _SimdType::size() == 0) )
+,array<_SimdType, simd_size_v<typename _SimdType::value_type, _Abi> / _SimdType::size()>>
+split(const simd_mask<typename _SimdType::value_type, _Abi>& __m){
 
-template <class _SimdType, class _Abi>
-array<_SimdType, simd_size_v<typename _SimdType::value_type, _Abi> / _SimdType::size()>
-split(const simd_mask<typename _SimdType::value_type, _Abi>&);
+  if constexpr(simd_size_v<typename _SimdType::value_type, _Abi> / _SimdType::size() == 1){
+    auto temp = std::array<simd_mask<typename _SimdType::value_type, _Abi>,1>{};
+    for(size_t i = 0; i < temp[0].size(); ++i){
+      temp[0][i] = __m[i];
+    }
+  }else{
+    auto temp = std::array<_SimdType, simd_size_v<typename _SimdType::value_type, _Abi> / _SimdType::size() >();
+    size_t k = 0;
+    for(int i = 0; i < temp.size(); ++i){
+      for(size_t j = 0; j < temp[i].size(); ++j){
+        temp[i][j] = __m[k];
+        ++k;
+      }
+    }
+    return temp;
+  }
+}
 
 template <class _Tp, class... _Abis>
-simd<_Tp, abi_for_size_t<_Tp, __variadic_sum(simd_size_v<_Tp, _Abis>...)>> concat(const simd<_Tp, _Abis>&...);
+simd<_Tp, abi_for_size_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >> concat(const simd<_Tp, _Abis>&... __v){
+  auto temp = simd<_Tp, abi_for_size_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >>();
+  int k = 0;
+  ([&](){
+        for(size_t i = 0; i < __v.size(); ++i){
+            temp[k] = __v[i];
+            ++k;
+        }
+    }(),...);
+  return temp;
+}
 
 template <class _Tp, class... _Abis>
-simd_mask<_Tp, abi_for_size_t<_Tp, __variadic_sum(simd_size_v<_Tp, _Abis>...)>> concat(const simd_mask<_Tp, _Abis>&...);
+simd_mask<_Tp, abi_for_size_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >> concat(const simd_mask<_Tp, _Abis>&... __m){
+  auto temp = simd_mask<_Tp, abi_for_size_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >>();
+  int k = 0;
+  ([&](){
+        for(size_t i = 0; i < __m.size(); ++i){
+            temp[k] = __m[i];
+            ++k;
+        }
+    }(),...);
+  return temp;
+}
+
 
 // reductions [simd.mask.reductions]
 template <class _Tp, class _Abi>
