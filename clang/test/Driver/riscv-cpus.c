@@ -132,6 +132,23 @@
 // MCPU-MARCH: "-nostdsysteminc" "-target-cpu" "sifive-e31" "-target-feature" "+m" "-target-feature" "+c"
 // MCPU-MARCH: "-target-abi" "ilp32"
 
+// Test for XiangShan processors.
+// RUN: %clang -target riscv64 -### -c %s 2>&1 -mcpu=xiangshan-yanqihu | FileCheck -check-prefix=MCPU-XS-YANQIHU %s
+// MCPU-XS-YANQIHU: "-nostdsysteminc" "-target-cpu" "xiangshan-yanqihu"
+// MCPU-XS-YANQIHU: "-target-feature" "+m" "-target-feature" "+a" "-target-feature" "+f" "-target-feature" "+d"
+// MCPU-XS-YANQIHU: "-target-feature" "+c" "-target-feature" "+64bit"
+// MCPU-XS-YANQIHU: "-target-abi" "lp64d"
+
+// Test for XiangShan processors.
+// RUN: %clang -target riscv64 -### -c %s 2>&1 -mcpu=xiangshan-nanhu | FileCheck -check-prefix=MCPU-XS-NANHU %s
+// MCPU-XS-NANHU: "-nostdsysteminc" "-target-cpu" "xiangshan-nanhu"
+// MCPU-XS-NANHU: "-target-feature" "+m" "-target-feature" "+a" "-target-feature" "+f" "-target-feature" "+d"
+// MCPU-XS-NANHU: "-target-feature" "+c" "-target-feature" "+zba" "-target-feature" "+zbb" "-target-feature" "+zbc"
+// MCPU-XS-NANHU: "-target-feature" "+zbkb" "-target-feature" "+zbkc" "-target-feature" "+zbkx" "-target-feature" "+zbs"
+// MCPU-XS-NANHU: "-target-feature" "+zkn" "-target-feature" "+zknd" "-target-feature" "+zkne" "-target-feature" "+zknh"
+// MCPU-XS-NANHU: "-target-feature" "+zks" "-target-feature" "+zksed" "-target-feature" "+zksh" "-target-feature" "+64bit"
+// MCPU-XS-NANHU: "-target-abi" "lp64d"
+
 // Check interaction between mcpu and mtune, mtune won't affect arch related
 // target feature, but mcpu will.
 //

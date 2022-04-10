@@ -102,6 +102,7 @@ private:
   bool HasStdExtZkt = false;
   bool HasStdExtZk = false;
   bool HasXiangshanFusion = false;
+  bool HasStdExtSvinval = false;
   bool HasRV64 = false;
   bool IsRV32E = false;
   bool EnableLinkerRelax = false;
@@ -140,9 +141,7 @@ public:
     return &FrameLowering;
   }
   const RISCVInstrInfo *getInstrInfo() const override { return &InstrInfo; }
-  const RISCVRegisterInfo *getRegisterInfo() const override {
-    return &RegInfo;
-  }
+  const RISCVRegisterInfo *getRegisterInfo() const override { return &RegInfo; }
   const RISCVTargetLowering *getTargetLowering() const override {
     return &TLInfo;
   }
@@ -192,6 +191,7 @@ public:
   bool hasStdExtZkr() const { return HasStdExtZkr; }
   bool hasXiangshanFusion() const { return HasXiangshanFusion; }
   bool hasMacroFusion() const { return hasXiangshanFusion(); }
+  bool hasStdExtSvinval() const { return HasStdExtSvinval; }
   bool is64Bit() const { return HasRV64; }
   bool isRV32E() const { return IsRV32E; }
   bool enableLinkerRelax() const { return EnableLinkerRelax; }
@@ -266,6 +266,6 @@ public:
   unsigned getMaxELENForFixedLengthVectors() const;
   bool useRVVForFixedLengthVectors() const;
 };
-} // End llvm namespace
+} // namespace llvm
 
 #endif
