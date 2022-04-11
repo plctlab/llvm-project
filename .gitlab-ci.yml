@@ -1,0 +1,17 @@
+image: ubuntu:20.04
+
+before_script:
+  - export RUNNER_MAX_LINK_JOBS=`free --giga | grep Mem | awk '{print int($2 / 16)}'`
+
+build:
+  stage: build
+  tags:
+    - llvm
+
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DLLVM_PARALLEL_LINK_JOBS=${RUNNER_MAX_LINK_JOBS} -DLLVM_TARGETS_TO_BUILD="X86;RISCV" -DCMAKE_BUILD_TYPE="Release"  -DLLVM_ENABLE_PROJECTS="clang" -G Ninja ../llvm
+    - ninja
+    - ninja check
+
