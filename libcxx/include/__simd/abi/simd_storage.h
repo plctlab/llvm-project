@@ -141,7 +141,6 @@ using __neon_type_t = typename __neon_type<_Tp, _Np>::type;
 template <>                                                 \
 struct __neon_type<_Tp, _Np>                                \
 { using type = _NTp##x##_Np##_t; };
-// 64-bits NEON types
 _LIBCPP_SIMD_ARM_NEON_TYPES(unsigned char,      uint8,    8)
 _LIBCPP_SIMD_ARM_NEON_TYPES(signed char,        int8,     8)
 _LIBCPP_SIMD_ARM_NEON_TYPES(unsigned short,     uint16,   4)
@@ -152,7 +151,6 @@ _LIBCPP_SIMD_ARM_NEON_TYPES(unsigned long long, uint64,   1)
 _LIBCPP_SIMD_ARM_NEON_TYPES(long long,          int64,    1)
 _LIBCPP_SIMD_ARM_NEON_TYPES(float,              float32,  2)
 _LIBCPP_SIMD_ARM_NEON_TYPES(double,             float64,  1)
-// 128-bits NEON types
 _LIBCPP_SIMD_ARM_NEON_TYPES(unsigned char,      uint8,    16)
 _LIBCPP_SIMD_ARM_NEON_TYPES(signed char,        int8,     16)
 _LIBCPP_SIMD_ARM_NEON_TYPES(unsigned short,     uint16,   8)
@@ -164,53 +162,35 @@ _LIBCPP_SIMD_ARM_NEON_TYPES(long long,          int64,    2)
 _LIBCPP_SIMD_ARM_NEON_TYPES(float,              float32,  4)
 _LIBCPP_SIMD_ARM_NEON_TYPES(double,             float64,  2)
 
-#define _LIBCPP_SIMD_ARM_NEON_STORAGE64(_Tp, _Np, _Suffix)  \
+#define _LIBCPP_SIMD_ARM_NEON_STORAGE(_Tp, _Np, _Suffix)    \
 template <>                                                 \
 struct __simd_storage <_Tp, simd_abi::__neon<_Np>> {        \
   __neon_type_t<_Tp, _Np> __data;                           \
+  _Tp __get(size_t __idx) const noexcept                    \
+  { return __data[__idx]; }                                 \
+  void __set(size_t __idx, _Tp __v) noexcept                \
+  { __data[__idx] = __v; }                                  \
 };
-/*
-//   _Tp __get(size_t __idx) const noexcept                    \
-//   { return vget_lane_##_Suffix(__data, __idx); }            \
-//   void __set(size_t __idx, _Tp __v) noexcept                \
-//   { vset_lane_##_Suffix(__v, __data, __idx); }              \
-// };
-*/
-// 64-bits NEON Storage
-_LIBCPP_SIMD_ARM_NEON_STORAGE64(unsigned char,      8,  u8)
-_LIBCPP_SIMD_ARM_NEON_STORAGE64(signed char,        8,  s8)
-_LIBCPP_SIMD_ARM_NEON_STORAGE64(unsigned short,     4,  u16)
-_LIBCPP_SIMD_ARM_NEON_STORAGE64(short,              4,  s16)
-_LIBCPP_SIMD_ARM_NEON_STORAGE64(unsigned,           2,  u32)
-_LIBCPP_SIMD_ARM_NEON_STORAGE64(int,                2,  s32)
-_LIBCPP_SIMD_ARM_NEON_STORAGE64(unsigned long long, 1,  u64)
-_LIBCPP_SIMD_ARM_NEON_STORAGE64(long long,          1,  s64)
-_LIBCPP_SIMD_ARM_NEON_STORAGE64(float,              2,  f32)
-_LIBCPP_SIMD_ARM_NEON_STORAGE64(double,             1,  f64)
-
-#define _LIBCPP_SIMD_ARM_NEON_STORAGE128(_Tp, _Np, _Suffix) \
-template <>                                                 \
-struct __simd_storage <_Tp, simd_abi::__neon<_Np>> {        \
-  __neon_type_t<_Tp, _Np> __data;                           \
-};
-/*
-//   _Tp __get(size_t __idx) const noexcept                    \
-//   { return vgetq_lane_##_Suffix(__data, __idx); }           \
-//   void __set(size_t __idx, _Tp __v) noexcept                \
-//   { vsetq_lane_##_Suffix(__v, __data, __idx); }             \
-// };
-*/
-// 128-bits NEON Storage
-_LIBCPP_SIMD_ARM_NEON_STORAGE128(unsigned char,      16,  u8)
-_LIBCPP_SIMD_ARM_NEON_STORAGE128(signed char,        16,  s8)
-_LIBCPP_SIMD_ARM_NEON_STORAGE128(unsigned short,     8,   u16)
-_LIBCPP_SIMD_ARM_NEON_STORAGE128(short,              8,   s16)
-_LIBCPP_SIMD_ARM_NEON_STORAGE128(unsigned,           4,   u32)
-_LIBCPP_SIMD_ARM_NEON_STORAGE128(int,                4,   s32)
-_LIBCPP_SIMD_ARM_NEON_STORAGE128(unsigned long long, 2,   u64)
-_LIBCPP_SIMD_ARM_NEON_STORAGE128(long long,          2,   s64)
-_LIBCPP_SIMD_ARM_NEON_STORAGE128(float,              4,   f32)
-_LIBCPP_SIMD_ARM_NEON_STORAGE128(double,             2,   f64)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(unsigned char,      8,  u8)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(signed char,        8,  s8)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(unsigned short,     4,  u16)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(short,              4,  s16)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(unsigned,           2,  u32)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(int,                2,  s32)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(unsigned long long, 1,  u64)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(long long,          1,  s64)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(float,              2,  f32)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(double,             1,  f64)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(unsigned char,      16,  u8)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(signed char,        16,  s8)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(unsigned short,     8,   u16)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(short,              8,   s16)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(unsigned,           4,   u32)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(int,                4,   s32)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(unsigned long long, 2,   u64)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(long long,          2,   s64)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(float,              4,   f32)
+_LIBCPP_SIMD_ARM_NEON_STORAGE(double,             2,   f64)
 
 template <class _Tp, int _Np>
 struct __mask_storage <_Tp, simd_abi::__neon<_Np>> : __simd_storage<decltype(__choose_mask_type<_Tp>()), simd_abi::__neon<_Np>> {};
