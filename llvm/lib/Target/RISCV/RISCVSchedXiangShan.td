@@ -10,10 +10,10 @@
 
 // XiangShan machine model for scheduling and other instruction cost heuristics.
 def XiangShanNanHuModel : SchedMachineModel {
-  let MicroOpBufferSize = 256;
+  let MicroOpBufferSize = 256; // Based on the reorder buffer.
   let IssueWidth = 6;
   let LoadLatency = 3;
-  let MispredictPenalty = 15; // Uncertain value
+  // let MispredictPenalty = 15; // Needs a typical value here.
   let CompleteModel = 0;
   let UnsupportedFeatures = [HasStdExtZkr,
                              HasVInstructions];
@@ -49,53 +49,53 @@ let SchedModel = XiangShanNanHuModel in {
 
 // Following parts referenced SiFive7's implementation 
 // In NanHu microarchitecture, branching is calculated in Int-Misc
-def : WriteRes<WriteJmp, [NanHuIntPipe,NanHuIntMisc]>;
-def : WriteRes<WriteJal, [NanHuIntPipe,NanHuIntMisc]>;
-def : WriteRes<WriteJalr, [NanHuIntPipe,NanHuIntMisc]>;
-def : WriteRes<WriteJmpReg, [NanHuIntPipe,NanHuIntMisc]>;
+def : WriteRes<WriteJmp, [NanHuIntMisc]>;
+def : WriteRes<WriteJal, [NanHuIntMisc]>;
+def : WriteRes<WriteJalr, [NanHuIntMisc]>;
+def : WriteRes<WriteJmpReg, [NanHuIntMisc]>;
 
 // Integer arithmetic and logic
 let Latency = 1 in {
-def : WriteRes<WriteIALU, [NanHuIntPipe,NanHuIntArith]>;
-def : WriteRes<WriteIALU32, [NanHuIntPipe,NanHuIntArith]>;
-def : WriteRes<WriteShiftImm, [NanHuIntPipe,NanHuIntArith]>;
-def : WriteRes<WriteShiftImm32, [NanHuIntPipe,NanHuIntArith]>;
-def : WriteRes<WriteShiftReg, [NanHuIntPipe,NanHuIntArith]>;
-def : WriteRes<WriteShiftReg32, [NanHuIntPipe,NanHuIntArith]>;
+def : WriteRes<WriteIALU, [NanHuIntArith]>;
+def : WriteRes<WriteIALU32, [NanHuIntArith]>;
+def : WriteRes<WriteShiftImm, [NanHuIntArith]>;
+def : WriteRes<WriteShiftImm32, [NanHuIntArith]>;
+def : WriteRes<WriteShiftReg, [NanHuIntArith]>;
+def : WriteRes<WriteShiftReg32, [NanHuIntArith]>;
 }
 
 // Integer multiplication
 let Latency = 3 in {
-def : WriteRes<WriteIMul, [NanHuIntPipe,NanHuIntMulDiv]>;
-def : WriteRes<WriteIMul32, [NanHuIntPipe,NanHuIntMulDiv]>;
+def : WriteRes<WriteIMul, [NanHuIntMulDiv]>{
+}
+def : WriteRes<WriteIMul32, [NanHuIntMulDiv]>{
+}
 }
 
 // Integer division
-def : WriteRes<WriteIDiv, [NanHuIntPipe,NanHuIntMulDiv]> {
+def : WriteRes<WriteIDiv, [NanHuIntMulDiv]> {
   let Latency = 21;
-  let ResourceCycles = [1, 20];
 }
-def : WriteRes<WriteIDiv32,  [NanHuIntPipe,NanHuIntMulDiv]> {
+def : WriteRes<WriteIDiv32,  [NanHuIntMulDiv]> {
   let Latency = 21;
-  let ResourceCycles = [1, 20];
 }
 
 // Memory
-def : WriteRes<WriteSTB, [NanHuMemPipe, NanHuMemSave]>;
-def : WriteRes<WriteSTH, [NanHuMemPipe, NanHuMemSave]>;
-def : WriteRes<WriteSTW, [NanHuMemPipe, NanHuMemSave]>;
-def : WriteRes<WriteSTD, [NanHuMemPipe, NanHuMemSave]>;
-def : WriteRes<WriteFST32, [NanHuMemPipe, NanHuMemSave]>;
-def : WriteRes<WriteFST64, [NanHuMemPipe, NanHuMemSave]>;
+def : WriteRes<WriteSTB, [NanHuMemSave]>;
+def : WriteRes<WriteSTH, [NanHuMemSave]>;
+def : WriteRes<WriteSTW, [NanHuMemSave]>;
+def : WriteRes<WriteSTD, [NanHuMemSave]>;
+def : WriteRes<WriteFST32, [NanHuMemSave]>;
+def : WriteRes<WriteFST64, [NanHuMemSave]>;
 
 let Latency = 3 in {
-def : WriteRes<WriteLDB, [NanHuMemPipe, NanHuMemLoad]>;
-def : WriteRes<WriteLDH, [NanHuMemPipe, NanHuMemLoad]>;
-def : WriteRes<WriteLDW, [NanHuMemPipe, NanHuMemLoad]>;
-def : WriteRes<WriteLDWU, [NanHuMemPipe, NanHuMemLoad]>;
-def : WriteRes<WriteLDD, [NanHuMemPipe, NanHuMemLoad]>;
-def : WriteRes<WriteFLD32, [NanHuMemPipe, NanHuMemLoad]>;
-def : WriteRes<WriteFLD64, [NanHuMemPipe, NanHuMemLoad]>;
+def : WriteRes<WriteLDB, [NanHuMemLoad]>;
+def : WriteRes<WriteLDH, [NanHuMemLoad]>;
+def : WriteRes<WriteLDW, [NanHuMemLoad]>;
+def : WriteRes<WriteLDWU, [NanHuMemLoad]>;
+def : WriteRes<WriteLDD, [NanHuMemLoad]>;
+def : WriteRes<WriteFLD32, [NanHuMemLoad]>;
+def : WriteRes<WriteFLD64, [NanHuMemLoad]>;
 }
 
 // TODO : Find out the real value of XiangShan's Atomic memory latency.
@@ -112,55 +112,54 @@ def : WriteRes<WriteAtomicLDD, [NanHuMemPipe]>;
 
 // Floating operations
 let Latency = 5 in {
-def : WriteRes<WriteFMA32, [NanHuFloatPipe, NanHuFloatArith]>;
-def : WriteRes<WriteFMA64, [NanHuFloatPipe, NanHuFloatArith]>;
+def : WriteRes<WriteFMA32, [NanHuFloatArith]>;
+def : WriteRes<WriteFMA64, [NanHuFloatArith]>;
 }
 
 let Latency = 3 in {
-def : WriteRes<WriteFALU32, [NanHuFloatPipe, NanHuFloatArith]>;
-def : WriteRes<WriteFMul32, [NanHuFloatPipe, NanHuFloatArith]>;
-def : WriteRes<WriteFALU64, [NanHuFloatPipe, NanHuFloatArith]>;
-def : WriteRes<WriteFMul64, [NanHuFloatPipe, NanHuFloatArith]>;
+def : WriteRes<WriteFALU32, [NanHuFloatArith]>;
+def : WriteRes<WriteFMul32, [NanHuFloatArith]>;
+def : WriteRes<WriteFALU64, [NanHuFloatArith]>;
+def : WriteRes<WriteFMul64, [NanHuFloatArith]>;
 }
 
 let Latency = 3 in {
-  def : WriteRes<WriteFSGNJ32, [NanHuFloatPipe, NanHuFloatMisc]>;
-  def : WriteRes<WriteFMinMax32, [NanHuFloatPipe, NanHuFloatMisc]>;
-  def : WriteRes<WriteFSGNJ64, [NanHuFloatPipe, NanHuFloatMisc]>;
-  def : WriteRes<WriteFMinMax64, [NanHuFloatPipe, NanHuFloatMisc]>;
+  def : WriteRes<WriteFSGNJ32, [NanHuFloatMisc]>;
+  def : WriteRes<WriteFMinMax32, [NanHuFloatMisc]>;
+  def : WriteRes<WriteFSGNJ64, [NanHuFloatMisc]>;
+  def : WriteRes<WriteFMinMax64, [NanHuFloatMisc]>;
 }
 
-def : WriteRes<WriteFDiv32, [NanHuFloatPipe, NanHuFloatMisc]> { let Latency = 11;
-                                                         let ResourceCycles = [1, 10]; }
-def : WriteRes<WriteFSqrt32, [NanHuFloatPipe, NanHuFloatMisc]> { let Latency = 17;
-                                                          let ResourceCycles = [1, 16]; }
-
-def : WriteRes<WriteFDiv64, [NanHuFloatPipe, NanHuFloatMisc]> { let Latency = 21;
-                                                         let ResourceCycles = [1, 20]; }
-def : WriteRes<WriteFSqrt64, [NanHuFloatPipe, NanHuFloatMisc]> { let Latency = 37;
-                                                          let ResourceCycles = [1, 36]; }
+def : WriteRes<WriteFDiv32, [NanHuFloatMisc]> { let Latency = 11;
+}
+def : WriteRes<WriteFSqrt32, [NanHuFloatMisc]> { let Latency = 17;
+}
+def : WriteRes<WriteFDiv64, [NanHuFloatMisc]> { let Latency = 21;
+}
+def : WriteRes<WriteFSqrt64, [NanHuFloatMisc]> { let Latency = 37;
+}
 
 // Conversions
 let Latency = 3 in {
-def : WriteRes<WriteFCvtI32ToF32, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCvtI32ToF64, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCvtI64ToF32, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCvtI64ToF64, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCvtF32ToI32, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCvtF32ToI64, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCvtF32ToF64, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCvtF64ToI32, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCvtF64ToI64, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCvtF64ToF32, [NanHuFloatPipe, NanHuFloatMisc]>;
+def : WriteRes<WriteFCvtI32ToF32, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCvtI32ToF64, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCvtI64ToF32, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCvtI64ToF64, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCvtF32ToI32, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCvtF32ToI64, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCvtF32ToF64, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCvtF64ToI32, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCvtF64ToI64, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCvtF64ToF32, [NanHuFloatMisc]>;
 
-def : WriteRes<WriteFClass32, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFClass64, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCmp32, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFCmp64, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFMovI32ToF32, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFMovF32ToI32, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFMovI64ToF64, [NanHuFloatPipe, NanHuFloatMisc]>;
-def : WriteRes<WriteFMovF64ToI64, [NanHuFloatPipe, NanHuFloatMisc]>;
+def : WriteRes<WriteFClass32, [NanHuFloatMisc]>;
+def : WriteRes<WriteFClass64, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCmp32, [NanHuFloatMisc]>;
+def : WriteRes<WriteFCmp64, [NanHuFloatMisc]>;
+def : WriteRes<WriteFMovI32ToF32, [NanHuFloatMisc]>;
+def : WriteRes<WriteFMovF32ToI32, [NanHuFloatMisc]>;
+def : WriteRes<WriteFMovI64ToF64, [NanHuFloatMisc]>;
+def : WriteRes<WriteFMovF64ToI64, [NanHuFloatMisc]>;
 }
 
 // Others
