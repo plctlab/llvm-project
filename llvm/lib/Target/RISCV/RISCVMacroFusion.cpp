@@ -18,19 +18,25 @@
 
 namespace llvm {
 
-// These functions could be replaced with a series of macros.
-static bool isClearUpperGetLowerPair(const MachineInstr *FirstMI,
-                                     const MachineInstr &SecondMI) {
+static inline bool withSameDest(const MachineInstr *FirstMI,
+                                const MachineInstr &SecondMI) {
+  auto reg = FirstMI->getOperand(0).getReg();
+  if (reg != SecondMI.getOperand(0).getReg() ||
+      SecondMI.getOperand(0).getReg() != SecondMI.getOperand(1).getReg())
+    return false;
+  return true;
+}
+
+// These functions could be replaced with a
+// series of macros.
+static bool isFuseAdduwOrZexthPair(const MachineInstr *FirstMI,
+                                   const MachineInstr &SecondMI) {
   if (FirstMI->getOpcode() == RISCV::SLLI ||
       FirstMI->getOpcode() == RISCV::SLLIW) {
-    if (SecondMI.getOpcode() != RISCV::SRLI ||
+    if (SecondMI.getOpcode() != RISCV::SRLI &&
         SecondMI.getOpcode() != RISCV::SRLIW)
       return false;
-    if (FirstMI->getOperand(1).getReg() != RISCV::X0)
-      return false;
-    auto reg = FirstMI->getOperand(0).getReg();
-    if (reg != SecondMI.getOperand(0).getReg() ||
-        SecondMI.getOperand(0).getReg() != SecondMI.getOperand(1).getReg())
+    if (!withSameDest(FirstMI, SecondMI))
       return false;
     auto firstImm = FirstMI->getOperand(2).getImm();
     auto secondImm = SecondMI.getOperand(2).getImm();
@@ -52,10 +58,7 @@ static bool is16bitSignExtendPair(const MachineInstr *FirstMI,
     return false;
   if (SecondMI.getOpcode() != RISCV::SRAIW)
     return false;
-  if (FirstMI->getOperand(1).getReg() != RISCV::X0)
-    return false;
-  if (FirstMI->getOperand(0).getReg() != SecondMI.getOperand(0).getReg() ||
-      SecondMI.getOperand(0).getReg() != SecondMI.getOperand(1).getReg())
+  if (!withSameDest(FirstMI, SecondMI))
     return false;
   auto firstImm = FirstMI->getOperand(2).getImm();
   auto secondImm = SecondMI.getOperand(2).getImm();
@@ -70,10 +73,7 @@ static bool isShiftLeftAndAddPair(const MachineInstr *FirstMI,
     return false;
   if (SecondMI.getOpcode() != RISCV::ADD)
     return false;
-  if (FirstMI->getOperand(1).getReg() != RISCV::X0)
-    return false;
-  if (FirstMI->getOperand(0).getReg() != SecondMI.getOperand(0).getReg() ||
-      SecondMI.getOperand(0).getReg() != SecondMI.getOperand(1).getReg())
+  if (!withSameDest(FirstMI, SecondMI))
     return false;
   auto Imm = FirstMI->getOperand(2).getImm();
   if (Imm >= 1 && Imm <= 4)
@@ -86,10 +86,6 @@ static bool isZeroExtendedShiftPair(const MachineInstr *FirstMI,
   if (FirstMI->getOpcode() != RISCV::SLLI)
     return false;
   if (SecondMI.getOpcode() != RISCV::SRLI)
-    return false;
-  if (FirstMI->getOperand(1).getReg() != RISCV::X0)
-    return false;
-  if (SecondMI.getOperand(1).getReg() != RISCV::X0)
     return false;
   if (FirstMI->getOperand(0).getReg() != SecondMI.getOperand(0).getReg())
     return false;
@@ -108,10 +104,7 @@ static bool isGetSecondBytePair(const MachineInstr *FirstMI,
     return false;
   if (SecondMI.getOpcode() != RISCV::ANDI)
     return false;
-  if (FirstMI->getOperand(1).getReg() != RISCV::X0)
-    return false;
-  if (FirstMI->getOperand(0).getReg() != SecondMI.getOperand(0).getReg() ||
-      SecondMI.getOperand(0).getReg() != SecondMI.getOperand(1).getReg())
+  if (!withSameDest(FirstMI, SecondMI))
     return false;
   auto Imm1 = FirstMI->getOperand(2).getImm();
   auto Imm2 = SecondMI.getOperand(2).getImm();
@@ -128,10 +121,7 @@ static bool isShiftRightAndAddPair(const MachineInstr *FirstMI,
     return false;
   if (SecondMI.getOpcode() != RISCV::ADD)
     return false;
-  if (FirstMI->getOperand(1).getReg() != RISCV::X0)
-    return false;
-  if (FirstMI->getOperand(0).getReg() != SecondMI.getOperand(0).getReg() ||
-      SecondMI.getOperand(0).getReg() != SecondMI.getOperand(1).getReg())
+  if (!withSameDest(FirstMI, SecondMI))
     return false;
   auto Imm = FirstMI->getOperand(2).getImm();
   if (Imm >= 29 && Imm <= 32)
@@ -141,15 +131,12 @@ static bool isShiftRightAndAddPair(const MachineInstr *FirstMI,
 
 static bool isAddOneIfOddPair(const MachineInstr *FirstMI,
                               const MachineInstr &SecondMI) {
-  if (FirstMI->getOpcode() != RISCV::SRLI)
+  if (FirstMI->getOpcode() != RISCV::ANDI)
     return false;
   auto SecondOp = SecondMI.getOpcode();
-  if (SecondOp == RISCV::ADD || SecondOp == RISCV::ADDW)
+  if (SecondOp != RISCV::ADD && SecondOp != RISCV::ADDW)
     return false;
-  if (FirstMI->getOperand(1).getReg() != RISCV::X0)
-    return false;
-  if (FirstMI->getOperand(0).getReg() != SecondMI.getOperand(0).getReg() ||
-      SecondMI.getOperand(0).getReg() != SecondMI.getOperand(1).getReg())
+  if (!withSameDest(FirstMI, SecondMI))
     return false;
   auto Imm = FirstMI->getOperand(2).getImm();
   if (Imm == 1)
@@ -159,12 +146,31 @@ static bool isAddOneIfOddPair(const MachineInstr *FirstMI,
 
 static bool isAddwAndExtractLowerPair(const MachineInstr *FirstMI,
                                       const MachineInstr &SecondMI) {
+  if (FirstMI->getOpcode() != RISCV::ADDIW &&
+      FirstMI->getOpcode() != RISCV::ADDW)
+    return false;
+  auto SecondOp = SecondMI.getOpcode();
+  if (SecondOp != RISCV::ANDI)
+    return false;
+  if (!withSameDest(FirstMI, SecondMI))
+    return false;
+  auto Imm = SecondMI.getOperand(2).getImm();
+  if (Imm == 0x1 || Imm == 0xFF)
+    return true;
   return false;
 }
 
 static bool isAddwAndExtendPair(const MachineInstr *FirstMI,
                                 const MachineInstr &SecondMI) {
-  return false;
+  if (FirstMI->getOpcode() != RISCV::ADDW)
+    return false;
+  auto SecondOp = SecondMI.getOpcode();
+  if (SecondOp != RISCV::ZEXT_H_RV32 && SecondOp != RISCV::ZEXT_H_RV64 &&
+      SecondOp != RISCV::SEXT_H)
+    return false;
+  if (!withSameDest(FirstMI, SecondMI))
+    return false;
+  return true;
 }
 
 static bool isLogicInstruction(const MachineInstr *MI) {
@@ -192,17 +198,48 @@ static bool isLogicAndExtractPair(const MachineInstr *FirstMI,
                                   const MachineInstr &SecondMI) {
   if (!isLogicInstruction(FirstMI))
     return false;
+  auto SecondOp = SecondMI.getOpcode();
+  if (SecondOp == RISCV::ANDI) {
+    auto Imm = SecondMI.getOperand(2).getImm();
+    if (Imm == 0x1)
+      return true;
+  } else if (SecondOp != RISCV::ZEXT_H_RV32 && SecondOp != RISCV::ZEXT_H_RV64) {
+    return false;
+  }
+  if (!withSameDest(FirstMI, SecondMI))
+    return false;
+
   return false;
 }
 
 static bool isORWithLower8bit0Pair(const MachineInstr *FirstMI,
                                    const MachineInstr &SecondMI) {
-  return false;
+  if (FirstMI->getOpcode() != RISCV::SLLI)
+    return false;
+  auto Imm = FirstMI->getOperand(2).getImm();
+  if (Imm != 0x8)
+    return false;
+  auto SecondOp = SecondMI.getOpcode();
+  if (SecondOp != RISCV::ORI)
+    return false;
+  if (!withSameDest(FirstMI, SecondMI))
+    return false;
+  return true;
 }
 
 static bool is7And32BitMulPair(const MachineInstr *FirstMI,
                                const MachineInstr &SecondMI) {
-  return false;
+  if (FirstMI->getOpcode() != RISCV::ANDI)
+    return false;
+  auto Imm = FirstMI->getOperand(2).getImm();
+  if (Imm != 0x7F)
+    return false;
+  auto SecondOp = SecondMI.getOpcode();
+  if (SecondOp != RISCV::MULW)
+    return false;
+  if (!withSameDest(FirstMI, SecondMI))
+    return false;
+  return true;
 }
 
 /// Check if the instr pair, FirstMI and SecondMI, should be fused
@@ -213,8 +250,9 @@ static bool shouldScheduleAdjacent(const TargetInstrInfo &TII,
                                    const MachineInstr *FirstMI,
                                    const MachineInstr &SecondMI) {
   //const RISCVSubtarget &ST = static_cast<const RISCVSubtarget &>(TSI);
-
-  if (isClearUpperGetLowerPair(FirstMI, SecondMI))
+  if (!FirstMI)
+    return false;
+  if (isFuseAdduwOrZexthPair(FirstMI, SecondMI))
     return true;
   if (is16bitSignExtendPair(FirstMI, SecondMI))
     return true;
