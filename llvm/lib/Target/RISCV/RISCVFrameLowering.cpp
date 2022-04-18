@@ -23,11 +23,6 @@
 
 using namespace llvm;
 
-cl::opt<bool>
-    EnablePushPop("mzce-cpush-cpop",
-                  cl::desc("Enable use of [c.]push/pop/popret instructions."),
-                  cl::init(true), cl::Hidden);
-
 // For now we use x18, a.k.a s2, as pointer to shadow call stack.
 // User should explicitly set -ffixed-x18 and not use x18 in their asm.
 static void emitSCSPrologue(MachineFunction &MF, MachineBasicBlock &MBB,
@@ -286,7 +281,7 @@ static uint64_t adjSPInPushPop(MachineBasicBlock::iterator MBBI, uint64_t StackA
 // Checks if Zce PUSH/POP instructions can be used with the given CSI.
 bool RISCVFrameLowering::isCSIpushable(
     const std::vector<CalleeSavedInfo> &CSI) const {
-  if (!(STI.hasStdExtZcmpe() || STI.hasStdExtZcmp() || CSI.empty()))
+  if (!(STI.hasStdExtZcmpe() || STI.hasStdExtZcmp()) || CSI.empty())
     return false;
   for (auto &CS: CSI){
       Register Reg = CS.getReg();
@@ -500,7 +495,7 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
   }
 
   const auto &CSI = MFI.getCalleeSavedInfo();
-  bool PushEnabled = EnablePushPop && isCSIpushable(CSI);
+  bool PushEnabled = isCSIpushable(CSI);
   if (PushEnabled && (CSI.size() != 0)){
     // Check at what offset spilling of registers starts and allocate space before it.
     int64_t preAdjustStack = 0;
@@ -684,7 +679,7 @@ void RISCVFrameLowering::emitEpilogue(MachineFunction &MF,
   // FIXME: assumes exactly one instruction is used to restore each
   // callee-saved register.
   auto LastFrameDestroy = MBBI;
-  bool PopEnabled = EnablePushPop && isCSIpushable(CSI);
+  bool PopEnabled = isCSIpushable(CSI);
   if (PopEnabled)
     LastFrameDestroy = prev_nodbg(MBBI, MBB.begin());
   else if (!CSI.empty())
@@ -1158,14 +1153,17 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
   if (MI != MBB.end() && !MI->isDebugInstr())
     DL = MI->getDebugLoc();
 
-  if (EnablePushPop && isCSIpushable(CSI.vec())){
+  if (isCSIpushable(CSI.vec())){
     Register MaxReg = RISCV::NoRegister;
 
     for (auto &CS: CSI){
       Register Reg = CS.getReg();
       const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
       if (RISCV::PGPRRegClass.hasSubClassEq(RC))
-        MaxReg = std::max(MaxReg.id(), Reg.id()); 
+        MaxReg = std::max(MaxReg.id(), Reg.id());
+      else if(Reg.id() == RISCV::X26){
+        MaxReg = RISCV::X27;
+      }
       else
         TII.storeRegToStackSlot(MBB, MI, Reg, true, CS.getFrameIdx(), RC, TRI);
     }
@@ -1221,14 +1219,17 @@ bool RISCVFrameLowering::restoreCalleeSavedRegisters(
   if (MI != MBB.end() && !MI->isDebugInstr())
     DL = MI->getDebugLoc();
 
-  if (EnablePushPop && isCSIpushable(CSI.vec())){
+  if (isCSIpushable(CSI.vec())){
      Register MaxReg = RISCV::NoRegister;
 
     for (auto &CS: reverse(CSI)){
       Register Reg = CS.getReg();
       const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
       if (RISCV::PGPRRegClass.hasSubClassEq(RC))
-              MaxReg = std::max(MaxReg.id(), Reg.id());
+        MaxReg = std::max(MaxReg.id(), Reg.id());
+      else if(Reg.id() == RISCV::X26){
+        MaxReg = RISCV::X27;
+      }
       else
         TII.loadRegFromStackSlot(MBB, MI, Reg, CS.getFrameIdx(), RC, TRI);
     }

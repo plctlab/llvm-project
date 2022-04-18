@@ -214,7 +214,8 @@ def SR07 : RegisterClass<"RISCV", [XLenVT], 32, (add
 // Registers saveable by PUSH instruction in Zce extension
 def PGPR : RegisterClass<"RISCV", [XLenVT], 32, (add
     (sequence "X%u", 8, 9),
-    (sequence "X%u", 18, 27),
+    (sequence "X%u", 18, 25),
+    X27,
     X1
   )> {
   let RegInfos = XLenRI;

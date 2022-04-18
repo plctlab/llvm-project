@@ -100,8 +100,7 @@ bool RISCVDecbnez::runOnMachineFunction(MachineFunction &MF) {
         //////////////get regdef, Maybe this should be a function////////////
         //traverse back to the regdef
         MachineBasicBlock::iterator RevMBBI = std::prev(MBBI);
-        //initialize r1 to X0
-        Register r1 = RISCV::X0; 
+
         bool Defreg_Flag = false;
         //traverse till the start of basicblock
         while (RevMBBI != MBB.begin()) 
