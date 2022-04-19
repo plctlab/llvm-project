@@ -28,7 +28,7 @@ void test_split()
 {
   _SimdType data([](int i) { return 4 - i; });
  { 
-  auto temp =  split<int,_Abi,2,2>(data);
+  auto temp =  split<2,2>(data);
   int k = 0;
   for_tuple(temp,[data,&k](auto&& item)
   {
@@ -40,7 +40,7 @@ void test_split()
  }
 
  { 
-  auto temp =  split<int,_Abi,1,3>(data);
+  auto temp =  split<1,3>(data);
   int k = 0;
   for_tuple(temp,[data,&k](auto&& item)
   {
@@ -52,7 +52,7 @@ void test_split()
  }
 
  { 
-  auto temp =  split<int,_Abi,3,1>(data);
+  auto temp =  split<3,1>(data);
   int k = 0;
   for_tuple(temp,[data,&k](auto&& item)
   {
@@ -64,7 +64,7 @@ void test_split()
  }
 
  { 
-  auto temp =  split<int,_Abi,1,1,2>(data);
+  auto temp =  split<1,1,2>(data);
   int k = 0;
   for_tuple(temp,[data,&k](auto&& item)
   {
@@ -76,7 +76,7 @@ void test_split()
  }
 
   { 
-  auto temp =  split<int,_Abi,1,1,1,1>(data);
+  auto temp =  split<1,1,1,1>(data);
   int k = 0;
   for_tuple(temp,[data,&k](auto&& item)
   {
@@ -91,6 +91,5 @@ void test_split()
 int main(int, char**) {
   test_split<ex::native_simd<int>,ex::simd_abi::native<int>>();
   test_split<ex::fixed_size_simd<int,4>,ex::simd_abi::fixed_size<4>>();
-  //test_split<ex::fixed_size_simd<int,15>,ex::simd_abi::fixed_size<15>>();
   return 0;
 }

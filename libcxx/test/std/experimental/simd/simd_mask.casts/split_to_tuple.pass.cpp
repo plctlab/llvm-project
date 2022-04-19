@@ -30,7 +30,7 @@ void test_split()
   M.copy_from(buffer, ex::element_aligned_tag());
   
  { 
-  auto temp =  split<int,_Abi,2,2>(M);
+  auto temp =  split<2,2>(M);
   int k = 0;
   for_tuple(temp,[M,&k](auto&& item)
   {
@@ -42,7 +42,7 @@ void test_split()
  }
 
  { 
-  auto temp =  split<int,_Abi,1,3>(M);
+  auto temp =  split<1,3>(M);
   int k = 0;
   for_tuple(temp,[M,&k](auto&& item)
   {
@@ -54,7 +54,7 @@ void test_split()
  }
 
  { 
-  auto temp =  split<int,_Abi,3,1>(M);
+  auto temp =  split<3,1>(M);
   int k = 0;
   for_tuple(temp,[M,&k](auto&& item)
   {
