@@ -445,43 +445,43 @@ inline static unsigned getStackAdjBase(unsigned rlistVal, bool isRV64,
   }
   if (!isRV64) {
     switch (rlistVal) {
-    case 4:
-    case 5:
-    case 6:
-    case 7:
+    case /*ra*/ 4:
+    case /*s0*/ 5:
+    case /*s1*/ 6:
+    case /*s2*/ 7:
       return 16;
-    case 8:
-    case 9:
-    case 10:
-    case 11:
+    case /*s3*/ 8:
+    case /*s4*/ 9:
+    case /*s5*/ 10:
+    case /*s6*/ 11:
       return 32;
-    case 12:
-    case 13:
-    case 14:
+    case /*s7*/ 12:
+    case /*s8*/ 13:
+    case /*s9*/ 14:
       return 48;
-    case 15:
+    case /*s11*/ 15:
       return 64;
     }
   } else {
     switch (rlistVal) {
-    case 4:
-    case 5:
+    case /*ra*/ 4:
+    case /*s0*/ 5:
       return 16;
-    case 6:
-    case 7:
+    case /*s1*/ 6:
+    case /*s2*/ 7:
       return 32;
-    case 8:
-    case 9:
+    case /*s3*/ 8:
+    case /*s4*/ 9:
       return 48;
-    case 10:
-    case 11:
+    case /*s5*/ 10:
+    case /*s6*/ 11:
       return 64;
-    case 12:
-    case 13:
+    case /*s7*/ 12:
+    case /*s8*/ 13:
       return 80;
-    case 14:
+    case /*s9*/ 14:
       return 96;
-    case 15:
+    case /*s11*/ 15:
       return 112;
     }
   }

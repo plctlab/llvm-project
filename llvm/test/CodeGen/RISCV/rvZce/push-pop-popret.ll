@@ -710,3 +710,1108 @@ entry:
 
 declare void @callee_void(i8*)
 declare i32 @callee(i8*)
+
+declare i32 @foo_test_irq(...)
+@var_test_irq = global [32 x i32] zeroinitializer
+
+define void @foo_with_irq() nounwind "interrupt"="user" {
+; RV32IZCMP-LABEL: foo_with_irq:
+; RV32IZCMP:       # %bb.0:
+; RV32IZCMP-NEXT:    cm.push {ra}, -64
+; RV32IZCMP-NEXT:    sw t0, 56(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t1, 52(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t2, 48(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a0, 44(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a1, 40(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a2, 36(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a3, 32(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a4, 28(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a5, 24(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a6, 20(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a7, 16(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t3, 12(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t4, 8(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t5, 4(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t6, 0(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    call foo_test_irq@plt
+; RV32IZCMP-NEXT:    lw t6, 0(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t5, 4(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t4, 8(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t3, 12(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a7, 16(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a6, 20(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a5, 24(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a4, 28(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a3, 32(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a2, 36(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a1, 40(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a0, 44(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t2, 48(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t1, 52(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t0, 56(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    cm.pop {ra}, 64
+; RV32IZCMP-NEXT:    uret
+;
+; RV64IZCMP-LABEL: foo_with_irq:
+; RV64IZCMP:       # %bb.0:
+; RV64IZCMP-NEXT:    cm.push {ra}, -64
+; RV64IZCMP-NEXT:    addi sp, sp, -64
+; RV64IZCMP-NEXT:    sd t0, 124(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t1, 120(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t2, 116(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a0, 112(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a1, 108(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a2, 104(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a3, 100(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a4, 96(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a5, 92(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a6, 88(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a7, 84(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t3, 80(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t4, 76(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t5, 72(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t6, 68(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    call foo_test_irq@plt
+; RV64IZCMP-NEXT:    ld t6, 68(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t5, 72(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t4, 76(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t3, 80(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a7, 84(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a6, 88(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a5, 92(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a4, 96(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a3, 100(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a2, 104(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a1, 108(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a0, 112(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t2, 116(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t1, 120(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t0, 124(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    addi sp, sp, 68
+; RV64IZCMP-NEXT:    cm.pop {ra}, 64
+; RV64IZCMP-NEXT:    addi sp, sp, -4
+; RV64IZCMP-NEXT:    uret
+;
+; RV32I-LABEL: foo_with_irq:
+; RV32I:       # %bb.0:
+; RV32I-NEXT:    addi sp, sp, -64
+; RV32I-NEXT:    sw ra, 60(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t0, 56(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t1, 52(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t2, 48(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a0, 44(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a1, 40(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a2, 36(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a3, 32(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a4, 28(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a5, 24(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a6, 20(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a7, 16(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t3, 12(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t4, 8(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t5, 4(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t6, 0(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    call foo_test_irq@plt
+; RV32I-NEXT:    lw ra, 60(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t0, 56(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t1, 52(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t2, 48(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a0, 44(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a1, 40(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a2, 36(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a3, 32(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a4, 28(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a5, 24(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a6, 20(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a7, 16(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t3, 12(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t4, 8(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t5, 4(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t6, 0(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    addi sp, sp, 64
+; RV32I-NEXT:    uret
+;
+; RV64I-LABEL: foo_with_irq:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    addi sp, sp, -128
+; RV64I-NEXT:    sd ra, 120(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t0, 112(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t1, 104(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t2, 96(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a0, 88(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a1, 80(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a2, 72(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a3, 64(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a4, 56(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a5, 48(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a6, 40(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a7, 32(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t3, 24(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t4, 16(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t5, 8(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t6, 0(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    call foo_test_irq@plt
+; RV64I-NEXT:    ld ra, 120(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t0, 112(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t1, 104(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t2, 96(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a0, 88(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a1, 80(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a2, 72(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a3, 64(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a4, 56(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a5, 48(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a6, 40(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a7, 32(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t3, 24(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t4, 16(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t5, 8(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t6, 0(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    addi sp, sp, 128
+; RV64I-NEXT:    uret
+  %call = call i32 bitcast (i32 (...)* @foo_test_irq to i32 ()*)()
+  ret void
+}
+
+define void @foo_no_irq() nounwind{
+; RV32IZCMP-LABEL: foo_no_irq:
+; RV32IZCMP:       # %bb.0:
+; RV32IZCMP-NEXT:    cm.push {ra}, -16
+; RV32IZCMP-NEXT:    call foo_test_irq@plt
+; RV32IZCMP-NEXT:    cm.popret {ra}, 16
+;
+; RV64IZCMP-LABEL: foo_no_irq:
+; RV64IZCMP:       # %bb.0:
+; RV64IZCMP-NEXT:    cm.push {ra}, -16
+; RV64IZCMP-NEXT:    call foo_test_irq@plt
+; RV64IZCMP-NEXT:    cm.popret {ra}, 16
+;
+; RV32I-LABEL: foo_no_irq:
+; RV32I:       # %bb.0:
+; RV32I-NEXT:    addi sp, sp, -16
+; RV32I-NEXT:    sw ra, 12(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    call foo_test_irq@plt
+; RV32I-NEXT:    lw ra, 12(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    addi sp, sp, 16
+; RV32I-NEXT:    ret
+;
+; RV64I-LABEL: foo_no_irq:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    addi sp, sp, -16
+; RV64I-NEXT:    sd ra, 8(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    call foo_test_irq@plt
+; RV64I-NEXT:    ld ra, 8(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    addi sp, sp, 16
+; RV64I-NEXT:    ret
+  %call = call i32 bitcast (i32 (...)* @foo_test_irq to i32 ()*)()
+  ret void
+}
+
+define void @callee_with_irq() nounwind "interrupt"="user" {
+; RV32IZCMP-LABEL: callee_with_irq:
+; RV32IZCMP:       # %bb.0:
+; RV32IZCMP-NEXT:    cm.push {ra, s0-s11}, -112
+; RV32IZCMP-NEXT:    addi sp, sp, -32
+; RV32IZCMP-NEXT:    sw t0, 140(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t1, 136(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t2, 132(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a0, 128(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a1, 124(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a2, 120(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a3, 116(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a4, 112(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a5, 56(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a6, 52(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a7, 48(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t3, 44(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t4, 40(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t5, 36(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t6, 32(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lui a7, %hi(var_test_irq)
+; RV32IZCMP-NEXT:    lw a0, %lo(var_test_irq)(a7)
+; RV32IZCMP-NEXT:    sw a0, 28(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lw a0, %lo(var_test_irq+4)(a7)
+; RV32IZCMP-NEXT:    sw a0, 24(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lw a0, %lo(var_test_irq+8)(a7)
+; RV32IZCMP-NEXT:    sw a0, 20(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lw a0, %lo(var_test_irq+12)(a7)
+; RV32IZCMP-NEXT:    sw a0, 16(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    addi a5, a7, %lo(var_test_irq)
+; RV32IZCMP-NEXT:    lw a0, 16(a5)
+; RV32IZCMP-NEXT:    sw a0, 12(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lw a0, 20(a5)
+; RV32IZCMP-NEXT:    sw a0, 8(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lw t4, 24(a5)
+; RV32IZCMP-NEXT:    lw t5, 28(a5)
+; RV32IZCMP-NEXT:    lw t6, 32(a5)
+; RV32IZCMP-NEXT:    lw s2, 36(a5)
+; RV32IZCMP-NEXT:    lw s3, 40(a5)
+; RV32IZCMP-NEXT:    lw s4, 44(a5)
+; RV32IZCMP-NEXT:    lw s5, 48(a5)
+; RV32IZCMP-NEXT:    lw s6, 52(a5)
+; RV32IZCMP-NEXT:    lw s7, 56(a5)
+; RV32IZCMP-NEXT:    lw s8, 60(a5)
+; RV32IZCMP-NEXT:    lw s9, 64(a5)
+; RV32IZCMP-NEXT:    lw s10, 68(a5)
+; RV32IZCMP-NEXT:    lw s11, 72(a5)
+; RV32IZCMP-NEXT:    lw ra, 76(a5)
+; RV32IZCMP-NEXT:    lw s1, 80(a5)
+; RV32IZCMP-NEXT:    lw t3, 84(a5)
+; RV32IZCMP-NEXT:    lw t2, 88(a5)
+; RV32IZCMP-NEXT:    lw t1, 92(a5)
+; RV32IZCMP-NEXT:    lw t0, 96(a5)
+; RV32IZCMP-NEXT:    lw s0, 100(a5)
+; RV32IZCMP-NEXT:    lw a6, 104(a5)
+; RV32IZCMP-NEXT:    lw a4, 108(a5)
+; RV32IZCMP-NEXT:    lw a0, 124(a5)
+; RV32IZCMP-NEXT:    lw a1, 120(a5)
+; RV32IZCMP-NEXT:    lw a2, 116(a5)
+; RV32IZCMP-NEXT:    lw a3, 112(a5)
+; RV32IZCMP-NEXT:    sw a0, 124(a5)
+; RV32IZCMP-NEXT:    sw a1, 120(a5)
+; RV32IZCMP-NEXT:    sw a2, 116(a5)
+; RV32IZCMP-NEXT:    sw a3, 112(a5)
+; RV32IZCMP-NEXT:    sw a4, 108(a5)
+; RV32IZCMP-NEXT:    sw a6, 104(a5)
+; RV32IZCMP-NEXT:    sw s0, 100(a5)
+; RV32IZCMP-NEXT:    sw t0, 96(a5)
+; RV32IZCMP-NEXT:    sw t1, 92(a5)
+; RV32IZCMP-NEXT:    sw t2, 88(a5)
+; RV32IZCMP-NEXT:    sw t3, 84(a5)
+; RV32IZCMP-NEXT:    sw s1, 80(a5)
+; RV32IZCMP-NEXT:    sw ra, 76(a5)
+; RV32IZCMP-NEXT:    sw s11, 72(a5)
+; RV32IZCMP-NEXT:    sw s10, 68(a5)
+; RV32IZCMP-NEXT:    sw s9, 64(a5)
+; RV32IZCMP-NEXT:    sw s8, 60(a5)
+; RV32IZCMP-NEXT:    sw s7, 56(a5)
+; RV32IZCMP-NEXT:    sw s6, 52(a5)
+; RV32IZCMP-NEXT:    sw s5, 48(a5)
+; RV32IZCMP-NEXT:    sw s4, 44(a5)
+; RV32IZCMP-NEXT:    sw s3, 40(a5)
+; RV32IZCMP-NEXT:    sw s2, 36(a5)
+; RV32IZCMP-NEXT:    sw t6, 32(a5)
+; RV32IZCMP-NEXT:    sw t5, 28(a5)
+; RV32IZCMP-NEXT:    sw t4, 24(a5)
+; RV32IZCMP-NEXT:    lw a0, 8(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, 20(a5)
+; RV32IZCMP-NEXT:    lw a0, 12(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, 16(a5)
+; RV32IZCMP-NEXT:    lw a0, 16(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, %lo(var_test_irq+12)(a7)
+; RV32IZCMP-NEXT:    lw a0, 20(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, %lo(var_test_irq+8)(a7)
+; RV32IZCMP-NEXT:    lw a0, 24(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, %lo(var_test_irq+4)(a7)
+; RV32IZCMP-NEXT:    lw a0, 28(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, %lo(var_test_irq)(a7)
+; RV32IZCMP-NEXT:    lw t6, 32(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t5, 36(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t4, 40(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t3, 44(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a7, 48(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a6, 52(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a5, 56(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a4, 112(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a3, 116(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a2, 120(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a1, 124(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a0, 128(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t2, 132(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t1, 136(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t0, 140(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    addi sp, sp, 32
+; RV32IZCMP-NEXT:    cm.pop {ra, s0-s11}, 112
+; RV32IZCMP-NEXT:    uret
+;
+; RV64IZCMP-LABEL: callee_with_irq:
+; RV64IZCMP:       # %bb.0:
+; RV64IZCMP-NEXT:    cm.push {ra, s0-s11}, -160
+; RV64IZCMP-NEXT:    addi sp, sp, -112
+; RV64IZCMP-NEXT:    sd t0, 268(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t1, 264(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t2, 260(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a0, 256(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a1, 252(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a2, 248(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a3, 244(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a4, 240(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a5, 236(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a6, 232(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a7, 228(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t3, 224(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t4, 220(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t5, 216(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t6, 212(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lui a7, %hi(var_test_irq)
+; RV64IZCMP-NEXT:    lw a0, %lo(var_test_irq)(a7)
+; RV64IZCMP-NEXT:    sd a0, 40(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lw a0, %lo(var_test_irq+4)(a7)
+; RV64IZCMP-NEXT:    sd a0, 32(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lw a0, %lo(var_test_irq+8)(a7)
+; RV64IZCMP-NEXT:    sd a0, 24(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lw a0, %lo(var_test_irq+12)(a7)
+; RV64IZCMP-NEXT:    sd a0, 16(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    addi a5, a7, %lo(var_test_irq)
+; RV64IZCMP-NEXT:    lw a0, 16(a5)
+; RV64IZCMP-NEXT:    sd a0, 8(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lw a0, 20(a5)
+; RV64IZCMP-NEXT:    sd a0, 0(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lw t4, 24(a5)
+; RV64IZCMP-NEXT:    lw t5, 28(a5)
+; RV64IZCMP-NEXT:    lw t6, 32(a5)
+; RV64IZCMP-NEXT:    lw s2, 36(a5)
+; RV64IZCMP-NEXT:    lw s3, 40(a5)
+; RV64IZCMP-NEXT:    lw s4, 44(a5)
+; RV64IZCMP-NEXT:    lw s5, 48(a5)
+; RV64IZCMP-NEXT:    lw s6, 52(a5)
+; RV64IZCMP-NEXT:    lw s7, 56(a5)
+; RV64IZCMP-NEXT:    lw s8, 60(a5)
+; RV64IZCMP-NEXT:    lw s9, 64(a5)
+; RV64IZCMP-NEXT:    lw s10, 68(a5)
+; RV64IZCMP-NEXT:    lw s11, 72(a5)
+; RV64IZCMP-NEXT:    lw ra, 76(a5)
+; RV64IZCMP-NEXT:    lw s1, 80(a5)
+; RV64IZCMP-NEXT:    lw t3, 84(a5)
+; RV64IZCMP-NEXT:    lw t2, 88(a5)
+; RV64IZCMP-NEXT:    lw t1, 92(a5)
+; RV64IZCMP-NEXT:    lw t0, 96(a5)
+; RV64IZCMP-NEXT:    lw s0, 100(a5)
+; RV64IZCMP-NEXT:    lw a6, 104(a5)
+; RV64IZCMP-NEXT:    lw a4, 108(a5)
+; RV64IZCMP-NEXT:    lw a0, 124(a5)
+; RV64IZCMP-NEXT:    lw a1, 120(a5)
+; RV64IZCMP-NEXT:    lw a2, 116(a5)
+; RV64IZCMP-NEXT:    lw a3, 112(a5)
+; RV64IZCMP-NEXT:    sw a0, 124(a5)
+; RV64IZCMP-NEXT:    sw a1, 120(a5)
+; RV64IZCMP-NEXT:    sw a2, 116(a5)
+; RV64IZCMP-NEXT:    sw a3, 112(a5)
+; RV64IZCMP-NEXT:    sw a4, 108(a5)
+; RV64IZCMP-NEXT:    sw a6, 104(a5)
+; RV64IZCMP-NEXT:    sw s0, 100(a5)
+; RV64IZCMP-NEXT:    sw t0, 96(a5)
+; RV64IZCMP-NEXT:    sw t1, 92(a5)
+; RV64IZCMP-NEXT:    sw t2, 88(a5)
+; RV64IZCMP-NEXT:    sw t3, 84(a5)
+; RV64IZCMP-NEXT:    sw s1, 80(a5)
+; RV64IZCMP-NEXT:    sw ra, 76(a5)
+; RV64IZCMP-NEXT:    sw s11, 72(a5)
+; RV64IZCMP-NEXT:    sw s10, 68(a5)
+; RV64IZCMP-NEXT:    sw s9, 64(a5)
+; RV64IZCMP-NEXT:    sw s8, 60(a5)
+; RV64IZCMP-NEXT:    sw s7, 56(a5)
+; RV64IZCMP-NEXT:    sw s6, 52(a5)
+; RV64IZCMP-NEXT:    sw s5, 48(a5)
+; RV64IZCMP-NEXT:    sw s4, 44(a5)
+; RV64IZCMP-NEXT:    sw s3, 40(a5)
+; RV64IZCMP-NEXT:    sw s2, 36(a5)
+; RV64IZCMP-NEXT:    sw t6, 32(a5)
+; RV64IZCMP-NEXT:    sw t5, 28(a5)
+; RV64IZCMP-NEXT:    sw t4, 24(a5)
+; RV64IZCMP-NEXT:    ld a0, 0(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, 20(a5)
+; RV64IZCMP-NEXT:    ld a0, 8(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, 16(a5)
+; RV64IZCMP-NEXT:    ld a0, 16(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, %lo(var_test_irq+12)(a7)
+; RV64IZCMP-NEXT:    ld a0, 24(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, %lo(var_test_irq+8)(a7)
+; RV64IZCMP-NEXT:    ld a0, 32(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, %lo(var_test_irq+4)(a7)
+; RV64IZCMP-NEXT:    ld a0, 40(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, %lo(var_test_irq)(a7)
+; RV64IZCMP-NEXT:    ld t6, 212(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t5, 216(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t4, 220(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t3, 224(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a7, 228(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a6, 232(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a5, 236(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a4, 240(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a3, 244(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a2, 248(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a1, 252(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a0, 256(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t2, 260(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t1, 264(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t0, 268(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    addi sp, sp, 116
+; RV64IZCMP-NEXT:    cm.pop {ra, s0-s11}, 160
+; RV64IZCMP-NEXT:    addi sp, sp, -4
+; RV64IZCMP-NEXT:    uret
+;
+; RV32I-LABEL: callee_with_irq:
+; RV32I:       # %bb.0:
+; RV32I-NEXT:    addi sp, sp, -144
+; RV32I-NEXT:    sw ra, 140(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t0, 136(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t1, 132(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t2, 128(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s0, 124(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s1, 120(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a0, 116(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a1, 112(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a2, 108(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a3, 104(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a4, 100(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a5, 96(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a6, 92(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw a7, 88(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s2, 84(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s3, 80(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s4, 76(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s5, 72(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s6, 68(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s7, 64(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s8, 60(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s9, 56(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s10, 52(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s11, 48(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t3, 44(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t4, 40(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t5, 36(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw t6, 32(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lui a7, %hi(var_test_irq)
+; RV32I-NEXT:    lw a0, %lo(var_test_irq)(a7)
+; RV32I-NEXT:    sw a0, 28(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lw a0, %lo(var_test_irq+4)(a7)
+; RV32I-NEXT:    sw a0, 24(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lw a0, %lo(var_test_irq+8)(a7)
+; RV32I-NEXT:    sw a0, 20(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lw a0, %lo(var_test_irq+12)(a7)
+; RV32I-NEXT:    sw a0, 16(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    addi a5, a7, %lo(var_test_irq)
+; RV32I-NEXT:    lw a0, 16(a5)
+; RV32I-NEXT:    sw a0, 12(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lw a0, 20(a5)
+; RV32I-NEXT:    sw a0, 8(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lw t4, 24(a5)
+; RV32I-NEXT:    lw t5, 28(a5)
+; RV32I-NEXT:    lw t6, 32(a5)
+; RV32I-NEXT:    lw s2, 36(a5)
+; RV32I-NEXT:    lw s3, 40(a5)
+; RV32I-NEXT:    lw s4, 44(a5)
+; RV32I-NEXT:    lw s5, 48(a5)
+; RV32I-NEXT:    lw s6, 52(a5)
+; RV32I-NEXT:    lw s7, 56(a5)
+; RV32I-NEXT:    lw s8, 60(a5)
+; RV32I-NEXT:    lw s9, 64(a5)
+; RV32I-NEXT:    lw s10, 68(a5)
+; RV32I-NEXT:    lw s11, 72(a5)
+; RV32I-NEXT:    lw ra, 76(a5)
+; RV32I-NEXT:    lw s1, 80(a5)
+; RV32I-NEXT:    lw t3, 84(a5)
+; RV32I-NEXT:    lw t2, 88(a5)
+; RV32I-NEXT:    lw t1, 92(a5)
+; RV32I-NEXT:    lw t0, 96(a5)
+; RV32I-NEXT:    lw s0, 100(a5)
+; RV32I-NEXT:    lw a6, 104(a5)
+; RV32I-NEXT:    lw a4, 108(a5)
+; RV32I-NEXT:    lw a0, 124(a5)
+; RV32I-NEXT:    lw a1, 120(a5)
+; RV32I-NEXT:    lw a2, 116(a5)
+; RV32I-NEXT:    lw a3, 112(a5)
+; RV32I-NEXT:    sw a0, 124(a5)
+; RV32I-NEXT:    sw a1, 120(a5)
+; RV32I-NEXT:    sw a2, 116(a5)
+; RV32I-NEXT:    sw a3, 112(a5)
+; RV32I-NEXT:    sw a4, 108(a5)
+; RV32I-NEXT:    sw a6, 104(a5)
+; RV32I-NEXT:    sw s0, 100(a5)
+; RV32I-NEXT:    sw t0, 96(a5)
+; RV32I-NEXT:    sw t1, 92(a5)
+; RV32I-NEXT:    sw t2, 88(a5)
+; RV32I-NEXT:    sw t3, 84(a5)
+; RV32I-NEXT:    sw s1, 80(a5)
+; RV32I-NEXT:    sw ra, 76(a5)
+; RV32I-NEXT:    sw s11, 72(a5)
+; RV32I-NEXT:    sw s10, 68(a5)
+; RV32I-NEXT:    sw s9, 64(a5)
+; RV32I-NEXT:    sw s8, 60(a5)
+; RV32I-NEXT:    sw s7, 56(a5)
+; RV32I-NEXT:    sw s6, 52(a5)
+; RV32I-NEXT:    sw s5, 48(a5)
+; RV32I-NEXT:    sw s4, 44(a5)
+; RV32I-NEXT:    sw s3, 40(a5)
+; RV32I-NEXT:    sw s2, 36(a5)
+; RV32I-NEXT:    sw t6, 32(a5)
+; RV32I-NEXT:    sw t5, 28(a5)
+; RV32I-NEXT:    sw t4, 24(a5)
+; RV32I-NEXT:    lw a0, 8(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, 20(a5)
+; RV32I-NEXT:    lw a0, 12(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, 16(a5)
+; RV32I-NEXT:    lw a0, 16(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, %lo(var_test_irq+12)(a7)
+; RV32I-NEXT:    lw a0, 20(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, %lo(var_test_irq+8)(a7)
+; RV32I-NEXT:    lw a0, 24(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, %lo(var_test_irq+4)(a7)
+; RV32I-NEXT:    lw a0, 28(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, %lo(var_test_irq)(a7)
+; RV32I-NEXT:    lw ra, 140(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t0, 136(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t1, 132(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t2, 128(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s0, 124(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s1, 120(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a0, 116(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a1, 112(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a2, 108(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a3, 104(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a4, 100(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a5, 96(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a6, 92(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw a7, 88(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s2, 84(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s3, 80(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s4, 76(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s5, 72(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s6, 68(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s7, 64(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s8, 60(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s9, 56(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s10, 52(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s11, 48(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t3, 44(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t4, 40(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t5, 36(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw t6, 32(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    addi sp, sp, 144
+; RV32I-NEXT:    uret
+;
+; RV64I-LABEL: callee_with_irq:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    addi sp, sp, -272
+; RV64I-NEXT:    sd ra, 264(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t0, 256(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t1, 248(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t2, 240(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s0, 232(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s1, 224(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a0, 216(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a1, 208(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a2, 200(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a3, 192(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a4, 184(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a5, 176(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a6, 168(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd a7, 160(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s2, 152(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s3, 144(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s4, 136(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s5, 128(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s6, 120(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s7, 112(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s8, 104(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s9, 96(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s10, 88(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s11, 80(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t3, 72(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t4, 64(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t5, 56(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd t6, 48(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lui a7, %hi(var_test_irq)
+; RV64I-NEXT:    lw a0, %lo(var_test_irq)(a7)
+; RV64I-NEXT:    sd a0, 40(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lw a0, %lo(var_test_irq+4)(a7)
+; RV64I-NEXT:    sd a0, 32(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lw a0, %lo(var_test_irq+8)(a7)
+; RV64I-NEXT:    sd a0, 24(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lw a0, %lo(var_test_irq+12)(a7)
+; RV64I-NEXT:    sd a0, 16(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    addi a5, a7, %lo(var_test_irq)
+; RV64I-NEXT:    lw a0, 16(a5)
+; RV64I-NEXT:    sd a0, 8(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lw a0, 20(a5)
+; RV64I-NEXT:    sd a0, 0(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lw t4, 24(a5)
+; RV64I-NEXT:    lw t5, 28(a5)
+; RV64I-NEXT:    lw t6, 32(a5)
+; RV64I-NEXT:    lw s2, 36(a5)
+; RV64I-NEXT:    lw s3, 40(a5)
+; RV64I-NEXT:    lw s4, 44(a5)
+; RV64I-NEXT:    lw s5, 48(a5)
+; RV64I-NEXT:    lw s6, 52(a5)
+; RV64I-NEXT:    lw s7, 56(a5)
+; RV64I-NEXT:    lw s8, 60(a5)
+; RV64I-NEXT:    lw s9, 64(a5)
+; RV64I-NEXT:    lw s10, 68(a5)
+; RV64I-NEXT:    lw s11, 72(a5)
+; RV64I-NEXT:    lw ra, 76(a5)
+; RV64I-NEXT:    lw s1, 80(a5)
+; RV64I-NEXT:    lw t3, 84(a5)
+; RV64I-NEXT:    lw t2, 88(a5)
+; RV64I-NEXT:    lw t1, 92(a5)
+; RV64I-NEXT:    lw t0, 96(a5)
+; RV64I-NEXT:    lw s0, 100(a5)
+; RV64I-NEXT:    lw a6, 104(a5)
+; RV64I-NEXT:    lw a4, 108(a5)
+; RV64I-NEXT:    lw a0, 124(a5)
+; RV64I-NEXT:    lw a1, 120(a5)
+; RV64I-NEXT:    lw a2, 116(a5)
+; RV64I-NEXT:    lw a3, 112(a5)
+; RV64I-NEXT:    sw a0, 124(a5)
+; RV64I-NEXT:    sw a1, 120(a5)
+; RV64I-NEXT:    sw a2, 116(a5)
+; RV64I-NEXT:    sw a3, 112(a5)
+; RV64I-NEXT:    sw a4, 108(a5)
+; RV64I-NEXT:    sw a6, 104(a5)
+; RV64I-NEXT:    sw s0, 100(a5)
+; RV64I-NEXT:    sw t0, 96(a5)
+; RV64I-NEXT:    sw t1, 92(a5)
+; RV64I-NEXT:    sw t2, 88(a5)
+; RV64I-NEXT:    sw t3, 84(a5)
+; RV64I-NEXT:    sw s1, 80(a5)
+; RV64I-NEXT:    sw ra, 76(a5)
+; RV64I-NEXT:    sw s11, 72(a5)
+; RV64I-NEXT:    sw s10, 68(a5)
+; RV64I-NEXT:    sw s9, 64(a5)
+; RV64I-NEXT:    sw s8, 60(a5)
+; RV64I-NEXT:    sw s7, 56(a5)
+; RV64I-NEXT:    sw s6, 52(a5)
+; RV64I-NEXT:    sw s5, 48(a5)
+; RV64I-NEXT:    sw s4, 44(a5)
+; RV64I-NEXT:    sw s3, 40(a5)
+; RV64I-NEXT:    sw s2, 36(a5)
+; RV64I-NEXT:    sw t6, 32(a5)
+; RV64I-NEXT:    sw t5, 28(a5)
+; RV64I-NEXT:    sw t4, 24(a5)
+; RV64I-NEXT:    ld a0, 0(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, 20(a5)
+; RV64I-NEXT:    ld a0, 8(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, 16(a5)
+; RV64I-NEXT:    ld a0, 16(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, %lo(var_test_irq+12)(a7)
+; RV64I-NEXT:    ld a0, 24(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, %lo(var_test_irq+8)(a7)
+; RV64I-NEXT:    ld a0, 32(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, %lo(var_test_irq+4)(a7)
+; RV64I-NEXT:    ld a0, 40(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, %lo(var_test_irq)(a7)
+; RV64I-NEXT:    ld ra, 264(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t0, 256(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t1, 248(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t2, 240(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s0, 232(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s1, 224(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a0, 216(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a1, 208(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a2, 200(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a3, 192(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a4, 184(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a5, 176(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a6, 168(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld a7, 160(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s2, 152(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s3, 144(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s4, 136(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s5, 128(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s6, 120(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s7, 112(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s8, 104(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s9, 96(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s10, 88(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s11, 80(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t3, 72(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t4, 64(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t5, 56(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld t6, 48(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    addi sp, sp, 272
+; RV64I-NEXT:    uret
+  %val = load [32 x i32], [32 x i32]* @var_test_irq
+  store volatile [32 x i32] %val, [32 x i32]* @var_test_irq
+  ret void
+}
+
+define void @callee_no_irq() nounwind{
+; RV32IZCMP-LABEL: callee_no_irq:
+; RV32IZCMP:       # %bb.0:
+; RV32IZCMP-NEXT:    cm.push {ra, s0-s11}, -80
+; RV32IZCMP-NEXT:    lui a7, %hi(var_test_irq)
+; RV32IZCMP-NEXT:    lw a0, %lo(var_test_irq)(a7)
+; RV32IZCMP-NEXT:    sw a0, 24(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lw a0, %lo(var_test_irq+4)(a7)
+; RV32IZCMP-NEXT:    sw a0, 20(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lw a0, %lo(var_test_irq+8)(a7)
+; RV32IZCMP-NEXT:    sw a0, 16(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lw a0, %lo(var_test_irq+12)(a7)
+; RV32IZCMP-NEXT:    sw a0, 12(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    addi a5, a7, %lo(var_test_irq)
+; RV32IZCMP-NEXT:    lw a0, 16(a5)
+; RV32IZCMP-NEXT:    sw a0, 8(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lw a0, 20(a5)
+; RV32IZCMP-NEXT:    sw a0, 4(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    lw t4, 24(a5)
+; RV32IZCMP-NEXT:    lw t5, 28(a5)
+; RV32IZCMP-NEXT:    lw t6, 32(a5)
+; RV32IZCMP-NEXT:    lw s2, 36(a5)
+; RV32IZCMP-NEXT:    lw s3, 40(a5)
+; RV32IZCMP-NEXT:    lw s4, 44(a5)
+; RV32IZCMP-NEXT:    lw s5, 48(a5)
+; RV32IZCMP-NEXT:    lw s6, 52(a5)
+; RV32IZCMP-NEXT:    lw s7, 56(a5)
+; RV32IZCMP-NEXT:    lw s8, 60(a5)
+; RV32IZCMP-NEXT:    lw s9, 64(a5)
+; RV32IZCMP-NEXT:    lw s10, 68(a5)
+; RV32IZCMP-NEXT:    lw s11, 72(a5)
+; RV32IZCMP-NEXT:    lw ra, 76(a5)
+; RV32IZCMP-NEXT:    lw s1, 80(a5)
+; RV32IZCMP-NEXT:    lw t3, 84(a5)
+; RV32IZCMP-NEXT:    lw t2, 88(a5)
+; RV32IZCMP-NEXT:    lw t1, 92(a5)
+; RV32IZCMP-NEXT:    lw t0, 96(a5)
+; RV32IZCMP-NEXT:    lw s0, 100(a5)
+; RV32IZCMP-NEXT:    lw a6, 104(a5)
+; RV32IZCMP-NEXT:    lw a4, 108(a5)
+; RV32IZCMP-NEXT:    lw a0, 124(a5)
+; RV32IZCMP-NEXT:    lw a1, 120(a5)
+; RV32IZCMP-NEXT:    lw a2, 116(a5)
+; RV32IZCMP-NEXT:    lw a3, 112(a5)
+; RV32IZCMP-NEXT:    sw a0, 124(a5)
+; RV32IZCMP-NEXT:    sw a1, 120(a5)
+; RV32IZCMP-NEXT:    sw a2, 116(a5)
+; RV32IZCMP-NEXT:    sw a3, 112(a5)
+; RV32IZCMP-NEXT:    sw a4, 108(a5)
+; RV32IZCMP-NEXT:    sw a6, 104(a5)
+; RV32IZCMP-NEXT:    sw s0, 100(a5)
+; RV32IZCMP-NEXT:    sw t0, 96(a5)
+; RV32IZCMP-NEXT:    sw t1, 92(a5)
+; RV32IZCMP-NEXT:    sw t2, 88(a5)
+; RV32IZCMP-NEXT:    sw t3, 84(a5)
+; RV32IZCMP-NEXT:    sw s1, 80(a5)
+; RV32IZCMP-NEXT:    sw ra, 76(a5)
+; RV32IZCMP-NEXT:    sw s11, 72(a5)
+; RV32IZCMP-NEXT:    sw s10, 68(a5)
+; RV32IZCMP-NEXT:    sw s9, 64(a5)
+; RV32IZCMP-NEXT:    sw s8, 60(a5)
+; RV32IZCMP-NEXT:    sw s7, 56(a5)
+; RV32IZCMP-NEXT:    sw s6, 52(a5)
+; RV32IZCMP-NEXT:    sw s5, 48(a5)
+; RV32IZCMP-NEXT:    sw s4, 44(a5)
+; RV32IZCMP-NEXT:    sw s3, 40(a5)
+; RV32IZCMP-NEXT:    sw s2, 36(a5)
+; RV32IZCMP-NEXT:    sw t6, 32(a5)
+; RV32IZCMP-NEXT:    sw t5, 28(a5)
+; RV32IZCMP-NEXT:    sw t4, 24(a5)
+; RV32IZCMP-NEXT:    lw a0, 4(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, 20(a5)
+; RV32IZCMP-NEXT:    lw a0, 8(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, 16(a5)
+; RV32IZCMP-NEXT:    lw a0, 12(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, %lo(var_test_irq+12)(a7)
+; RV32IZCMP-NEXT:    lw a0, 16(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, %lo(var_test_irq+8)(a7)
+; RV32IZCMP-NEXT:    lw a0, 20(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, %lo(var_test_irq+4)(a7)
+; RV32IZCMP-NEXT:    lw a0, 24(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    sw a0, %lo(var_test_irq)(a7)
+; RV32IZCMP-NEXT:    cm.popret {ra, s0-s11}, 80
+;
+; RV64IZCMP-LABEL: callee_no_irq:
+; RV64IZCMP:       # %bb.0:
+; RV64IZCMP-NEXT:    cm.push {ra, s0-s11}, -160
+; RV64IZCMP-NEXT:    lui a7, %hi(var_test_irq)
+; RV64IZCMP-NEXT:    lw a0, %lo(var_test_irq)(a7)
+; RV64IZCMP-NEXT:    sd a0, 48(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lw a0, %lo(var_test_irq+4)(a7)
+; RV64IZCMP-NEXT:    sd a0, 40(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lw a0, %lo(var_test_irq+8)(a7)
+; RV64IZCMP-NEXT:    sd a0, 32(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lw a0, %lo(var_test_irq+12)(a7)
+; RV64IZCMP-NEXT:    sd a0, 24(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    addi a5, a7, %lo(var_test_irq)
+; RV64IZCMP-NEXT:    lw a0, 16(a5)
+; RV64IZCMP-NEXT:    sd a0, 16(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lw a0, 20(a5)
+; RV64IZCMP-NEXT:    sd a0, 8(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    lw t4, 24(a5)
+; RV64IZCMP-NEXT:    lw t5, 28(a5)
+; RV64IZCMP-NEXT:    lw t6, 32(a5)
+; RV64IZCMP-NEXT:    lw s2, 36(a5)
+; RV64IZCMP-NEXT:    lw s3, 40(a5)
+; RV64IZCMP-NEXT:    lw s4, 44(a5)
+; RV64IZCMP-NEXT:    lw s5, 48(a5)
+; RV64IZCMP-NEXT:    lw s6, 52(a5)
+; RV64IZCMP-NEXT:    lw s7, 56(a5)
+; RV64IZCMP-NEXT:    lw s8, 60(a5)
+; RV64IZCMP-NEXT:    lw s9, 64(a5)
+; RV64IZCMP-NEXT:    lw s10, 68(a5)
+; RV64IZCMP-NEXT:    lw s11, 72(a5)
+; RV64IZCMP-NEXT:    lw ra, 76(a5)
+; RV64IZCMP-NEXT:    lw s1, 80(a5)
+; RV64IZCMP-NEXT:    lw t3, 84(a5)
+; RV64IZCMP-NEXT:    lw t2, 88(a5)
+; RV64IZCMP-NEXT:    lw t1, 92(a5)
+; RV64IZCMP-NEXT:    lw t0, 96(a5)
+; RV64IZCMP-NEXT:    lw s0, 100(a5)
+; RV64IZCMP-NEXT:    lw a6, 104(a5)
+; RV64IZCMP-NEXT:    lw a4, 108(a5)
+; RV64IZCMP-NEXT:    lw a0, 124(a5)
+; RV64IZCMP-NEXT:    lw a1, 120(a5)
+; RV64IZCMP-NEXT:    lw a2, 116(a5)
+; RV64IZCMP-NEXT:    lw a3, 112(a5)
+; RV64IZCMP-NEXT:    sw a0, 124(a5)
+; RV64IZCMP-NEXT:    sw a1, 120(a5)
+; RV64IZCMP-NEXT:    sw a2, 116(a5)
+; RV64IZCMP-NEXT:    sw a3, 112(a5)
+; RV64IZCMP-NEXT:    sw a4, 108(a5)
+; RV64IZCMP-NEXT:    sw a6, 104(a5)
+; RV64IZCMP-NEXT:    sw s0, 100(a5)
+; RV64IZCMP-NEXT:    sw t0, 96(a5)
+; RV64IZCMP-NEXT:    sw t1, 92(a5)
+; RV64IZCMP-NEXT:    sw t2, 88(a5)
+; RV64IZCMP-NEXT:    sw t3, 84(a5)
+; RV64IZCMP-NEXT:    sw s1, 80(a5)
+; RV64IZCMP-NEXT:    sw ra, 76(a5)
+; RV64IZCMP-NEXT:    sw s11, 72(a5)
+; RV64IZCMP-NEXT:    sw s10, 68(a5)
+; RV64IZCMP-NEXT:    sw s9, 64(a5)
+; RV64IZCMP-NEXT:    sw s8, 60(a5)
+; RV64IZCMP-NEXT:    sw s7, 56(a5)
+; RV64IZCMP-NEXT:    sw s6, 52(a5)
+; RV64IZCMP-NEXT:    sw s5, 48(a5)
+; RV64IZCMP-NEXT:    sw s4, 44(a5)
+; RV64IZCMP-NEXT:    sw s3, 40(a5)
+; RV64IZCMP-NEXT:    sw s2, 36(a5)
+; RV64IZCMP-NEXT:    sw t6, 32(a5)
+; RV64IZCMP-NEXT:    sw t5, 28(a5)
+; RV64IZCMP-NEXT:    sw t4, 24(a5)
+; RV64IZCMP-NEXT:    ld a0, 8(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, 20(a5)
+; RV64IZCMP-NEXT:    ld a0, 16(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, 16(a5)
+; RV64IZCMP-NEXT:    ld a0, 24(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, %lo(var_test_irq+12)(a7)
+; RV64IZCMP-NEXT:    ld a0, 32(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, %lo(var_test_irq+8)(a7)
+; RV64IZCMP-NEXT:    ld a0, 40(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, %lo(var_test_irq+4)(a7)
+; RV64IZCMP-NEXT:    ld a0, 48(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    sw a0, %lo(var_test_irq)(a7)
+; RV64IZCMP-NEXT:    cm.popret {ra, s0-s11}, 160
+;
+; RV32I-LABEL: callee_no_irq:
+; RV32I:       # %bb.0:
+; RV32I-NEXT:    addi sp, sp, -80
+; RV32I-NEXT:    sw ra, 76(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s0, 72(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s1, 68(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s2, 64(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s3, 60(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s4, 56(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s5, 52(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s6, 48(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s7, 44(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s8, 40(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s9, 36(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s10, 32(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    sw s11, 28(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lui a7, %hi(var_test_irq)
+; RV32I-NEXT:    lw a0, %lo(var_test_irq)(a7)
+; RV32I-NEXT:    sw a0, 24(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lw a0, %lo(var_test_irq+4)(a7)
+; RV32I-NEXT:    sw a0, 20(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lw a0, %lo(var_test_irq+8)(a7)
+; RV32I-NEXT:    sw a0, 16(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lw a0, %lo(var_test_irq+12)(a7)
+; RV32I-NEXT:    sw a0, 12(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    addi a5, a7, %lo(var_test_irq)
+; RV32I-NEXT:    lw a0, 16(a5)
+; RV32I-NEXT:    sw a0, 8(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lw a0, 20(a5)
+; RV32I-NEXT:    sw a0, 4(sp) # 4-byte Folded Spill
+; RV32I-NEXT:    lw t4, 24(a5)
+; RV32I-NEXT:    lw t5, 28(a5)
+; RV32I-NEXT:    lw t6, 32(a5)
+; RV32I-NEXT:    lw s2, 36(a5)
+; RV32I-NEXT:    lw s3, 40(a5)
+; RV32I-NEXT:    lw s4, 44(a5)
+; RV32I-NEXT:    lw s5, 48(a5)
+; RV32I-NEXT:    lw s6, 52(a5)
+; RV32I-NEXT:    lw s7, 56(a5)
+; RV32I-NEXT:    lw s8, 60(a5)
+; RV32I-NEXT:    lw s9, 64(a5)
+; RV32I-NEXT:    lw s10, 68(a5)
+; RV32I-NEXT:    lw s11, 72(a5)
+; RV32I-NEXT:    lw ra, 76(a5)
+; RV32I-NEXT:    lw s1, 80(a5)
+; RV32I-NEXT:    lw t3, 84(a5)
+; RV32I-NEXT:    lw t2, 88(a5)
+; RV32I-NEXT:    lw t1, 92(a5)
+; RV32I-NEXT:    lw t0, 96(a5)
+; RV32I-NEXT:    lw s0, 100(a5)
+; RV32I-NEXT:    lw a6, 104(a5)
+; RV32I-NEXT:    lw a4, 108(a5)
+; RV32I-NEXT:    lw a0, 124(a5)
+; RV32I-NEXT:    lw a1, 120(a5)
+; RV32I-NEXT:    lw a2, 116(a5)
+; RV32I-NEXT:    lw a3, 112(a5)
+; RV32I-NEXT:    sw a0, 124(a5)
+; RV32I-NEXT:    sw a1, 120(a5)
+; RV32I-NEXT:    sw a2, 116(a5)
+; RV32I-NEXT:    sw a3, 112(a5)
+; RV32I-NEXT:    sw a4, 108(a5)
+; RV32I-NEXT:    sw a6, 104(a5)
+; RV32I-NEXT:    sw s0, 100(a5)
+; RV32I-NEXT:    sw t0, 96(a5)
+; RV32I-NEXT:    sw t1, 92(a5)
+; RV32I-NEXT:    sw t2, 88(a5)
+; RV32I-NEXT:    sw t3, 84(a5)
+; RV32I-NEXT:    sw s1, 80(a5)
+; RV32I-NEXT:    sw ra, 76(a5)
+; RV32I-NEXT:    sw s11, 72(a5)
+; RV32I-NEXT:    sw s10, 68(a5)
+; RV32I-NEXT:    sw s9, 64(a5)
+; RV32I-NEXT:    sw s8, 60(a5)
+; RV32I-NEXT:    sw s7, 56(a5)
+; RV32I-NEXT:    sw s6, 52(a5)
+; RV32I-NEXT:    sw s5, 48(a5)
+; RV32I-NEXT:    sw s4, 44(a5)
+; RV32I-NEXT:    sw s3, 40(a5)
+; RV32I-NEXT:    sw s2, 36(a5)
+; RV32I-NEXT:    sw t6, 32(a5)
+; RV32I-NEXT:    sw t5, 28(a5)
+; RV32I-NEXT:    sw t4, 24(a5)
+; RV32I-NEXT:    lw a0, 4(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, 20(a5)
+; RV32I-NEXT:    lw a0, 8(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, 16(a5)
+; RV32I-NEXT:    lw a0, 12(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, %lo(var_test_irq+12)(a7)
+; RV32I-NEXT:    lw a0, 16(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, %lo(var_test_irq+8)(a7)
+; RV32I-NEXT:    lw a0, 20(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, %lo(var_test_irq+4)(a7)
+; RV32I-NEXT:    lw a0, 24(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    sw a0, %lo(var_test_irq)(a7)
+; RV32I-NEXT:    lw ra, 76(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s0, 72(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s1, 68(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s2, 64(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s3, 60(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s4, 56(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s5, 52(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s6, 48(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s7, 44(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s8, 40(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s9, 36(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s10, 32(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    lw s11, 28(sp) # 4-byte Folded Reload
+; RV32I-NEXT:    addi sp, sp, 80
+; RV32I-NEXT:    ret
+;
+; RV64I-LABEL: callee_no_irq:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    addi sp, sp, -160
+; RV64I-NEXT:    sd ra, 152(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s0, 144(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s1, 136(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s2, 128(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s3, 120(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s4, 112(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s5, 104(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s6, 96(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s7, 88(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s8, 80(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s9, 72(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s10, 64(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    sd s11, 56(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lui a7, %hi(var_test_irq)
+; RV64I-NEXT:    lw a0, %lo(var_test_irq)(a7)
+; RV64I-NEXT:    sd a0, 48(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lw a0, %lo(var_test_irq+4)(a7)
+; RV64I-NEXT:    sd a0, 40(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lw a0, %lo(var_test_irq+8)(a7)
+; RV64I-NEXT:    sd a0, 32(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lw a0, %lo(var_test_irq+12)(a7)
+; RV64I-NEXT:    sd a0, 24(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    addi a5, a7, %lo(var_test_irq)
+; RV64I-NEXT:    lw a0, 16(a5)
+; RV64I-NEXT:    sd a0, 16(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lw a0, 20(a5)
+; RV64I-NEXT:    sd a0, 8(sp) # 8-byte Folded Spill
+; RV64I-NEXT:    lw t4, 24(a5)
+; RV64I-NEXT:    lw t5, 28(a5)
+; RV64I-NEXT:    lw t6, 32(a5)
+; RV64I-NEXT:    lw s2, 36(a5)
+; RV64I-NEXT:    lw s3, 40(a5)
+; RV64I-NEXT:    lw s4, 44(a5)
+; RV64I-NEXT:    lw s5, 48(a5)
+; RV64I-NEXT:    lw s6, 52(a5)
+; RV64I-NEXT:    lw s7, 56(a5)
+; RV64I-NEXT:    lw s8, 60(a5)
+; RV64I-NEXT:    lw s9, 64(a5)
+; RV64I-NEXT:    lw s10, 68(a5)
+; RV64I-NEXT:    lw s11, 72(a5)
+; RV64I-NEXT:    lw ra, 76(a5)
+; RV64I-NEXT:    lw s1, 80(a5)
+; RV64I-NEXT:    lw t3, 84(a5)
+; RV64I-NEXT:    lw t2, 88(a5)
+; RV64I-NEXT:    lw t1, 92(a5)
+; RV64I-NEXT:    lw t0, 96(a5)
+; RV64I-NEXT:    lw s0, 100(a5)
+; RV64I-NEXT:    lw a6, 104(a5)
+; RV64I-NEXT:    lw a4, 108(a5)
+; RV64I-NEXT:    lw a0, 124(a5)
+; RV64I-NEXT:    lw a1, 120(a5)
+; RV64I-NEXT:    lw a2, 116(a5)
+; RV64I-NEXT:    lw a3, 112(a5)
+; RV64I-NEXT:    sw a0, 124(a5)
+; RV64I-NEXT:    sw a1, 120(a5)
+; RV64I-NEXT:    sw a2, 116(a5)
+; RV64I-NEXT:    sw a3, 112(a5)
+; RV64I-NEXT:    sw a4, 108(a5)
+; RV64I-NEXT:    sw a6, 104(a5)
+; RV64I-NEXT:    sw s0, 100(a5)
+; RV64I-NEXT:    sw t0, 96(a5)
+; RV64I-NEXT:    sw t1, 92(a5)
+; RV64I-NEXT:    sw t2, 88(a5)
+; RV64I-NEXT:    sw t3, 84(a5)
+; RV64I-NEXT:    sw s1, 80(a5)
+; RV64I-NEXT:    sw ra, 76(a5)
+; RV64I-NEXT:    sw s11, 72(a5)
+; RV64I-NEXT:    sw s10, 68(a5)
+; RV64I-NEXT:    sw s9, 64(a5)
+; RV64I-NEXT:    sw s8, 60(a5)
+; RV64I-NEXT:    sw s7, 56(a5)
+; RV64I-NEXT:    sw s6, 52(a5)
+; RV64I-NEXT:    sw s5, 48(a5)
+; RV64I-NEXT:    sw s4, 44(a5)
+; RV64I-NEXT:    sw s3, 40(a5)
+; RV64I-NEXT:    sw s2, 36(a5)
+; RV64I-NEXT:    sw t6, 32(a5)
+; RV64I-NEXT:    sw t5, 28(a5)
+; RV64I-NEXT:    sw t4, 24(a5)
+; RV64I-NEXT:    ld a0, 8(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, 20(a5)
+; RV64I-NEXT:    ld a0, 16(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, 16(a5)
+; RV64I-NEXT:    ld a0, 24(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, %lo(var_test_irq+12)(a7)
+; RV64I-NEXT:    ld a0, 32(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, %lo(var_test_irq+8)(a7)
+; RV64I-NEXT:    ld a0, 40(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, %lo(var_test_irq+4)(a7)
+; RV64I-NEXT:    ld a0, 48(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    sw a0, %lo(var_test_irq)(a7)
+; RV64I-NEXT:    ld ra, 152(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s0, 144(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s1, 136(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s2, 128(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s3, 120(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s4, 112(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s5, 104(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s6, 96(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s7, 88(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s8, 80(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s9, 72(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s10, 64(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    ld s11, 56(sp) # 8-byte Folded Reload
+; RV64I-NEXT:    addi sp, sp, 160
+; RV64I-NEXT:    ret
+  %val = load [32 x i32], [32 x i32]* @var_test_irq
+  store volatile [32 x i32] %val, [32 x i32]* @var_test_irq
+  ret void
+}

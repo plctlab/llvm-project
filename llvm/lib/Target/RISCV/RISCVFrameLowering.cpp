@@ -252,6 +252,29 @@ static int getPushPopEncoding(const Register MaxReg) {
     return 4;
   }
 }
+
+void reallocPushStackFream(MachineFunction &MF, uint64_t ExtraStackSize){
+  MachineFrameInfo &MFI = MF.getFrameInfo();
+  auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
+
+  std::vector<CalleeSavedInfo> CSI = MFI.getCalleeSavedInfo();
+  // realloc stack frame for PUSH
+  size_t upperPushStack = ExtraStackSize;
+  size_t lowerPushStack = upperPushStack + RVFI->getRVPushStackSize();
+  size_t allocatedStzck = 4;
+  for (const auto &Entry : CSI) {
+    int FrameIdx = Entry.getFrameIdx();
+    Register Reg = Entry.getReg();
+    if(!(Reg == RISCV::X26 || RISCV::PGPRRegClass.contains(Reg))){
+      MFI.setObjectOffset(FrameIdx, -allocatedStzck);
+      allocatedStzck += 4;
+      if(allocatedStzck > upperPushStack && allocatedStzck < lowerPushStack){
+        allocatedStzck = lowerPushStack + 4;
+      }
+    }
+  }
+}
+
 static uint64_t adjSPInPushPop(MachineBasicBlock::iterator MBBI, uint64_t StackAdj, bool isPop){
   // The spec allocates 2 bits to specify number of extra 16 byte blocks.
   uint32_t AvailableAdj = 48;
@@ -512,6 +535,7 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
     if (StackSize != 0){
       adjustReg(MBB, next_nodbg(MBBI, MBB.end()), DL, SPReg, SPReg, -StackSize, MachineInstr::FrameSetup);
       MBBI = next_nodbg(MBBI, MBB.end());
+      reallocPushStackFream(MF, StackSize);
     }
   }
   else{
@@ -1153,20 +1177,29 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
   if (MI != MBB.end() && !MI->isDebugInstr())
     DL = MI->getDebugLoc();
 
+  // Emmit CM.PUSH with base SPimm & evaluate Push stack
   if (isCSIpushable(CSI.vec())){
+    auto *RVFI = MF->getInfo<RISCVMachineFunctionInfo>();
+    uint64_t PushStackSize = 0;
+    std::vector<CalleeSavedInfo> NonePushCSI;
     Register MaxReg = RISCV::NoRegister;
 
     for (auto &CS: CSI){
       Register Reg = CS.getReg();
       const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
-      if (RISCV::PGPRRegClass.hasSubClassEq(RC))
+      if (RISCV::PGPRRegClass.hasSubClassEq(RC)){
+        if(Reg != RISCV::X27)
+          PushStackSize += 4;
         MaxReg = std::max(MaxReg.id(), Reg.id());
+      }
       else if(Reg.id() == RISCV::X26){
+        PushStackSize += 8;
         MaxReg = RISCV::X27;
       }
       else
-        TII.storeRegToStackSlot(MBB, MI, Reg, true, CS.getFrameIdx(), RC, TRI);
+        NonePushCSI.push_back(CS);
     }
+    RVFI->setRVPushStackSize(PushStackSize);
 
     MachineInstrBuilder PushBuilder =
         BuildMI(MBB, MI, DL, TII.get(RISCV::CM_PUSH));
@@ -1179,6 +1212,12 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
     bool isEABI = false; // Reserved for future implementation
     uint32_t SpImmBase = RISCVZCE::getStackAdjBase(RegEnc, isRV64, isEABI);
     PushBuilder.addImm(SpImmBase);
+
+    for(auto &CS: NonePushCSI){
+      Register Reg = CS.getReg();
+      TII.storeRegToStackSlot(MBB, MI, Reg, true, CS.getFrameIdx(),
+                              TRI->getMinimalPhysRegClass(Reg), TRI);
+    }
   }
   else {
     const char *SpillLibCall = getSpillLibCallName(*MF, CSI);

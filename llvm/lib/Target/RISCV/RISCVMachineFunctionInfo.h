@@ -38,6 +38,8 @@ private:
   uint64_t RVVPadding = 0;
   /// Size of stack frame to save callee saved registers
   unsigned CalleeSavedStackSize = 0;
+  /// Size of stack frame for zcmp PUSH/POP
+  unsigned RVPushStackSize = 0;
 
 public:
   RISCVMachineFunctionInfo(const MachineFunction &MF) {}
@@ -76,6 +78,9 @@ public:
 
   unsigned getCalleeSavedStackSize() const { return CalleeSavedStackSize; }
   void setCalleeSavedStackSize(unsigned Size) { CalleeSavedStackSize = Size; }
+
+  uint64_t getRVPushStackSize() const { return RVPushStackSize; }
+  void setRVPushStackSize(uint64_t Size) { RVPushStackSize = Size; }
 };
 
 } // end namespace llvm
