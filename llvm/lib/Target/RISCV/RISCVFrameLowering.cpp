@@ -253,24 +253,19 @@ static int getPushPopEncoding(const Register MaxReg) {
   }
 }
 
-void reallocPushStackFream(MachineFunction &MF, uint64_t ExtraStackSize){
-  MachineFrameInfo &MFI = MF.getFrameInfo();
+void reallocPushStackFream(MachineFunction &MF){
   auto *RVFI = MF.getInfo<RISCVMachineFunctionInfo>();
+  MachineFrameInfo &MFI = MF.getFrameInfo();
 
   std::vector<CalleeSavedInfo> CSI = MFI.getCalleeSavedInfo();
   // realloc stack frame for PUSH
-  size_t upperPushStack = ExtraStackSize;
-  size_t lowerPushStack = upperPushStack + RVFI->getRVPushStackSize();
-  size_t allocatedStzck = 4;
+  size_t NonePushStackOffset = -RVFI->getRVPushStackSize();
   for (const auto &Entry : CSI) {
     int FrameIdx = Entry.getFrameIdx();
     Register Reg = Entry.getReg();
     if(!(Reg == RISCV::X26 || RISCV::PGPRRegClass.contains(Reg))){
-      MFI.setObjectOffset(FrameIdx, -allocatedStzck);
-      allocatedStzck += 4;
-      if(allocatedStzck > upperPushStack && allocatedStzck < lowerPushStack){
-        allocatedStzck = lowerPushStack + 4;
-      }
+      NonePushStackOffset -= MFI.getObjectSize(Entry.getFrameIdx());
+      MFI.setObjectOffset(FrameIdx, NonePushStackOffset);
     }
   }
 }
@@ -535,7 +530,7 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
     if (StackSize != 0){
       adjustReg(MBB, next_nodbg(MBBI, MBB.end()), DL, SPReg, SPReg, -StackSize, MachineInstr::FrameSetup);
       MBBI = next_nodbg(MBBI, MBB.end());
-      reallocPushStackFream(MF, StackSize);
+      reallocPushStackFream(MF);
     }
   }
   else{

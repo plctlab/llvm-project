@@ -756,40 +756,39 @@ define void @foo_with_irq() nounwind "interrupt"="user" {
 ; RV64IZCMP:       # %bb.0:
 ; RV64IZCMP-NEXT:    cm.push {ra}, -64
 ; RV64IZCMP-NEXT:    addi sp, sp, -64
-; RV64IZCMP-NEXT:    sd t0, 124(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t1, 120(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t2, 116(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a0, 112(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a1, 108(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a2, 104(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a3, 100(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a4, 96(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a5, 92(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a6, 88(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a7, 84(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t3, 80(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t4, 76(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t5, 72(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t6, 68(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t0, 116(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t1, 108(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t2, 100(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a0, 92(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a1, 84(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a2, 76(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a3, 68(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a4, 60(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a5, 52(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a6, 44(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a7, 36(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t3, 28(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t4, 20(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t5, 12(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t6, 4(sp) # 8-byte Folded Spill
 ; RV64IZCMP-NEXT:    call foo_test_irq@plt
-; RV64IZCMP-NEXT:    ld t6, 68(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t5, 72(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t4, 76(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t3, 80(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a7, 84(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a6, 88(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a5, 92(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a4, 96(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a3, 100(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a2, 104(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a1, 108(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a0, 112(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t2, 116(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t1, 120(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t0, 124(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    addi sp, sp, 68
+; RV64IZCMP-NEXT:    ld t6, 4(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t5, 12(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t4, 20(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t3, 28(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a7, 36(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a6, 44(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a5, 52(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a4, 60(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a3, 68(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a2, 76(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a1, 84(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a0, 92(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t2, 100(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t1, 108(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t0, 116(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    addi sp, sp, 64
 ; RV64IZCMP-NEXT:    cm.pop {ra}, 64
-; RV64IZCMP-NEXT:    addi sp, sp, -4
 ; RV64IZCMP-NEXT:    uret
 ;
 ; RV32I-LABEL: foo_with_irq:
@@ -912,14 +911,14 @@ define void @callee_with_irq() nounwind "interrupt"="user" {
 ; RV32IZCMP:       # %bb.0:
 ; RV32IZCMP-NEXT:    cm.push {ra, s0-s11}, -112
 ; RV32IZCMP-NEXT:    addi sp, sp, -32
-; RV32IZCMP-NEXT:    sw t0, 140(sp) # 4-byte Folded Spill
-; RV32IZCMP-NEXT:    sw t1, 136(sp) # 4-byte Folded Spill
-; RV32IZCMP-NEXT:    sw t2, 132(sp) # 4-byte Folded Spill
-; RV32IZCMP-NEXT:    sw a0, 128(sp) # 4-byte Folded Spill
-; RV32IZCMP-NEXT:    sw a1, 124(sp) # 4-byte Folded Spill
-; RV32IZCMP-NEXT:    sw a2, 120(sp) # 4-byte Folded Spill
-; RV32IZCMP-NEXT:    sw a3, 116(sp) # 4-byte Folded Spill
-; RV32IZCMP-NEXT:    sw a4, 112(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t0, 88(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t1, 84(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw t2, 80(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a0, 76(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a1, 72(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a2, 68(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a3, 64(sp) # 4-byte Folded Spill
+; RV32IZCMP-NEXT:    sw a4, 60(sp) # 4-byte Folded Spill
 ; RV32IZCMP-NEXT:    sw a5, 56(sp) # 4-byte Folded Spill
 ; RV32IZCMP-NEXT:    sw a6, 52(sp) # 4-byte Folded Spill
 ; RV32IZCMP-NEXT:    sw a7, 48(sp) # 4-byte Folded Spill
@@ -1012,14 +1011,14 @@ define void @callee_with_irq() nounwind "interrupt"="user" {
 ; RV32IZCMP-NEXT:    lw a7, 48(sp) # 4-byte Folded Reload
 ; RV32IZCMP-NEXT:    lw a6, 52(sp) # 4-byte Folded Reload
 ; RV32IZCMP-NEXT:    lw a5, 56(sp) # 4-byte Folded Reload
-; RV32IZCMP-NEXT:    lw a4, 112(sp) # 4-byte Folded Reload
-; RV32IZCMP-NEXT:    lw a3, 116(sp) # 4-byte Folded Reload
-; RV32IZCMP-NEXT:    lw a2, 120(sp) # 4-byte Folded Reload
-; RV32IZCMP-NEXT:    lw a1, 124(sp) # 4-byte Folded Reload
-; RV32IZCMP-NEXT:    lw a0, 128(sp) # 4-byte Folded Reload
-; RV32IZCMP-NEXT:    lw t2, 132(sp) # 4-byte Folded Reload
-; RV32IZCMP-NEXT:    lw t1, 136(sp) # 4-byte Folded Reload
-; RV32IZCMP-NEXT:    lw t0, 140(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a4, 60(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a3, 64(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a2, 68(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a1, 72(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw a0, 76(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t2, 80(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t1, 84(sp) # 4-byte Folded Reload
+; RV32IZCMP-NEXT:    lw t0, 88(sp) # 4-byte Folded Reload
 ; RV32IZCMP-NEXT:    addi sp, sp, 32
 ; RV32IZCMP-NEXT:    cm.pop {ra, s0-s11}, 112
 ; RV32IZCMP-NEXT:    uret
@@ -1028,21 +1027,21 @@ define void @callee_with_irq() nounwind "interrupt"="user" {
 ; RV64IZCMP:       # %bb.0:
 ; RV64IZCMP-NEXT:    cm.push {ra, s0-s11}, -160
 ; RV64IZCMP-NEXT:    addi sp, sp, -112
-; RV64IZCMP-NEXT:    sd t0, 268(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t1, 264(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t2, 260(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a0, 256(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a1, 252(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a2, 248(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a3, 244(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a4, 240(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a5, 236(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a6, 232(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd a7, 228(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t3, 224(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t4, 220(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t5, 216(sp) # 8-byte Folded Spill
-; RV64IZCMP-NEXT:    sd t6, 212(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t0, 212(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t1, 204(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t2, 196(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a0, 188(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a1, 180(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a2, 172(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a3, 164(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a4, 156(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a5, 148(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a6, 140(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd a7, 132(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t3, 124(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t4, 116(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t5, 108(sp) # 8-byte Folded Spill
+; RV64IZCMP-NEXT:    sd t6, 100(sp) # 8-byte Folded Spill
 ; RV64IZCMP-NEXT:    lui a7, %hi(var_test_irq)
 ; RV64IZCMP-NEXT:    lw a0, %lo(var_test_irq)(a7)
 ; RV64IZCMP-NEXT:    sd a0, 40(sp) # 8-byte Folded Spill
@@ -1121,24 +1120,23 @@ define void @callee_with_irq() nounwind "interrupt"="user" {
 ; RV64IZCMP-NEXT:    sw a0, %lo(var_test_irq+4)(a7)
 ; RV64IZCMP-NEXT:    ld a0, 40(sp) # 8-byte Folded Reload
 ; RV64IZCMP-NEXT:    sw a0, %lo(var_test_irq)(a7)
-; RV64IZCMP-NEXT:    ld t6, 212(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t5, 216(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t4, 220(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t3, 224(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a7, 228(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a6, 232(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a5, 236(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a4, 240(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a3, 244(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a2, 248(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a1, 252(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld a0, 256(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t2, 260(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t1, 264(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    ld t0, 268(sp) # 8-byte Folded Reload
-; RV64IZCMP-NEXT:    addi sp, sp, 116
+; RV64IZCMP-NEXT:    ld t6, 100(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t5, 108(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t4, 116(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t3, 124(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a7, 132(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a6, 140(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a5, 148(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a4, 156(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a3, 164(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a2, 172(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a1, 180(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld a0, 188(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t2, 196(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t1, 204(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    ld t0, 212(sp) # 8-byte Folded Reload
+; RV64IZCMP-NEXT:    addi sp, sp, 112
 ; RV64IZCMP-NEXT:    cm.pop {ra, s0-s11}, 160
-; RV64IZCMP-NEXT:    addi sp, sp, -4
 ; RV64IZCMP-NEXT:    uret
 ;
 ; RV32I-LABEL: callee_with_irq:
