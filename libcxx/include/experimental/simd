@@ -1316,8 +1316,8 @@ typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _S
                                       bit_xor<typename _SimdType::value_type> binary_op);
 
 template <class _Tp, class _Abi>
-_Tp hmin(const simd<_Tp, _Abi>& __s) {
-  return __simd_traits<_Tp, _Abi>::__hmin(__s);
+_Tp hmin(const simd<_Tp, _Abi>& __s) noexcept{
+  return __simd_traits<_Tp, _Abi>::__hmin(__s.__s_);
 }
 
 // TODO: implement
@@ -1325,8 +1325,8 @@ template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>&);
 
 template <class _Tp, class _Abi>
-_Tp hmax(const simd<_Tp, _Abi>& __s) {
-  return __simd_traits<_Tp, _Abi>::__hmax(__s);
+_Tp hmax(const simd<_Tp, _Abi>& __s) noexcept{
+  return __simd_traits<_Tp, _Abi>::__hmax(__s.__s_);
 }
 
 // TODO: implement
@@ -1351,7 +1351,7 @@ std::pair<simd<_Tp, _Abi>, simd<_Tp, _Abi>> minmax(const simd<_Tp, _Abi>& __a, c
 }
 
 template <class _Tp, class _Abi>
-simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>& __v, const simd<_Tp, _Abi>& __lo, const simd<_Tp, _Abi>& __hi) {
+simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>& __v, const simd<_Tp, _Abi>& __lo, const simd<_Tp, _Abi>& __hi) noexcept{
   return __simd_traits<_Tp, _Abi>::__clamp(__v.__s_, __lo.__s_, __hi.__s_);
 }
 
@@ -1374,17 +1374,17 @@ public:
   const_where_expression(const _MaskType& __m, const _SimdType& s)
 	  : __m_(__m), __s_(const_cast<_SimdType&>(s)) {}
   remove_const_t<_SimdType> operator-() const&& { return _Impl::__masked_unary_minus(__s_.__s_, __m_.__s_); }
+  remove_const_t<_SimdType> operator+() const&& { return __s_; }
+  remove_const_t<_SimdType> operator~() const&& { return __m_ ? ~__s_ : __s_; }
 
   template <class _Tp, class _Flags>
   void copy_to(_Tp* __mem, _Flags) const&&{
-     _Impl:: __masked_store(__s_.__s_, __m_.__s_, __mem/*_Flags::template _S_apply<_V>(__mem)*/);
-  };
+     _Impl::__masked_store(__s_.__s_, __m_.__s_, __mem/*_Flags::template _S_apply<_V>(__mem)*/);
+  }
 };
 
 template <class _SimdType>
 class const_where_expression<bool, _SimdType> {
-  using _Impl = typename _SimdType::_Impl;
-
   //friend const_where_expression where<>(const _MaskType&, const _SimdType&) noexcept;
   //friend const_where_expression where<>(const __nodeduce_t<_MaskType>&, const _SimdType&) noexcept;
   //friend const_where_expression where<>(bool, const _SimdType&) noexcept;
@@ -1399,6 +1399,8 @@ public:
   const_where_expression(const bool __m, const _SimdType& s)
 	  : __m_(__m), __s_(const_cast<_SimdType&>(s)) {}
   remove_const_t<_SimdType> operator-() const&& { return __m_ ? -__s_ : __s_; }
+  remove_const_t<_SimdType> operator+() const&& { return __s_; }
+  remove_const_t<_SimdType> operator~() const&& { return __m_ ? !__s_ : __s_; }
 
   template <class _Tp, class _Flags>
   void copy_to(_Tp* __mem, _Flags) const&&{
@@ -1454,13 +1456,18 @@ public:
      _Impl::__masked_incre(__s_.__s_, __m_.__s_);
   }
   void operator++(int){
-     _Impl::__masked_incre(__s_.__s_, __m_.__s_);
+    simd __r = *this;
+    _Impl::__masked_incre(__s_.__s_, __m_.__s_);
+    return __r;
+
   }
   void operator--(){
      _Impl::__masked_decre(__s_.__s_, __m_.__s_);
   }
   void operator--(int){
-     _Impl::__masked_decre(__s_.__s_, __m_.__s_);
+    simd __r = *this;
+    _Impl::__masked_decre(__s_.__s_, __m_.__s_);
+    return __r;
   }
 
   template <class _Tp, class _Flags>
@@ -1471,18 +1478,12 @@ public:
 
 template <class _SimdType>
 class where_expression<bool, _SimdType> : public const_where_expression<bool, _SimdType> {
-  using _Impl = typename _SimdType::_Impl;
-
   using const_where_expression<bool, _SimdType>::__m_;
   using const_where_expression<bool, _SimdType>::__s_;
 
   //friend where_expression where<>(const _MaskType&, _SimdType&) noexcept;
   //friend where_expression where<>(const __nodeduce_t<_MaskType>&, _SimdType&) noexcept;
   //friend where_expression where<>(bool, _SimdType&) noexcept;
-  template <class _Tp>
-  typename _SimdType::value_type __to_value_type(_Tp&& __v) const {
-    return static_cast<typename _SimdType::value_type>(std::forward<_Tp>(__v));
-  }
 
 public:
   where_expression(const where_expression&) = delete;
@@ -1541,6 +1542,8 @@ class simd {
 
   simd(_Storage __s) : __s_(__s) {}
 
+  friend class simd_mask<_Tp, _Abi>;
+
   template <class _MaskType, class _SimdType>
   friend class const_where_expression;
 
@@ -1550,8 +1553,9 @@ class simd {
   friend simd min<>(const simd&, const simd&) noexcept;
   friend simd max<>(const simd&, const simd&) noexcept;
   friend std::pair<simd, simd> minmax<>(const simd&, const simd&) noexcept;
-  friend simd clamp<>(const simd&, const simd&, const simd&);
-
+  friend simd clamp<>(const simd&, const simd&, const simd&) noexcept;
+  friend _Tp hmin<>(const simd&) noexcept;
+  friend _Tp hmax<>(const simd&) noexcept;
 public:
   using value_type = _Tp;
   using reference = __simd_reference<_Storage, value_type>;
