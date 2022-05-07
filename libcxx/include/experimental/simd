@@ -9,6 +9,8 @@
 #ifndef _LIBCPP_EXPERIMENTAL_SIMD
 #define _LIBCPP_EXPERIMENTAL_SIMD
 
+#define __cpp_lib_experimental_parallel_simd 201803
+
 /*
     experimental/simd synopsis
 
