@@ -295,6 +295,10 @@ SubtargetFeatures ELFObjectFileBase::getRISCVFeatures() const {
     Features.AddFeature("c");
   }
 
+  if (PlatformFlags & ELF::EF_RISCV_RVZCA) {
+    Features.AddFeature("experimental-zca");
+  }
+
   // Add features according to the ELF attribute section.
   // If there are any unrecognized features, ignore them.
   RISCVAttributeParser Attributes;
