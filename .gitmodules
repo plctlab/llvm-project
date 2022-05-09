@@ -1,4 +1,3 @@
-[submodule "gollvm"]
+[submodule "llvm/tools/gollvm"]
 	path = llvm/tools/gollvm
 	url = https://github.com/plctlab/gollvm.git
-	branch = master
