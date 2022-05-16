@@ -121,11 +121,6 @@ int find_last_set(see below) noexcept;
 template <class M, class T> class const_where_expression;
 template <class M, class T> class where_expression;
 
-// masked assignment [simd.mask.where]
-template <class T> struct nodeduce { using type = T; }; // exposition only
-
-template <class T> using nodeduce_t = typename nodeduce<T>::type; // exposition only
-
 template <class T, class Abi>
 where_expression<simd_mask<T, Abi>, simd<T, Abi>>
 where(const typename simd<T, Abi>::mask_type&, simd<T, Abi>&) noexcept;
@@ -136,11 +131,11 @@ where(const typename simd<T, Abi>::mask_type&, const simd<T, Abi>&) noexcept;
 
 template <class T, class Abi>
 where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>>
-where(const nodeduce_t<simd_mask<T, Abi>>&, simd_mask<T, Abi>&) noexcept;
+where(const type_identity_t<simd_mask<T, Abi>>&, simd_mask<T, Abi>&) noexcept;
 
 template <class T, class Abi>
 const_where_expression<simd_mask<T, Abi>, const simd_mask<T, Abi>>
-where(const nodeduce_t<simd_mask<T, Abi>>&, const simd_mask<T, Abi>&) noexcept;
+where(const type_identity_t<simd_mask<T, Abi>>&, const simd_mask<T, Abi>&) noexcept;
 
 template <class T> where_expression<bool, T> where(see below k, T& d) noexcept;
 
@@ -656,6 +651,7 @@ public:
 #include <array>
 #include <cstddef>
 #include <functional>
+#include <type_traits>
 #include <__simd/abi/builtin.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -798,14 +794,6 @@ template <class _Tp, class... _Args>
 constexpr _Tp __variadic_sum(_Args... __args) {
   return (static_cast<_Tp>(__args) + ...);
 }
-
-template <class _Tp>
-struct __nodeduce {
-  using type = _Tp;
-};
-
-template <class _Tp>
-using __nodeduce_t = typename __nodeduce<_Tp>::type;
 
 template <class _Tp>
 constexpr bool __is_vectorizable() {
@@ -1268,14 +1256,14 @@ where(const typename simd<_Tp, _Abi>::mask_type& __m, const simd<_Tp, _Abi>& __s
 }
 
 template <class _Tp, class _Abi>
-where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>> where(const __nodeduce_t<simd_mask<_Tp, _Abi>>& __m,
+where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>> where(const __identity_t<simd_mask<_Tp, _Abi>>& __m,
                                                                    simd_mask<_Tp, _Abi>& __s) noexcept {
   return {__m, __s};
 }
 
 template <class _Tp, class _Abi>
 const_where_expression<simd_mask<_Tp, _Abi>, const simd_mask<_Tp, _Abi>>
-where(const __nodeduce_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>& __s) noexcept {
+where(const __identity_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>& __s) noexcept {
   return {__m, const_cast<simd<_Tp, _Abi>&>(__s)};
 }
 
@@ -1363,7 +1351,7 @@ class const_where_expression {
   using _Impl = typename _SimdType::_Impl;
 
   //friend const_where_expression where<>(const _MaskType&, const _SimdType&) noexcept;
-  //friend const_where_expression where<>(const __nodeduce_t<_MaskType>&, const _SimdType&) noexcept;
+  //friend const_where_expression where<>(const __identity_t<_MaskType>&, const _SimdType&) noexcept;
   //friend const_where_expression where<>(bool, const _SimdType&) noexcept;
 
 protected:
@@ -1388,7 +1376,7 @@ public:
 template <class _SimdType>
 class const_where_expression<bool, _SimdType> {
   //friend const_where_expression where<>(const _MaskType&, const _SimdType&) noexcept;
-  //friend const_where_expression where<>(const __nodeduce_t<_MaskType>&, const _SimdType&) noexcept;
+  //friend const_where_expression where<>(const __identity_t<_MaskType>&, const _SimdType&) noexcept;
   //friend const_where_expression where<>(bool, const _SimdType&) noexcept;
 
 protected:
@@ -1419,7 +1407,7 @@ class where_expression : public const_where_expression<_MaskType, _SimdType> {
   using const_where_expression<_MaskType, _SimdType>::__s_;
 
   //friend where_expression where<>(const _MaskType&, _SimdType&) noexcept;
-  //friend where_expression where<>(const __nodeduce_t<_MaskType>&, _SimdType&) noexcept;
+  //friend where_expression where<>(const __identity_t<_MaskType>&, _SimdType&) noexcept;
   //friend where_expression where<>(bool, _SimdType&) noexcept;
   template <class _Tp>
   typename _SimdType::value_type __to_value_type(_Tp&& __v) const {
@@ -1484,7 +1472,7 @@ class where_expression<bool, _SimdType> : public const_where_expression<bool, _S
   using const_where_expression<bool, _SimdType>::__s_;
 
   //friend where_expression where<>(const _MaskType&, _SimdType&) noexcept;
-  //friend where_expression where<>(const __nodeduce_t<_MaskType>&, _SimdType&) noexcept;
+  //friend where_expression where<>(const type_identity_t<_MaskType>&, _SimdType&) noexcept;
   //friend where_expression where<>(bool, _SimdType&) noexcept;
 
 public:
