@@ -21,11 +21,11 @@
 //
 // template <class T, class Abi>
 // where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>>
-// where(const nodeduce_t<simd_mask<T, Abi>>&, simd_mask<T, Abi>&) noexcept;
+// where(const type_identity_t<simd_mask<T, Abi>>&, simd_mask<T, Abi>&) noexcept;
 //
 // template <class T, class Abi>
 // const_where_expression<simd_mask<T, Abi>, const simd_mask<T, Abi>>
-// where(const nodeduce_t<simd_mask<T, Abi>>&, const simd_mask<T, Abi>&) noexcept;
+// where(const type_identity_t<simd_mask<T, Abi>>&, const simd_mask<T, Abi>&) noexcept;
 //
 // template <class T> where_expression<bool, T> where(see below k, T& d) noexcept;
 //
