@@ -59,7 +59,7 @@ void compile_const_where() {
   {
     const bool b = true;
     static_assert(std::is_same<decltype(ex::where(b, 3)),
-                               ex::const_where_expression<bool, const int>>::value,
+                               ex::const_where_expression<bool, int>>::value,
                   "");
   }
 }
