@@ -26,6 +26,9 @@ template <typename T> inline constexpr int max_fixed_size = implementation-defin
 template <typename T> using compatible = implementation-defined;
 template <typename T> using native = implementation-defined;
 
+template <class T, size_t N, class... Abis> struct deduce { using type = see below; };
+template <class T, size_t N, class... Abis> using deduce_t = typename deduce<T, N, Abis...>::type;
+
 } // simd_abi
 
 struct element_aligned_tag {};
@@ -47,9 +50,6 @@ template <class T> inline constexpr bool is_simd_mask_v = is_simd_mask<T>::value
 
 template <class T> struct is_simd_flag_type;
 template <class T> inline constexpr bool is_simd_flag_type_v = is_simd_flag_type<T>::value;
-
-template <class T, size_t N> struct abi_for_size { using type = see below; };
-template <class T, size_t N> using abi_for_size_t = typename abi_for_size<T, N>::type;
 
 template <class T, class Abi = simd_abi::compatible<T>> struct simd_size;
 template <class T, class Abi = simd_abi::compatible<T>>
@@ -84,9 +84,9 @@ template <class T, size_t N> simd<T> to_compatible(const fixed_size_simd<T, N>&)
 template <class T, size_t N> simd_mask<T> to_compatible(const fixed_size_simd_mask<T, N>&) noexcept;
 
 template <size_t... Sizes, class T, class Abi>
-tuple<simd<T, abi_for_size_t<Sizes>>...> split(const simd<T, Abi>&);
+tuple<simd<T, simd_abi::deduce_t<T, Sizes>>...> split(const simd<T, Abi>&);
 template <size_t... Sizes, class T, class Abi>
-tuple<simd_mask<T, abi_for_size_t<Sizes>>...> split(const simd_mask<T, Abi>&);
+tuple<simd_mask<T, simd_mask_abi::deduce_t<T, Sizes>>...> split(const simd_mask<T, Abi>&);
 template <class V, class Abi>
 array<V, simd_size_v<typename V::value_type, Abi> / V::size()> split(
 const simd<typename V::value_type, Abi>&);
@@ -95,9 +95,9 @@ array<V, simd_size_v<typename V::value_type, Abi> / V::size()> split(
 const simd_mask<typename V::value_type, Abi>&);
 
 template <class T, class... Abis>
-simd<T, abi_for_size_t<T, (simd_size_v<T, Abis> + ...)>> concat(const simd<T, Abis>&...);
+simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>> concat(const simd<T, Abis>&...);
 template <class T, class... Abis>
-simd_mask<T, abi_for_size_t<T, (simd_size_v<T, Abis> + ...)>> concat(const simd_mask<T, Abis>&...);
+simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>> concat(const simd_mask<T, Abis>&...);
 
 // reductions [simd.mask.reductions]
 template <class T, class Abi> bool all_of(const simd_mask<T, Abi>&) noexcept;
@@ -874,6 +874,14 @@ template <class>
 using native = scalar;
 #endif
 
+template <class _Tp, size_t _Np, class... Abis>
+struct deduce {
+  using type = fixed_size<_Np>;
+};
+
+template <class _Tp, size_t _Np, class... Abis>
+using deduce_t = typename deduce<_Tp, _Np>::type;
+
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
@@ -945,14 +953,6 @@ struct is_simd_flag_type<overaligned_tag<_Align>> : std::true_type {};
 
 template <class _Tp>
 inline constexpr bool is_simd_flag_type_v = is_simd_flag_type<_Tp>::value;
-
-template <class _Tp, size_t _Np>
-struct abi_for_size {
-  using type = simd_abi::fixed_size<_Np>;
-};
-
-template <class _Tp, size_t _Np>
-using abi_for_size_t = typename abi_for_size<_Tp, _Np>::type;
 
 template <class _Tp, class _Abi, class = void>
 struct __simd_size_impl {};
@@ -1080,8 +1080,8 @@ auto to_compatible(const fixed_size_simd_mask<_Tp, _Np>& __m) noexcept{
 
 
 template < size_t... __sizes,class _Tp ,class _Abi>
-std::enable_if_t<((0 + ... + __sizes) == simd_size_v<_Tp,_Abi>),tuple<simd<_Tp, abi_for_size_t<_Tp, __sizes>>...>> 
-split(const simd<_Tp, _Abi>& __v){      
+std::enable_if_t<((0 + ... + __sizes) == simd_size_v<_Tp,_Abi>),tuple<simd<_Tp, simd_abi::deduce_t<_Tp, __sizes>>...>>
+split(const simd<_Tp, _Abi>& __v){
   if constexpr(sizeof...(__sizes) == 1){
       return make_tuple(__v);
   }else{
@@ -1101,8 +1101,8 @@ split(const simd<_Tp, _Abi>& __v){
 }
 
 template <size_t... __sizes,class _Tp ,class _Abi>
-std::enable_if_t<((0 + ... + __sizes) == simd_size_v<_Tp,_Abi>),tuple<simd_mask<_Tp, abi_for_size_t<_Tp, __sizes>>...>>
-split(const simd_mask<_Tp, _Abi>& __m){     
+std::enable_if_t<((0 + ... + __sizes) == simd_size_v<_Tp,_Abi>),tuple<simd_mask<_Tp, simd_abi::deduce_t<_Tp, __sizes>>...>>
+split(const simd_mask<_Tp, _Abi>& __m){
   if constexpr(sizeof...(__sizes) == 1){
       return make_tuple(__m);
   }else{
@@ -1170,8 +1170,8 @@ split(const simd_mask<typename _SimdMaskType::simd_type::value_type, _Abi>& __m)
 }
 
 template <class _Tp, class... _Abis>
-simd<_Tp, abi_for_size_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >> concat(const simd<_Tp, _Abis>&... __v){
-  auto temp = simd<_Tp, abi_for_size_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >>();
+simd<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >> concat(const simd<_Tp, _Abis>&... __v){
+  auto temp = simd<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >>();
   int k = 0;
   ([&](){
         for(size_t i = 0; i < __v.size(); ++i){
@@ -1183,8 +1183,8 @@ simd<_Tp, abi_for_size_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >> concat(const si
 }
 
 template <class _Tp, class... _Abis>
-simd_mask<_Tp, abi_for_size_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >> concat(const simd_mask<_Tp, _Abis>&... __m){
-  auto temp = simd_mask<_Tp, abi_for_size_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >>();
+simd_mask<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >> concat(const simd_mask<_Tp, _Abis>&... __m){
+  auto temp = simd_mask<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, _Abis> + ...) >>();
   int k = 0;
   ([&](){
         for(size_t i = 0; i < __m.size(); ++i){
@@ -1441,7 +1441,7 @@ public:
     {								\
        _Impl::__masked##__name(__s_.__s_, __m_.__s_,		\
 		__to_value_type(std::forward<_Tp>(__v)));	\
-    }								
+    }
   _LIBCXX_SIMD_MASK_OP_(+, _plus)
   _LIBCXX_SIMD_MASK_OP_(-, _minus)
   _LIBCXX_SIMD_MASK_OP_(*, _multiplues)
@@ -1501,7 +1501,7 @@ public:
     void operator __op##=(_Tp&& __v)				\
     {								\
 	__s_ = __m_ ? __s_ __op __v : __s_;			\
-    }								
+    }
   _LIBCXX_SIMD_MASK_OP_(+, _plus)
   _LIBCXX_SIMD_MASK_OP_(-, _minus)
   _LIBCXX_SIMD_MASK_OP_(*, _multiplues)
