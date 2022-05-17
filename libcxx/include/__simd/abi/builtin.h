@@ -218,6 +218,49 @@ struct __simd_traits {
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
       __mem[__i] = __m.__data[__i] ? static_cast<_Up>(__s.__data[__i]) : __mem[__i];
   }
+
+  template<typename _BinaryOp>
+  static _Tp __reduce(const _Simd& __s, _BinaryOp __op) {
+   _Tp __sum = __s.__data[0];
+  for (size_t __i = 1; __i < _Abi::__simd_size; __i++) {
+    __sum = __op(__sum, __s.__data[__i]);
+  }
+  return __sum;
+}
+  template<typename _BinaryOp>
+  static _Tp __reduce_(const _Mask& __m,  _Simd& __s, _BinaryOp __op)
+ {
+    bool flag = false;
+    _Tp __acc;
+    for(size_t i=0; i<_Abi::__simd_size; i++){
+      if(__m.__data[i] == true && flag ==false){
+        __acc = __s.__data[i];
+        flag = true;
+        continue;
+      }
+      if(__m.__data[i] == true && flag ==true){
+        __acc = __op(__acc, __s.__data[i]);
+      }
+    }
+    return __acc; 
+  }
+  template<typename _BinaryOp>
+  static _Tp __reduce_(const _Mask& __m, _Mask& __s, _BinaryOp __op)
+ {
+    bool flag = false;
+    _Tp __acc;
+    for(size_t i=0; i<_Abi::__simd_size; i++){
+      if(__m.__data[i] == true && flag ==false){
+        __acc = __s.__data[i];
+        flag = true;
+        continue;
+      }
+      if(__m.__data[i] == true && flag ==true){
+        __acc = __op(__acc, __s.__data[i]);
+      }
+    }
+    return __acc; 
+  }
 };
 
 

@@ -1320,8 +1320,15 @@ template <class _Tp, class _Abi, class _BinaryOp = std::plus<_Tp>>
 _Tp reduce(const simd<_Tp, _Abi>&, _BinaryOp = _BinaryOp());
 
 template <class _MaskType, class _SimdType, class _BinaryOp>
-typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>&,
-                                      typename _SimdType::value_type neutral_element, _BinaryOp binary_op);
+typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>& __w,
+                                      typename _SimdType::value_type __identity, _BinaryOp __binary_op){
+  if (none_of(__w.__m_)) {
+    return __identity;
+  } else {
+    return //__simd_traits<typename _SimdType::value_type, typename _SimdType::abi_type>::
+    __reduce_(__w.__m_.__s_, __w.__s_.__s_, __binary_op);
+  }
+}
 
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>&,
@@ -1350,7 +1357,20 @@ _Tp hmin(const simd<_Tp, _Abi>& __s) noexcept {
 
 // TODO: implement
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>&) noexcept;
+typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>& __w){
+  if (none_of(__w.__m_)) {
+    return numeric_limits<typename _SimdType::value_type>::max();
+  } else {
+    typename _SimdType::value_type __min = numeric_limits<typename _SimdType::value_type>::max();
+    for (size_t i=0; i < __w.__s_.size(); i++) {
+      if ( __w.__m_[i] == true && __w.__s_[i] <= __min) {
+        __min = __w.__s_[i];
+      }
+    }
+    return __min;
+  }
+};
+
 
 template <class _Tp, class _Abi>
 _Tp hmax(const simd<_Tp, _Abi>& __s) noexcept {
@@ -1359,7 +1379,19 @@ _Tp hmax(const simd<_Tp, _Abi>& __s) noexcept {
 
 // TODO: implement
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>&) noexcept;
+typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>& __w){
+  if (none_of(__w.__m_)) {
+        return numeric_limits<typename _SimdType::value_type>::lowest();
+  } else {
+    typename _SimdType::value_type __max = numeric_limits<typename _SimdType::value_type>::lowest();
+    for (size_t i=0; i < __w.__s_.size(); i++) {
+      if ( __w.__m_[i] == true && __w.__s_[i] >= __max) {
+        __max = __w.__s_[i];
+      }
+    }
+    return __max;
+  }
+};
 
 // algorithms [simd.alg]
 template <class _Tp, class _Abi>
@@ -1392,6 +1424,19 @@ class const_where_expression {
   //friend const_where_expression where<>(const __identity_t<_MaskType>&, const _SimdType&) noexcept;
   //friend const_where_expression where<>(bool, const _SimdType&) noexcept;
 
+  template <class _Mp, class _Vp, class _BinaryOp>
+  friend typename _Vp::value_type
+  reduce(const const_where_expression<_Mp, _Vp>& __w,
+         typename _Vp::value_type __identity, _BinaryOp __op);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type
+  hmin(const const_where_expression<_Mp, _Vp>& __w);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type
+  hmax(const const_where_expression<_Mp, _Vp>& __w);
+
 protected:
   const _MaskType __m_;
   _SimdType& __s_;
@@ -1417,6 +1462,19 @@ class const_where_expression<bool, _SimdType> {
   //friend const_where_expression where<>(const _MaskType&, const _SimdType&) noexcept;
   //friend const_where_expression where<>(const __identity_t<_MaskType>&, const _SimdType&) noexcept;
   //friend const_where_expression where<>(bool, const _SimdType&) noexcept;
+
+  template <class _Mp, class _Vp, class _BinaryOp>
+  friend typename _Vp::value_type
+  reduce(const const_where_expression<_Mp, _Vp>& __w,
+         typename _Vp::value_type __identity, _BinaryOp __op);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type
+  hmin(const const_where_expression<_Mp, _Vp>& __w);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type
+  hmax(const const_where_expression<_Mp, _Vp>& __w);
 
 protected:
   const bool __m_;
@@ -1582,6 +1640,23 @@ class simd {
   friend simd clamp<>(const simd&, const simd&, const simd&) noexcept;
   friend _Tp hmin<>(const simd&) noexcept;
   friend _Tp hmax<>(const simd&) noexcept;
+
+  template <class __Tp, class __Abi, class _BinaryOp>
+  friend __Tp reduce(const simd<__Tp, __Abi>&, _BinaryOp);
+
+  template <class _Mp, class _Vp, class _BinaryOp>
+  friend typename _Vp::value_type
+  reduce(const const_where_expression<_Mp, _Vp>& __w,
+         typename _Vp::value_type __identity, _BinaryOp __op);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type
+  hmin(const const_where_expression<_Mp, _Vp>& __w);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type
+  hmax(const const_where_expression<_Mp, _Vp>& __w);
+
 public:
   using value_type = _Tp;
   using reference = __simd_reference<_Storage, value_type>;
