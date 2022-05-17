@@ -218,50 +218,51 @@ struct __simd_traits {
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
       __mem[__i] = __m.__data[__i] ? static_cast<_Up>(__s.__data[__i]) : __mem[__i];
   }
+};
 
-  template<typename _BinaryOp>
-  static _Tp __reduce(const _Simd& __s, _BinaryOp __op) {
+  template<typename _Tp, typename _Abi, typename _BinaryOp>
+  static _Tp __reduce(const __simd_storage<_Tp, _Abi>& __s, _BinaryOp __op) {
    _Tp __sum = __s.__data[0];
-  for (size_t __i = 1; __i < _Abi::__simd_size; __i++) {
+  for (size_t __i = 1; __i < _Abi::__simd_size; __i++)
     __sum = __op(__sum, __s.__data[__i]);
-  }
   return __sum;
 }
-  template<typename _BinaryOp>
-  static _Tp __reduce_(const _Mask& __m,  _Simd& __s, _BinaryOp __op)
+  template<typename _Tp, typename _Abi, typename _BinaryOp>
+  static _Tp __reduce_(const __mask_storage<_Tp, _Abi>& __m,  __simd_storage<_Tp, _Abi>& __s, _BinaryOp __op)
  {
     bool flag = false;
     _Tp __acc;
-    for(size_t i=0; i<_Abi::__simd_size; i++){
-      if(__m.__data[i] == true && flag ==false){
+    for (size_t i=0; i<_Abi::__simd_size; i++) {
+      if (__m.__data[i] && !flag) {
         __acc = __s.__data[i];
         flag = true;
         continue;
       }
-      if(__m.__data[i] == true && flag ==true){
-        __acc = __op(__acc, __s.__data[i]);
+      if (__m.__data[i] && flag) {
+        auto __tmp = __s.__data[i];
+        __acc = __op(__acc, __tmp);
       }
     }
-    return __acc; 
+    return __acc;
   }
-  template<typename _BinaryOp>
-  static _Tp __reduce_(const _Mask& __m, _Mask& __s, _BinaryOp __op)
+  template<typename _Tp, typename _Abi, typename _BinaryOp>
+  static _Tp __reduce_(const __mask_storage<_Tp, _Abi>& __m, __mask_storage<_Tp, _Abi>& __s, _BinaryOp __op)
  {
     bool flag = false;
     _Tp __acc;
     for(size_t i=0; i<_Abi::__simd_size; i++){
-      if(__m.__data[i] == true && flag ==false){
+      if (__m.__data[i] && !flag) {
         __acc = __s.__data[i];
         flag = true;
         continue;
       }
-      if(__m.__data[i] == true && flag ==true){
-        __acc = __op(__acc, __s.__data[i]);
+      if (__m.__data[i] && flag) {
+        auto __tmp = __s.__data[i];
+        __acc = __op(__acc, __tmp);
       }
     }
-    return __acc; 
+    return __acc;
   }
-};
 
 
 template <class _Tp, class _Abi>
