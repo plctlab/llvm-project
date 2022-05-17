@@ -40,23 +40,23 @@ inline int factorial(int n) { return n == 1 ? 1 : n * factorial(n - 1); }
 void test_reduce() {
   int n = (int)ex::native_simd<int>::size();
   assert(ex::reduce(ex::native_simd<int>([](int i) { return i; })) == n * (n - 1) / 2);
-  assert(ex::reduce(ex::native_simd<int>([](int i) { return i; }), std::plus<int>()) ==
+  assert(ex::reduce(ex::native_simd<int>([](int i) { return i; }), std::plus</*int*/>()) ==
          n * (n - 1) / 2);
   assert(ex::reduce(ex::native_simd<int>([](int i) { return i + 1; }),
-                std::multiplies<int>()) == factorial(n));
+                std::multiplies</*int*/>()) == factorial(n));
 }
 
 void test_reduce_mask() {
   {
     ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    assert(ex::reduce(ex::where(a < 2, a), 0, std::plus<int>()) == 0 + 1);
-    assert(ex::reduce(ex::where(a >= 2, a), 1, std::multiplies<int>()) == 2 * 3);
+    assert(ex::reduce(ex::where(a < 2, a), 0, std::plus</*int*/>()) == 0 + 1);
+    assert(ex::reduce(ex::where(a >= 2, a), 1, std::multiplies</*int*/>()) == 2 * 3);
     assert(ex::reduce(ex::where(a >= 2, a)) == 2 + 3);
-    assert(ex::reduce(ex::where(a >= 2, a), std::plus<int>()) == 2 + 3);
-    assert(ex::reduce(ex::where(a >= 2, a), std::multiplies<int>()) == 2 * 3);
-    assert(ex::reduce(ex::where(a >= 2, a), std::bit_and<int>()) == (2 & 3));
-    assert(ex::reduce(ex::where(a >= 2, a), std::bit_or<int>()) == (2 | 3));
-    assert(ex::reduce(ex::where(a >= 2, a), std::bit_xor<int>()) == (2 ^ 3));
+    assert(ex::reduce(ex::where(a >= 2, a), std::plus</*int*/>()) == 2 + 3);
+    assert(ex::reduce(ex::where(a >= 2, a), std::multiplies</*int*/>()) == 2 * 3);
+    assert(ex::reduce(ex::where(a >= 2, a), std::bit_and</*int*/>()) == (2 & 3));
+    assert(ex::reduce(ex::where(a >= 2, a), std::bit_or</*int*/>()) == (2 | 3));
+    assert(ex::reduce(ex::where(a >= 2, a), std::bit_xor</*int*/>()) == (2 ^ 3));
   }
   {
     ex::fixed_size_simd_mask<int, 4> a;
@@ -66,18 +66,18 @@ void test_reduce_mask() {
     a[3] = false;
     assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a)) == true);
     assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a),
-                  std::plus<bool>()) == true);
+                  std::plus</*bool*/>()) == true);
     assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a),
-                  std::multiplies<bool>()) == false);
+                  std::multiplies</*bool*/>()) == false);
     assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a),
-                  std::bit_and<bool>()) == false);
+                  std::bit_and</*bool*/>()) == false);
     assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a),
-                  std::bit_or<bool>()) == true);
+                  std::bit_or</*bool*/>()) == true);
     assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a),
-                  std::bit_xor<bool>()) == false);
+                  std::bit_xor</*bool*/>()) == false);
   }
 }
 int main() {
-       test_reduce();
-       test_reduce_mask();
+  test_reduce();
+  test_reduce_mask();
 }

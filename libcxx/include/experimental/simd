@@ -1316,8 +1316,11 @@ const_where_expression<bool, _Tp> where(bool __m, const _Tp& __s) noexcept {
 }
 
 // reductions [simd.reductions]
-template <class _Tp, class _Abi, class _BinaryOp = std::plus<_Tp>>
-_Tp reduce(const simd<_Tp, _Abi>&, _BinaryOp = _BinaryOp());
+template <class _Tp, class _Abi, class _BinaryOp = plus<>>
+_Tp reduce(const simd<_Tp, _Abi>& __s, _BinaryOp __binary_op = {}){
+    return //__simd_traits<_Tp, _Abi>::
+    __reduce(__s.__s_, __binary_op);
+}
 
 template <class _MaskType, class _SimdType, class _BinaryOp>
 typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>& __w,
@@ -1331,24 +1334,34 @@ typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _S
 }
 
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>&,
-                                      plus<typename _SimdType::value_type> binary_op = {});
+typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>& __w,
+                                      plus<> __binary_op = {}) noexcept {
+  return reduce(__w, typename _SimdType::value_type(0), __binary_op);
+};
 
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>&,
-                                      multiplies<typename _SimdType::value_type> binary_op);
+typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>& __w,
+                                      multiplies<> __binary_op) noexcept {
+  return reduce(__w, typename _SimdType::value_type(1), __binary_op);
+};
 
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>&,
-                                      bit_and<typename _SimdType::value_type> binary_op);
+typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>& __w,
+                                      bit_and<> __binary_op) noexcept {
+  return reduce(__w, typename _SimdType::value_type(-1), __binary_op);
+};
 
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>&,
-                                      bit_or<typename _SimdType::value_type> binary_op);
+typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>& __w,
+                                      bit_or<> __binary_op) noexcept {
+  return reduce(__w, typename _SimdType::value_type(0), __binary_op);
+};
 
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>&,
-                                      bit_xor<typename _SimdType::value_type> binary_op);
+typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>& __w,
+                                      bit_xor<> __binary_op) noexcept {
+  return reduce(__w, typename _SimdType::value_type(0), __binary_op);
+};
 
 template <class _Tp, class _Abi>
 _Tp hmin(const simd<_Tp, _Abi>& __s) noexcept {
@@ -1847,6 +1860,14 @@ class simd_mask {
 
   template <class _MaskType, class _SimdType>
   friend class where_expression;
+
+  template <class __Tp, class __Abi, class _BinaryOp>
+  friend __Tp reduce(const simd<__Tp, __Abi>&, _BinaryOp);
+
+  template <class _Mp, class _Vp, class _BinaryOp>
+  friend typename _Vp::value_type
+  reduce(const const_where_expression<_Mp, _Vp>& __w,
+         typename _Vp::value_type __identity, _BinaryOp __op);
 
   friend bool all_of<>(const simd_mask&) noexcept;
   friend bool any_of<>(const simd_mask&) noexcept;
