@@ -1176,10 +1176,6 @@ TableJumpSection::TableJumpSection()
     : SyntheticSection(SHF_ALLOC | SHF_WRITE, SHT_RISCV_ATTRIBUTES, config->wordsize,
                        ".tbljalentries") {}
 
-size_t TableJumpSection::addEntryT0(const Symbol& symbol) {
-  return startT0 + addEntry(symbol, entriesT0, maxSizeT0);
-}
-
 size_t TableJumpSection::addEntryZero(const Symbol& symbol) {
   return startZero + addEntry(symbol, entriesZero, maxSizeZero);
 }
@@ -1212,16 +1208,11 @@ size_t TableJumpSection::getSize() const {
   if (!entriesRa.empty()) {
     return (startRa + entriesRa.size()) * xlen;
   }
-  if (!entriesZero.empty()) {
-    return (startZero + entriesZero.size()) * xlen;
-  }
-  return entriesT0.size() * xlen;
+  return (startZero + entriesZero.size()) * xlen;
 }
 
 void TableJumpSection::writeTo(uint8_t *buf) {
   target->writeTableJumpHeader(buf);
-  writeEntries(buf, entriesT0);
-  padUntil(buf + ((startT0 + entriesT0.size()) * xlen), startZero * xlen);
   writeEntries(buf + startZero, entriesZero);
   padUntil(buf + ((startZero + entriesZero.size()) * xlen), startRa * xlen);
   writeEntries(buf + startRa, entriesRa);

@@ -91,9 +91,8 @@ static uint32_t rtype(uint32_t op, uint32_t rd, uint32_t rs1, uint32_t rs2) {
 static uint32_t utype(uint32_t op, uint32_t rd, uint32_t imm) {
   return op | (rd << 7) | (imm << 12);
 }
-
 static uint32_t tbljumptype(uint8_t imm) {
-  return (imm << 2) | (0b10001 << 11);
+  return 0b10 | (imm << 2) | (0b101 << 13);
 }
 
 RISCV::RISCV() {
@@ -302,21 +301,18 @@ void RISCV::insertTableJumps(InputSection &inputSection) const {
   DeleteRanges deleteRanges;
   std::vector<std::pair<const std::string, const uint64_t>> tblJumpSymbols;
 
-  for (auto it = std::begin(inputSection.relocations); it < std::end(inputSection.relocations); ++it) {
-      switch (it->type) {
-        // auipc + jalr pair
-        case R_RISCV_CALL:
-        case R_RISCV_CALL_PLT:
-        /*case R_RISCV_HI20:
-        case R_RISCV_LO12_I:
-        case R_RISCV_LO12_S:
-        case R_RISCV_PCREL_LO12_I:
-        case R_RISCV_PCREL_LO12_S:*/{
-            insertTableJump(inputSection, *it, deleteRanges, tblJumpSymbols);
-            inputSection.relocations.erase(it);
-            --it; // Iterator has been deleted, shifting the list.
-        }
+  for (auto it = std::begin(inputSection.relocations);
+       it < std::end(inputSection.relocations); ++it) {
+    switch (it->type) {
+      // auipc + jalr pair
+      case R_RISCV_CALL:
+      case R_RISCV_CALL_PLT:
+      {
+        insertTableJump(inputSection, *it, deleteRanges, tblJumpSymbols);
+        inputSection.relocations.erase(it);
+        --it; // Iterator has been deleted, shifting the list.
       }
+    }
   }
 
   using DeleteRange = InputSectionBase::DeleteRange;
@@ -326,9 +322,6 @@ void RISCV::insertTableJumps(InputSection &inputSection) const {
               });
 
   inputSection.deleteRanges(deleteRanges);
-
-  //if (bytesToDelete.size() > 0)
-  //  inputSection.deleteBytes(bytesToDelete);
 }
 
 void RISCV::relocate(uint8_t *loc, const Relocation &rel, uint64_t val) const {
@@ -636,8 +629,6 @@ void RISCV::insertTableJump(
   const uint64_t targetLoc = rel.sym->getVA();
   // The address we are jumping from.
   const auto loc = inputSection.getVA() + rel.offset;
-  //const auto jalr = loc + 4;
-  //const uint8_t rd = (jalr & 0x00000fe0) >> 7;
 
   const auto jalr = inputSection.data()[rel.offset + 4];
   const uint8_t rd = extractBits(jalr, 11, 7);
@@ -645,9 +636,7 @@ void RISCV::insertTableJump(
   //const bool rvc = config->eflags & EF_RISCV_RVC;
 
   uint32_t tblEntryAddress;
-  if (rd == X_T0)
-    tblEntryAddress = in.riscvTableJumpSection->addEntryT0(*rel.sym);
-  else if (rd == 0)
+  if (rd == 0)
     tblEntryAddress = in.riscvTableJumpSection->addEntryZero(*rel.sym);
   else if (rd == X_RA)
     tblEntryAddress = in.riscvTableJumpSection->addEntryRa(*rel.sym);
@@ -659,15 +648,7 @@ void RISCV::insertTableJump(
 
   // Write over the auipc instruction
   inputSection.edit(rel.offset, tbljumptype(tblEntryAddress));
-  //inputSection.edit(rel.offset + deleteStartOffset, tblEntryAddress);
-
-  //if (inputSection.getVA() + inputSection.data().size() <= rel.offset + deleteSize)
-    //return;
-  //bytesToDelete.emplace_back(rel.offset + 2, 6);
   addDeleteRange(deleteRanges, rel.offset + 2, 6);
-
-  //bytesToDelete.emplace_back(rel.offset + 2, deleteSize);
-  //bytesToDelete.emplace_back(rel.offset, deleteSize);
   return;
 }
 
