@@ -1,7 +1,7 @@
 # RUN: llvm-mc %s -triple=riscv32 -mattr=experimental-zcmb -riscv-no-aliases -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK-ASM,CHECK-ASM-AND-OBJ %s
 # RUN: llvm-mc -filetype=obj -triple=riscv32 -mattr=experimental-zcmb < %s \
-# RUN:     | llvm-objdump --mattr=experimental-zcmb -M no-aliases -d -r - \
+# RUN:     | llvm-objdump --mattr=-c,experimental-zcmb -M no-aliases -d -r - \
 # RUN:     | FileCheck --check-prefixes=CHECK-ASM-AND-OBJ %s
 
 # CHECK-ASM-AND-OBJ: cm.lbu a5, 10(a4)

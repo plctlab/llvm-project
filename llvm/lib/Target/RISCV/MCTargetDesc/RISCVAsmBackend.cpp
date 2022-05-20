@@ -359,7 +359,8 @@ bool RISCVAsmBackend::mayNeedRelaxation(const MCInst &Inst,
 bool RISCVAsmBackend::writeNopData(raw_ostream &OS, uint64_t Count,
                                    const MCSubtargetInfo *STI) const {
   bool HasStdExtC = STI->getFeatureBits()[RISCV::FeatureStdExtC];
-  unsigned MinNopLen = HasStdExtC ? 2 : 4;
+  bool HasStdExtZca = STI->getFeatureBits()[RISCV::FeatureExtZca];
+  unsigned MinNopLen = (HasStdExtC||HasStdExtZca) ? 2 : 4;
 
   if ((Count % MinNopLen) != 0)
     return false;
@@ -369,7 +370,7 @@ bool RISCVAsmBackend::writeNopData(raw_ostream &OS, uint64_t Count,
     OS.write("\x13\0\0\0", 4);
 
   // The canonical nop on RVC is c.nop.
-  if (Count && HasStdExtC)
+  if (Count && (HasStdExtC||HasStdExtZca))
     OS.write("\x01\0", 2);
 
   return true;
@@ -617,7 +618,8 @@ bool RISCVAsmBackend::shouldInsertExtraNopBytesForCodeAlign(
     return false;
 
   bool HasStdExtC = STI.getFeatureBits()[RISCV::FeatureStdExtC];
-  unsigned MinNopLen = HasStdExtC ? 2 : 4;
+  bool HasStdExtZca = STI.getFeatureBits()[RISCV::FeatureExtZca];
+  unsigned MinNopLen = (HasStdExtC||HasStdExtZca) ? 2 : 4;
 
   if (AF.getAlignment() <= MinNopLen) {
     return false;

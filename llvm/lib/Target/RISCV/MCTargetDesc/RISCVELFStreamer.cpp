@@ -39,11 +39,8 @@ RISCVTargetELFStreamer::RISCVTargetELFStreamer(MCStreamer &S,
 
   unsigned EFlags = MCA.getELFHeaderEFlags();
 
-  if (Features[RISCV::FeatureStdExtC])
+  if (Features[RISCV::FeatureStdExtC] || Features[RISCV::FeatureExtZca])
     EFlags |= ELF::EF_RISCV_RVC;
-
-  if (Features[RISCV::FeatureExtZca])
-    EFlags |= ELF::EF_RISCV_RVZCA;
 
   switch (ABI) {
   case RISCVABI::ABI_ILP32:

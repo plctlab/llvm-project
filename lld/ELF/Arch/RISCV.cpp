@@ -125,9 +125,6 @@ uint32_t RISCV::calcEFlags() const {
     if (eflags & EF_RISCV_RVC)
       target |= EF_RISCV_RVC;
 
-    if (eflags & EF_RISCV_RVZCA)
-      target |= EF_RISCV_RVZCA;
-
     if ((eflags & EF_RISCV_FLOAT_ABI) != (target & EF_RISCV_FLOAT_ABI))
       error(toString(f) +
             ": cannot link object files with different floating-point ABI");
@@ -618,19 +615,18 @@ static bool relaxCall(InputSection *is, Relocation &rel,
   }
 
   bool rvc = config->eflags & EF_RISCV_RVC;
-  bool rvzca = config->eflags & EF_RISCV_RVZCA;
   unsigned rd =
       (read32le(is->data().data() + rel.offset + 4) & 0x00000fe0) >> 7;
 
   // Convert to c.j or c.jal (RV32-only) if offset fits in 12 bits.
-  if ((rvc || rvzca) && isInt<12>(offset) && rd == 0) {
+  if (rvc && isInt<12>(offset) && rd == 0) {
     write16le(is->mutableData().data() + rel.offset, 0xa001); // c.j 0
     addDeleteRange(deleteRanges, rel.offset + 2, 6);
     rel.type = R_RISCV_RVC_JUMP;
     return true;
   }
 
-  if (!config->is64 && (rvc || rvzca) && isInt<12>(offset) && rd == 1) {
+  if (!config->is64 && rvc && isInt<12>(offset) && rd == 1) {
     write16le(is->mutableData().data() + rel.offset, 0x2001); // c.jal 0
     addDeleteRange(deleteRanges, rel.offset + 2, 6);
     rel.type = R_RISCV_RVC_JUMP;
@@ -656,14 +652,13 @@ static bool relaxCall(InputSection *is, Relocation &rel,
 static bool relaxHi20Lo12(InputSection *is, Relocation &rel,
                           DeleteRanges &deleteRanges) {
   bool rvc = config->eflags & EF_RISCV_RVC;
-  bool rvzca = config->eflags & EF_RISCV_RVZCA;
   uint64_t target = rel.sym->getVA(rel.addend);
 
   Defined *gp = ElfSym::riscvGlobalPointer;
 
   auto relaxToCLui = [&]() -> bool {
     unsigned rd = (read32le(is->data().data() + rel.offset) & 0x00000fe0) >> 7;
-    if ((rvc || rvzca) &&
+    if (rvc &&
         isInt<6>(SignExtend64(target + 0x800, config->wordsize * 8) >> 12) &&
         rd != 0 && rd != 2 && target != 0) {
       write16le(is->mutableData().data() + rel.offset,
@@ -857,7 +852,6 @@ static bool relax() {
 
 static void relaxAlign() {
   bool rvc = config->eflags & EF_RISCV_RVC;
-  bool rvzca = config->eflags & EF_RISCV_RVZCA;
 
   for (OutputSection *os : outputSections) {
     for (InputSection *is : getInputSections(os)) {
@@ -872,7 +866,7 @@ static void relaxAlign() {
           uint64_t alignment = PowerOf2Ceil(rel.addend + 2);
           uint64_t nopBytes = alignTo(pc, alignment) - pc;
 
-          if (nopBytes % 2 != 0 || (!(rvc || rvzca) && nopBytes % 4 != 0)) {
+          if (nopBytes % 2 != 0 || (!rvc && nopBytes % 4 != 0)) {
             errorOrWarn(is->getObjMsg(rel.offset) + ": alignment requires " +
                         Twine(nopBytes) + " of nop");
             break;
@@ -897,7 +891,7 @@ static void relaxAlign() {
               write32le(buf, 0x00000013); // nop
               nopBytes -= 4;
               buf += 4;
-            } else if ((rvc || rvzca) && nopBytes == 2) {
+            } else if (rvc && nopBytes == 2) {
               write16le(buf, 0x0001); // c.nop
               nopBytes -= 2;
               buf += 2;

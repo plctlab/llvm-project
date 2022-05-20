@@ -295,10 +295,6 @@ SubtargetFeatures ELFObjectFileBase::getRISCVFeatures() const {
     Features.AddFeature("c");
   }
 
-  if (PlatformFlags & ELF::EF_RISCV_RVZCA) {
-    Features.AddFeature("experimental-zca");
-  }
-
   // Add features according to the ELF attribute section.
   // If there are any unrecognized features, ignore them.
   RISCVAttributeParser Attributes;
@@ -308,6 +304,7 @@ SubtargetFeatures ELFObjectFileBase::getRISCVFeatures() const {
     return Features; // Keep "c" feature if there is one in PlatformFlags.
   }
 
+  bool hasZca = false; 
   Optional<StringRef> Attr = Attributes.getAttributeString(RISCVAttrs::ARCH);
   if (Attr.hasValue()) {
     // The Arch pattern is [rv32|rv64][i|e]version(_[m|a|f|d|c]version)*
@@ -319,6 +316,7 @@ SubtargetFeatures ELFObjectFileBase::getRISCVFeatures() const {
     else if (Arch.consume_front("rv64"))
       Features.AddFeature("64bit");
 
+    hasZca = Arch.contains("zca");
     while (!Arch.empty()) {
       switch (Arch[0]) {
       default:
@@ -343,6 +341,12 @@ SubtargetFeatures ELFObjectFileBase::getRISCVFeatures() const {
       Arch = Arch.drop_while([](char c) { return c == '_'; });
     }
   }
+
+  if(hasZca){
+    Features.AddFeature("c",false);
+    Features.AddFeature("experimental-zca");
+  }
+    
 
   return Features;
 }
