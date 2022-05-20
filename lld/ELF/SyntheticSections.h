@@ -398,7 +398,6 @@ public:
   void writeTo(uint8_t *buf) override;
   bool isNeeded() const override;
 
-  size_t addEntryT0(const Symbol& symbol);
   size_t addEntryZero(const Symbol& symbol);
   size_t addEntryRa(const Symbol& symbol);
 
@@ -418,17 +417,14 @@ private:
 
   const size_t xlen = config->is64 ? 64 : 32;
 
-  std::vector<std::string> entriesT0;
   std::vector<std::string> entriesZero;
   std::vector<std::string> entriesRa;
 
   // TODO: Make use of these in cost function.
-  const size_t maxSizeT0 = 8;
-  const size_t maxSizeZero = 56;
+  const size_t maxSizeZero = 64;
   const size_t maxSizeRa = 192;
 
-  const size_t startT0 = 0;
-  const size_t startZero = 8;
+  const size_t startZero = 0;
   const size_t startRa = 64;
 };
 
