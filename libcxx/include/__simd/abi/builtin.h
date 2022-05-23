@@ -239,6 +239,7 @@ struct __simd_traits {
         continue;
       }
       if (__m.__data[i] && flag) {
+        // TODO: Additional copy costs introduced here, try to eliminate in the future
         auto __tmp = __s.__data[i];
         __acc = __op(__acc, __tmp);
       }
@@ -257,6 +258,7 @@ struct __simd_traits {
         continue;
       }
       if (__m.__data[i] && flag) {
+        // TODO: Additional copy costs introduced here, try to eliminate in the future
         auto __tmp = __s.__data[i];
         __acc = __op(__acc, __tmp);
       }
