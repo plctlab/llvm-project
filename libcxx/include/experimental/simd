@@ -1004,6 +1004,74 @@ struct memory_alignment;
 template <class _Tp, class _Up = typename _Tp::value_type>
 inline constexpr size_t memory_alignment_v = memory_alignment<_Tp, _Up>::value;
 
+template <class T, class = void>
+struct __has_type_impl : std::false_type {};
+
+template <class T>
+struct __has_type_impl<T, std::void_t<typename T::type>> : std::true_type {};
+
+template <class T>
+struct __has_type : __has_type_impl<T> {};
+
+template <class T>
+inline constexpr bool __has_type_v = __has_type<T>::value;
+
+template <class _Tp, class _Vp, class = void>
+struct __rebind_simd_impl {};
+
+template <class _Tp, class _Vp>
+struct __rebind_simd_impl<
+    _Tp, _Vp,
+    std::enable_if_t< __is_vectorizable<_Tp>() && is_simd_v<_Vp> &&
+                      __has_type_v<simd_abi::deduce<_Tp, simd_size_v<typename _Vp::value_type, typename _Vp::abi_type>,
+                                                    typename _Vp::abi_type>> >> {
+  using type = simd<_Tp, simd_abi::deduce_t<_Tp, simd_size_v<typename _Vp::value_type, typename _Vp::abi_type>,
+                                            typename _Vp::abi_type>>;
+};
+
+template <class _Tp, class _Vp>
+struct __rebind_simd_impl<
+    _Tp, _Vp,
+    std::enable_if_t< __is_vectorizable<_Tp>() && is_simd_mask_v<_Vp> &&
+                      __has_type_v<simd_abi::deduce<_Tp, simd_size_v<typename _Vp::value_type, typename _Vp::abi_type>,
+                                                    typename _Vp::abi_type>> >> {
+  using type = simd_mask<_Tp, simd_abi::deduce_t<_Tp, simd_size_v<typename _Vp::value_type, typename _Vp::abi_type>,
+                                                 typename _Vp::abi_type>>;
+};
+
+template <class _Tp, class _Vp>
+struct rebind_simd : __rebind_simd_impl<_Tp, _Vp> {};
+
+template <class _Tp, class _Vp>
+using rebind_simd_t = typename rebind_simd<_Tp, _Vp>::type;
+
+template <int _Np, class _Vp, class = void>
+struct __resize_simd_impl {};
+
+template <int _Np, class _Vp>
+struct __resize_simd_impl<
+    _Np, _Vp,
+    std::enable_if_t< is_simd_v<_Vp> &&
+                      __has_type_v<simd_abi::deduce<typename _Vp::value_type, _Np, typename _Vp::abi_type>> >> {
+  using type =
+      simd<typename _Vp::value_type, simd_abi::deduce_t<typename _Vp::value_type, _Np, typename _Vp::abi_type>>;
+};
+
+template <int _Np, class _Vp>
+struct __resize_simd_impl<
+    _Np, _Vp,
+    std::enable_if_t< is_simd_mask_v<_Vp> &&
+                      __has_type_v<simd_abi::deduce<typename _Vp::value_type, _Np, typename _Vp::abi_type>> >> {
+  using type =
+      simd_mask<typename _Vp::value_type, simd_abi::deduce_t<typename _Vp::value_type, _Np, typename _Vp::abi_type>>;
+};
+
+template <int _Np, class _Vp>
+struct resize_simd : __resize_simd_impl<_Np, _Vp> {};
+
+template <int _Np, class _Vp>
+using resize_simd_t = typename resize_simd<_Np, _Vp>::type;
+
 // class template simd [simd.class]
 template <class _Tp>
 using native_simd = simd<_Tp, simd_abi::native<_Tp>>;
