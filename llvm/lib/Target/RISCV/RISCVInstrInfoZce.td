@@ -381,7 +381,6 @@ def TBLJAL  : RVInstZceTableJump_i<0b010, "tbljal", tbljal_uimm8>, Sched<[]>;
 
 // 6.9 push, pop
 let Predicates = [HasStdExtZcmpOrZcmpe] in {
-
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in 
 def CM_PUSH : RVInstZceCPPP<(outs), (ins rlist:$rlist, spimm:$spimm), 
     "cm.push", "{$rlist}, $spimm">, Sched<[]> {

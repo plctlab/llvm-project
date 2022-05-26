@@ -20,8 +20,8 @@ using namespace llvm::ELF;
 using namespace lld;
 using namespace lld::elf;
 
-  using DeleteRange = InputSectionBase::DeleteRange;
-  using DeleteRanges = std::vector<InputSectionBase::DeleteRange>;
+using DeleteRange = InputSectionBase::DeleteRange;
+using DeleteRanges = std::vector<InputSectionBase::DeleteRange>;
 
 namespace {
 

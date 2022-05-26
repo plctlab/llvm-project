@@ -2040,7 +2040,6 @@ OperandMatchResultTy RISCVAsmParser::parseAtomicMemOp(OperandVector &Operands) {
 
   return MatchOperand_Success;
 }
-
 OperandMatchResultTy RISCVAsmParser::parseReglist(OperandVector &Operands) {
   // Rlist grammar: {ra [, s0[-sN]]} (UABI)
   // XRlist :{x1 [, x8[-x9][, x18[-xN]]]} (UABI)

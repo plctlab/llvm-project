@@ -1240,7 +1240,6 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
 
   return true;
 }
-
 bool RISCVFrameLowering::restoreCalleeSavedRegisters(
     MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
     MutableArrayRef<CalleeSavedInfo> CSI, const TargetRegisterInfo *TRI) const {
@@ -1313,7 +1312,7 @@ bool RISCVFrameLowering::restoreCalleeSavedRegisters(
   }
   return true;
 }
-  
+
 bool RISCVFrameLowering::enableShrinkWrapping(const MachineFunction &MF) const {
   // Keep the conventional code flow when not optimizing.
   if (MF.getFunction().hasOptNone())
