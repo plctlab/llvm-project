@@ -47,36 +47,17 @@ void test_reduce() {
 }
 
 void test_reduce_mask() {
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    assert(ex::reduce(ex::where(a < 2, a), 0, std::plus<>()) == 0 + 1);
-    assert(ex::reduce(ex::where(a >= 2, a), 1, std::multiplies<>()) == 2 * 3);
-    assert(ex::reduce(ex::where(a >= 2, a)) == 2 + 3);
-    assert(ex::reduce(ex::where(a >= 2, a), std::plus<>()) == 2 + 3);
-    assert(ex::reduce(ex::where(a >= 2, a), std::multiplies<>()) == 2 * 3);
-    assert(ex::reduce(ex::where(a >= 2, a), std::bit_and<>()) == (2 & 3));
-    assert(ex::reduce(ex::where(a >= 2, a), std::bit_or<>()) == (2 | 3));
-    assert(ex::reduce(ex::where(a >= 2, a), std::bit_xor<>()) == (2 ^ 3));
-  }
-  {
-    ex::fixed_size_simd_mask<int, 4> a;
-    a[0] = false;
-    a[1] = true;
-    a[2] = true;
-    a[3] = false;
-    assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a)) == true);
-    assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a),
-                  std::plus<>()) == true);
-    assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a),
-                  std::multiplies<>()) == false);
-    assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a),
-                  std::bit_and<>()) == false);
-    assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a),
-                  std::bit_or<>()) == true);
-    assert(ex::reduce(ex::where(ex::fixed_size_simd_mask<int, 4>(true), a),
-                  std::bit_xor<>()) == false);
-  }
+  ex::fixed_size_simd<int, 4> a([](int i) { return i; });
+  assert(ex::reduce(ex::where(a < 2, a), 0, std::plus<>()) == 0 + 1);
+  assert(ex::reduce(ex::where(a >= 2, a), 1, std::multiplies<>()) == 2 * 3);
+  assert(ex::reduce(ex::where(a >= 2, a)) == 2 + 3);
+  assert(ex::reduce(ex::where(a >= 2, a), std::plus<>()) == 2 + 3);
+  assert(ex::reduce(ex::where(a >= 2, a), std::multiplies<>()) == 2 * 3);
+  assert(ex::reduce(ex::where(a >= 2, a), std::bit_and<>()) == (2 & 3));
+  assert(ex::reduce(ex::where(a >= 2, a), std::bit_or<>()) == (2 | 3));
+  assert(ex::reduce(ex::where(a >= 2, a), std::bit_xor<>()) == (2 ^ 3));
 }
+
 int main() {
   test_reduce();
   test_reduce_mask();
