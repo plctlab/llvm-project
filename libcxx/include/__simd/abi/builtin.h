@@ -218,54 +218,15 @@ struct __simd_traits {
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
       __mem[__i] = __m.__data[__i] ? static_cast<_Up>(__s.__data[__i]) : __mem[__i];
   }
-};
 
-  template<typename _Tp, typename _Abi, typename _BinaryOp>
-  static _Tp __reduce(const __simd_storage<_Tp, _Abi>& __s, _BinaryOp __op) {
+  template<class _BinaryOp>
+  static _Tp __reduce(const _Simd& __s, _BinaryOp __op) {
    _Tp __sum = __s.__data[0];
   for (size_t __i = 1; __i < _Abi::__simd_size; __i++)
     __sum = __op(__sum, __s.__data[__i]);
   return __sum;
-}
-  template<typename _Tp, typename _Abi, typename _BinaryOp>
-  static _Tp __reduce_(const __mask_storage<_Tp, _Abi>& __m,  __simd_storage<_Tp, _Abi>& __s, _BinaryOp __op)
- {
-    bool flag = false;
-    _Tp __acc;
-    for (size_t i=0; i<_Abi::__simd_size; i++) {
-      if (__m.__data[i] && !flag) {
-        __acc = __s.__data[i];
-        flag = true;
-        continue;
-      }
-      if (__m.__data[i] && flag) {
-        // TODO: Additional copy costs introduced here, try to eliminate in the future
-        auto __tmp = __s.__data[i];
-        __acc = __op(__acc, __tmp);
-      }
-    }
-    return __acc;
   }
-  template<typename _Tp, typename _Abi, typename _BinaryOp>
-  static _Tp __reduce_(const __mask_storage<_Tp, _Abi>& __m, __mask_storage<_Tp, _Abi>& __s, _BinaryOp __op)
- {
-    bool flag = false;
-    _Tp __acc;
-    for(size_t i=0; i<_Abi::__simd_size; i++){
-      if (__m.__data[i] && !flag) {
-        __acc = __s.__data[i];
-        flag = true;
-        continue;
-      }
-      if (__m.__data[i] && flag) {
-        // TODO: Additional copy costs introduced here, try to eliminate in the future
-        auto __tmp = __s.__data[i];
-        __acc = __op(__acc, __tmp);
-      }
-    }
-    return __acc;
-  }
-
+};
 
 template <class _Tp, class _Abi>
 struct __mask_traits {
@@ -376,24 +337,24 @@ struct __mask_traits {
       __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
     return __s;
   }
-  #define _LIBCXX_MASKED_OP_M(__op, __name)                               \
-    static void __masked##__name(_Mask&__s, _Mask __m, _Tp __v) noexcept  \
-    {                                                                     \
-      for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                \
-        __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :    \
-      __s.__data[__i];                                                    \
-    }
-    _LIBCXX_MASKED_OP_M(+, _plus)
-    _LIBCXX_MASKED_OP_M(-, _minus)
-    _LIBCXX_MASKED_OP_M(*, _multiplues)
-    _LIBCXX_MASKED_OP_M(/, _divides)
-    _LIBCXX_MASKED_OP_M(%, _modulus)
-    _LIBCXX_MASKED_OP_M(&, _bit_and)
-    _LIBCXX_MASKED_OP_M(|, _bit_or)
-    _LIBCXX_MASKED_OP_M(^, _bit_xor)
-    _LIBCXX_MASKED_OP_M(<<, _shift_left)
-    _LIBCXX_MASKED_OP_M(>>, _shift_right)
-  #undef _LIBCXX_MASKED_OP_M
+#define _LIBCXX_MASKED_OP_M(__op, __name)                               \
+  static void __masked##__name(_Mask&__s, _Mask __m, _Tp __v) noexcept  \
+  {                                                                     \
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                \
+      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :    \
+    __s.__data[__i];                                                    \
+  }
+  _LIBCXX_MASKED_OP_M(+, _plus)
+  _LIBCXX_MASKED_OP_M(-, _minus)
+  _LIBCXX_MASKED_OP_M(*, _multiplues)
+  _LIBCXX_MASKED_OP_M(/, _divides)
+  _LIBCXX_MASKED_OP_M(%, _modulus)
+  _LIBCXX_MASKED_OP_M(&, _bit_and)
+  _LIBCXX_MASKED_OP_M(|, _bit_or)
+  _LIBCXX_MASKED_OP_M(^, _bit_xor)
+  _LIBCXX_MASKED_OP_M(<<, _shift_left)
+  _LIBCXX_MASKED_OP_M(>>, _shift_right)
+#undef _LIBCXX_MASKED_OP_M
   static void __masked_incre(_Mask& __s, _Mask __m) noexcept {
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]++ : __s.__data[__i];
@@ -413,17 +374,6 @@ struct __mask_traits {
       __mem[__i] = __m.__data[__i] ? static_cast<_Up>(__s.__data[__i]) : __mem[__i];
   }
 };
-
-template <typename Tuple, typename Func, size_t ... N>
-void call_tuple( Tuple& t, Func&& func, std::index_sequence<N...>) {
-    static_cast<void>(std::initializer_list<int>{(func(std::get<N>(t)), 0)...});
-}
-
-template <typename ... Args, typename Func>
-void for_tuple( std::tuple<Args...>& t, Func&& func) {
-    call_tuple(t, std::forward<Func>(func), std::make_index_sequence<sizeof...(Args)>{});
-}
-
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
