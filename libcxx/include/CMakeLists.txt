@@ -256,6 +256,7 @@ set(files
   __ranges/take_view.h
   __ranges/transform_view.h
   __ranges/view_interface.h
+  __simd/abi/utility.h
   __simd/abi/builtin.h
   __simd/abi/scalar.h
   __simd/abi/simd_storage.h
