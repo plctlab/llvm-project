@@ -30,9 +30,10 @@ struct __neon {
   static constexpr size_t __simd_size = _Np;
 };
 
+template <int _Np>
 struct __ppc {
   static constexpr bool __is_abi_tag = true;
-  static constexpr size_t __simd_size = 16;
+  static constexpr size_t __simd_size = _Np;
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
@@ -162,8 +163,8 @@ _LIBCPP_SIMD_PPC_TYPES(long long)
 _LIBCPP_SIMD_PPC_TYPES(float)
 _LIBCPP_SIMD_PPC_TYPES(double)
 
-template <_Tp>
-struct __simd_storage <_Tp, simd_abi::__ppc> {
+template <class _Tp, int _Np>
+struct __simd_storage <_Tp, simd_abi::__ppc<_Np>> {
   __ppc_type_t<_Tp> __data;
   _Tp __get(size_t __idx) const noexcept
   { return vec_extract(__data, __idx); }
@@ -172,7 +173,7 @@ struct __simd_storage <_Tp, simd_abi::__ppc> {
 }
 
 template <class _Tp, int _Np>
-struct __mask_storage <_Tp, simd_abi::__ppc> : __simd_storage<decltype(__choose_mask_type<_Tp>()), simd_abi::__ppc> {};
+struct __mask_storage <_Tp, simd_abi::__ppc<_Np>> : __simd_storage<decltype(__choose_mask_type<_Tp>()), simd_abi::__ppc<_Np>> {};
 #endif
 
 

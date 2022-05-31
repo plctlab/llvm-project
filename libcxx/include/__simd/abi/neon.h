@@ -6,8 +6,14 @@
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 template <class _Tp, int _Np>
-struct __simd_neon {
+struct __simd_impl<_Tp, simd_abi::__neon<_Np>> {
   using _Simd = __simd_storage<_Tp, simd_abi::__neon<_Np>>;
+  using _Mask = __mask_storage<_Tp, simd_abi::__neon<_Np>>;
+
+};
+
+template <class _Tp, int _Np>
+struct __mask_impl<_Tp, simd_abi::__neon<_Np>> {
   using _Mask = __mask_storage<_Tp, simd_abi::__neon<_Np>>;
 
 };

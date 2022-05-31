@@ -887,12 +887,12 @@ template <class _Tp>
 using native = __neon<16 / sizeof(_Tp)>;
 
 #elif _LIBCPP_SIMD_HAVE_PPC
-template <int>
-using fixed_size = __ppc;
-template <class>
-using compatible = __ppc;
-template <class>
-using native = __ppc;
+template <int _Np>
+using fixed_size = __ppc<_Np>;
+template <class _Tp>
+using compatible = __ppc<16 / sizeof(_Tp)>;
+template <class _Tp>
+using native = __ppc<16 / sizeof(_Tp)>;
 
 #else
 template <int>

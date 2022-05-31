@@ -5,10 +5,16 @@
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
-template <class _Tp>
-struct __simd_ppc {
-  using _Simd = __simd_storage<_Tp, simd_abi::__ppc>;
-  using _Mask = __mask_storage<_Tp, simd_abi::__ppc>;
+template <class _Tp, int _Np>
+struct __simd_impl<_Tp, simd_abi::__ppc<_Np>> {
+  using _Simd = __simd_storage<_Tp, simd_abi::__ppc<_Np>>;
+  using _Mask = __mask_storage<_Tp, simd_abi::__ppc<_Np>>;
+
+};
+
+template <class _Tp, int _Np>
+struct __mask_impl<_Tp, simd_abi::__ppc<_Np>> {
+  using _Mask = __mask_storage<_Tp, simd_abi::__ppc<_Np>>;
 
 };
 
