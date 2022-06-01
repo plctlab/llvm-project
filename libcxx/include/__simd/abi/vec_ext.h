@@ -10,8 +10,8 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   using _Simd = __simd_storage<_Tp, simd_abi::__vec_ext<_Np>>;
   using _Mask = __mask_storage<_Tp, simd_abi::__vec_ext<_Np>>;
 
-  static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-     _Mask __mask;
+  static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept {      
+    _Mask __mask;
     for (size_t __i = 0; __i < _Np; __i++) {
       __mask.__data[__i] = __lhs.__data[__i] == __rhs.__data[__i];
     }
@@ -19,7 +19,7 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   }
 
   static _Mask __not_equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-     _Mask __mask;
+    _Mask __mask;
     for (size_t __i = 0; __i < _Np; __i++) {
       __mask.__data[__i] = __lhs.__data[__i] != __rhs.__data[__i];
     }
@@ -27,7 +27,7 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   }
 
   static _Mask __less_equal(_Simd __lhs, _Simd __rhs) noexcept {
-     _Mask __mask;
+    _Mask __mask;
     for (size_t __i = 0; __i < _Np; __i++) {
       __mask.__data[__i] = __lhs.__data[__i] <= __rhs.__data[__i];
     }
@@ -35,7 +35,7 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   }
 
   static _Mask __less(_Simd __lhs, _Simd __rhs) noexcept{
-     _Mask __mask;
+    _Mask __mask;
     for (size_t __i = 0; __i < _Np; __i++) {
       __mask.__data[__i] = __lhs.__data[__i] < __rhs.__data[__i];
     }
@@ -137,10 +137,10 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
 
   template<class _BinaryOp>
   static _Tp __reduce(const _Simd& __s, _BinaryOp __op) {
-   _Tp __sum = __s.__data[0];
-  for (size_t __i = 1; __i < _Np; __i++)
-    __sum = __op(__sum, __s.__data[__i]);
-  return __sum;
+    _Tp __sum = __s.__data[0];
+    for (size_t __i = 1; __i < _Np; __i++)
+      __sum = __op(__sum, __s.__data[__i]);
+    return __sum;
   }
 };
 
@@ -210,12 +210,11 @@ struct __mask_impl<_Tp, simd_abi::__vec_ext<_Np>> {
       __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
     return __s;
   }
-#define _LIBCXX_MASKED_OP_M(__op, __name)                               \
-  static void __masked##__name(_Mask&__s, _Mask __m, _Tp __v) noexcept  \
-  {                                                                     \
-    for (size_t __i = 0; __i < _Np; ++__i)                \
-      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :    \
-    __s.__data[__i];                                                    \
+#define _LIBCXX_MASKED_OP_M(__op, __name)                                 \
+  static void __masked##__name(_Mask&__s, _Mask __m, _Tp __v) noexcept {  \
+    for (size_t __i = 0; __i < _Np; ++__i)                                \
+      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :      \
+    __s.__data[__i];                                                      \
   }
   _LIBCXX_MASKED_OP_M(+, _plus)
   _LIBCXX_MASKED_OP_M(-, _minus)
