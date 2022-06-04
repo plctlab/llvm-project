@@ -927,7 +927,10 @@ class simd_mask;
 
 struct element_aligned_tag {};
 
-struct vector_aligned_tag {};
+struct vector_aligned_tag {
+  template <class _Tp, class _Up = typename _Tp::value_type>
+  static constexpr size_t __alignmenet = __next_pow_of_2(sizeof(_Up) * _Tp::size());
+};
 
 template <size_t>
 struct overaligned_tag {};
@@ -998,8 +1001,17 @@ struct simd_size : __simd_size_impl<_Tp, _Abi> {};
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
 inline constexpr size_t simd_size_v = simd_size<_Tp, _Abi>::value;
 
+template <class _Tp, class _Up, class = void>
+struct __memory_alignment_impl {};
+
+template <class _Tp, class _Up>
+struct __memory_alignment_impl<_Tp, _Up,
+                               std::enable_if_t<(is_simd_v<_Tp> && __is_vectorizable<_Up>()) ||
+                                                (is_simd_mask_v<_Tp> && std::is_same_v<_Up, bool>)>>
+    : std::integral_constant<size_t, vector_aligned_tag::__alignmenet<_Tp, _Up>> {};
+
 template <class _Tp, class _Up = typename _Tp::value_type>
-struct memory_alignment;
+struct memory_alignment : __memory_alignment_impl<_Tp, _Up> {};
 
 template <class _Tp, class _Up = typename _Tp::value_type>
 inline constexpr size_t memory_alignment_v = memory_alignment<_Tp, _Up>::value;
