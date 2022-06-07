@@ -86,6 +86,32 @@ def uimm5_lsb0 : Operand<XLenVT>,
   }];
 }
 
+def uimm6 : Operand<XLenVT>,
+              ImmLeaf<XLenVT, [{return isUInt<6>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<6>;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeUImmOperand<6>";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return MCOp.isBareSymbolRef();
+  }];
+}
+
+def uimm8 : Operand<XLenVT>,
+              ImmLeaf<XLenVT, [{return isUInt<8>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<8>;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeUImmOperand<8>";
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return MCOp.isBareSymbolRef();
+  }];
+}
+
 def simm13_lsb0_zce : Operand<XLenVT>,
                       ImmLeaf<XLenVT, [{return isShiftedInt<12, 1>(Imm);}]> {
   let ParserMatchClass = SImmAsmOperand<13, "Lsb0Zce">;
@@ -99,54 +125,6 @@ def simm13_lsb0_zce : Operand<XLenVT>,
     return MCOp.isBareSymbolRef();
   }];
   let OperandType = "OPERAND_PCREL";
-}
-
-class uimm8 : Operand<XLenVT>,
-              ImmLeaf<XLenVT, [{return isUInt<8>(Imm);}]> {
-  let ParserMatchClass = UImmAsmOperand<8>;
-  let EncoderMethod = "getImmOpValue";
-  let DecoderMethod = "decodeUImmOperand<8>";
-  let MCOperandPredicate = [{
-    int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return MCOp.isBareSymbolRef();
-  }];
-}
-
-def tbljalm_uimm8 : uimm8 {
-  let ParserMatchClass = UImmAsmOperand<8, "tbljalm">;
-  let DecoderMethod = "decodeZceTableJump";
-  let MCOperandPredicate = [{
-    int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return MCOp.isBareSymbolRef();
-  }];
-}
-
-def tblj_uimm8 : uimm8 {
-  let ParserMatchClass = UImmAsmOperand<8, "tblj">;
-  let EncoderMethod = "8+getImmOpValue";
-  let DecoderMethod = "decodeZceTableJump";
-  let MCOperandPredicate = [{
-    int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return MCOp.isBareSymbolRef();
-  }];
-}
-
-def tbljal_uimm8 : uimm8 {
-  let ParserMatchClass = UImmAsmOperand<8, "tbljal">;
-  let EncoderMethod = "64+getImmOpValue";
-  let DecoderMethod = "decodeZceTableJump";
-  let MCOperandPredicate = [{
-    int64_t Imm;
-    if (!MCOp.evaluateAsConstantImm(Imm))
-      return false;
-    return MCOp.isBareSymbolRef();
-  }];
 }
 
 def simm16_lsb00 : Operand<XLenVT>,
@@ -373,10 +351,23 @@ def : BccSwapPat<SETEQ, BEQI>;
 let Predicates = [EnableZceBnei] in 
 def : BccSwapPat<SETNE, BNEI>;
 
-let Predicates = [HasStdExtZcmt] in {
-def TBLJALM : RVInstZceTableJump_i<0b010, "tbljalm", tbljalm_uimm8>, Sched<[]>;
-def TBLJ    : RVInstZceTableJump_i<0b010, "tblj", tblj_uimm8>, Sched<[]>;
-def TBLJAL  : RVInstZceTableJump_i<0b010, "tbljal", tbljal_uimm8>, Sched<[]>;
+let Predicates = [HasStdExtZcmt],
+hasSideEffects = 0, mayLoad = 0, mayStore = 0 in {
+def CM_JT : RVInst16CJ<0b101, 0b10, (outs), (ins uimm6:$index), "cm.jt", "$index">
+                        ,Sched<[]>{
+  bits<6> index;
+
+  let Inst{12-8} = 0b00000;
+  let Inst{7-2} = index;
+}
+
+def CM_JALT : RVInst16CJ<0b101, 0b10, (outs), (ins uimm8:$index), "cm.jalt", "$index">
+                        ,Sched<[]>{
+  bits<8> index;
+
+  let Inst{12-10} = 0b000;
+  let Inst{9-2} = index;
+}
 }
 
 // 6.9 push, pop

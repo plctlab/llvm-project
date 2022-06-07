@@ -1,15 +1,6 @@
 # RUN: not llvm-mc -triple=riscv64 -mattr=+experimental-zcmt,+zce-lsgp -mattr=m -riscv-no-aliases -show-encoding < %s 2>&1 \
 # RUN:     | FileCheck -check-prefixes=CHECK-ERROR %s
 
-# CHECK-ERROR: error: immediate must be an integer in the range [0, 7]
-tbljalm 8
-
-# CHECK-ERROR: error: immediate must be an integer in the range [0, 55]
-tblj 56
-
-# CHECK-ERROR: error: immediate must be an integer in the range [0, 191]
-tbljal 192
-
 # CHECK-ERROR: error: operand must be a symbol with %lo modifier or an multiple of 4 bytes integer in the range [-32768, 32764]
 lwgp s0, %hi(foo)(gp)
 

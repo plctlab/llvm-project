@@ -376,10 +376,6 @@ static DecodeStatus decodeRVCInstrRdRs1Rs2(MCInst &Inst, unsigned Insn,
                                            uint64_t Address,
                                            const void *Decoder);
 
-static DecodeStatus decodeZceTableJump(MCInst &Inst, unsigned Imm,
-                                           uint64_t Address,
-                                           const void *Decoder);
-
 static DecodeStatus decodeZceRlist(MCInst &Inst, unsigned Imm, uint64_t Address,
                                    const void *Decoder);
 
@@ -441,18 +437,6 @@ static DecodeStatus decodeRVCInstrRdRs1Rs2(MCInst &Inst, unsigned Insn,
   DecodeGPRRegisterClass(Inst, Rd, Address, Decoder);
   Inst.addOperand(Inst.getOperand(0));
   DecodeGPRRegisterClass(Inst, Rs2, Address, Decoder);
-  return MCDisassembler::Success;
-}
-
-static DecodeStatus decodeZceTableJump(MCInst &Inst, unsigned Imm,
-                                           uint64_t Address,
-                                           const void *Decoder) {
-  if(Imm>=8&&Imm<64)
-    Imm-=8;
-  else if (Imm>=64)
-    Imm-=64;
-  // Sign-extend the number in the bottom N bits of Imm
-  Inst.addOperand(MCOperand::createImm(Imm));
   return MCDisassembler::Success;
 }
 
@@ -526,24 +510,24 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
     //   }
     // }
 
-    if (STI.getFeatureBits()[RISCV::FeatureExtZcmt]) {
-      // handle TableJump Instructions of Zce Ext
-      LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
-      unsigned imm = fieldFromInstruction(Insn, 2, 8);
-      // Calling the auto-generated decoder function.
-      if(imm<7){
-        Result = decodeInstruction(DecoderTableZceTBLJALM16, MI, Insn, Address, this, STI);
-      }else if (imm>=8&&imm<64){
-        Result = decodeInstruction(DecoderTableZceTBLJ16, MI, Insn, Address, this, STI);
-      }
-      else if (imm>=64){
-        Result = decodeInstruction(DecoderTableZceTBLJAL16, MI, Insn, Address, this, STI);
-      }
-      if (Result != MCDisassembler::Fail) {
-        Size = 2;
-        return Result;
-      }
-    }
+    // if (STI.getFeatureBits()[RISCV::FeatureExtZcmt]) {
+    //   // handle TableJump Instructions of Zce Ext
+    //   LLVM_DEBUG(dbgs() << "Trying RISCV_Zce_TableJump table (16-bit Instruction):\n");
+    //   unsigned imm = fieldFromInstruction(Insn, 2, 8);
+    //   // Calling the auto-generated decoder function.
+    //   // if(imm<7){
+    //   //   Result = decodeInstruction(DecoderTableZceTBLJALM16, MI, Insn, Address, this, STI);
+    //   // }else if (imm>=8&&imm<64){
+    //   //   Result = decodeInstruction(DecoderTableZceTBLJ16, MI, Insn, Address, this, STI);
+    //   // }
+    //   // else if (imm>=64){
+    //   //   Result = decodeInstruction(DecoderTableZceTBLJAL16, MI, Insn, Address, this, STI);
+    //   // }
+    //   if (Result != MCDisassembler::Fail) {
+    //     Size = 2;
+    //     return Result;
+    //   }
+    // }
 
     LLVM_DEBUG(dbgs() << "Trying RISCV_C table (16-bit Instruction):\n");
     // Calling the auto-generated decoder function.

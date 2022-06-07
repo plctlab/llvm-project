@@ -570,6 +570,15 @@ public:
     return IsConstantImm && isUInt<5>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
+  bool isUImm6() const {
+    int64_t Imm;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    if (!isImm())
+      return false;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isUInt<6>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
   bool isUImm7() const {
     int64_t Imm;
     RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
@@ -691,36 +700,6 @@ public:
       return false;
     bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
     return IsConstantImm && isUInt<8>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
-  }
-
-  bool isUImm8tbljalm() const {
-    int64_t Imm;
-    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
-    if (!isUImm8())
-      return false;
-    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
-    return IsConstantImm && isUInt<8>(Imm) && (uint64_t)Imm < UINT64_C(8) &&
-           VK == RISCVMCExpr::VK_RISCV_None;
-  }
-
-  bool isUImm8tblj() const {
-    int64_t Imm;
-    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
-    if (!isUImm8())
-      return false;
-    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
-    return IsConstantImm && isUInt<8>(Imm) && (uint64_t)Imm <= UINT64_C(55) &&
-           VK == RISCVMCExpr::VK_RISCV_None;
-  }
-
-  bool isUImm8tbljal() const {
-    int64_t Imm;
-    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
-    if (!isUImm8())
-      return false;
-    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
-    return IsConstantImm && isUInt<8>(Imm) && (uint64_t)Imm <= UINT64_C(191) &&
-           VK == RISCVMCExpr::VK_RISCV_None;
   }
 
   bool isUImm8Lsb00() const {
@@ -1344,16 +1323,14 @@ bool RISCVAsmParser::MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
     return generateImmOutOfRangeError(
         Operands, ErrorInfo, 0, (1 << 5) - 2,
         "immediate must be a multiple of 2 bytes in the range");
+  case Match_InvalidUImm6:
+    return generateImmOutOfRangeError(Operands, ErrorInfo, 0, (1 << 6) - 1);
   case Match_InvalidUImm7Lsb00:
     return generateImmOutOfRangeError(
         Operands, ErrorInfo, 0, (1 << 7) - 4,
         "immediate must be a multiple of 4 bytes in the range");
-  case Match_InvalidUImm8tbljalm:
-    return generateImmOutOfRangeError(Operands, ErrorInfo, 0, 7);
-  case Match_InvalidUImm8tblj:
-    return generateImmOutOfRangeError(Operands, ErrorInfo, 0, 55);
-  case Match_InvalidUImm8tbljal:
-    return generateImmOutOfRangeError(Operands, ErrorInfo, 0, 191);
+  case Match_InvalidUImm8:
+    return generateImmOutOfRangeError(Operands, ErrorInfo, 0, (1 << 9) - 1);
   case Match_InvalidUImm8Lsb00:
     return generateImmOutOfRangeError(
         Operands, ErrorInfo, 0, (1 << 8) - 4,

@@ -19,19 +19,7 @@ beqi s0, 20, 40
 # CHECK-ASM: encoding: [0x63,0x34,0x8a,0x02]
 bnei s0, 20, 40
 
-# CHECK-ASM-AND-OBJ: tbljalm 6
-# CHECK-ASM: encoding: [0x18,0x88]
-tbljalm 6
-
-# CHECK-ASM-AND-OBJ: tblj 40
-# CHECK-ASM: encoding: [0xc0,0x88]
-tblj 40
-
-# CHECK-ASM-AND-OBJ: tbljal 190
-# CHECK-ASM: encoding: [0xf8,0x8b]
-tbljal 190
-
-# CHECK-OBJ: decbnez s0, 0, 0x16
+# CHECK-OBJ: decbnez s0, 0, 0x10
 # CHECK-ASM: encoding: [0x07,0x34,0x40,0x80]
 decbnez s0, 1, 4
 
