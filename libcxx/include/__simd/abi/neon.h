@@ -15,28 +15,36 @@ struct __simd_impl<_Tp, simd_abi::__neon<_Np>> {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__equal_to(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__lhs), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__rhs)));
+    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__equal_to(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__lhs),
+                                            __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__rhs)));
   }
 
     static _Mask __not_equal_to(_Simd __lhs, _Simd __rhs) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__not_equal_to(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__lhs), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__rhs)));
+    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__not_equal_to(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__lhs),
+                                                __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__rhs)));
   }
 
   static _Mask __less_equal(_Simd __lhs, _Simd __rhs) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__less_equal(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__lhs), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__rhs)));
+    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__less_equal(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__lhs),
+                                              __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__rhs)));
   }
 
   static _Mask __less(_Simd __lhs, _Simd __rhs) noexcept{
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__less(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__lhs), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__rhs)));
+    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__less(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__lhs),
+                                        __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__rhs)));
   }
 
   static _Tp __hmin(_Simd __s) noexcept{
@@ -57,47 +65,65 @@ struct __simd_impl<_Tp, simd_abi::__neon<_Np>> {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__min(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b)));
+    return __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__min(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a),
+                                       __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b)));
   }
 
   static _Simd __max(_Simd __a, _Simd __b) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__max(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b)));
+    return __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__max(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a),
+                                       __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b)));
   }
 
   static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return {__reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__minmax(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b)).first),
-            __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__minmax(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b)).second)};
+    return {__reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__minmax(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a),
+                                          __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b)).first),
+            __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__minmax(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a),
+                                          __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b)).second)};
   }
 
   static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__clamp(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__v), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__lo), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__hi)));
+    return __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__clamp(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__v),
+                                         __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__lo),
+                                         __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__hi)));
   }
 
   static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__masked_unary_minus(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m)));
+    return __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__masked_unary_minus(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                                      __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m)));
   }
 
   static _Simd __masked_assign(_Simd& __s, _Mask __m, _Tp __v) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__masked_assign(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m), __v));
+    return __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__masked_assign(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                                 __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m),
+                                                 __v));
   }
-#define _LIBCXX_MASKED_OP_(__op, __name)                                                                                                \
-  static void __masked##__name(_Simd& __s, _Mask __m, _Tp __v) noexcept {                                                               \
-    return _Base::__masked##__name(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m), __v);  \
+#define _LIBCXX_MASKED_OP_(__op, __name)                                                                            \
+  static void __masked##__name(_Simd& __s, _Mask __m, _Tp __v) noexcept {                                           \
+    return _Base::__masked##__name(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),   \
+                                   __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m),   \
+                                   __v);                                                                            \
   }
   _LIBCXX_MASKED_OP_(+, _plus)
   _LIBCXX_MASKED_OP_(-, _minus)
@@ -114,28 +140,34 @@ struct __simd_impl<_Tp, simd_abi::__neon<_Np>> {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_incre(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m));
+    return _Base::__masked_incre(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                 __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m));
   }
 
   static void __masked_decre(_Simd& __s, _Mask __m) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_decre(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m));
+    return _Base::__masked_decre(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                 __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m));
   }
   template<class _Up>
   static void __masked_load(_Simd& __s, _Mask __m, _Up* __mem) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_load(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m), __mem);
+    return _Base::__masked_load(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m),
+                                __mem);
   }
  template<class _Up>
  static void __masked_store(const _Simd& __s,  _Mask __m, _Up* __mem) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_store(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m), __mem);
+    return _Base::__masked_store(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                 __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m),
+                                 __mem);
   }
 
   template<class _BinaryOp>
@@ -205,18 +237,25 @@ struct __mask_impl<_Tp, simd_abi::__neon<_Np>> {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__masked_unary_minus(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m)));
+    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__masked_unary_minus(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                                      __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m)));
   }
 
   static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__masked_assign(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m), __v));
+    return __reinterpret_mask<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(
+                          _Base::__masked_assign(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                                 __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m),
+                                                 __v));
   }
-#define _LIBCXX_MASKED_OP_M(__op, __name)                                                                                               \
-  static void __masked##__name(_Mask& __s, _Mask __m, _Tp __v) noexcept {                                                               \
-    return _Base::__masked##__name(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m), __v);  \
+#define _LIBCXX_MASKED_OP_M(__op, __name)                                                                           \
+  static void __masked##__name(_Mask& __s, _Mask __m, _Tp __v) noexcept {                                           \
+    return _Base::__masked##__name(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),   \
+                                   __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m),   \
+                                   __v);                                                                            \
   }
   _LIBCXX_MASKED_OP_M(+, _plus)
   _LIBCXX_MASKED_OP_M(-, _minus)
@@ -233,27 +272,33 @@ struct __mask_impl<_Tp, simd_abi::__neon<_Np>> {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_incre(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m));
+    return _Base::__masked_incre(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                 __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m));
   }
   static void __masked_decre(_Mask& __s, _Mask __m) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_decre(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m));
+    return _Base::__masked_decre(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                 __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m));
   }
   template<class _Up>
   static void __masked_load(_Mask& __s, _Mask __m, _Up* __mem) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_load(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m), __mem);
+    return _Base::__masked_load(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m),
+                                __mem);
   }
  template<class _Up>
  static void __masked_store(const _Mask& __s, _Mask __m, _Up* __mem) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_store(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s), __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m), __mem);
+    return _Base::__masked_store(__reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__s),
+                                 __reinterpret_mask<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__m),
+                                 __mem);
   }
 
 };

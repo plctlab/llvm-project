@@ -10,7 +10,10 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   using _Simd = __simd_storage<_Tp, simd_abi::__vec_ext<_Np>>;
   using _Mask = __mask_storage<_Tp, simd_abi::__vec_ext<_Np>>;
 
-  static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept {      
+  static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept {
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
     _Mask __mask;
     for (size_t __i = 0; __i < _Np; __i++) {
       __mask.__data[__i] = __lhs.__data[__i] == __rhs.__data[__i];

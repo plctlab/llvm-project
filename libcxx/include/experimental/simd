@@ -1118,7 +1118,7 @@ split(const simd<_Tp, _Abi>& __v){
   }else{
     auto temp = make_tuple(simd<_Tp, simd_abi::fixed_size<__sizes>>()...);
     size_t k = 0;
-    for_tuple(temp,[__v,&k](auto&& item)
+    __for_tuple(temp,[__v,&k](auto&& item)
     {
       size_t i=0;
       while( i < item.size() ){
@@ -1139,7 +1139,7 @@ split(const simd_mask<_Tp, _Abi>& __m){
   }else{
     auto temp = make_tuple(simd_mask<_Tp, simd_abi::fixed_size<__sizes>>()...);
     size_t k = 0;
-    for_tuple(temp,[__m,&k](auto&& item)
+    __for_tuple(temp,[__m,&k](auto&& item)
     {
       size_t i=0;
       while( i < item.size() ){
