@@ -32,7 +32,7 @@ void test_split()
  { 
   auto temp =  split<2,2>(M);
   int k = 0;
-  for_tuple(temp,[M,&k](auto&& item)
+  __for_tuple(temp,[M,&k](auto&& item)
   {
     for(size_t i = 0; i < item.size(); ++i){
       assert(item[i] == M[k]);
@@ -44,7 +44,7 @@ void test_split()
  { 
   auto temp =  split<1,3>(M);
   int k = 0;
-  for_tuple(temp,[M,&k](auto&& item)
+  __for_tuple(temp,[M,&k](auto&& item)
   {
     for(size_t i = 0; i < item.size(); ++i){
       assert(item[i] == M[k]);
@@ -56,7 +56,7 @@ void test_split()
  { 
   auto temp =  split<3,1>(M);
   int k = 0;
-  for_tuple(temp,[M,&k](auto&& item)
+  __for_tuple(temp,[M,&k](auto&& item)
   {
     for(size_t i = 0; i < item.size(); ++i){
       assert(item[i] == M[k]);
