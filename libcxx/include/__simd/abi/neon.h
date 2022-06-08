@@ -71,7 +71,8 @@ struct __simd_impl<_Tp, simd_abi::__neon<_Np>> {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__minmax(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b));
+    return {__reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__minmax(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b)).first),
+            __reinterpret_simd<_Tp, simd_abi::__neon<_Np>, simd_abi::__vec_ext<_Np>>(_Base::__minmax(__reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__a), __reinterpret_simd<_Tp, simd_abi::__vec_ext<_Np>, simd_abi::__neon<_Np>>(__b)).second)};
   }
 
   static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {
