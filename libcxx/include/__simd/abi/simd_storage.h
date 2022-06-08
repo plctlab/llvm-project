@@ -177,6 +177,26 @@ struct __mask_storage <_Tp, simd_abi::__ppc<_Np>> : __simd_storage<decltype(__ch
 #endif
 
 
+template <class _Tp, class _To_Abi, class _From_Abi, class _To = __simd_storage<_Tp, _To_Abi>,
+                                 class _From = __simd_storage<_Tp, _From_Abi>>
+_To __reinterpret_simd(_From v) {
+  // Possible optimization
+  _To res;
+  for(size_t i = 0; i < _From_Abi::__simd_size; ++i)
+    res.__set(i, v.__get(i));
+  return res;
+}
+
+template <class _Tp, class _To_Abi, class _From_Abi, class _To = __mask_storage<_Tp, _To_Abi>,
+                                 class _From = __mask_storage<_Tp, _From_Abi>>
+_To __reinterpret_mask(_From v) {
+  // Possible optimization
+  _To res;
+  for(size_t i = 0; i < _From_Abi::__simd_size; ++i)
+    res.__set(i, v.__get(i));
+  return res;
+}
+
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
 #endif // _LIBCPP___SIMD_ABI_SIMD_STORAGE_H
