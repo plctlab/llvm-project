@@ -30,7 +30,7 @@ void test_split()
  { 
   auto temp =  split<2,2>(data);
   int k = 0;
-  for_tuple(temp,[data,&k](auto&& item)
+  __for_tuple(temp,[data,&k](auto&& item)
   {
     for(size_t i = 0; i < item.size(); ++i){
       assert(item[i] == data[k]);
@@ -42,7 +42,7 @@ void test_split()
  { 
   auto temp =  split<1,3>(data);
   int k = 0;
-  for_tuple(temp,[data,&k](auto&& item)
+  __for_tuple(temp,[data,&k](auto&& item)
   {
     for(size_t i = 0; i < item.size(); ++i){
       assert(item[i] == data[k]);
@@ -54,7 +54,7 @@ void test_split()
  { 
   auto temp =  split<3,1>(data);
   int k = 0;
-  for_tuple(temp,[data,&k](auto&& item)
+  __for_tuple(temp,[data,&k](auto&& item)
   {
     for(size_t i = 0; i < item.size(); ++i){
       assert(item[i] == data[k]);
@@ -66,7 +66,7 @@ void test_split()
  { 
   auto temp =  split<1,1,2>(data);
   int k = 0;
-  for_tuple(temp,[data,&k](auto&& item)
+  __for_tuple(temp,[data,&k](auto&& item)
   {
     for(size_t i = 0; i < item.size(); ++i){
       assert(item[i] == data[k]);
@@ -78,7 +78,7 @@ void test_split()
   { 
   auto temp =  split<1,1,1,1>(data);
   int k = 0;
-  for_tuple(temp,[data,&k](auto&& item)
+  __for_tuple(temp,[data,&k](auto&& item)
   {
     for(size_t i = 0; i < item.size(); ++i){
       assert(item[i] == data[k]);
