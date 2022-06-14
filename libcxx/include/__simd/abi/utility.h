@@ -9,6 +9,12 @@ struct __simd_impl;
 template <class _Tp, class _Abi>
 struct __mask_impl;
 
+template <class _Tp, class _Abi>
+struct __simd_serial;
+
+template <class _Tp, class _Abi>
+struct __mask_serial;
+
 // constexpr feature detection
 constexpr inline bool __have_mmx = _LIBCPP_SIMD_HAVE_MMX;
 constexpr inline bool __have_sse = _LIBCPP_SIMD_HAVE_SSE;

@@ -2,6 +2,7 @@
 #define _LIBCPP___SIMD_ABI_VEC_EXT_H
 
 #include <__simd/abi/simd_storage.h>
+#include <__simd/abi/serial.h>
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
@@ -9,103 +10,94 @@ template <class _Tp, int _Np>
 struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   using _Simd = __simd_storage<_Tp, simd_abi::__vec_ext<_Np>>;
   using _Mask = __mask_storage<_Tp, simd_abi::__vec_ext<_Np>>;
+  using _Base = __simd_serial<_Tp, simd_abi::__vec_ext<_Np>>;
 
   static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept {
     // if constexpr (__have_avx512)
     //   avx512_intrinsics
     // else
-    _Mask __mask;
-    for (size_t __i = 0; __i < _Np; __i++) {
-      __mask.__data[__i] = __lhs.__data[__i] == __rhs.__data[__i];
-    }
-    return __mask;
+    return _Base::__equal_to(__lhs, __rhs);
   }
 
   static _Mask __not_equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-    _Mask __mask;
-    for (size_t __i = 0; __i < _Np; __i++) {
-      __mask.__data[__i] = __lhs.__data[__i] != __rhs.__data[__i];
-    }
-    return __mask;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__not_equal_to(__lhs, __rhs);
   }
 
   static _Mask __less_equal(_Simd __lhs, _Simd __rhs) noexcept {
-    _Mask __mask;
-    for (size_t __i = 0; __i < _Np; __i++) {
-      __mask.__data[__i] = __lhs.__data[__i] <= __rhs.__data[__i];
-    }
-    return __mask;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__less_equal(__lhs, __rhs);
   }
 
   static _Mask __less(_Simd __lhs, _Simd __rhs) noexcept{
-    _Mask __mask;
-    for (size_t __i = 0; __i < _Np; __i++) {
-      __mask.__data[__i] = __lhs.__data[__i] < __rhs.__data[__i];
-    }
-    return __mask;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__less(__lhs, __rhs);
   }
 
   static _Tp __hmin(_Simd __s) noexcept{
-    _Tp __min = __s.__data[0];
-    for (size_t __i = 1; __i < _Np; ++__i)
-      __min = std::min(__min, __s.__data[__i]);
-    return __min;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__hmin(__s);
   }
 
   static _Tp __hmax(_Simd __s) noexcept{
-    _Tp __max = __s.__data[0];
-    for (size_t __i = 1; __i < _Np; ++__i)
-      __max = std::max(__max, __s.__data[__i]);
-    return __max;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__hmax(__s);
   }
 
   static _Simd __min(_Simd __a, _Simd __b) noexcept {
-    _Simd __r;
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __r.__data[__i] = std::min(__a.__data[__i], __b.__data[__i]);
-    return __r;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__min(__a, __b);
   }
 
   static _Simd __max(_Simd __a, _Simd __b) noexcept {
-    _Simd __r;
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __r.__data[__i] = std::max(__a.__data[__i], __b.__data[__i]);
-    return __r;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__max(__a, __b);
   }
 
   static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
-    _Simd __min, __max;
-    for (size_t __i = 0; __i < _Np; ++__i) {
-      __min.__data[__i] = std::min(__a.__data[__i], __b.__data[__i]);
-      __max.__data[__i] = std::max(__a.__data[__i], __b.__data[__i]);
-    }
-    return {__min, __max};
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__minmax(__a, __b);
   }
 
   static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {
-    _Simd __r;
-    for (size_t __i = 0; __i <  _Np; ++__i)
-      __r.__data[__i] = std::min(std::max(__v.__data[__i], __lo.__data[__i]), __hi.__data[__i]);
-    return __r;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__clamp(__v, __lo, __hi);
   }
 
   static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept {
-    _Simd __r;
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __r.__data[__i] = __m.__data[__i] ? -__s.__data[__i] : __s.__data[__i];
-    return __r;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_unary_minus(__s, __m);
   }
 
   static _Simd __masked_assign(_Simd& __s, _Mask __m, _Tp __v) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
-    return __s;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_assign(__s, __m, __v);
   }
-#define _LIBCXX_MASKED_OP_(__op, __name)                                  \
-  static void __masked##__name(_Simd&__s, _Mask __m, _Tp __v) noexcept {  \
-     for (size_t __i = 0; __i < _Np; ++__i)                 \
-       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :     \
-    __s.__data[__i];                                                      \
+#define _LIBCXX_MASKED_OP_(__op, __name)                                    \
+  static void __masked##__name(_Simd& __s, _Mask __m, _Tp __v) noexcept {   \
+    return _Base::__masked##__name(__s, __m, __v);                          \
   }
   _LIBCXX_MASKED_OP_(+, _plus)
   _LIBCXX_MASKED_OP_(-, _minus)
@@ -119,105 +111,112 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   _LIBCXX_MASKED_OP_(>>, _shift_right)
 #undef _LIBCXX_MASKED_OP_
   static void __masked_incre(_Simd& __s, _Mask __m) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]++ : __s.__data[__i];
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_incre(__s, __m);
   }
 
   static void __masked_decre(_Simd& __s, _Mask __m) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]-- : __s.__data[__i];
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_decre(__s, __m);
   }
   template<class _Up>
   static void __masked_load(_Simd& __s, _Mask __m, _Up* __mem) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? static_cast<_Tp>(__mem[__i]) : __s.__data[__i];
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_load(__s, __m, __mem);
   }
  template<class _Up>
  static void __masked_store(const _Simd& __s,  _Mask __m, _Up* __mem) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __mem[__i] = __m.__data[__i] ? static_cast<_Up>(__s.__data[__i]) : __mem[__i];
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_store(__s, __m, __mem);
   }
 
   template<class _BinaryOp>
   static _Tp __reduce(const _Simd& __s, _BinaryOp __op) {
-    _Tp __sum = __s.__data[0];
-    for (size_t __i = 1; __i < _Np; __i++)
-      __sum = __op(__sum, __s.__data[__i]);
-    return __sum;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__reduce(__s, __op);
   }
+
 };
 
 template <class _Tp, int _Np>
 struct __mask_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   using _Mask = __mask_storage<_Tp, simd_abi::__vec_ext<_Np>>;
+  using _Base = __mask_serial<_Tp, simd_abi::__vec_ext<_Np>>;
 
   static bool __all_of(_Mask __s) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      if (!__s.__data[__i])
-        return false;
-    return true;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__all_of(__s);
   }
 
   static bool __any_of(_Mask __s) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      if (__s.__data[__i])
-        return true;
-    return false;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__any_of(__s);
   }
 
   static bool __none_of(_Mask __s) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      if (__s.__data[__i])
-        return false;
-    return true;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__none_of(__s);
   }
 
   static bool __some_of(_Mask __s) noexcept {
-    for (size_t __i = 1; __i < _Np; ++__i)
-      if (__s.__data[__i] != __s.__data[__i - 1])
-        return true;
-    return false;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__some_of(__s);
   }
 
   static int __popcount(_Mask __s) noexcept {
-    int __count = 0;
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __count += __s.__data[__i] != 0;
-    return __count;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__popcount(__s);
   }
 
   static int __find_first_set(_Mask __s) {
-    size_t __i = 0;
-    for (; __i < _Np; ++__i)
-      if (__s.__data[__i])
-        break;
-    return __i;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__find_first_set(__s);
   }
 
   static int __find_last_set(_Mask __s) {
-    size_t __i = _Np - 1;
-    for (; __i >= 0; --__i)
-      if (__s.__data[__i])
-        break;
-    return __i;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__find_last_set(__s);
   }
   static _Mask __masked_unary_minus(_Mask __s, _Mask __m) noexcept {
-    _Mask __r;
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __r.__data[__i] = __m.__data[__i] ? -__s.__data[__i] : __s.__data[__i];
-    return __r;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_unary_minus(__s, __m);
   }
 
   static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
-    return __s;
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_assign(__s, __m, __v);
   }
-#define _LIBCXX_MASKED_OP_M(__op, __name)                                 \
-  static void __masked##__name(_Mask&__s, _Mask __m, _Tp __v) noexcept {  \
-    for (size_t __i = 0; __i < _Np; ++__i)                                \
-      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :      \
-    __s.__data[__i];                                                      \
+#define _LIBCXX_MASKED_OP_M(__op, __name)                                   \
+  static void __masked##__name(_Mask& __s, _Mask __m, _Tp __v) noexcept {   \
+    return _Base::__masked##__name(__s, __m, __v);                          \
   }
   _LIBCXX_MASKED_OP_M(+, _plus)
   _LIBCXX_MASKED_OP_M(-, _minus)
@@ -231,23 +230,32 @@ struct __mask_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   _LIBCXX_MASKED_OP_M(>>, _shift_right)
 #undef _LIBCXX_MASKED_OP_M
   static void __masked_incre(_Mask& __s, _Mask __m) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]++ : __s.__data[__i];
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_incre(__s, __m);
   }
   static void __masked_decre(_Mask& __s, _Mask __m) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]-- : __s.__data[__i];
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_decre(__s, __m);
   }
   template<class _Up>
   static void __masked_load(_Mask& __s, _Mask __m, _Up* __mem) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __s.__data[__i] = __m.__data[__i] ?static_cast<_Tp>(__mem[__i]) : __s.__data[__i];
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_load(__s, __m, __mem);
   }
  template<class _Up>
  static void __masked_store(const _Mask& __s, _Mask __m, _Up* __mem) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __mem[__i] = __m.__data[__i] ? static_cast<_Up>(__s.__data[__i]) : __mem[__i];
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_store(__s, __m, __mem);
   }
+
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
