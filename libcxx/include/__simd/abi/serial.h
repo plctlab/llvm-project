@@ -100,7 +100,7 @@ struct __simd_serial {
   }
 #define _LIBCXX_MASKED_OP_(__op, __name)                                  \
   static void __masked##__name(_Simd&__s, _Mask __m, _Tp __v) noexcept {  \
-     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                               \
+     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                 \
        __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :     \
     __s.__data[__i];                                                      \
   }
@@ -212,7 +212,7 @@ struct __mask_serial {
   }
 #define _LIBCXX_MASKED_OP_M(__op, __name)                                 \
   static void __masked##__name(_Mask&__s, _Mask __m, _Tp __v) noexcept {  \
-    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                                \
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                  \
       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :      \
     __s.__data[__i];                                                      \
   }
