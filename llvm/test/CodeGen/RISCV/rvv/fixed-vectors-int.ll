@@ -4356,18 +4356,18 @@ define void @mulhu_v4i64(<4 x i64>* %x) {
 ; LMULMAX1-RV64-NEXT:    vsetvli zero, zero, e64, m1, ta, mu
 ; LMULMAX1-RV64-NEXT:    vmulhu.vv v11, v9, v11
 ; LMULMAX1-RV64-NEXT:    vsub.vv v9, v9, v11
-; LMULMAX1-RV64-NEXT:    lui a2, %hi(.LCPI132_2)
-; LMULMAX1-RV64-NEXT:    ld a2, %lo(.LCPI132_2)(a2)
 ; LMULMAX1-RV64-NEXT:    vmulhu.vv v9, v9, v10
 ; LMULMAX1-RV64-NEXT:    vadd.vv v9, v9, v11
 ; LMULMAX1-RV64-NEXT:    vid.v v10
+; LMULMAX1-RV64-NEXT:    vadd.vi v11, v10, 2
+; LMULMAX1-RV64-NEXT:    lui a2, %hi(.LCPI132_2)
+; LMULMAX1-RV64-NEXT:    ld a2, %lo(.LCPI132_2)(a2)
+; LMULMAX1-RV64-NEXT:    lui a3, %hi(.LCPI132_3)
+; LMULMAX1-RV64-NEXT:    ld a3, %lo(.LCPI132_3)(a3)
+; LMULMAX1-RV64-NEXT:    vsrl.vv v9, v9, v11
 ; LMULMAX1-RV64-NEXT:    vmv.v.x v11, a2
-; LMULMAX1-RV64-NEXT:    lui a2, %hi(.LCPI132_3)
-; LMULMAX1-RV64-NEXT:    ld a2, %lo(.LCPI132_3)(a2)
-; LMULMAX1-RV64-NEXT:    vadd.vi v12, v10, 2
-; LMULMAX1-RV64-NEXT:    vsrl.vv v9, v9, v12
 ; LMULMAX1-RV64-NEXT:    vsetvli zero, zero, e64, m1, tu, mu
-; LMULMAX1-RV64-NEXT:    vmv.s.x v11, a2
+; LMULMAX1-RV64-NEXT:    vmv.s.x v11, a3
 ; LMULMAX1-RV64-NEXT:    vsetvli zero, zero, e64, m1, ta, mu
 ; LMULMAX1-RV64-NEXT:    vmulhu.vv v8, v8, v11
 ; LMULMAX1-RV64-NEXT:    vadd.vi v10, v10, 1

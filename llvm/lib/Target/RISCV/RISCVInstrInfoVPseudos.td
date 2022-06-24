@@ -14,7 +14,7 @@
 //===----------------------------------------------------------------------===//
 
 def riscv_vmv_x_s : SDNode<"RISCVISD::VMV_X_S",
-                           SDTypeProfile<1, 1, [SDTCisInt<0>, SDTCisVec<1>,
+                           SDTypeProfile<1, 1, [SDTCisVT<0, XLenVT>, SDTCisVec<1>,
                                                 SDTCisInt<1>]>>;
 def riscv_read_vlenb : SDNode<"RISCVISD::READ_VLENB",
                               SDTypeProfile<1, 0, [SDTCisVT<0, XLenVT>]>>;
@@ -5524,7 +5524,7 @@ foreach fvti = AllFloatVectors in {
   def : Pat<(fvti.Vector (int_riscv_vfmv_s_f (fvti.Vector fvti.RegClass:$rs1),
                          (fvti.Scalar (fpimm0)), VLOpFrag)),
             (!cast<Instruction>("PseudoVMV_S_X_" # fvti.LMul.MX)
-             (fvti.Vector $rs1), X0, GPR:$vl, fvti.Log2SEW)>;
+             (fvti.Vector $rs1), (XLenVT X0), GPR:$vl, fvti.Log2SEW)>;
 }
 } // Predicates = [HasVInstructionsAnyF]
 

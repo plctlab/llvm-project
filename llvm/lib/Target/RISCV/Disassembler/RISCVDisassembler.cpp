@@ -258,6 +258,17 @@ static DecodeStatus decodeVMaskReg(MCInst &Inst, uint64_t RegNo,
   return MCDisassembler::Success;
 }
 
+static DecodeStatus DecodeGPR32PairRegisterClass(MCInst &Inst, uint64_t RegNo,
+                                                 uint64_t Address,
+                                                 const void *Decoder) {
+  if (RegNo >= 32 || RegNo & 1)
+    return MCDisassembler::Fail;
+
+  MCRegister Reg = RISCV::X0_REG_PAIR_WITH_X0 + (RegNo / 2);
+  Inst.addOperand(MCOperand::createReg(Reg));
+  return MCDisassembler::Success;
+}
+
 // Add implied SP operand for instructions *SP compressed instructions. The SP
 // operand isn't explicitly encoded in the instruction.
 static void addImplySP(MCInst &Inst, int64_t Address,
@@ -460,6 +471,17 @@ DecodeStatus RISCVDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
       LLVM_DEBUG(dbgs() << "Trying RVZfinx table (Float in Integer):\n");
       Result = decodeInstruction(DecoderTableRVZfinx32, MI, Insn, Address, this,
                                  STI);
+      if (Result != MCDisassembler::Fail) {
+        Size = 4;
+        return Result;
+      }
+    }
+
+    if (!STI.getFeatureBits()[RISCV::Feature64Bit]) {
+      LLVM_DEBUG(dbgs() << "Trying RISCV32Only_32 table :\n");
+      // Calling the auto-generated decoder function.
+      Result = decodeInstruction(DecoderTableRISCV32Only_32, MI, Insn,
+                                 Address, this, STI);
       if (Result != MCDisassembler::Fail) {
         Size = 4;
         return Result;

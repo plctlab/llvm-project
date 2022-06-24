@@ -699,7 +699,7 @@ multiclass VPatBinarySDNodeExt_V_WV_WX<SDNode op, PatFrags extop, string instruc
       (vti.Vector
         (riscv_trunc_vector_vl
           (op (wti.Vector wti.RegClass:$rs2),
-              (wti.Vector (extop (vti.Vector (SplatPat GPR:$rs1))))),
+              (wti.Vector (extop (vti.Vector (SplatPat (XLenVT GPR:$rs1)))))),
           (vti.Mask true_mask),
           VLOpFrag)),
       (!cast<Instruction>(instruction_name#"_WX_"#vti.LMul.MX)
@@ -821,7 +821,7 @@ multiclass VPatNarrowShiftSplatExt_WX<SDNode op, PatFrags extop, string instruct
       (vti.Vector
         (riscv_trunc_vector_vl
           (op (wti.Vector wti.RegClass:$rs2),
-              (wti.Vector (extop (vti.Vector (SplatPat GPR:$rs1)),
+              (wti.Vector (extop (vti.Vector (SplatPat (XLenVT GPR:$rs1))),
                                  (vti.Mask true_mask), VLOpFrag)),
           (wti.Mask true_mask), VLOpFrag),
         (vti.Mask true_mask), VLOpFrag)),
@@ -1140,7 +1140,7 @@ foreach vtiTowti = AllWidenableIntVectors in {
                                                (vti.Mask V0),
                                                VLOpFrag)),
             (!cast<Instruction>("PseudoVNSRL_WX_"#vti.LMul.MX#"_MASK")
-                (vti.Vector (IMPLICIT_DEF)), wti.RegClass:$rs1, X0,
+                (vti.Vector (IMPLICIT_DEF)), wti.RegClass:$rs1, (XLenVT X0),
                 (vti.Mask V0), GPR:$vl, vti.Log2SEW, TAIL_AGNOSTIC)>;
 }
 
@@ -1915,7 +1915,7 @@ foreach vti = AllFloatVectors in {
                                            (vti.Scalar (fpimm0)),
                                            VLOpFrag)),
             (!cast<Instruction>("PseudoVMV_S_X_"#vti.LMul.MX)
-                vti.RegClass:$merge, X0, GPR:$vl, vti.Log2SEW)>;
+                vti.RegClass:$merge, (XLenVT X0), GPR:$vl, vti.Log2SEW)>;
   def : Pat<(vti.Vector (riscv_vfmv_s_f_vl (vti.Vector vti.RegClass:$merge),
                                            vti.ScalarRegClass:$rs1,
                                            VLOpFrag)),

@@ -19221,6 +19221,437 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
     IntrinsicTypes = {ResultType};
     break;
 
+    // P extension
+#define BUILTIN_ID(NAME)                                                       \
+  case RISCV::BI__rv_##NAME:                                                   \
+    ID = Intrinsic::riscv_##NAME;                                              \
+    break;
+
+  // Intrinsic type is obtained from Ops[0].
+  case RISCV::BI__rv_add8:
+  case RISCV::BI__rv_add16:
+  case RISCV::BI__rv_ave:
+  case RISCV::BI__rv_bitrev:
+  case RISCV::BI__rv_bpick:
+  case RISCV::BI__rv_clrs8:
+  case RISCV::BI__rv_clrs16:
+  case RISCV::BI__rv_clrs32:
+  case RISCV::BI__rv_clz8:
+  case RISCV::BI__rv_clz16:
+  case RISCV::BI__rv_clz32:
+  case RISCV::BI__rv_cmpeq8:
+  case RISCV::BI__rv_cmpeq16:
+  case RISCV::BI__rv_cras16:
+  case RISCV::BI__rv_crsa16:
+  case RISCV::BI__rv_insb:
+  case RISCV::BI__rv_kabs8:
+  case RISCV::BI__rv_kabs16:
+  case RISCV::BI__rv_kabsw:
+  case RISCV::BI__rv_kadd8:
+  case RISCV::BI__rv_kadd16:
+  case RISCV::BI__rv_kaddh:
+  case RISCV::BI__rv_kaddw:
+  case RISCV::BI__rv_kcras16:
+  case RISCV::BI__rv_kcrsa16:
+  case RISCV::BI__rv_khm8:
+  case RISCV::BI__rv_khm16:
+  case RISCV::BI__rv_khmx8:
+  case RISCV::BI__rv_khmx16:
+  case RISCV::BI__rv_kmmac:
+  case RISCV::BI__rv_kmmac_u:
+  case RISCV::BI__rv_kmmsb:
+  case RISCV::BI__rv_kmmsb_u:
+  case RISCV::BI__rv_ksllw:
+  case RISCV::BI__rv_kslraw:
+  case RISCV::BI__rv_kslraw_u:
+  case RISCV::BI__rv_kstas16:
+  case RISCV::BI__rv_kstsa16:
+  case RISCV::BI__rv_ksub8:
+  case RISCV::BI__rv_ksub16:
+  case RISCV::BI__rv_ksubh:
+  case RISCV::BI__rv_ksubw:
+  case RISCV::BI__rv_kwmmul:
+  case RISCV::BI__rv_kwmmul_u:
+  case RISCV::BI__rv_maxw:
+  case RISCV::BI__rv_minw:
+  case RISCV::BI__rv_pkbb16:
+  case RISCV::BI__rv_pkbt16:
+  case RISCV::BI__rv_pktt16:
+  case RISCV::BI__rv_pktb16:
+  case RISCV::BI__rv_radd8:
+  case RISCV::BI__rv_radd16:
+  case RISCV::BI__rv_raddw:
+  case RISCV::BI__rv_rcras16:
+  case RISCV::BI__rv_rcrsa16:
+  case RISCV::BI__rv_rstas16:
+  case RISCV::BI__rv_rstsa16:
+  case RISCV::BI__rv_rsub8:
+  case RISCV::BI__rv_rsub16:
+  case RISCV::BI__rv_rsubw:
+  case RISCV::BI__rv_scmple8:
+  case RISCV::BI__rv_scmple16:
+  case RISCV::BI__rv_scmplt8:
+  case RISCV::BI__rv_scmplt16:
+  case RISCV::BI__rv_smax8:
+  case RISCV::BI__rv_smax16:
+  case RISCV::BI__rv_smin8:
+  case RISCV::BI__rv_smin16:
+  case RISCV::BI__rv_smmul:
+  case RISCV::BI__rv_smmul_u:
+  case RISCV::BI__rv_stas16:
+  case RISCV::BI__rv_stsa16:
+  case RISCV::BI__rv_sub8:
+  case RISCV::BI__rv_sub16:
+  case RISCV::BI__rv_swap8:
+  case RISCV::BI__rv_swap16:
+  case RISCV::BI__rv_ucmple8:
+  case RISCV::BI__rv_ucmple16:
+  case RISCV::BI__rv_ucmplt8:
+  case RISCV::BI__rv_ucmplt16:
+  case RISCV::BI__rv_ukadd8:
+  case RISCV::BI__rv_ukadd16:
+  case RISCV::BI__rv_ukaddh:
+  case RISCV::BI__rv_ukaddw:
+  case RISCV::BI__rv_ukcras16:
+  case RISCV::BI__rv_ukcrsa16:
+  case RISCV::BI__rv_ukstas16:
+  case RISCV::BI__rv_ukstsa16:
+  case RISCV::BI__rv_uksub8:
+  case RISCV::BI__rv_uksub16:
+  case RISCV::BI__rv_uksubh:
+  case RISCV::BI__rv_uksubw:
+  case RISCV::BI__rv_umax8:
+  case RISCV::BI__rv_umax16:
+  case RISCV::BI__rv_umin8:
+  case RISCV::BI__rv_umin16:
+  case RISCV::BI__rv_uradd8:
+  case RISCV::BI__rv_uradd16:
+  case RISCV::BI__rv_uraddw:
+  case RISCV::BI__rv_urcras16:
+  case RISCV::BI__rv_urcrsa16:
+  case RISCV::BI__rv_urstas16:
+  case RISCV::BI__rv_urstsa16:
+  case RISCV::BI__rv_ursub8:
+  case RISCV::BI__rv_ursub16:
+  case RISCV::BI__rv_ursubw: {
+    switch (BuiltinID) {
+    default:
+      llvm_unreachable("unexpected builtin ID");
+      BUILTIN_ID(add8)
+      BUILTIN_ID(add16)
+      BUILTIN_ID(ave)
+      BUILTIN_ID(bitrev)
+      BUILTIN_ID(bpick)
+      BUILTIN_ID(clrs8)
+      BUILTIN_ID(clrs16)
+      BUILTIN_ID(clrs32)
+      BUILTIN_ID(clz8)
+      BUILTIN_ID(clz16)
+      BUILTIN_ID(clz32)
+      BUILTIN_ID(cmpeq8)
+      BUILTIN_ID(cmpeq16)
+      BUILTIN_ID(cras16)
+      BUILTIN_ID(crsa16)
+      BUILTIN_ID(insb)
+      BUILTIN_ID(kabs8)
+      BUILTIN_ID(kabs16)
+      BUILTIN_ID(kabsw)
+      BUILTIN_ID(kadd8)
+      BUILTIN_ID(kadd16)
+      BUILTIN_ID(kaddh)
+      BUILTIN_ID(kaddw)
+      BUILTIN_ID(kcras16)
+      BUILTIN_ID(kcrsa16)
+      BUILTIN_ID(khm8)
+      BUILTIN_ID(khm16)
+      BUILTIN_ID(khmx8)
+      BUILTIN_ID(khmx16)
+      BUILTIN_ID(kmmac)
+      BUILTIN_ID(kmmac_u)
+      BUILTIN_ID(kmmsb)
+      BUILTIN_ID(kmmsb_u)
+      BUILTIN_ID(ksllw)
+      BUILTIN_ID(kslraw)
+      BUILTIN_ID(kslraw_u)
+      BUILTIN_ID(kstas16)
+      BUILTIN_ID(kstsa16)
+      BUILTIN_ID(ksub8)
+      BUILTIN_ID(ksub16)
+      BUILTIN_ID(ksubh)
+      BUILTIN_ID(ksubw)
+      BUILTIN_ID(kwmmul)
+      BUILTIN_ID(kwmmul_u)
+      BUILTIN_ID(maxw)
+      BUILTIN_ID(minw)
+      BUILTIN_ID(pkbb16)
+      BUILTIN_ID(pkbt16)
+      BUILTIN_ID(pktt16)
+      BUILTIN_ID(pktb16)
+      BUILTIN_ID(radd8)
+      BUILTIN_ID(radd16)
+      BUILTIN_ID(raddw)
+      BUILTIN_ID(rcras16)
+      BUILTIN_ID(rcrsa16)
+      BUILTIN_ID(rstas16)
+      BUILTIN_ID(rstsa16)
+      BUILTIN_ID(rsub8)
+      BUILTIN_ID(rsub16)
+      BUILTIN_ID(rsubw)
+      BUILTIN_ID(scmple8)
+      BUILTIN_ID(scmple16)
+      BUILTIN_ID(scmplt8)
+      BUILTIN_ID(scmplt16)
+      BUILTIN_ID(smax8)
+      BUILTIN_ID(smax16)
+      BUILTIN_ID(smin8)
+      BUILTIN_ID(smin16)
+      BUILTIN_ID(smmul)
+      BUILTIN_ID(smmul_u)
+      BUILTIN_ID(stas16)
+      BUILTIN_ID(stsa16)
+      BUILTIN_ID(sub8)
+      BUILTIN_ID(sub16)
+      BUILTIN_ID(swap8)
+      BUILTIN_ID(swap16)
+      BUILTIN_ID(ucmple8)
+      BUILTIN_ID(ucmple16)
+      BUILTIN_ID(ucmplt8)
+      BUILTIN_ID(ucmplt16)
+      BUILTIN_ID(ukadd8)
+      BUILTIN_ID(ukadd16)
+      BUILTIN_ID(ukaddh)
+      BUILTIN_ID(ukaddw)
+      BUILTIN_ID(ukcras16)
+      BUILTIN_ID(ukcrsa16)
+      BUILTIN_ID(ukstas16)
+      BUILTIN_ID(ukstsa16)
+      BUILTIN_ID(uksub8)
+      BUILTIN_ID(uksub16)
+      BUILTIN_ID(uksubh)
+      BUILTIN_ID(uksubw)
+      BUILTIN_ID(umax8)
+      BUILTIN_ID(umax16)
+      BUILTIN_ID(umin8)
+      BUILTIN_ID(umin16)
+      BUILTIN_ID(uradd8)
+      BUILTIN_ID(uradd16)
+      BUILTIN_ID(uraddw)
+      BUILTIN_ID(urcras16)
+      BUILTIN_ID(urcrsa16)
+      BUILTIN_ID(urstas16)
+      BUILTIN_ID(urstsa16)
+      BUILTIN_ID(ursub8)
+      BUILTIN_ID(ursub16)
+      BUILTIN_ID(ursubw)
+    }
+
+    IntrinsicTypes = {Ops[0]->getType()};
+    break;
+  }
+
+  // Intrinsic type is obtained from ResultType.
+  case RISCV::BI__rv_sunpkd810:
+  case RISCV::BI__rv_sunpkd820:
+  case RISCV::BI__rv_sunpkd830:
+  case RISCV::BI__rv_sunpkd831:
+  case RISCV::BI__rv_sunpkd832:
+  case RISCV::BI__rv_zunpkd810:
+  case RISCV::BI__rv_zunpkd820:
+  case RISCV::BI__rv_zunpkd830:
+  case RISCV::BI__rv_zunpkd831:
+  case RISCV::BI__rv_zunpkd832: {
+    switch (BuiltinID) {
+    default:
+      llvm_unreachable("unexpected builtin ID");
+      BUILTIN_ID(sunpkd810)
+      BUILTIN_ID(sunpkd820)
+      BUILTIN_ID(sunpkd830)
+      BUILTIN_ID(sunpkd831)
+      BUILTIN_ID(sunpkd832)
+      BUILTIN_ID(zunpkd810)
+      BUILTIN_ID(zunpkd820)
+      BUILTIN_ID(zunpkd830)
+      BUILTIN_ID(zunpkd831)
+      BUILTIN_ID(zunpkd832)
+    }
+
+    IntrinsicTypes = {ResultType};
+    break;
+  }
+
+  // Intrinsic type is obtained from ResultType and Ops[0].
+  case RISCV::BI__rv_kdmbb:
+  case RISCV::BI__rv_kdmbt:
+  case RISCV::BI__rv_kdmtt:
+  case RISCV::BI__rv_khmbb:
+  case RISCV::BI__rv_khmbt:
+  case RISCV::BI__rv_khmtt:
+  case RISCV::BI__rv_kmda:
+  case RISCV::BI__rv_kmxda:
+  case RISCV::BI__rv_pbsad:
+  case RISCV::BI__rv_smbb16:
+  case RISCV::BI__rv_smbt16:
+  case RISCV::BI__rv_smtt16:
+  case RISCV::BI__rv_smds:
+  case RISCV::BI__rv_smdrs:
+  case RISCV::BI__rv_smxds: {
+    switch (BuiltinID) {
+    default:
+      llvm_unreachable("unexpected builtin ID");
+      BUILTIN_ID(kdmbb)
+      BUILTIN_ID(kdmbt)
+      BUILTIN_ID(kdmtt)
+      BUILTIN_ID(khmbb)
+      BUILTIN_ID(khmbt)
+      BUILTIN_ID(khmtt)
+      BUILTIN_ID(kmda)
+      BUILTIN_ID(kmxda)
+      BUILTIN_ID(pbsad)
+      BUILTIN_ID(smbb16)
+      BUILTIN_ID(smbt16)
+      BUILTIN_ID(smtt16)
+      BUILTIN_ID(smds)
+      BUILTIN_ID(smdrs)
+      BUILTIN_ID(smxds)
+    }
+
+    IntrinsicTypes = {ResultType, Ops[0]->getType()};
+    break;
+  }
+
+  // Intrinsic type is obtained from ResultType and Ops[1].
+  case RISCV::BI__rv_kdmabb:
+  case RISCV::BI__rv_kdmabt:
+  case RISCV::BI__rv_kdmatt:
+  case RISCV::BI__rv_kmabb:
+  case RISCV::BI__rv_kmabt:
+  case RISCV::BI__rv_kmatt:
+  case RISCV::BI__rv_kmada:
+  case RISCV::BI__rv_kmaxda:
+  case RISCV::BI__rv_kmads:
+  case RISCV::BI__rv_kmadrs:
+  case RISCV::BI__rv_kmaxds:
+  case RISCV::BI__rv_kmmwb2:
+  case RISCV::BI__rv_kmmwb2_u:
+  case RISCV::BI__rv_kmmwt2:
+  case RISCV::BI__rv_kmmwt2_u:
+  case RISCV::BI__rv_kmsda:
+  case RISCV::BI__rv_kmsxda:
+  case RISCV::BI__rv_ksll8:
+  case RISCV::BI__rv_ksll16:
+  case RISCV::BI__rv_kslra8:
+  case RISCV::BI__rv_kslra8_u:
+  case RISCV::BI__rv_kslra16:
+  case RISCV::BI__rv_kslra16_u:
+  case RISCV::BI__rv_pbsada:
+  case RISCV::BI__rv_sclip8:
+  case RISCV::BI__rv_sclip16:
+  case RISCV::BI__rv_sclip32:
+  case RISCV::BI__rv_sll8:
+  case RISCV::BI__rv_sll16:
+  case RISCV::BI__rv_smaqa:
+  case RISCV::BI__rv_smaqa_su:
+  case RISCV::BI__rv_smmwb:
+  case RISCV::BI__rv_smmwb_u:
+  case RISCV::BI__rv_smmwt:
+  case RISCV::BI__rv_smmwt_u:
+  case RISCV::BI__rv_sra_u:
+  case RISCV::BI__rv_sra8:
+  case RISCV::BI__rv_sra8_u:
+  case RISCV::BI__rv_sra16:
+  case RISCV::BI__rv_sra16_u:
+  case RISCV::BI__rv_srl8:
+  case RISCV::BI__rv_srl8_u:
+  case RISCV::BI__rv_srl16:
+  case RISCV::BI__rv_srl16_u:
+  case RISCV::BI__rv_uclip8:
+  case RISCV::BI__rv_uclip16:
+  case RISCV::BI__rv_uclip32:
+  case RISCV::BI__rv_umaqa: {
+    switch (BuiltinID) {
+    default:
+      llvm_unreachable("unexpected builtin ID");
+      BUILTIN_ID(kdmabb)
+      BUILTIN_ID(kdmabt)
+      BUILTIN_ID(kdmatt)
+      BUILTIN_ID(kmabb)
+      BUILTIN_ID(kmabt)
+      BUILTIN_ID(kmatt)
+      BUILTIN_ID(kmada)
+      BUILTIN_ID(kmaxda)
+      BUILTIN_ID(kmads)
+      BUILTIN_ID(kmadrs)
+      BUILTIN_ID(kmaxds)
+      BUILTIN_ID(kmmwb2)
+      BUILTIN_ID(kmmwb2_u)
+      BUILTIN_ID(kmmwt2)
+      BUILTIN_ID(kmmwt2_u)
+      BUILTIN_ID(kmsda)
+      BUILTIN_ID(kmsxda)
+      BUILTIN_ID(ksll8)
+      BUILTIN_ID(ksll16)
+      BUILTIN_ID(kslra8)
+      BUILTIN_ID(kslra8_u)
+      BUILTIN_ID(kslra16)
+      BUILTIN_ID(kslra16_u)
+      BUILTIN_ID(pbsada)
+      BUILTIN_ID(sclip8)
+      BUILTIN_ID(sclip16)
+      BUILTIN_ID(sclip32)
+      BUILTIN_ID(sll8)
+      BUILTIN_ID(sll16)
+      BUILTIN_ID(smaqa)
+      BUILTIN_ID(smaqa_su)
+      BUILTIN_ID(smmwb)
+      BUILTIN_ID(smmwb_u)
+      BUILTIN_ID(smmwt)
+      BUILTIN_ID(smmwt_u)
+      BUILTIN_ID(sra_u)
+      BUILTIN_ID(sra8)
+      BUILTIN_ID(sra8_u)
+      BUILTIN_ID(sra16)
+      BUILTIN_ID(sra16_u)
+      BUILTIN_ID(srl8)
+      BUILTIN_ID(srl8_u)
+      BUILTIN_ID(srl16)
+      BUILTIN_ID(srl16_u)
+      BUILTIN_ID(uclip8)
+      BUILTIN_ID(uclip16)
+      BUILTIN_ID(uclip32)
+      BUILTIN_ID(umaqa)
+    }
+
+    IntrinsicTypes = {ConvertType(E->getType()), Ops[1]->getType()};
+    break;
+  }
+
+  // Intrinsic type is obtained from ResultType and Ops[2].
+  case RISCV::BI__rv_kmmawb:
+  case RISCV::BI__rv_kmmawb_u:
+  case RISCV::BI__rv_kmmawb2:
+  case RISCV::BI__rv_kmmawb2_u:
+  case RISCV::BI__rv_kmmawt:
+  case RISCV::BI__rv_kmmawt_u:
+  case RISCV::BI__rv_kmmawt2:
+  case RISCV::BI__rv_kmmawt2_u: {
+    switch (BuiltinID) {
+    default:
+      llvm_unreachable("unexpected builtin ID");
+      BUILTIN_ID(kmmawb)
+      BUILTIN_ID(kmmawb_u)
+      BUILTIN_ID(kmmawb2)
+      BUILTIN_ID(kmmawb2_u)
+      BUILTIN_ID(kmmawt)
+      BUILTIN_ID(kmmawt_u)
+      BUILTIN_ID(kmmawt2)
+      BUILTIN_ID(kmmawt2_u)
+    }
+
+    IntrinsicTypes = {ResultType, Ops[2]->getType()};
+    break;
+  }
+#undef BUILTIN_ID
+
   // Vector builtins are handled from here.
 #include "clang/Basic/riscv_vector_builtin_cg.inc"
   }

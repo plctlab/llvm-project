@@ -254,8 +254,8 @@ def : InstAlias<"fge.h $rd, $rs, $rt",
 let Predicates = [HasStdExtZfh] in {
 
 /// Float constants
-def : Pat<(f16 (fpimm0)), (FMV_H_X X0)>;
-def : Pat<(f16 (fpimmneg0)), (FSGNJN_H (FMV_H_X X0), (FMV_H_X X0))>;
+def : Pat<(f16 (fpimm0)), (FMV_H_X (XLenVT X0))>;
+def : Pat<(f16 (fpimmneg0)), (FSGNJN_H (FMV_H_X (XLenVT X0)), (FMV_H_X (XLenVT X0)))>;
 
 /// Float conversion operations
 
@@ -274,7 +274,7 @@ def : Pat<(any_fsqrt FPR16:$rs1), (FSQRT_H FPR16:$rs1, 0b111)>;
 def : Pat<(fneg FPR16:$rs1), (FSGNJN_H $rs1, $rs1)>;
 def : Pat<(fabs FPR16:$rs1), (FSGNJX_H $rs1, $rs1)>;
 
-def : PatFprFpr<fcopysign, FSGNJ_H, FPR16>;
+def : PatFprFpr<fcopysign, FSGNJ_H, FPR16, f16>;
 def : Pat<(fcopysign FPR16:$rs1, (fneg FPR16:$rs2)), (FSGNJN_H $rs1, $rs2)>;
 def : Pat<(fcopysign FPR16:$rs1, FPR32:$rs2),
           (FSGNJ_H $rs1, (FCVT_H_S $rs2, 0b111))>;
@@ -299,8 +299,8 @@ def : Pat<(any_fma (fneg FPR16:$rs1), FPR16:$rs2, (fneg FPR16:$rs3)),
 // The ratified 20191213 ISA spec defines fmin and fmax in a way that matches
 // LLVM's fminnum and fmaxnum
 // <https://github.com/riscv/riscv-isa-manual/commit/cd20cee7efd9bac7c5aa127ec3b451749d2b3cce>.
-def : PatFprFpr<fminnum, FMIN_H, FPR16>;
-def : PatFprFpr<fmaxnum, FMAX_H, FPR16>;
+def : PatFprFpr<fminnum, FMIN_H, FPR16, f16>;
+def : PatFprFpr<fmaxnum, FMAX_H, FPR16, f16>;
 
 /// Setcc
 // FIXME: SETEQ/SETLT/SETLE imply nonans, can we pick better instructions for
@@ -315,16 +315,16 @@ def : PatSetCC<FPR16, strict_fsetcc, SETLE, PseudoQuietFLE_H>;
 def : PatSetCC<FPR16, strict_fsetcc, SETOLE, PseudoQuietFLE_H>;
 
 // Match signaling FEQ_H
-def : Pat<(strict_fsetccs FPR16:$rs1, FPR16:$rs2, SETEQ),
+def : Pat<(XLenVT (strict_fsetccs FPR16:$rs1, FPR16:$rs2, SETEQ)),
           (AND (FLE_H $rs1, $rs2),
                (FLE_H $rs2, $rs1))>;
-def : Pat<(strict_fsetccs FPR16:$rs1, FPR16:$rs2, SETOEQ),
+def : Pat<(XLenVT (strict_fsetccs FPR16:$rs1, FPR16:$rs2, SETOEQ)),
           (AND (FLE_H $rs1, $rs2),
                (FLE_H $rs2, $rs1))>;
 // If both operands are the same, use a single FLE.
-def : Pat<(strict_fsetccs FPR16:$rs1, FPR16:$rs1, SETEQ),
+def : Pat<(XLenVT (strict_fsetccs FPR16:$rs1, FPR16:$rs1, SETEQ)),
           (FLE_H $rs1, $rs1)>;
-def : Pat<(strict_fsetccs FPR16:$rs1, FPR16:$rs1, SETOEQ),
+def : Pat<(XLenVT (strict_fsetccs FPR16:$rs1, FPR16:$rs1, SETOEQ)),
           (FLE_H $rs1, $rs1)>;
 
 def : PatSetCC<FPR16, any_fsetccs, SETLT, FLT_H>;
@@ -332,7 +332,7 @@ def : PatSetCC<FPR16, any_fsetccs, SETOLT, FLT_H>;
 def : PatSetCC<FPR16, any_fsetccs, SETLE, FLE_H>;
 def : PatSetCC<FPR16, any_fsetccs, SETOLE, FLE_H>;
 
-def Select_FPR16_Using_CC_GPR : SelectCC_rrirr<FPR16, GPR>;
+def Select_FPR16_Using_CC_GPR : SelectCC_rrirr<FPR16, f16, GPR, XLenVT>;
 } // Predicates = [HasStdExtZfh]
 
 let Predicates = [HasStdExtZfhOrZfhmin] in {

@@ -36,6 +36,9 @@
 ; RUN: llc -mtriple=riscv32 -mattr=+zkn,+zkr,+zkt %s -o - | FileCheck --check-prefix=RV32COMBINEINTOZK %s
 ; RUN: llc -mtriple=riscv32 -mattr=+zbkb,+zbkc,+zbkx,+zkne,+zknd,+zknh %s -o - | FileCheck --check-prefix=RV32COMBINEINTOZKN %s
 ; RUN: llc -mtriple=riscv32 -mattr=+zbkb,+zbkc,+zbkx,+zksed,+zksh %s -o - | FileCheck --check-prefix=RV32COMBINEINTOZKS %s
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-p %s -o - | FileCheck --check-prefix=RV32P %s
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-zpn %s -o - | FileCheck --check-prefix=RV32ZPN %s
+; RUN: llc -mtriple=riscv32 -mattr=+experimental-zpsfoperand %s -o - | FileCheck --check-prefix=RV32ZPSFOPERAND %s
 ; RUN: llc -mtriple=riscv64 -mattr=+m %s -o - | FileCheck --check-prefix=RV64M %s
 ; RUN: llc -mtriple=riscv64 -mattr=+a %s -o - | FileCheck --check-prefix=RV64A %s
 ; RUN: llc -mtriple=riscv64 -mattr=+f %s -o - | FileCheck --check-prefix=RV64F %s
@@ -72,6 +75,9 @@
 ; RUN: llc -mtriple=riscv64 -mattr=+zkn,+zkr,+zkt %s -o - | FileCheck --check-prefix=RV64COMBINEINTOZK %s
 ; RUN: llc -mtriple=riscv64 -mattr=+zbkb,+zbkc,+zbkx,+zkne,+zknd,+zknh %s -o - | FileCheck --check-prefix=RV64COMBINEINTOZKN %s
 ; RUN: llc -mtriple=riscv64 -mattr=+zbkb,+zbkc,+zbkx,+zksed,+zksh %s -o - | FileCheck --check-prefix=RV64COMBINEINTOZKS %s
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-p %s -o - | FileCheck --check-prefix=RV64P %s
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-zpn %s -o - | FileCheck --check-prefix=RV64ZPN %s
+; RUN: llc -mtriple=riscv64 -mattr=+experimental-zpsfoperand %s -o - | FileCheck --check-prefix=RV64ZPSFOPERAND %s
 
 ; RV32M: .attribute 5, "rv32i2p0_m2p0"
 ; RV32A: .attribute 5, "rv32i2p0_a2p0"
@@ -109,6 +115,9 @@
 ; RV32COMBINEINTOZK: .attribute 5, "rv32i2p0_zbkb1p0_zbkc1p0_zbkx1p0_zk1p0_zkn1p0_zknd1p0_zkne1p0_zknh1p0_zkr1p0_zkt1p0"
 ; RV32COMBINEINTOZKN: .attribute 5, "rv32i2p0_zbkb1p0_zbkc1p0_zbkx1p0_zkn1p0_zknd1p0_zkne1p0_zknh1p0"
 ; RV32COMBINEINTOZKS: .attribute 5, "rv32i2p0_zbkb1p0_zbkc1p0_zbkx1p0_zks1p0_zksed1p0_zksh1p0"
+; RV32P: .attribute 5, "rv32i2p0_p0p96_zpn0p96_zpsfoperand0p96"
+; RV32ZPN: .attribute 5, "rv32i2p0_zpn0p96"
+; RV32ZPSFOPERAND: .attribute 5, "rv32i2p0_zpsfoperand0p96"
 
 ; RV64M: .attribute 5, "rv64i2p0_m2p0"
 ; RV64A: .attribute 5, "rv64i2p0_a2p0"
@@ -146,6 +155,9 @@
 ; RV64COMBINEINTOZK: .attribute 5, "rv64i2p0_zbkb1p0_zbkc1p0_zbkx1p0_zk1p0_zkn1p0_zknd1p0_zkne1p0_zknh1p0_zkr1p0_zkt1p0"
 ; RV64COMBINEINTOZKN: .attribute 5, "rv64i2p0_zbkb1p0_zbkc1p0_zbkx1p0_zkn1p0_zknd1p0_zkne1p0_zknh1p0"
 ; RV64COMBINEINTOZKS: .attribute 5, "rv64i2p0_zbkb1p0_zbkc1p0_zbkx1p0_zks1p0_zksed1p0_zksh1p0"
+; RV64P: .attribute 5, "rv64i2p0_p0p96_zpn0p96_zpsfoperand0p96"
+; RV64ZPN: .attribute 5, "rv64i2p0_zpn0p96"
+; RV64ZPSFOPERAND: .attribute 5, "rv64i2p0_zpsfoperand0p96"
 
 define i32 @addi(i32 %a) {
   %1 = add i32 %a, 1

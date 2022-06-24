@@ -349,7 +349,7 @@ def : SysReg<"dscratch1", 0x7B3>;
 // User Vector CSRs
 //===----------------------------------------------------------------------===//
 def : SysReg<"vstart", 0x008>;
-def : SysReg<"vxsat", 0x009>;
+def SysRegVXSAT : SysReg<"vxsat", 0x009>;
 def : SysReg<"vxrm", 0x00A>;
 def : SysReg<"vcsr", 0x00F>;
 def : SysReg<"vl", 0xC20>;
