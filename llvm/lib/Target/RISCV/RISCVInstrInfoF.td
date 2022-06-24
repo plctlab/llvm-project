@@ -467,12 +467,12 @@ def fpimm0    : PatLeaf<(fpimm), [{ return N->isExactlyValue(+0.0); }]>;
 def fpimmneg0 : PatLeaf<(fpimm), [{ return N->isExactlyValue(-0.0); }]>;
 
 /// Generic pattern classes
-class PatSetCC<RegisterClass Ty, SDPatternOperator OpNode, CondCode Cond, RVInst Inst>
-    : Pat<(OpNode Ty:$rs1, Ty:$rs2, Cond), (Inst $rs1, $rs2)>;
+class PatSetCC<RegisterClass Ty, SDPatternOperator OpNode, CondCode Cond, RVInst Inst, ValueType vt = XLenVT>
+    : Pat<(vt (OpNode Ty:$rs1, Ty:$rs2, Cond)), (Inst $rs1, $rs2)>;
 
 class PatFprFpr<SDPatternOperator OpNode, RVInstR Inst,
-                RegisterClass RegTy>
-    : Pat<(OpNode RegTy:$rs1, RegTy:$rs2), (Inst $rs1, $rs2)>;
+                RegisterClass RegTy, ValueType Vt = XLenVT>
+    : Pat<(Vt (OpNode RegTy:$rs1, RegTy:$rs2)), (Inst $rs1, $rs2)>;
 
 class PatFprFprDynFrm<SDPatternOperator OpNode, RVInstRFrm Inst,
                       RegisterClass RegTy>
@@ -481,8 +481,8 @@ class PatFprFprDynFrm<SDPatternOperator OpNode, RVInstRFrm Inst,
 let Predicates = [HasStdExtF] in {
 
 /// Float constants
-def : Pat<(f32 (fpimm0)), (FMV_W_X X0)>;
-def : Pat<(f32 (fpimmneg0)), (FSGNJN_S (FMV_W_X X0), (FMV_W_X X0))>;
+def : Pat<(f32 (fpimm0)), (FMV_W_X (XLenVT X0))>;
+def : Pat<(f32 (fpimmneg0)), (FSGNJN_S (FMV_W_X (XLenVT X0)), (FMV_W_X (XLenVT X0)))>;
 
 /// Float conversion operations
 
@@ -501,7 +501,7 @@ def : Pat<(any_fsqrt FPR32:$rs1), (FSQRT_S FPR32:$rs1, 0b111)>;
 def : Pat<(fneg FPR32:$rs1), (FSGNJN_S $rs1, $rs1)>;
 def : Pat<(fabs FPR32:$rs1), (FSGNJX_S $rs1, $rs1)>;
 
-def : PatFprFpr<fcopysign, FSGNJ_S, FPR32>;
+def : PatFprFpr<fcopysign, FSGNJ_S, FPR32, f32>;
 def : Pat<(fcopysign FPR32:$rs1, (fneg FPR32:$rs2)), (FSGNJN_S $rs1, $rs2)>;
 
 // fmadd: rs1 * rs2 + rs3
@@ -523,8 +523,8 @@ def : Pat<(any_fma (fneg FPR32:$rs1), FPR32:$rs2, (fneg FPR32:$rs3)),
 // The ratified 20191213 ISA spec defines fmin and fmax in a way that matches
 // LLVM's fminnum and fmaxnum
 // <https://github.com/riscv/riscv-isa-manual/commit/cd20cee7efd9bac7c5aa127ec3b451749d2b3cce>.
-def : PatFprFpr<fminnum, FMIN_S, FPR32>;
-def : PatFprFpr<fmaxnum, FMAX_S, FPR32>;
+def : PatFprFpr<fminnum, FMIN_S, FPR32, f32>;
+def : PatFprFpr<fmaxnum, FMAX_S, FPR32, f32>;
 
 /// Setcc
 // FIXME: SETEQ/SETLT/SETLE imply nonans, can we pick better instructions for
@@ -539,16 +539,16 @@ def : PatSetCC<FPR32, strict_fsetcc, SETLE, PseudoQuietFLE_S>;
 def : PatSetCC<FPR32, strict_fsetcc, SETOLE, PseudoQuietFLE_S>;
 
 // Match signaling FEQ_S
-def : Pat<(strict_fsetccs FPR32:$rs1, FPR32:$rs2, SETEQ),
+def : Pat<(XLenVT (strict_fsetccs FPR32:$rs1, FPR32:$rs2, SETEQ)),
           (AND (FLE_S $rs1, $rs2),
                (FLE_S $rs2, $rs1))>;
-def : Pat<(strict_fsetccs FPR32:$rs1, FPR32:$rs2, SETOEQ),
+def : Pat<(XLenVT (strict_fsetccs FPR32:$rs1, FPR32:$rs2, SETOEQ)),
           (AND (FLE_S $rs1, $rs2),
                (FLE_S $rs2, $rs1))>;
 // If both operands are the same, use a single FLE.
-def : Pat<(strict_fsetccs FPR32:$rs1, FPR32:$rs1, SETEQ),
+def : Pat<(XLenVT (strict_fsetccs FPR32:$rs1, FPR32:$rs1, SETEQ)),
           (FLE_S $rs1, $rs1)>;
-def : Pat<(strict_fsetccs FPR32:$rs1, FPR32:$rs1, SETOEQ),
+def : Pat<(XLenVT (strict_fsetccs FPR32:$rs1, FPR32:$rs1, SETOEQ)),
           (FLE_S $rs1, $rs1)>;
 
 def : PatSetCC<FPR32, any_fsetccs, SETLT, FLT_S>;
@@ -556,7 +556,7 @@ def : PatSetCC<FPR32, any_fsetccs, SETOLT, FLT_S>;
 def : PatSetCC<FPR32, any_fsetccs, SETLE, FLE_S>;
 def : PatSetCC<FPR32, any_fsetccs, SETOLE, FLE_S>;
 
-def Select_FPR32_Using_CC_GPR : SelectCC_rrirr<FPR32, GPR>;
+def Select_FPR32_Using_CC_GPR : SelectCC_rrirr<FPR32, f32, GPR, XLenVT>;
 
 /// Loads
 

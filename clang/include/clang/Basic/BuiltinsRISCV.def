@@ -122,5 +122,519 @@ TARGET_BUILTIN(__builtin_riscv_sm4ks, "LiLiLiIUc", "nc", "zksed")
 TARGET_BUILTIN(__builtin_riscv_sm3p0, "LiLi", "nc", "zksh")
 TARGET_BUILTIN(__builtin_riscv_sm3p1, "LiLi", "nc", "zksh")
 
+// P extension
+
+// add8
+TARGET_BUILTIN(__rv_add8, "ULiULiULi", "", "experimental-p")
+
+// add16
+TARGET_BUILTIN(__rv_add16, "ULiULiULi", "", "experimental-p")
+
+// ave
+TARGET_BUILTIN(__rv_ave, "SLiSLiSLi", "", "experimental-p")
+
+// bitrev
+TARGET_BUILTIN(__rv_bitrev, "ULiULiULi", "", "experimental-p")
+
+// bpick
+TARGET_BUILTIN(__rv_bpick, "ULiULiULiULi", "", "experimental-p")
+
+// clrs8
+TARGET_BUILTIN(__rv_clrs8, "ULiULi", "", "experimental-p")
+
+// clrs16
+TARGET_BUILTIN(__rv_clrs16, "ULiULi", "", "experimental-p")
+
+// clrs32
+TARGET_BUILTIN(__rv_clrs32, "ULiULi", "", "experimental-p")
+
+// clz8
+TARGET_BUILTIN(__rv_clz8, "ULiULi", "", "experimental-p")
+
+// clz16
+TARGET_BUILTIN(__rv_clz16, "ULiULi", "", "experimental-p")
+
+// clz32
+TARGET_BUILTIN(__rv_clz32, "ULiULi", "", "experimental-p")
+
+// cmpeq8
+TARGET_BUILTIN(__rv_cmpeq8, "ULiULiULi", "", "experimental-p")
+
+// cmpeq16
+TARGET_BUILTIN(__rv_cmpeq16, "ULiULiULi", "", "experimental-p")
+
+// cras16
+TARGET_BUILTIN(__rv_cras16, "ULiULiULi", "", "experimental-p")
+
+// crsa16
+TARGET_BUILTIN(__rv_crsa16, "ULiULiULi", "", "experimental-p")
+
+// insb
+TARGET_BUILTIN(__rv_insb, "ULiULiULiULi", "", "experimental-p")
+
+// kabs8
+TARGET_BUILTIN(__rv_kabs8, "ULiULi", "", "experimental-p")
+
+// kabs16
+TARGET_BUILTIN(__rv_kabs16, "ULiULi", "", "experimental-p")
+
+// kabsw
+TARGET_BUILTIN(__rv_kabsw, "ULiSLi", "", "experimental-p")
+
+// kadd8
+TARGET_BUILTIN(__rv_kadd8, "ULiULiULi", "", "experimental-p")
+
+// kadd16
+TARGET_BUILTIN(__rv_kadd16, "ULiULiULi", "", "experimental-p")
+
+// kaddh
+TARGET_BUILTIN(__rv_kaddh, "LiLiLi", "", "experimental-p")
+
+// kaddw
+TARGET_BUILTIN(__rv_kaddw, "LiLiLi", "", "experimental-p")
+
+// kcras16
+TARGET_BUILTIN(__rv_kcras16, "ULiULiULi", "", "experimental-p")
+
+// kcrsa16
+TARGET_BUILTIN(__rv_kcrsa16, "ULiULiULi", "", "experimental-p")
+
+// kdmbb
+TARGET_BUILTIN(__rv_kdmbb, "LiULiULi", "", "experimental-p")
+// kdmbt
+TARGET_BUILTIN(__rv_kdmbt, "LiULiULi", "", "experimental-p")
+// kdmtt
+TARGET_BUILTIN(__rv_kdmtt, "LiULiULi", "", "experimental-p")
+
+// kdmabb
+TARGET_BUILTIN(__rv_kdmabb, "LiLiULiULi", "", "experimental-p")
+// kdmabt
+TARGET_BUILTIN(__rv_kdmabt, "LiLiULiULi", "", "experimental-p")
+// kdmatt
+TARGET_BUILTIN(__rv_kdmatt, "LiLiULiULi", "", "experimental-p")
+
+// khm8
+TARGET_BUILTIN(__rv_khm8, "ULiULiULi", "", "experimental-p")
+// khmx8
+TARGET_BUILTIN(__rv_khmx8, "ULiULiULi", "", "experimental-p")
+
+// khm16
+TARGET_BUILTIN(__rv_khm16, "ULiULiULi", "", "experimental-p")
+// khmx16
+TARGET_BUILTIN(__rv_khmx16, "ULiULiULi", "", "experimental-p")
+
+// khmbb
+TARGET_BUILTIN(__rv_khmbb, "LiULiULi", "", "experimental-p")
+// khmbt
+TARGET_BUILTIN(__rv_khmbt, "LiULiULi", "", "experimental-p")
+// khmtt
+TARGET_BUILTIN(__rv_khmtt, "LiULiULi", "", "experimental-p")
+
+// kmabb
+TARGET_BUILTIN(__rv_kmabb, "LiLiULiULi", "", "experimental-p")
+// kmabt
+TARGET_BUILTIN(__rv_kmabt, "LiLiULiULi", "", "experimental-p")
+// kmatt
+TARGET_BUILTIN(__rv_kmatt, "LiLiULiULi", "", "experimental-p")
+
+// kmada
+TARGET_BUILTIN(__rv_kmada, "LiLiULiULi", "", "experimental-p")
+// kmaxda
+TARGET_BUILTIN(__rv_kmaxda, "LiLiULiULi", "", "experimental-p")
+
+// kmads
+TARGET_BUILTIN(__rv_kmads, "LiLiULiULi", "", "experimental-p")
+// kmadrs
+TARGET_BUILTIN(__rv_kmadrs, "LiLiULiULi", "", "experimental-p")
+// kmaxds
+TARGET_BUILTIN(__rv_kmaxds, "LiLiULiULi", "", "experimental-p")
+
+// kmda
+TARGET_BUILTIN(__rv_kmda, "LiULiULi", "", "experimental-p")
+// kmxda
+TARGET_BUILTIN(__rv_kmxda, "LiULiULi", "", "experimental-p")
+
+// kmmac
+TARGET_BUILTIN(__rv_kmmac, "LiLiLiLi", "", "experimental-p")
+// kmmac.u
+TARGET_BUILTIN(__rv_kmmac_u, "LiLiLiLi", "", "experimental-p")
+
+// kmmawb
+TARGET_BUILTIN(__rv_kmmawb, "LiLiLiULi", "", "experimental-p")
+// kmmawb_u
+TARGET_BUILTIN(__rv_kmmawb_u, "LiLiLiULi", "", "experimental-p")
+
+// kmmawb2
+TARGET_BUILTIN(__rv_kmmawb2, "LiLiLiULi", "", "experimental-p")
+// kmmawb2_u
+TARGET_BUILTIN(__rv_kmmawb2_u, "LiLiLiULi", "", "experimental-p")
+
+// kmmawt
+TARGET_BUILTIN(__rv_kmmawt, "LiLiLiULi", "", "experimental-p")
+// kmmawt_u
+TARGET_BUILTIN(__rv_kmmawt_u, "LiLiLiULi", "", "experimental-p")
+
+// kmmawt2
+TARGET_BUILTIN(__rv_kmmawt2, "LiLiLiULi", "", "experimental-p")
+// kmmawt2_u
+TARGET_BUILTIN(__rv_kmmawt2_u, "LiLiLiULi", "", "experimental-p")
+
+// kmmsb
+TARGET_BUILTIN(__rv_kmmsb, "LiLiLiLi", "", "experimental-p")
+// kmmsb.u
+TARGET_BUILTIN(__rv_kmmsb_u, "LiLiLiLi", "", "experimental-p")
+
+// kmmwb2
+TARGET_BUILTIN(__rv_kmmwb2, "LiLiULi", "", "experimental-p")
+// kmmwb2_u
+TARGET_BUILTIN(__rv_kmmwb2_u, "LiLiULi", "", "experimental-p")
+
+// kmmwt2
+TARGET_BUILTIN(__rv_kmmwt2, "LiLiULi", "", "experimental-p")
+// kmmwt2_u
+TARGET_BUILTIN(__rv_kmmwt2_u, "LiLiULi", "", "experimental-p")
+
+// kmsda
+TARGET_BUILTIN(__rv_kmsda, "LiLiULiULi", "", "experimental-p")
+// kmsxda
+TARGET_BUILTIN(__rv_kmsxda, "LiLiULiULi", "", "experimental-p")
+
+// ksllw
+TARGET_BUILTIN(__rv_ksllw, "LiLiULi", "", "experimental-p")
+
+// ksll8
+TARGET_BUILTIN(__rv_ksll8, "ULiULiULi", "", "experimental-p")
+
+// ksll16
+TARGET_BUILTIN(__rv_ksll16, "ULiULiULi", "", "experimental-p")
+
+// kslra8
+TARGET_BUILTIN(__rv_kslra8, "ULiULiULi", "", "experimental-p")
+// kslra8_u
+TARGET_BUILTIN(__rv_kslra8_u, "ULiULiULi", "", "experimental-p")
+
+// kslra16
+TARGET_BUILTIN(__rv_kslra16, "ULiULiULi", "", "experimental-p")
+// kslra16_u
+TARGET_BUILTIN(__rv_kslra16_u, "ULiULiULi", "", "experimental-p")
+
+// kslraw
+TARGET_BUILTIN(__rv_kslraw, "LiLiLi", "", "experimental-p")
+// kslraw_u
+TARGET_BUILTIN(__rv_kslraw_u, "LiLiLi", "", "experimental-p")
+
+// kstas16
+TARGET_BUILTIN(__rv_kstas16, "ULiULiULi", "", "experimental-p")
+
+// kstsa16
+TARGET_BUILTIN(__rv_kstsa16, "ULiULiULi", "", "experimental-p")
+
+// ksub8
+TARGET_BUILTIN(__rv_ksub8, "ULiULiULi", "", "experimental-p")
+
+// ksub16
+TARGET_BUILTIN(__rv_ksub16, "ULiULiULi", "", "experimental-p")
+
+// ksubh
+TARGET_BUILTIN(__rv_ksubh, "LiLiLi", "", "experimental-p")
+
+// ksubw
+TARGET_BUILTIN(__rv_ksubw, "LiLiLi", "", "experimental-p")
+
+// kwmmul
+TARGET_BUILTIN(__rv_kwmmul, "LiLiLi", "", "experimental-p")
+// kwmmul_u
+TARGET_BUILTIN(__rv_kwmmul_u, "LiLiLi", "", "experimental-p")
+
+// maxw
+TARGET_BUILTIN(__rv_maxw, "LiLiLi", "", "experimental-p")
+
+// minw
+TARGET_BUILTIN(__rv_minw, "LiLiLi", "", "experimental-p")
+
+// pbsad
+TARGET_BUILTIN(__rv_pbsad, "ULiULiULi", "", "experimental-p")
+
+// pbsada
+TARGET_BUILTIN(__rv_pbsada, "ULiULiULiULi", "", "experimental-p")
+
+// pkbb16
+TARGET_BUILTIN(__rv_pkbb16, "ULiULiULi", "", "experimental-p")
+// pkbt16
+TARGET_BUILTIN(__rv_pkbt16, "ULiULiULi", "", "experimental-p")
+// pktt16
+TARGET_BUILTIN(__rv_pktt16, "ULiULiULi", "", "experimental-p")
+// pktb16
+TARGET_BUILTIN(__rv_pktb16, "ULiULiULi", "", "experimental-p")
+
+// radd8
+TARGET_BUILTIN(__rv_radd8, "ULiULiULi", "", "experimental-p")
+
+// radd16
+TARGET_BUILTIN(__rv_radd16, "ULiULiULi", "", "experimental-p")
+
+// raddw
+TARGET_BUILTIN(__rv_raddw, "LiLiLi", "", "experimental-p")
+
+// rcras16
+TARGET_BUILTIN(__rv_rcras16, "ULiULiULi", "", "experimental-p")
+
+// rcrsa16
+TARGET_BUILTIN(__rv_rcrsa16, "ULiULiULi", "", "experimental-p")
+
+// rstas16
+TARGET_BUILTIN(__rv_rstas16, "ULiULiULi", "", "experimental-p")
+
+// rstsa16
+TARGET_BUILTIN(__rv_rstsa16, "ULiULiULi", "", "experimental-p")
+
+// rsub8
+TARGET_BUILTIN(__rv_rsub8, "ULiULiULi", "", "experimental-p")
+
+// rsub16
+TARGET_BUILTIN(__rv_rsub16, "ULiULiULi", "", "experimental-p")
+
+// rsubw
+TARGET_BUILTIN(__rv_rsubw, "LiLiLi", "", "experimental-p")
+
+// sclip8
+TARGET_BUILTIN(__rv_sclip8, "ULiULiULi", "", "experimental-p")
+
+// sclip16
+TARGET_BUILTIN(__rv_sclip16, "ULiULiULi", "", "experimental-p")
+
+// sclip32
+TARGET_BUILTIN(__rv_sclip32, "LiLiLi", "", "experimental-p")
+
+// scmple8
+TARGET_BUILTIN(__rv_scmple8, "ULiULiULi", "", "experimental-p")
+
+// scmple16
+TARGET_BUILTIN(__rv_scmple16, "ULiULiULi", "", "experimental-p")
+
+// scmplt8
+TARGET_BUILTIN(__rv_scmplt8, "ULiULiULi", "", "experimental-p")
+
+// scmplt16
+TARGET_BUILTIN(__rv_scmplt16, "ULiULiULi", "", "experimental-p")
+
+// sll8
+TARGET_BUILTIN(__rv_sll8, "ULiULiULi", "", "experimental-p")
+
+// sll16
+TARGET_BUILTIN(__rv_sll16, "ULiULiULi", "", "experimental-p")
+
+// smaqa
+TARGET_BUILTIN(__rv_smaqa, "LiLiULiULi", "", "experimental-p")
+
+// smaqa_su
+TARGET_BUILTIN(__rv_smaqa_su, "LiLiULiULi", "", "experimental-p")
+
+// smax8
+TARGET_BUILTIN(__rv_smax8, "ULiULiULi", "", "experimental-p")
+
+// smax16
+TARGET_BUILTIN(__rv_smax16, "ULiULiULi", "", "experimental-p")
+
+// smbb16
+TARGET_BUILTIN(__rv_smbb16, "LiULiULi", "", "experimental-p")
+// smbt16
+TARGET_BUILTIN(__rv_smbt16, "LiULiULi", "", "experimental-p")
+// smtt16
+TARGET_BUILTIN(__rv_smtt16, "LiULiULi", "", "experimental-p")
+
+// smds
+TARGET_BUILTIN(__rv_smds, "LiULiULi", "", "experimental-p")
+// smdrs
+TARGET_BUILTIN(__rv_smdrs, "LiULiULi", "", "experimental-p")
+// smxds
+TARGET_BUILTIN(__rv_smxds, "LiULiULi", "", "experimental-p")
+
+// smin8
+TARGET_BUILTIN(__rv_smin8, "ULiULiULi", "", "experimental-p")
+
+// smin16
+TARGET_BUILTIN(__rv_smin16, "ULiULiULi", "", "experimental-p")
+
+// smmul
+TARGET_BUILTIN(__rv_smmul, "LiLiLi", "", "experimental-p")
+// smmul_u
+TARGET_BUILTIN(__rv_smmul_u, "LiLiLi", "", "experimental-p")
+
+// smmwb
+TARGET_BUILTIN(__rv_smmwb, "LiLiULi", "", "experimental-p")
+// smmwb_u
+TARGET_BUILTIN(__rv_smmwb_u, "LiLiULi", "", "experimental-p")
+
+// smmwt
+TARGET_BUILTIN(__rv_smmwt, "LiLiULi", "", "experimental-p")
+// smmwt_u
+TARGET_BUILTIN(__rv_smmwt_u, "LiLiULi", "", "experimental-p")
+
+// sra_u
+TARGET_BUILTIN(__rv_sra_u, "LiLiULi", "", "experimental-p")
+
+// sra8
+TARGET_BUILTIN(__rv_sra8, "ULiULiULi", "", "experimental-p")
+// sra8_u
+TARGET_BUILTIN(__rv_sra8_u, "ULiULiULi", "", "experimental-p")
+
+// sra16
+TARGET_BUILTIN(__rv_sra16, "ULiULiULi", "", "experimental-p")
+// sra16_u
+TARGET_BUILTIN(__rv_sra16_u, "ULiULiULi", "", "experimental-p")
+
+// srl8
+TARGET_BUILTIN(__rv_srl8, "ULiULiULi", "", "experimental-p")
+// srl8_u
+TARGET_BUILTIN(__rv_srl8_u, "ULiULiULi", "", "experimental-p")
+
+// srl16
+TARGET_BUILTIN(__rv_srl16, "ULiULiULi", "", "experimental-p")
+// srl16_u
+TARGET_BUILTIN(__rv_srl16_u, "ULiULiULi", "", "experimental-p")
+
+// stas16
+TARGET_BUILTIN(__rv_stas16, "ULiULiULi", "", "experimental-p")
+
+// stsa16
+TARGET_BUILTIN(__rv_stsa16, "ULiULiULi", "", "experimental-p")
+
+// sub8
+TARGET_BUILTIN(__rv_sub8, "ULiULiULi", "", "experimental-p")
+
+// sub16
+TARGET_BUILTIN(__rv_sub16, "ULiULiULi", "", "experimental-p")
+
+// sunpkd810
+TARGET_BUILTIN(__rv_sunpkd810, "ULiULi", "", "experimental-p")
+// sunpkd820
+TARGET_BUILTIN(__rv_sunpkd820, "ULiULi", "", "experimental-p")
+// sunpkd830
+TARGET_BUILTIN(__rv_sunpkd830, "ULiULi", "", "experimental-p")
+// sunpkd831
+TARGET_BUILTIN(__rv_sunpkd831, "ULiULi", "", "experimental-p")
+// sunpkd832
+TARGET_BUILTIN(__rv_sunpkd832, "ULiULi", "", "experimental-p")
+
+// swap8
+TARGET_BUILTIN(__rv_swap8, "ULiULi", "", "experimental-p")
+
+// swap16
+TARGET_BUILTIN(__rv_swap16, "ULiULi", "", "experimental-p")
+
+// uclip8
+TARGET_BUILTIN(__rv_uclip8, "ULiULiULi", "", "experimental-p")
+
+// uclip16
+TARGET_BUILTIN(__rv_uclip16, "ULiULiULi", "", "experimental-p")
+
+// uclip32
+TARGET_BUILTIN(__rv_uclip32, "LiLiLi", "", "experimental-p")
+
+// ucmple8
+TARGET_BUILTIN(__rv_ucmple8, "ULiULiULi", "", "experimental-p")
+
+// ucmple16
+TARGET_BUILTIN(__rv_ucmple16, "ULiULiULi", "", "experimental-p")
+
+// ucmplt8
+TARGET_BUILTIN(__rv_ucmplt8, "ULiULiULi", "", "experimental-p")
+
+// ucmplt16
+TARGET_BUILTIN(__rv_ucmplt16, "ULiULiULi", "", "experimental-p")
+
+// ukadd8
+TARGET_BUILTIN(__rv_ukadd8, "ULiULiULi", "", "experimental-p")
+
+// ukadd16
+TARGET_BUILTIN(__rv_ukadd16, "ULiULiULi", "", "experimental-p")
+
+// ukaddh
+TARGET_BUILTIN(__rv_ukaddh, "ULiULiULi", "", "experimental-p")
+
+// ukaddw
+TARGET_BUILTIN(__rv_ukaddw, "ULiULiULi", "", "experimental-p")
+
+// ukcras16
+TARGET_BUILTIN(__rv_ukcras16, "ULiULiULi", "", "experimental-p")
+
+// ukcrsa16
+TARGET_BUILTIN(__rv_ukcrsa16, "ULiULiULi", "", "experimental-p")
+
+// ukstas16
+TARGET_BUILTIN(__rv_ukstas16, "ULiULiULi", "", "experimental-p")
+
+// ukstsa16
+TARGET_BUILTIN(__rv_ukstsa16, "ULiULiULi", "", "experimental-p")
+
+// uksub8
+TARGET_BUILTIN(__rv_uksub8, "ULiULiULi", "", "experimental-p")
+
+// uksub16
+TARGET_BUILTIN(__rv_uksub16, "ULiULiULi", "", "experimental-p")
+
+// uksubh
+TARGET_BUILTIN(__rv_uksubh, "LiLiLi", "", "experimental-p")
+
+// uksubw
+TARGET_BUILTIN(__rv_uksubw, "LiLiLi", "", "experimental-p")
+
+// umaqa
+TARGET_BUILTIN(__rv_umaqa, "ULiULiULiULi", "", "experimental-p")
+
+// umax8
+TARGET_BUILTIN(__rv_umax8, "ULiULiULi", "", "experimental-p")
+
+// umax16
+TARGET_BUILTIN(__rv_umax16, "ULiULiULi", "", "experimental-p")
+
+// umin8
+TARGET_BUILTIN(__rv_umin8, "ULiULiULi", "", "experimental-p")
+
+// umin16
+TARGET_BUILTIN(__rv_umin16, "ULiULiULi", "", "experimental-p")
+
+// uradd8
+TARGET_BUILTIN(__rv_uradd8, "ULiULiULi", "", "experimental-p")
+
+// uradd16
+TARGET_BUILTIN(__rv_uradd16, "ULiULiULi", "", "experimental-p")
+
+// uraddw
+TARGET_BUILTIN(__rv_uraddw, "LiLiLi", "", "experimental-p")
+
+// urcras16
+TARGET_BUILTIN(__rv_urcras16, "ULiULiULi", "", "experimental-p")
+
+// urcrsa16
+TARGET_BUILTIN(__rv_urcrsa16, "ULiULiULi", "", "experimental-p")
+
+// urstas16
+TARGET_BUILTIN(__rv_urstas16, "ULiULiULi", "", "experimental-p")
+
+// urstsa16
+TARGET_BUILTIN(__rv_urstsa16, "ULiULiULi", "", "experimental-p")
+
+// ursub8
+TARGET_BUILTIN(__rv_ursub8, "ULiULiULi", "", "experimental-p")
+
+// ursub16
+TARGET_BUILTIN(__rv_ursub16, "ULiULiULi", "", "experimental-p")
+
+// ursubw
+TARGET_BUILTIN(__rv_ursubw, "LiLiLi", "", "experimental-p")
+
+// zunpkd810
+TARGET_BUILTIN(__rv_zunpkd810, "ULiULi", "", "experimental-p")
+// zunpkd820
+TARGET_BUILTIN(__rv_zunpkd820, "ULiULi", "", "experimental-p")
+// zunpkd830
+TARGET_BUILTIN(__rv_zunpkd830, "ULiULi", "", "experimental-p")
+// zunpkd831
+TARGET_BUILTIN(__rv_zunpkd831, "ULiULi", "", "experimental-p")
+// zunpkd832
+TARGET_BUILTIN(__rv_zunpkd832, "ULiULi", "", "experimental-p")
+
 #undef BUILTIN
 #undef TARGET_BUILTIN

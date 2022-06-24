@@ -67,6 +67,10 @@ def sub_vrm1_6 : ComposedSubRegIndex<sub_vrm2_3, sub_vrm1_0>;
 def sub_vrm1_7 : ComposedSubRegIndex<sub_vrm2_3, sub_vrm1_1>;
 
 def sub_32_hi  : SubRegIndex<32, 32>;
+
+def gpr32_pair_lo : SubRegIndex<32>;
+def gpr32_pair_hi : SubRegIndex<32, 32>;
+
 } // Namespace = "RISCV"
 
 // Integer registers
@@ -117,13 +121,23 @@ let RegAltNameIndices = [ABIRegAltName] in {
 
 def XLenVT : ValueTypeByHwMode<[RV32, RV64],
                                [i32,  i64]>;
+
+def XVEI8VT : ValueTypeByHwMode<[RV32, RV64],
+                                [v4i8, v8i8]>;
+
+def XVEI16VT : ValueTypeByHwMode<[RV32,  RV64],
+                                 [v2i16, v4i16]>;
+
+def XVEI32VT : ValueTypeByHwMode<[RV32,  RV64],
+                                 [i32, v2i32]>;
+
 def XLenRI : RegInfoByHwMode<
       [RV32,              RV64],
       [RegInfo<32,32,32>, RegInfo<64,64,64>]>;
 
 // The order of registers represents the preferred allocation sequence.
 // Registers are listed in the order caller-save, callee-save, specials.
-def GPR : RegisterClass<"RISCV", [XLenVT], 32, (add
+def GPR : RegisterClass<"RISCV", [XLenVT, XVEI8VT, XVEI16VT, XVEI32VT], 32, (add
     (sequence "X%u", 10, 17),
     (sequence "X%u", 5, 7),
     (sequence "X%u", 28, 31),
@@ -175,6 +189,23 @@ def GPRTC : RegisterClass<"RISCV", [XLenVT], 32, (add
 
 def SP : RegisterClass<"RISCV", [XLenVT], 32, (add X2)> {
   let RegInfos = XLenRI;
+}
+
+// Dummy zero register for pairing with X0.
+def REG_PAIR_WITH_X0 : RISCVReg<0, "0">;
+
+def GPR32Pairs : RegisterTuples<[gpr32_pair_lo, gpr32_pair_hi],
+                                [(add X0,  X2,  X4,  X6,
+                                      X8,  X10, X12, X14,
+                                      X16, X18, X20, X22,
+                                      X24, X26, X28, X30),
+                                 (add REG_PAIR_WITH_X0, X3,  X5,  X7,
+                                      X9,               X11, X13, X15,
+                                      X17,              X19, X21, X23,
+                                      X25,              X27, X29, X31)]>;
+
+def GPR32Pair : RegisterClass<"RISCV", [untyped], 64, (add GPR32Pairs)> {
+  let Size = 64;
 }
 
 // Floating point registers

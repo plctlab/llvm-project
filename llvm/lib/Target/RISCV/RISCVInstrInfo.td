@@ -38,6 +38,9 @@ def SDT_RISCVReadCycleWide : SDTypeProfile<2, 0, [SDTCisVT<0, i32>,
 def SDT_RISCVIntUnaryOpW : SDTypeProfile<1, 1, [
   SDTCisSameAs<0, 1>, SDTCisVT<0, i64>
 ]>;
+def SDT_RISCVIntBinOp : SDTypeProfile<1, 2, [
+  SDTCisSameAs<0, 1>, SDTCisSameAs<0, 2>, SDTCisVT<0, XLenVT>
+]>;
 def SDT_RISCVIntBinOpW : SDTypeProfile<1, 2, [
   SDTCisSameAs<0, 1>, SDTCisSameAs<0, 2>, SDTCisVT<0, i64>
 ]>;
@@ -173,7 +176,7 @@ def uimm2 : Operand<XLenVT> {
   let OperandNamespace = "RISCVOp";
 }
 
-def uimm3 : Operand<XLenVT> {
+def uimm3 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<3>(Imm);}]> {
   let ParserMatchClass = UImmAsmOperand<3>;
   let DecoderMethod = "decodeUImmOperand<3>";
   let OperandType = "OPERAND_UIMM3";
@@ -1101,9 +1104,9 @@ def : InstAlias<".insn_s $opcode, $funct3, $rs2, ${imm12}(${rs1})",
 /// Generic pattern classes
 
 class PatGpr<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode GPR:$rs1), (Inst GPR:$rs1)>;
+    : Pat<(XLenVT (OpNode (XLenVT GPR:$rs1))), (Inst GPR:$rs1)>;
 class PatGprGpr<SDPatternOperator OpNode, RVInst Inst>
-    : Pat<(OpNode GPR:$rs1, GPR:$rs2), (Inst GPR:$rs1, GPR:$rs2)>;
+    : Pat<(XLenVT (OpNode (XLenVT GPR:$rs1), (XLenVT GPR:$rs2))), (Inst GPR:$rs1, GPR:$rs2)>;
 
 class PatGprImm<SDPatternOperator OpNode, RVInst Inst, ImmLeaf ImmType>
     : Pat<(XLenVT (OpNode (XLenVT GPR:$rs1), ImmType:$imm)),
@@ -1188,7 +1191,7 @@ class shiftop<SDPatternOperator operator>
               (operator node:$val, (XLenVT (shiftMaskXLen node:$count)))>;
 class shiftopw<SDPatternOperator operator>
     : PatFrag<(ops node:$val, node:$count),
-              (operator node:$val, (i64 (shiftMask32 node:$count)))>;
+              (operator node:$val, (i64 (shiftMask32 (i64 node:$count))))>;
 
 def : PatGprGpr<shiftop<shl>, SLL>;
 def : PatGprGpr<shiftop<srl>, SRL>;
@@ -1219,23 +1222,24 @@ def : PatGprSimm12<setult, SLTIU>;
 
 // Define pattern expansions for setcc operations that aren't directly
 // handled by a RISC-V instruction.
-def : Pat<(seteq GPR:$rs1, 0), (SLTIU GPR:$rs1, 1)>;
-def : Pat<(seteq GPR:$rs1, GPR:$rs2), (SLTIU (XOR GPR:$rs1, GPR:$rs2), 1)>;
-def : Pat<(seteq GPR:$rs1, simm12_plus1:$imm12),
+def : Pat<(XLenVT (seteq (XLenVT GPR:$rs1), 0)), (SLTIU GPR:$rs1, 1)>;
+def : Pat<(XLenVT (seteq (XLenVT GPR:$rs1), GPR:$rs2)),
+          (SLTIU (XOR GPR:$rs1, GPR:$rs2), 1)>;
+def : Pat<(XLenVT (seteq (XLenVT GPR:$rs1), simm12_plus1:$imm12)),
           (SLTIU (ADDI GPR:$rs1, (NegImm simm12_plus1:$imm12)), 1)>;
-def : Pat<(setne GPR:$rs1, 0), (SLTU X0, GPR:$rs1)>;
-def : Pat<(setne GPR:$rs1, GPR:$rs2), (SLTU X0, (XOR GPR:$rs1, GPR:$rs2))>;
-def : Pat<(setne GPR:$rs1, simm12_plus1:$imm12),
-          (SLTU X0, (ADDI GPR:$rs1, (NegImm simm12_plus1:$imm12)))>;
-def : Pat<(setugt GPR:$rs1, GPR:$rs2), (SLTU GPR:$rs2, GPR:$rs1)>;
-def : Pat<(setuge GPR:$rs1, GPR:$rs2), (XORI (SLTU GPR:$rs1, GPR:$rs2), 1)>;
-def : Pat<(setule GPR:$rs1, GPR:$rs2), (XORI (SLTU GPR:$rs2, GPR:$rs1), 1)>;
-def : Pat<(setgt GPR:$rs1, GPR:$rs2), (SLT GPR:$rs2, GPR:$rs1)>;
-def : Pat<(setge GPR:$rs1, GPR:$rs2), (XORI (SLT GPR:$rs1, GPR:$rs2), 1)>;
-def : Pat<(setle GPR:$rs1, GPR:$rs2), (XORI (SLT GPR:$rs2, GPR:$rs1), 1)>;
-def : Pat<(setgt GPR:$rs1, simm12_minus1_nonzero:$imm),
+def : Pat<(XLenVT (setne (XLenVT GPR:$rs1), 0)), (SLTU (XLenVT X0), GPR:$rs1)>;
+def : Pat<(XLenVT (setne (XLenVT GPR:$rs1), GPR:$rs2)), (SLTU (XLenVT X0), (XOR GPR:$rs1, GPR:$rs2))>;
+def : Pat<(XLenVT (setne (XLenVT GPR:$rs1), simm12_plus1:$imm12)),
+          (SLTU (XLenVT X0), (ADDI GPR:$rs1, (NegImm simm12_plus1:$imm12)))>;
+def : Pat<(XLenVT (setugt (XLenVT GPR:$rs1), GPR:$rs2)), (SLTU GPR:$rs2, GPR:$rs1)>;
+def : Pat<(XLenVT (setuge (XLenVT GPR:$rs1), GPR:$rs2)), (XORI (SLTU GPR:$rs1, GPR:$rs2), 1)>;
+def : Pat<(XLenVT (setule (XLenVT GPR:$rs1), GPR:$rs2)), (XORI (SLTU GPR:$rs2, GPR:$rs1), 1)>;
+def : Pat<(XLenVT (setgt (XLenVT GPR:$rs1), GPR:$rs2)), (SLT GPR:$rs2, GPR:$rs1)>;
+def : Pat<(XLenVT (setge (XLenVT GPR:$rs1), GPR:$rs2)), (XORI (SLT GPR:$rs1, GPR:$rs2), 1)>;
+def : Pat<(XLenVT (setle (XLenVT GPR:$rs1), GPR:$rs2)), (XORI (SLT GPR:$rs2, GPR:$rs1), 1)>;
+def : Pat<(XLenVT (setgt (XLenVT GPR:$rs1), simm12_minus1_nonzero:$imm)),
           (XORI (SLTI GPR:$rs1, (ImmPlus1 simm12_minus1_nonzero:$imm)), 1)>;
-def : Pat<(setugt GPR:$rs1, simm12_minus1_nonzero:$imm),
+def : Pat<(XLenVT (setugt (XLenVT GPR:$rs1), simm12_minus1_nonzero:$imm)),
           (XORI (SLTIU GPR:$rs1, (ImmPlus1 simm12_minus1_nonzero:$imm)), 1)>;
 
 def IntCCtoRISCVCC : SDNodeXForm<riscv_selectcc, [{
@@ -1252,21 +1256,22 @@ def riscv_selectcc_frag : PatFrag<(ops node:$lhs, node:$rhs, node:$cc,
                                   IntCCtoRISCVCC>;
 
 let usesCustomInserter = 1 in
-class SelectCC_rrirr<RegisterClass valty, RegisterClass cmpty>
+class SelectCC_rrirr<RegisterClass valty, ValueType valvt,
+                     RegisterClass cmpty, ValueType cmpvt>
     : Pseudo<(outs valty:$dst),
              (ins cmpty:$lhs, cmpty:$rhs, ixlenimm:$imm,
               valty:$truev, valty:$falsev),
              [(set valty:$dst,
-               (riscv_selectcc_frag:$imm cmpty:$lhs, cmpty:$rhs, cond,
-                                         valty:$truev, valty:$falsev))]>;
+               (riscv_selectcc_frag:$imm (cmpvt cmpty:$lhs), cmpty:$rhs, cond,
+                                         (valvt valty:$truev), valty:$falsev))]>;
 
-def Select_GPR_Using_CC_GPR : SelectCC_rrirr<GPR, GPR>;
+def Select_GPR_Using_CC_GPR : SelectCC_rrirr<GPR, XLenVT, GPR, XLenVT>;
 
 /// Branches and jumps
 
 // Match `riscv_brcc` and lower to the appropriate RISC-V branch instruction.
 class BccPat<CondCode Cond, RVInstB Inst>
-    : Pat<(riscv_brcc GPR:$rs1, GPR:$rs2, Cond, bb:$imm12),
+    : Pat<(riscv_brcc (XLenVT GPR:$rs1), GPR:$rs2, Cond, bb:$imm12),
           (Inst GPR:$rs1, GPR:$rs2, simm13_lsb0:$imm12)>;
 
 def : BccPat<SETEQ, BEQ>;
@@ -1315,9 +1320,9 @@ def PseudoCALL : Pseudo<(outs), (ins call_symbol:$func), []>,
 def : Pat<(riscv_call tglobaladdr:$func), (PseudoCALL tglobaladdr:$func)>;
 def : Pat<(riscv_call texternalsym:$func), (PseudoCALL texternalsym:$func)>;
 
-def : Pat<(riscv_uret_flag), (URET X0, X0)>;
-def : Pat<(riscv_sret_flag), (SRET X0, X0)>;
-def : Pat<(riscv_mret_flag), (MRET X0, X0)>;
+def : Pat<(riscv_uret_flag), (URET (XLenVT X0), (XLenVT X0))>;
+def : Pat<(riscv_sret_flag), (SRET (XLenVT X0), (XLenVT X0))>;
+def : Pat<(riscv_mret_flag), (MRET (XLenVT X0), (XLenVT X0))>;
 
 let isCall = 1, Defs = [X1] in
 def PseudoCALLIndirect : Pseudo<(outs), (ins GPRJALR:$rs1),
@@ -1456,7 +1461,7 @@ def : Pat<(atomic_fence (XLenVT 7), (timm)), (FENCE 0b11, 0b11)>;
 
 class ReadSysReg<SysReg SR, list<Register> Regs>
   : Pseudo<(outs GPR:$rd), (ins),
-           [(set GPR:$rd, (riscv_read_csr (XLenVT SR.Encoding)))]>,
+           [(set (XLenVT GPR:$rd), (riscv_read_csr (XLenVT SR.Encoding)))]>,
     PseudoInstExpansion<(CSRRS GPR:$rd, SR.Encoding, X0)> {
   let hasSideEffects = 0;
   let Uses = Regs;
@@ -1464,7 +1469,7 @@ class ReadSysReg<SysReg SR, list<Register> Regs>
 
 class WriteSysReg<SysReg SR, list<Register> Regs>
   : Pseudo<(outs), (ins GPR:$val),
-           [(riscv_write_csr (XLenVT SR.Encoding), GPR:$val)]>,
+           [(riscv_write_csr (XLenVT SR.Encoding), (XLenVT GPR:$val))]>,
     PseudoInstExpansion<(CSRRW X0, SR.Encoding, GPR:$val)> {
   let hasSideEffects = 0;
   let Defs = Regs;
@@ -1590,7 +1595,7 @@ defm : StPat<store, SD, GPR, i64>;
 /// readcyclecounter
 // On RV64, we can directly read the 64-bit "cycle" CSR.
 let Predicates = [IsRV64] in
-def : Pat<(i64 (readcyclecounter)), (CSRRS CYCLE.Encoding, X0)>;
+def : Pat<(i64 (readcyclecounter)), (CSRRS CYCLE.Encoding, (XLenVT X0))>;
 // On RV32, ReadCycleWide will be expanded to the suggested loop reading both
 // halves of the 64-bit "cycle" CSR.
 let Predicates = [IsRV32], usesCustomInserter = 1, hasNoSchedulingInfo = 1 in
@@ -1609,13 +1614,13 @@ def : Pat<(trap), (UNIMP)>;
 def : Pat<(debugtrap), (EBREAK)>;
 
 /// Simple optimization
-def : Pat<(add GPR:$rs1, (AddiPair:$rs2)),
+def : Pat<(add (XLenVT GPR:$rs1), (AddiPair:$rs2)),
           (ADDI (ADDI GPR:$rs1, (AddiPairImmB AddiPair:$rs2)),
                 (AddiPairImmA GPR:$rs2))>;
 
 let Predicates = [IsRV64] in {
 // Select W instructions if only the lower 32-bits of the result are used.
-def : Pat<(binop_allwusers<add> GPR:$rs1, (AddiPair:$rs2)),
+def : Pat<(binop_allwusers<add> (XLenVT GPR:$rs1), (AddiPair:$rs2)),
           (ADDIW (ADDIW GPR:$rs1, (AddiPairImmB AddiPair:$rs2)),
                  (AddiPairImmA AddiPair:$rs2))>;
 }
@@ -1631,5 +1636,6 @@ include "RISCVInstrInfoD.td"
 include "RISCVInstrInfoC.td"
 include "RISCVInstrInfoZb.td"
 include "RISCVInstrInfoZk.td"
+include "RISCVInstrInfoP.td"
 include "RISCVInstrInfoV.td"
 include "RISCVInstrInfoZfh.td"
