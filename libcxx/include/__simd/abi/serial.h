@@ -10,38 +10,6 @@ struct __simd_serial {
   using _Simd = __simd_storage<_Tp, _Abi>;
   using _Mask = __mask_storage<_Tp, _Abi>;
 
-  static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-    _Mask __mask;
-    for (size_t __i = 0; __i < _Abi::__simd_size; __i++) {
-      __mask.__data[__i] = __lhs.__data[__i] == __rhs.__data[__i];
-    }
-    return __mask;
-  }
-
-  static _Mask __not_equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-    _Mask __mask;
-    for (size_t __i = 0; __i < _Abi::__simd_size; __i++) {
-      __mask.__data[__i] = __lhs.__data[__i] != __rhs.__data[__i];
-    }
-    return __mask;
-  }
-
-  static _Mask __less_equal(_Simd __lhs, _Simd __rhs) noexcept {
-    _Mask __mask;
-    for (size_t __i = 0; __i < _Abi::__simd_size; __i++) {
-      __mask.__data[__i] = __lhs.__data[__i] <= __rhs.__data[__i];
-    }
-    return __mask;
-  }
-
-  static _Mask __less(_Simd __lhs, _Simd __rhs) noexcept{
-    _Mask __mask;
-    for (size_t __i = 0; __i < _Abi::__simd_size; __i++) {
-      __mask.__data[__i] = __lhs.__data[__i] < __rhs.__data[__i];
-    }
-    return __mask;
-  }
-
   static _Tp __hmin(_Simd __s) noexcept{
     _Tp __min = __s.__data[0];
     for (size_t __i = 1; __i < _Abi::__simd_size; ++__i)

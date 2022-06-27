@@ -4,6 +4,12 @@
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 template <class _Tp, class _Abi>
+struct __simd_traits;
+
+template <class _Tp, class _Abi>
+struct __mask_traits;
+
+template <class _Tp, class _Abi>
 struct __simd_impl;
 
 template <class _Tp, class _Abi>

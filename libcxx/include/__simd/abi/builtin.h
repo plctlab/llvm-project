@@ -92,19 +92,19 @@ struct __simd_traits {
   static _Simd __shift_right(_Simd __lhs, int __rhs) noexcept { return {__lhs.__data >> __rhs}; }
 
   static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-    return _Impl::__equal_to(__lhs, __rhs);
+    return {{__lhs.__data == __rhs.__data}};
   }
 
   static _Mask __not_equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-    return _Impl::__not_equal_to(__lhs, __rhs);
+    return {{__lhs.__data != __rhs.__data}};
   }
 
   static _Mask __less_equal(_Simd __lhs, _Simd __rhs) noexcept {
-    return _Impl::__less_equal(__lhs, __rhs);
+    return {{__lhs.__data <= __rhs.__data}};
   }
 
   static _Mask __less(_Simd __lhs, _Simd __rhs) noexcept{
-    return _Impl::__less(__lhs, __rhs);
+    return {{__lhs.__data < __rhs.__data}};
   }
 
   static _Tp __hmin(_Simd __s) noexcept{
@@ -209,6 +209,8 @@ struct __mask_traits {
   }
   static _Mask __negate(_Mask __s) noexcept { return {{~__s.__data}}; }
 
+  static _Mask __unary_minus(_Mask __s) noexcept { return {{-__s.__data}}; }
+
   static _Mask __logical_and(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data & __rhs.__data}}; }
 
   static _Mask __logical_or(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data | __rhs.__data}}; }
@@ -218,10 +220,6 @@ struct __mask_traits {
   static _Mask __bitwise_or(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data | __rhs.__data}}; }
 
   static _Mask __bitwise_xor(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data ^ __rhs.__data}}; }
-
-  static _Mask __equal_to(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data == __rhs.__data}}; }
-
-  static _Mask __not_equal_to(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data != __rhs.__data}}; }
 
   static bool __all_of(_Mask __s) noexcept {
     return _Impl::__all_of(__s);
