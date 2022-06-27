@@ -116,19 +116,19 @@ struct __simd_traits {
   }
 
   static _Simd __min(_Simd __a, _Simd __b) noexcept {
-    return _Impl::__min(__a, __b);
+    return {__a.__data < __b.__data ? __a.__data : __b.__data};
   }
 
   static _Simd __max(_Simd __a, _Simd __b) noexcept {
-    return _Impl::__max(__a, __b);
+    return {__a.__data > __b.__data ? __a.__data : __b.__data};
   }
 
   static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
-    return _Impl::__minmax(__a, __b);
+    return {__min(__a,__b), __max(__a,__b)};
   }
 
   static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {
-    return _Impl::__clamp(__v, __lo, __hi);
+    return __min(__max(__v, __lo), __hi);
   }
 
   static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept {

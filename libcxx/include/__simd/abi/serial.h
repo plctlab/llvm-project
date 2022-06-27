@@ -56,36 +56,6 @@ struct __simd_serial {
     return __max;
   }
 
-  static _Simd __min(_Simd __a, _Simd __b) noexcept {
-    _Simd __r;
-    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
-      __r.__data[__i] = std::min(__a.__data[__i], __b.__data[__i]);
-    return __r;
-  }
-
-  static _Simd __max(_Simd __a, _Simd __b) noexcept {
-    _Simd __r;
-    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
-      __r.__data[__i] = std::max(__a.__data[__i], __b.__data[__i]);
-    return __r;
-  }
-
-  static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
-    _Simd __min, __max;
-    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i) {
-      __min.__data[__i] = std::min(__a.__data[__i], __b.__data[__i]);
-      __max.__data[__i] = std::max(__a.__data[__i], __b.__data[__i]);
-    }
-    return {__min, __max};
-  }
-
-  static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {
-    _Simd __r;
-    for (size_t __i = 0; __i <  _Abi::__simd_size; ++__i)
-      __r.__data[__i] = std::min(std::max(__v.__data[__i], __lo.__data[__i]), __hi.__data[__i]);
-    return __r;
-  }
-
   static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept {
     _Simd __r;
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
