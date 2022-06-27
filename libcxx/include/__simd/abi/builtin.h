@@ -61,7 +61,7 @@ struct __simd_traits {
 
   static void __decrement(_Simd& __s) noexcept { __s.__data = __s.__data - 1; }
 
-  static _Simd __negate(_Simd __s) noexcept { return {!__s.__data}; }
+  static _Mask __negate(_Simd __s) noexcept { return {!__s.__data}; }
 
   static _Simd __bitwise_not(_Simd __s) noexcept { return {~__s.__data}; }
 
