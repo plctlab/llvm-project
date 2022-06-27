@@ -202,7 +202,7 @@ void test_mutating_opreators() {
 }
 
 void test_compare_opreators() {
-  ex::fixed_size_simd<int, 4> a, b;
+  ex::native_simd<int> a, b;
   {
     int buf[] = {1, 2, 3, 4};
     a.copy_from(buf, ex::element_aligned_tag());
@@ -215,42 +215,42 @@ void test_compare_opreators() {
     bool expected[] = {
       true, true, false, false,
     };
-    assert(ex::all_of((a == b) == ex::fixed_size_simd_mask<int, 4>(
+    assert(ex::all_of((a == b) == ex::native_simd_mask<int>(
                                 expected, ex::element_aligned_tag())));
   }
   {
     bool expected[] = {
       false, false, true,true, 
     };
-    assert(all_of((a != b) == ex::fixed_size_simd_mask<int, 4>(
+    assert(all_of((a != b) == ex::native_simd_mask<int>(
                                   expected, ex::element_aligned_tag())));
   }
   {
     bool expected[] = {
       false,false,false,false,
     };
-    assert(all_of((a < b) == ex::fixed_size_simd_mask<int, 4>(
+    assert(all_of((a < b) == ex::native_simd_mask<int>(
                                  expected, ex::element_aligned_tag())));
   }
   {
     bool expected[] = {
       true, true, false,false,
     };
-    assert(all_of((a <= b) == ex::fixed_size_simd_mask<int, 4>(
+    assert(all_of((a <= b) == ex::native_simd_mask<int>(
                                   expected, ex::element_aligned_tag())));
   }
   {
     bool expected[] = {
       false,false,true,true,
     };
-    assert(all_of((a > b) == ex::fixed_size_simd_mask<int, 4>(
+    assert(all_of((a > b) == ex::native_simd_mask<int>(
                                  expected, ex::element_aligned_tag())));
   }
   {
     bool expected[] = {
       true,true,true,true,
     };
-    assert(all_of((a >= b) == ex::fixed_size_simd_mask<int, 4>(
+    assert(all_of((a >= b) == ex::native_simd_mask<int>(
                                   expected, ex::element_aligned_tag())));
   }
 }
