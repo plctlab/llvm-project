@@ -1174,29 +1174,57 @@ TableJumpSection::TableJumpSection()
     : SyntheticSection(SHF_ALLOC | SHF_WRITE, SHT_RISCV_ATTRIBUTES, config->wordsize,
                        ".tbljalentries") {}
 
-size_t TableJumpSection::addEntryZero(const Symbol& symbol) {
-  return startZero + addEntry(symbol, entriesZero, maxSizeZero);
+void TableJumpSection::addEntryZero(const Symbol& symbol) {
+  addEntry(symbol, entriesZero, maxSizeZero);
 }
 
-size_t TableJumpSection::addEntryRa(const Symbol& symbol) {
-  return startRa + addEntry(symbol, entriesRa, maxSizeRa);
+size_t TableJumpSection::getEntryZero(const Symbol& symbol){
+  return startZero + getEntry(symbol, finalizedEntriesZero, maxSizeZero);
 }
 
-size_t TableJumpSection::addEntry(const Symbol& symbol,
-                                  std::vector<std::string>& entriesList,
+void TableJumpSection::addEntryRa(const Symbol& symbol) {
+  addEntry(symbol, entriesRa, maxSizeRa);
+}
+
+size_t TableJumpSection::getEntryRa(const Symbol& symbol){
+  return startRa + getEntry(symbol, finalizedEntriesRa, maxSizeZero);
+}
+
+void TableJumpSection::addEntry(const Symbol& symbol,
+                                  std::map<std::string, int>& entriesList,
                                   const size_t maxSize) {
+  if(entriesList.count(symbol.getName().str()) == 0){
+    entriesList[symbol.getName().str()] = 1;
+  }
+  else{
+    entriesList[symbol.getName().str()] += 1;
+  }
+}
+
+size_t TableJumpSection::getEntry(const Symbol& symbol,
+                  std::vector<std::pair<std::string,int>>& entriesList,
+                  const size_t maxSize) {
   // Prevent adding duplicate entries
   for (std::size_t i = 0; i < entriesList.size(); ++i) {
     // If this is a duplicate addition, do not add it and return the address
     // offset of the original entry.
-    if (entriesList[i] == symbol.getName()) {
+    if (symbol.getName().compare(entriesList[i].first) == 0) {
       return i;
     }
   }
-  unsigned ret = entriesList.size();
-  size += 64;
-  entriesList.push_back(symbol.getName().str());
-  return ret;
+
+  printf("Error\n");
+}
+
+void TableJumpSection::finalizeContents(){
+  auto cmp = [](const std::pair<std::string, int>  &p1, const std::pair<std::string, int> &p2){
+    return p1.second > p2.second;
+  };
+
+  std::copy(entriesZero.begin(),entriesZero.end(), std::back_inserter(finalizedEntriesZero));
+  std::sort(finalizedEntriesZero.begin(),finalizedEntriesZero.end(),cmp);
+  std::copy(entriesRa.begin(),entriesRa.end(), std::back_inserter(finalizedEntriesRa));
+  std::sort(finalizedEntriesRa.begin(),finalizedEntriesRa.end(),cmp);
 }
 
 size_t TableJumpSection::getSize() const {
@@ -1211,9 +1239,9 @@ size_t TableJumpSection::getSize() const {
 
 void TableJumpSection::writeTo(uint8_t *buf) {
   target->writeTableJumpHeader(buf);
-  writeEntries(buf + startZero, entriesZero);
-  padUntil(buf + ((startZero + entriesZero.size()) * xlen), startRa * xlen);
-  writeEntries(buf + startRa, entriesRa);
+  writeEntries(buf + startZero, finalizedEntriesZero);
+  padUntil(buf + ((startZero + finalizedEntriesZero.size()) * xlen), startRa * xlen);
+  writeEntries(buf + startRa, finalizedEntriesRa);
 }
 
 void TableJumpSection::padUntil(uint8_t *buf, const uint8_t address) {
@@ -1226,11 +1254,11 @@ void TableJumpSection::padUntil(uint8_t *buf, const uint8_t address) {
 }
 
 void TableJumpSection::writeEntries(uint8_t *buf,
-                                    std::vector<std::string>& entriesList) {
-  for (const std::string& symbolName : entriesList) {
+                                    std::vector<std::pair<std::string,int>>& entriesList) {
+  for (const auto& symbolName : entriesList) {
     // Use the symbol from in.symTab to ensure we have the final adjusted symbol.
     for (const auto &symbol : in.symTab->getSymbols()) {
-      if (symbol.sym->getName() != symbolName)
+      if (symbol.sym->getName() != symbolName.first)
         continue;
       // Only process defined symbols.
       auto *definedSymbol = dyn_cast<Defined>(symbol.sym);

@@ -45,6 +45,7 @@ public:
                 uint64_t val) const override;
   void finalizeSections() const override;
   void processSection(InputSection &inputSection) const override;
+  void scanTableJumpEntrys(InputSection &inputSection) const;
   void insertTableJumps(InputSection &inputSection) const;
   void insertTableJump(
       InputSection &inputSection, Relocation &rel,
@@ -325,6 +326,28 @@ RelExpr RISCV::getRelExpr(const RelType type, const Symbol &s,
 }
 
 void RISCV::processSection(InputSection &inputSection) const {
+}
+
+void RISCV::scanTableJumpEntrys(InputSection &inputSection) const {
+  for (auto it = std::begin(inputSection.relocations);
+      it < std::end(inputSection.relocations); ++it) {
+    switch (it->type) {
+      // auipc + jalr pair
+      case R_RISCV_CALL:
+      case R_RISCV_CALL_PLT:
+      {
+        const auto jalr = inputSection.data()[it->offset + 4];
+        const uint8_t rd = extractBits(jalr, 11, 7);
+
+        if (rd == 0)
+          in.riscvTableJumpSection->addEntryZero(*it->sym);
+        else if (rd == X_RA)
+          in.riscvTableJumpSection->addEntryRa(*it->sym);
+        else
+          return; // Unknown link register, do not modify.
+      }
+    }
+  }
 }
 
 void RISCV::insertTableJumps(InputSection &inputSection) const {
@@ -667,9 +690,9 @@ void RISCV::insertTableJump(
 
   uint32_t tblEntryAddress;
   if (rd == 0)
-    tblEntryAddress = in.riscvTableJumpSection->addEntryZero(*rel.sym);
+    tblEntryAddress = in.riscvTableJumpSection->getEntryZero(*rel.sym);
   else if (rd == X_RA)
-    tblEntryAddress = in.riscvTableJumpSection->addEntryRa(*rel.sym);
+    tblEntryAddress = in.riscvTableJumpSection->getEntryRa(*rel.sym);
   else
     return; // Unknown link register, do not modify.
 
@@ -1002,6 +1025,10 @@ void RISCV::finalizeSections() const {
     return;
 
   if (config->zce_tbljal) {
+    for (InputSectionBase* inputSection : inputSections) {
+      scanTableJumpEntrys(cast<InputSection>(*inputSection));
+    }
+    in.riscvTableJumpSection->finalizeContents();
     for (InputSectionBase* inputSection : inputSections) {
       insertTableJumps(cast<InputSection>(*inputSection));
     }

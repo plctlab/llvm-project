@@ -397,9 +397,12 @@ public:
   size_t getSize() const override;
   void writeTo(uint8_t *buf) override;
   bool isNeeded() const override;
+  void finalizeContents() override;
 
-  size_t addEntryZero(const Symbol& symbol);
-  size_t addEntryRa(const Symbol& symbol);
+  void addEntryZero(const Symbol& symbol);
+  size_t getEntryZero(const Symbol& symbol);
+  void addEntryRa(const Symbol& symbol);
+  size_t getEntryRa(const Symbol& symbol);
 
   // Flag to force TableJump to be in output if we have relocations
   // that relies on its address.
@@ -409,16 +412,21 @@ protected:
   uint64_t size = 0;
 
 private:
-  size_t addEntry(const Symbol& symbol,
-                  std::vector<std::string>& entriesList,
+  void addEntry(const Symbol& symbol,
+                  std::map<std::string, int>& entriesList,
                   const size_t maxSize);
-  void writeEntries(uint8_t *buf, std::vector<std::string>& entriesList);
+  size_t getEntry(const Symbol& symbol,
+                  std::vector<std::pair<std::string,int>>& entriesList,
+                  const size_t maxSize);
+  void writeEntries(uint8_t *buf, std::vector<std::pair<std::string,int>>& entriesList);
   void padUntil(uint8_t *buf, const uint8_t index);
 
   const size_t xlen = config->is64 ? 64 : 32;
 
-  std::vector<std::string> entriesZero;
-  std::vector<std::string> entriesRa;
+  std::map<std::string, int> entriesZero;
+  std::vector<std::pair<std::string, int>> finalizedEntriesZero;
+  std::map<std::string, int> entriesRa;
+  std::vector<std::pair<std::string, int>> finalizedEntriesRa;
 
   // TODO: Make use of these in cost function.
   const size_t maxSizeZero = 64;
