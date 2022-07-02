@@ -9263,6 +9263,15 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
   assert(XLen == 32 || XLen == 64);
   MVT XLenVT = XLen == 32 ? MVT::i32 : MVT::i64;
 
+  // Static chain parameter must not be passed in normal argument registers,
+  // so we assign t2 for it as did in GCC's __builtin_call_with_static_chain
+  if (ArgFlags.isNest()) {
+    if (unsigned Reg = State.AllocateReg(RISCV::X7)) {
+      State.addLoc(CCValAssign::getReg(ValNo, ValVT, Reg, LocVT, LocInfo));
+      return false;
+    }
+  }
+
   // Any return value split in to more than two values can't be returned
   // directly. Vectors are returned via the available vector registers.
   if (!LocVT.isVector() && IsRet && ValNo > 1)
