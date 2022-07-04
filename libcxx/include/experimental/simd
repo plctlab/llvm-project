@@ -1638,26 +1638,21 @@ public:
 #undef _LIBCXX_SIMD_MASK_OP_
 
   void operator++() && noexcept {
-     _Impl::__masked_incre(__s_.__s_, __m_.__s_);
+    _Impl::__masked_incre(__s_.__s_, __m_.__s_);
   }
   void operator++(int) && noexcept {
-    simd __r = *this;
     _Impl::__masked_incre(__s_.__s_, __m_.__s_);
-    return __r;
-
   }
   void operator--() && noexcept {
-     _Impl::__masked_decre(__s_.__s_, __m_.__s_);
+    _Impl::__masked_decre(__s_.__s_, __m_.__s_);
   }
   void operator--(int) && noexcept {
-    simd __r = *this;
     _Impl::__masked_decre(__s_.__s_, __m_.__s_);
-    return __r;
   }
 
   template <class _Tp, class _Flags>
   void copy_from(const _Tp* __mem, _Flags) && {
-     _Impl:: __masked_load(__s_.__s_, __m_.__s_, __mem/*_Flags::template _S_apply<_V>(__mem)*/);
+    _Impl:: __masked_load(__s_.__s_, __m_.__s_, __mem/*_Flags::template _S_apply<_V>(__mem)*/);
   }
 };
 
