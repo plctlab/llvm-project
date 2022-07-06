@@ -31,11 +31,11 @@ void test_access() {
     assert(bool(+a[0]) == false);
     assert(bool(-a[0]) == false);
     assert(bool(a[0] + b[0]) == true);
-    assert(bool(a[0] - b[0]) == true);
+    assert(bool(int(a[0]) - int(b[0])) == true);
     assert(bool(a[0] * b[0]) == false);
     assert(bool(a[0] / b[0]) == false);
     assert(bool(a[0] % b[0]) == false);
-    assert(bool(a[0] << b[0]) == false);
+    assert(bool(int(a[0]) << int(b[0])) == false);
     assert(bool(a[0] >> b[0]) == false);
     assert(bool(a[0] < b[0]) == true);
     assert(bool(a[0] <= b[0]) == true);
@@ -167,10 +167,10 @@ void test_access() {
     assert(bool(-a[0]) == false);
     assert(bool(a[0] + b[0]) == true);
     assert(bool(a[0] - b[0]) == true);
-    assert(bool(a[0] * b[0]) == false);
+    assert(bool(int(a[0]) * int(b[0])) == false);
     assert(bool(a[0] / b[0]) == false);
     assert(bool(a[0] % b[0]) == false);
-    assert(bool(a[0] << b[0]) == false);
+    assert(bool(int(a[0]) << int(b[0])) == false);
     assert(bool(a[0] >> b[0]) == false);
     assert(bool(a[0] < b[0]) == true);
     assert(bool(a[0] <= b[0]) == true);
