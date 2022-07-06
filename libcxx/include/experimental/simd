@@ -1718,8 +1718,6 @@ class simd {
 
   _Storage __s_;
 
-  simd(_Storage __s) : __s_(__s) {}
-
   friend class simd_mask<_Tp, _Abi>;
 
   template <class _MaskType, class _SimdType>
@@ -1760,6 +1758,8 @@ public:
   _LIBCPP_HIDE_FROM_ABI simd() = default;
   _LIBCPP_HIDE_FROM_ABI simd(const simd&) = default;
   _LIBCPP_HIDE_FROM_ABI simd& operator=(const simd&) = default;
+
+  _LIBCPP_HIDE_FROM_ABI simd(_Storage __s) : __s_(__s) {}
 
   static _LIBCPP_HIDE_FROM_ABI constexpr size_t size() noexcept { return simd_size_v<value_type, abi_type>; }
 
@@ -1931,8 +1931,6 @@ class simd_mask {
 
   _Storage __s_;
 
-  simd_mask(_Storage __s) : __s_(__s) {}
-
   friend class simd<_Tp, _Abi>;
 
   template <class _MaskType, class _SimdType>
@@ -1966,6 +1964,8 @@ public:
   static constexpr size_t size() noexcept { return simd_type::size(); }
 
   _LIBCPP_HIDE_FROM_ABI simd_mask() = default;
+
+  simd_mask(_Storage __s) : __s_(__s) {}
 
   // broadcast constructor
   explicit simd_mask(value_type __v) noexcept : __s_(_Impl::__broadcast(static_cast<value_type>(__v))) {}
