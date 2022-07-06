@@ -130,12 +130,13 @@ struct __mask_serial {
   }
 
   static int __find_last_set(_Mask __s) {
-    size_t __i = _Abi::__simd_size - 1;
-    for (; __i >= 0; --__i)
-      if (__s.__data[__i])
+    size_t __i = 1;
+    for (; __i < _Abi::__simd_size; ++__i)
+      if (__s.__data[_Abi::__simd_size - __i])
         break;
-    return __i;
+    return _Abi::__simd_size - __i;
   }
+
   static _Mask __masked_unary_minus(_Mask __s, _Mask __m) noexcept {
     _Mask __r;
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
