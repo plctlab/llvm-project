@@ -45,7 +45,7 @@ void compile_const_where() {
     static_assert(
         std::is_same<decltype(ex::where(a < 2, a)),
                      ex::const_where_expression<ex::native_simd_mask<int>,
-                                            const ex::native_simd<int>>>::value,
+                                            ex::native_simd<int>>>::value,
         "");
   }
   {
@@ -53,7 +53,7 @@ void compile_const_where() {
     static_assert(
         std::is_same<decltype(ex::where(a, a)),
             ex::const_where_expression<ex::native_simd_mask<int>,
-                                   const ex::native_simd_mask<int>>>::value,
+                                  ex::native_simd_mask<int>>>::value,
         "");
   }
   {

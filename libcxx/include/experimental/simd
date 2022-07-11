@@ -1381,7 +1381,7 @@ where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>> where(const typename sim
 }
 
 template <class _Tp, class _Abi>
-const_where_expression<simd_mask<_Tp, _Abi>, const simd<_Tp, _Abi>>
+const_where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>>
 where(const typename simd<_Tp, _Abi>::mask_type& __m, const simd<_Tp, _Abi>& __s) noexcept {
   return {__m, const_cast<simd<_Tp, _Abi>&>(__s)};
 }
@@ -1393,9 +1393,9 @@ where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>> where(const __ident
 }
 
 template <class _Tp, class _Abi>
-const_where_expression<simd_mask<_Tp, _Abi>, const simd_mask<_Tp, _Abi>>
+const_where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>>
 where(const __identity_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>& __s) noexcept {
-  return {__m, const_cast<simd<_Tp, _Abi>&>(__s)};
+  return {__m, const_cast<simd_mask<_Tp, _Abi>&>(__s)};
 }
 
 template <class _Tp> // TODO: add SFINAE check here
