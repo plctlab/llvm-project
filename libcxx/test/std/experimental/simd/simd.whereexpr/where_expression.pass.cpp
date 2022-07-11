@@ -52,6 +52,24 @@ void test_operators_simd() {
   }
   {
     ex::fixed_size_simd<int, 4> a([](int i) { return i; });
+    ex::fixed_size_simd<int, 4> b([](int i) { return i + 1; });
+    ex::where(a < 2, a) = b;
+    assert(a[0] == 1);
+    assert(a[1] == 2);
+    assert(a[2] == 2);
+    assert(a[3] == 3);
+  }
+  {
+    ex::fixed_size_simd_mask<int, 4> a(true);
+    ex::fixed_size_simd_mask<int, 4> b(false);
+    ex::where(a , b) = a;
+    assert(b[0] == true);
+    assert(b[1] == true);
+    assert(b[2] == true);
+    assert(b[3] == true);
+  }
+  {
+    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
     ex::where(a < 2, a) += -1;
     assert(a[0] == -1);
     assert(a[1] == 0);
