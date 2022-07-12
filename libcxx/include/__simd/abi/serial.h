@@ -31,16 +31,31 @@ struct __simd_serial {
     return __r;
   }
 
-  static _Simd __masked_assign(_Simd& __s, _Mask __m, _Tp __v) noexcept {
-    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
-    return __s;
+  template<typename _Up>
+  static _Simd __masked_assign(_Simd& __s, _Mask __m, _Up __v) noexcept {
+     if constexpr(std::is_arithmetic_v<_Up>){
+      for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+        __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
+      return __s;
+    }else{
+      for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+        __s.__data[__i] = __m.__data[__i] ? __v.__data[__i] : __s.__data[__i];
+      return __s;
+    }
   }
-#define _LIBCXX_MASKED_OP_(__op, __name)                                  \
-  static void __masked##__name(_Simd&__s, _Mask __m, _Tp __v) noexcept {  \
-     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                 \
-       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :     \
-    __s.__data[__i];                                                      \
+
+#define _LIBCXX_MASKED_OP_(__op, __name)                                    \
+template<typename _Up>                                                      \
+  static void __masked##__name(_Simd&__s, _Mask __m, _Up __v) noexcept {    \
+    if constexpr(std::is_arithmetic_v<_Up>){                                \
+     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                   \
+       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :       \
+    __s.__data[__i];                                                        \
+    }else{                                                                  \
+      for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                  \
+       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v.        \
+       __data[__i] : __s.__data[__i];                                       \
+    }                                                                       \
   }
   _LIBCXX_MASKED_OP_(+, _plus)
   _LIBCXX_MASKED_OP_(-, _minus)
@@ -53,6 +68,7 @@ struct __simd_serial {
   _LIBCXX_MASKED_OP_(<<, _shift_left)
   _LIBCXX_MASKED_OP_(>>, _shift_right)
 #undef _LIBCXX_MASKED_OP_
+
   static void __masked_incre(_Simd& __s, _Mask __m) noexcept {
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]++ : __s.__data[__i];
@@ -144,28 +160,44 @@ struct __mask_serial {
     return __r;
   }
 
-  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept {
-    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
-    return __s;
+  template<typename _Up>
+  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Up __v) noexcept {
+     if constexpr(std::is_arithmetic_v<_Up>){
+      for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+        __s.__data[__i] = __m.__data[__i] ? __v : __s.__data[__i];
+      return __s;
+    }else{
+      for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+        __s.__data[__i] = __m.__data[__i] ? __v.__data[__i] : __s.__data[__i];
+      return __s;
+    }
   }
-#define _LIBCXX_MASKED_OP_M(__op, __name)                                 \
-  static void __masked##__name(_Mask&__s, _Mask __m, _Tp __v) noexcept {  \
-    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                  \
-      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :      \
-    __s.__data[__i];                                                      \
+
+#define _LIBCXX_MASKED_OP_(__op, __name)                                    \
+template<typename _Up>                                                      \
+  static void __masked##__name(_Mask&__s, _Mask __m, _Up __v) noexcept {    \
+    if constexpr(std::is_arithmetic_v<_Up>){                                \
+     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                   \
+       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v :       \
+    __s.__data[__i];                                                        \
+    }else{                                                                  \
+      for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)                  \
+       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i] __op __v.        \
+       __data[__i] : __s.__data[__i];                                       \
+    }                                                                       \
   }
-  _LIBCXX_MASKED_OP_M(+, _plus)
-  _LIBCXX_MASKED_OP_M(-, _minus)
-  _LIBCXX_MASKED_OP_M(*, _multiplues)
-  _LIBCXX_MASKED_OP_M(/, _divides)
-  _LIBCXX_MASKED_OP_M(%, _modulus)
-  _LIBCXX_MASKED_OP_M(&, _bit_and)
-  _LIBCXX_MASKED_OP_M(|, _bit_or)
-  _LIBCXX_MASKED_OP_M(^, _bit_xor)
-  _LIBCXX_MASKED_OP_M(<<, _shift_left)
-  _LIBCXX_MASKED_OP_M(>>, _shift_right)
-#undef _LIBCXX_MASKED_OP_M
+  _LIBCXX_MASKED_OP_(+, _plus)
+  _LIBCXX_MASKED_OP_(-, _minus)
+  _LIBCXX_MASKED_OP_(*, _multiplues)
+  _LIBCXX_MASKED_OP_(/, _divides)
+  _LIBCXX_MASKED_OP_(%, _modulus)
+  _LIBCXX_MASKED_OP_(&, _bit_and)
+  _LIBCXX_MASKED_OP_(|, _bit_or)
+  _LIBCXX_MASKED_OP_(^, _bit_xor)
+  _LIBCXX_MASKED_OP_(<<, _shift_left)
+  _LIBCXX_MASKED_OP_(>>, _shift_right)
+#undef _LIBCXX_MASKED_OP_
+
   static void __masked_incre(_Mask& __s, _Mask __m) noexcept {
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
       __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]++ : __s.__data[__i];
