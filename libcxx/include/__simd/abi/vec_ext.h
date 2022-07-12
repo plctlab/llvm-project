@@ -89,14 +89,17 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
     return _Base::__masked_unary_minus(__s, __m);
   }
 
-  static _Simd __masked_assign(_Simd& __s, _Mask __m, _Tp __v) noexcept {
+  template <typename _Up>
+  static _Simd __masked_assign(_Simd& __s, _Mask __m, _Up __v) noexcept {
     // if constexpr (__have_avx512)
     //   avx512_intrinsics
     // else
     return _Base::__masked_assign(__s, __m, __v);
   }
+
 #define _LIBCXX_MASKED_OP_(__op, __name)                                    \
-  static void __masked##__name(_Simd& __s, _Mask __m, _Tp __v) noexcept {   \
+  template <typename _Up>                                                   \
+  static void __masked##__name(_Simd& __s, _Mask __m, _Up __v) noexcept {   \
     return _Base::__masked##__name(__s, __m, __v);                          \
   }
   _LIBCXX_MASKED_OP_(+, _plus)
@@ -110,6 +113,7 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   _LIBCXX_MASKED_OP_(<<, _shift_left)
   _LIBCXX_MASKED_OP_(>>, _shift_right)
 #undef _LIBCXX_MASKED_OP_
+
   static void __masked_incre(_Simd& __s, _Mask __m) noexcept {
     // if constexpr (__have_avx512)
     //   avx512_intrinsics
@@ -208,14 +212,17 @@ struct __mask_impl<_Tp, simd_abi::__vec_ext<_Np>> {
     return _Base::__masked_unary_minus(__s, __m);
   }
 
-  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept {
+  template <typename _Up>
+  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Up __v) noexcept {
     // if constexpr (__have_avx512)
     //   avx512_intrinsics
     // else
     return _Base::__masked_assign(__s, __m, __v);
   }
+
 #define _LIBCXX_MASKED_OP_M(__op, __name)                                   \
-  static void __masked##__name(_Mask& __s, _Mask __m, _Tp __v) noexcept {   \
+  template <typename _Up>                                                   \
+  static void __masked##__name(_Mask& __s, _Mask __m, _Up __v) noexcept {   \
     return _Base::__masked##__name(__s, __m, __v);                          \
   }
   _LIBCXX_MASKED_OP_M(+, _plus)
@@ -229,6 +236,7 @@ struct __mask_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   _LIBCXX_MASKED_OP_M(<<, _shift_left)
   _LIBCXX_MASKED_OP_M(>>, _shift_right)
 #undef _LIBCXX_MASKED_OP_M
+
   static void __masked_incre(_Mask& __s, _Mask __m) noexcept {
     // if constexpr (__have_avx512)
     //   avx512_intrinsics
