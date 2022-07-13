@@ -89,6 +89,13 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
     return _Base::__masked_unary_minus(__s, __m);
   }
 
+  static _Simd __masked_bitwise_not(_Simd __s, _Mask __m) noexcept {
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_bitwise_not(__s, __m);
+  }
+
   template <typename _Up>
   static _Simd __masked_assign(_Simd& __s, _Mask __m, _Up __v) noexcept {
     // if constexpr (__have_avx512)
@@ -210,6 +217,13 @@ struct __mask_impl<_Tp, simd_abi::__vec_ext<_Np>> {
     //   avx512_intrinsics
     // else
     return _Base::__masked_unary_minus(__s, __m);
+  }
+
+  static _Mask __masked_bitwise_not(_Mask __s, _Mask __m) noexcept {
+    // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_bitwise_not(__s, __m);
   }
 
   template <typename _Up>

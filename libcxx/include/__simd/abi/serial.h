@@ -31,6 +31,13 @@ struct __simd_serial {
     return __r;
   }
 
+  static _Simd __masked_bitwise_not(_Simd __s, _Mask __m) noexcept {
+    _Simd __r;
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __r.__data[__i] = __m.__data[__i] ? ~__s.__data[__i] : __s.__data[__i];
+    return __r;
+  }
+
   template<typename _Up>
   static _Simd __masked_assign(_Simd& __s, _Mask __m, _Up __v) noexcept {
      if constexpr(std::is_arithmetic_v<_Up>){
@@ -157,6 +164,13 @@ struct __mask_serial {
     _Mask __r;
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
       __r.__data[__i] = __m.__data[__i] ? -__s.__data[__i] : __s.__data[__i];
+    return __r;
+  }
+
+  static _Mask __masked_bitwise_not(_Mask __s, _Mask __m) noexcept {
+    _Mask __r;
+    for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
+      __r.__data[__i] = __m.__data[__i] ? ~__s.__data[__i] : __s.__data[__i];
     return __r;
   }
 
