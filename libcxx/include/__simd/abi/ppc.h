@@ -11,34 +11,6 @@ struct __simd_impl<_Tp, simd_abi::__ppc<_Np>> {
   using _Mask = __mask_storage<_Tp, simd_abi::__ppc<_Np>>;
   using _Base = __simd_serial<_Tp, simd_abi::__ppc<_Np>>;
 
-  static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-    // if constexpr (__have_ppc)
-    //   ppc_intrinsics
-    // else
-    return _Base::__equal_to(__lhs, __rhs);
-  }
-
-  static _Mask __not_equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-    // if constexpr (__have_ppc)
-    //   ppc_intrinsics
-    // else
-    return _Base::__not_equal_to(__lhs, __rhs);
-  }
-
-  static _Mask __less_equal(_Simd __lhs, _Simd __rhs) noexcept {
-    // if constexpr (__have_ppc)
-    //   ppc_intrinsics
-    // else
-    return _Base::__less_equal(__lhs, __rhs);
-  }
-
-  static _Mask __less(_Simd __lhs, _Simd __rhs) noexcept{
-    // if constexpr (__have_ppc)
-    //   ppc_intrinsics
-    // else
-    return _Base::__less(__lhs, __rhs);
-  }
-
   static _Tp __hmin(_Simd __s) noexcept{
     // if constexpr (__have_ppc)
     //   ppc_intrinsics
@@ -53,39 +25,18 @@ struct __simd_impl<_Tp, simd_abi::__ppc<_Np>> {
     return _Base::__hmax(__s);
   }
 
-  static _Simd __min(_Simd __a, _Simd __b) noexcept {
-    // if constexpr (__have_ppc)
-    //   ppc_intrinsics
-    // else
-    return _Base::__min(__a, __b);
-  }
-
-  static _Simd __max(_Simd __a, _Simd __b) noexcept {
-    // if constexpr (__have_ppc)
-    //   ppc_intrinsics
-    // else
-    return _Base::__max(__a, __b);
-  }
-
-  static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
-    // if constexpr (__have_ppc)
-    //   ppc_intrinsics
-    // else
-    return _Base::__minmax(__a, __b);
-  }
-
-  static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {
-    // if constexpr (__have_ppc)
-    //   ppc_intrinsics
-    // else
-    return _Base::__clamp(__v, __lo, __hi);
-  }
-
   static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept {
     // if constexpr (__have_ppc)
     //   ppc_intrinsics
     // else
     return _Base::__masked_unary_minus(__s, __m);
+  }
+
+  static _Simd __masked_bitwise_not(_Simd __s, _Mask __m) noexcept {
+    // if constexpr (__have_ppc)
+    //   ppc_intrinsics
+    // else
+    return _Base::__masked_bitwise_not(__s, __m);
   }
 
   static _Simd __masked_assign(_Simd& __s, _Mask __m, _Tp __v) noexcept {
@@ -206,6 +157,13 @@ struct __mask_impl<_Tp, simd_abi::__ppc<_Np>> {
     //   ppc_intrinsics
     // else
     return _Base::__masked_unary_minus(__s, __m);
+  }
+
+  static _Mask __masked_bitwise_not(_Mask __s, _Mask __m) noexcept {
+    // if constexpr (__have_ppc)
+    //   ppc_intrinsics
+    // else
+    return _Base::__masked_bitwise_not(__s, __m);
   }
 
   static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept {

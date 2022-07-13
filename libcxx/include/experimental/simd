@@ -1634,10 +1634,6 @@ class where_expression : public const_where_expression<_MaskType, _SimdType> {
   //friend where_expression where<>(const _MaskType&, _SimdType&) noexcept;
   //friend where_expression where<>(const __identity_t<_MaskType>&, _SimdType&) noexcept;
   //friend where_expression where<>(bool, _SimdType&) noexcept;
-  template <class _Tp>
-  typename _SimdType::value_type __to_value_type(_Tp&& __v) const {
-    return static_cast<typename _SimdType::value_type>(std::forward<_Tp>(__v));
-  }
 
 public:
   where_expression(const _MaskType& __m, _SimdType& s)
@@ -1865,7 +1861,9 @@ public:
   simd operator-() const noexcept { return _Impl::__unary_minus(__s_); }
 
   // binary operators [simd.binary]
-  friend simd operator+(const simd& __lhs, const simd& __rhs) noexcept { return _Impl::__plus(__lhs.__s_, __rhs.__s_); }
+  friend simd operator+(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__plus(__lhs.__s_, __rhs.__s_);
+  }
 
   friend simd operator-(const simd& __lhs, const simd& __rhs) noexcept {
     return _Impl::__minus(__lhs.__s_, __rhs.__s_);
