@@ -149,7 +149,7 @@ struct __simd_traits {
 
 #define _LIBCXX_MASKED_OP_(__op, __name)                                  \
   static void __masked##__name(_Simd&__s, _Mask __m, _Tp __v) noexcept {  \
-    return _Impl::__masked##__name(__s, __m, __v);                        \
+    _Impl::__masked##__name(__s, __m, __v);                               \
   }
   _LIBCXX_MASKED_OP_(+, _plus)
   _LIBCXX_MASKED_OP_(-, _minus)
@@ -165,7 +165,7 @@ struct __simd_traits {
 
 #define _LIBCXX_MASKED_OP_(__op, __name)                                    \
   static void __masked##__name(_Simd&__s, _Mask __m, _Simd __v) noexcept {  \
-    return _Impl::__masked##__name(__s, __m, __v);                          \
+    _Impl::__masked##__name(__s, __m, __v);                                 \
   }
   _LIBCXX_MASKED_OP_(+, _plus)
   _LIBCXX_MASKED_OP_(-, _minus)
@@ -180,19 +180,19 @@ struct __simd_traits {
 #undef _LIBCXX_MASKED_OP_
 
   static void __masked_incre(_Simd& __s, _Mask __m) noexcept {
-    return _Impl::__masked_incre(__s, __m);
+    _Impl::__masked_incre(__s, __m);
   }
 
   static void __masked_decre(_Simd& __s, _Mask __m) noexcept {
-    return _Impl::__masked_decre(__s, __m);
+    _Impl::__masked_decre(__s, __m);
   }
   template<class _Up>
   static void __masked_load(_Simd& __s, _Mask __m, _Up* __mem) noexcept {
-    return _Impl::__masked_load(__s, __m, __mem);
+    _Impl::__masked_load(__s, __m, __mem);
   }
  template<class _Up>
  static void __masked_store(const _Simd& __s,  _Mask __m, _Up* __mem) noexcept {
-    return _Impl::__masked_store(__s, __m, __mem);
+    _Impl::__masked_store(__s, __m, __mem);
   }
 
   template<class _BinaryOp>
@@ -293,7 +293,7 @@ struct __mask_traits {
 
 #define _LIBCXX_MASKED_OP_M(__op, __name)                                 \
   static void __masked##__name(_Mask&__s, _Mask __m, _Tp __v) noexcept {  \
-    return _Impl::__masked##__name(__s, __m, __v);                        \
+    _Impl::__masked##__name(__s, __m, __v);                               \
   }
   _LIBCXX_MASKED_OP_M(+, _plus)
   _LIBCXX_MASKED_OP_M(-, _minus)
@@ -309,7 +309,7 @@ struct __mask_traits {
 
 #define _LIBCXX_MASKED_OP_M(__op, __name)                                   \
   static void __masked##__name(_Mask&__s, _Mask __m, _Mask __v) noexcept {  \
-    return _Impl::__masked##__name(__s, __m, __v);                          \
+    _Impl::__masked##__name(__s, __m, __v);                                 \
   }
   _LIBCXX_MASKED_OP_M(+, _plus)
   _LIBCXX_MASKED_OP_M(-, _minus)
@@ -324,18 +324,18 @@ struct __mask_traits {
 #undef _LIBCXX_MASKED_OP_M
 
   static void __masked_incre(_Mask& __s, _Mask __m) noexcept {
-    return _Impl::__masked_incre(__s, __m);
+    _Impl::__masked_incre(__s, __m);
   }
   static void __masked_decre(_Mask& __s, _Mask __m) noexcept {
-    return _Impl::__masked_decre(__s, __m);
+    _Impl::__masked_decre(__s, __m);
   }
   template<class _Up>
   static void __masked_load(_Mask& __s, _Mask __m, _Up* __mem) noexcept {
-    return _Impl::__masked_load(__s, __m, __mem);
+    _Impl::__masked_load(__s, __m, __mem);
   }
  template<class _Up>
  static void __masked_store(const _Mask& __s, _Mask __m, _Up* __mem) noexcept {
-    return _Impl::__masked_store(__s, __m, __mem);
+    _Impl::__masked_store(__s, __m, __mem);
   }
 };
 
