@@ -48,7 +48,7 @@ struct __simd_impl<_Tp, simd_abi::__neon<_Np>> {
   }
 #define _LIBCXX_MASKED_OP_(__op, __name)                                    \
   static void __masked##__name(_Simd& __s, _Mask __m, _Tp __v) noexcept {   \
-    return _Base::__masked##__name(__s, __m, __v);                          \
+    _Base::__masked##__name(__s, __m, __v);                                 \
   }
   _LIBCXX_MASKED_OP_(+, _plus)
   _LIBCXX_MASKED_OP_(-, _minus)
@@ -65,28 +65,28 @@ struct __simd_impl<_Tp, simd_abi::__neon<_Np>> {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_incre(__s, __m);
+    _Base::__masked_incre(__s, __m);
   }
 
   static void __masked_decre(_Simd& __s, _Mask __m) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_decre(__s, __m);
+    _Base::__masked_decre(__s, __m);
   }
   template<class _Up>
   static void __masked_load(_Simd& __s, _Mask __m, _Up* __mem) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_load(__s, __m, __mem);
+    _Base::__masked_load(__s, __m, __mem);
   }
  template<class _Up>
  static void __masked_store(const _Simd& __s,  _Mask __m, _Up* __mem) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_store(__s, __m, __mem);
+    _Base::__masked_store(__s, __m, __mem);
   }
 
   template<class _BinaryOp>
@@ -174,7 +174,7 @@ struct __mask_impl<_Tp, simd_abi::__neon<_Np>> {
   }
 #define _LIBCXX_MASKED_OP_M(__op, __name)                                   \
   static void __masked##__name(_Mask& __s, _Mask __m, _Tp __v) noexcept {   \
-    return _Base::__masked##__name(__s, __m, __v);                          \
+    _Base::__masked##__name(__s, __m, __v);                                 \
   }
   _LIBCXX_MASKED_OP_M(+, _plus)
   _LIBCXX_MASKED_OP_M(-, _minus)
@@ -191,27 +191,27 @@ struct __mask_impl<_Tp, simd_abi::__neon<_Np>> {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_incre(__s, __m);
+    _Base::__masked_incre(__s, __m);
   }
   static void __masked_decre(_Mask& __s, _Mask __m) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_decre(__s, __m);
+    _Base::__masked_decre(__s, __m);
   }
   template<class _Up>
   static void __masked_load(_Mask& __s, _Mask __m, _Up* __mem) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_load(__s, __m, __mem);
+    _Base::__masked_load(__s, __m, __mem);
   }
  template<class _Up>
  static void __masked_store(const _Mask& __s, _Mask __m, _Up* __mem) noexcept {
     // if constexpr (__have_neon)
     //   neon_intrinsics
     // else
-    return _Base::__masked_store(__s, __m, __mem);
+    _Base::__masked_store(__s, __m, __mem);
   }
 
 };
