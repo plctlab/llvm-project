@@ -116,6 +116,30 @@ void test_operators_simd() {
     assert(a[2] == 0);
     assert(a[3] == 1);
   }
+    {
+    int buf[]{1,2,3,4};
+    ex::fixed_size_simd<int, 4> a;
+    a.copy_from(buf,ex::element_aligned_tag());
+    ex::fixed_size_simd_mask<int, 4> b(true);
+
+    ex::where(b , a)++;
+    assert(a[0] == 2);
+    assert(a[1] == 3);
+    assert(a[2] == 4);
+    assert(a[3] == 5);
+  }
+  {
+    int buf[]{1,2,3,4};
+    ex::fixed_size_simd<int, 4> a;
+    a.copy_from(buf,ex::element_aligned_tag());
+    ex::fixed_size_simd_mask<int, 4> b(true);
+
+    ex::where(b , a)--;
+    assert(a[0] == 0);
+    assert(a[1] == 1);
+    assert(a[2] == 2);
+    assert(a[3] == 3);
+  }
   {
     ex::fixed_size_simd<int, 4> a([](int i) { return i; });
     ex::where(a < 2, a) |= 2;
