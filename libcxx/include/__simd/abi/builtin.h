@@ -283,7 +283,7 @@ struct __mask_traits {
     return _Impl::__masked_bitwise_not(__s, __m);
   }
 
-  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept {
+  static _Mask __masked_assign(_Mask& __s, _Mask __m, bool __v) noexcept {
     return _Impl::__masked_assign(__s, __m, __v);
   }
 
