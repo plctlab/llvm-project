@@ -78,12 +78,12 @@ template<typename _Up>                                                      \
 
   static void __masked_incre(_Simd& __s, _Mask __m) noexcept {
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]++ : __s.__data[__i];
+      __s.__data[__i] = __m.__data[__i] ? (__s.__data[__i] + 1) : __s.__data[__i];
   }
 
   static void __masked_decre(_Simd& __s, _Mask __m) noexcept {
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __s.__data[__i]-- : __s.__data[__i];
+      __s.__data[__i] = __m.__data[__i] ? (__s.__data[__i] - 1): __s.__data[__i];
   }
   template<class _Up>
   static void __masked_load(_Simd& __s, _Mask __m, _Up* __mem) noexcept {
