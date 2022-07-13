@@ -1570,7 +1570,7 @@ public:
 
   _SimdType operator-() const && noexcept { return _Impl::__masked_unary_minus(__s_.__s_, __m_.__s_); }
   _SimdType operator+() const && noexcept { return __s_; }
-  _SimdType operator~() const && noexcept { return __m_ ? ~__s_ : __s_; }
+  _SimdType operator~() const && noexcept { return _Impl::__masked_bitwise_not(__s_.__s_, __m_.__s_); }
 
   template <class _Tp, class _Flags>
   void copy_to(_Tp* __mem, _Flags) const && {

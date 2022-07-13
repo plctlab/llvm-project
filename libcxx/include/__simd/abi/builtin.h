@@ -135,6 +135,10 @@ struct __simd_traits {
     return _Impl::__masked_unary_minus(__s, __m);
   }
 
+  static _Simd __masked_bitwise_not(_Simd __s, _Mask __m) noexcept {
+    return _Impl::__masked_bitwise_not(__s, __m);
+  }
+
   static _Simd __masked_assign(_Simd& __s, _Mask __m, _Tp __v) noexcept {
     return _Impl::__masked_assign(__s, __m, __v);
   }
@@ -273,6 +277,10 @@ struct __mask_traits {
 
   static _Mask __masked_unary_minus(_Mask __s, _Mask __m) noexcept {
     return _Impl::__masked_unary_minus(__s, __m);
+  }
+
+  static _Mask __masked_bitwise_not(_Mask __s, _Mask __m) noexcept {
+    return _Impl::__masked_bitwise_not(__s, __m);
   }
 
   static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept {
