@@ -812,6 +812,14 @@ public:
   }
 };
 
+class _Bool {
+  const bool __v;
+public:
+  constexpr _Bool(bool __b) : __v(__b) {}
+  _Bool(int) = delete;
+  constexpr operator bool() const { return __v; }
+};
+
 template <class _To, class _From>
 constexpr decltype(_To{std::declval<_From>()}, true) __is_non_narrowing_convertible_impl(_From) {
   return true;
@@ -1313,19 +1321,19 @@ int find_last_set(const simd_mask<_Tp, _Abi>& __m) {
   return __mask_traits<_Tp, _Abi>::__find_last_set(__m.__s_);
 }
 
-bool all_of(bool __v) noexcept { return __v; }
+bool all_of(_Bool __v) noexcept { return __v; }
 
-bool any_of(bool __v) noexcept { return __v; }
+bool any_of(_Bool __v) noexcept { return __v; }
 
-bool none_of(bool __v) noexcept { return !__v; }
+bool none_of(_Bool __v) noexcept { return !__v; }
 
-bool some_of(bool) noexcept { return false; }
+bool some_of(_Bool) noexcept { return false; }
 
-int popcount(bool __v) noexcept { return __v; }
+int popcount(_Bool __v) noexcept { return __v; }
 
-int find_first_set(bool) noexcept { return 0; }
+int find_first_set(_Bool) noexcept { return 0; }
 
-int find_last_set(bool) noexcept { return 0; }
+int find_last_set(_Bool) noexcept { return 0; }
 
 // Where expression class templates [parallel.simd.whereexpr]
 template <class _MaskType, class _SimdType>
@@ -1360,12 +1368,12 @@ where(const __identity_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>&
 }
 
 template <class _Tp> // TODO: add SFINAE check here
-where_expression<bool, _Tp> where(bool __m, _Tp& __s) noexcept {
+where_expression<bool, _Tp> where(_Bool __m, _Tp& __s) noexcept {
   return {__m, __s};
 }
 
 template <class _Tp> // TODO: add SFINAE check here
-const_where_expression<bool, _Tp> where(bool __m, const _Tp& __s) noexcept {
+const_where_expression<bool, _Tp> where(_Bool __m, const _Tp& __s) noexcept {
   return {__m, __s};
 }
 
