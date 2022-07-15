@@ -1336,36 +1336,36 @@ int find_first_set(bool) noexcept { return 0; }
 
 int find_last_set(bool) noexcept { return 0; }
 
-// masked assignment [simd.whereexpr]
-template <class _MaskType, class _Tp>
+// Where expression class templates [parallel.simd.whereexpr]
+template <class _MaskType, class _SimdType>
 class const_where_expression;
 
-template <class _MaskType, class _Tp>
+template <class _MaskType, class _SimdType>
 class where_expression;
 
-// masked assignment [simd.mask.where]
+// where functions [parallel.simd.mask.where]
 template <class _Tp, class _Abi>
-where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>> where(const typename simd<_Tp, _Abi>::mask_type& __m,
-                                                              simd<_Tp, _Abi>& __s) noexcept {
+where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>>
+where(const typename simd<_Tp, _Abi>::mask_type& __m, simd<_Tp, _Abi>& __s) noexcept {
   return {__m, __s};
 }
 
 template <class _Tp, class _Abi>
 const_where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>>
 where(const typename simd<_Tp, _Abi>::mask_type& __m, const simd<_Tp, _Abi>& __s) noexcept {
-  return {__m, const_cast<simd<_Tp, _Abi>&>(__s)};
+  return {__m, __s};
 }
 
 template <class _Tp, class _Abi>
-where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>> where(const __identity_t<simd_mask<_Tp, _Abi>>& __m,
-                                                                   simd_mask<_Tp, _Abi>& __s) noexcept {
+where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>>
+where(const __identity_t<simd_mask<_Tp, _Abi>>& __m, simd_mask<_Tp, _Abi>& __s) noexcept {
   return {__m, __s};
 }
 
 template <class _Tp, class _Abi>
 const_where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>>
 where(const __identity_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>& __s) noexcept {
-  return {__m, const_cast<simd_mask<_Tp, _Abi>&>(__s)};
+  return {__m, __s};
 }
 
 template <class _Tp> // TODO: add SFINAE check here
@@ -1375,7 +1375,7 @@ where_expression<bool, _Tp> where(bool __m, _Tp& __s) noexcept {
 
 template <class _Tp> // TODO: add SFINAE check here
 const_where_expression<bool, _Tp> where(bool __m, const _Tp& __s) noexcept {
-  return {__m, const_cast<_Tp&>(__s)};
+  return {__m, __s};
 }
 
 template <typename _Tp, typename _Abi>
