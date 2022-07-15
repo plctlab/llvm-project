@@ -812,15 +812,6 @@ public:
   }
 };
 
-template <class _Tp>
-struct __is_bool : std::false_type{};
-
-template <>
-struct __is_bool<bool> : std::true_type{};
-
-template <class _Tp>
-inline constexpr bool __is_bool_v = __is_bool<_Tp>::value;
-
 template <class _To, class _From>
 constexpr decltype(_To{std::declval<_From>()}, true) __is_non_narrowing_convertible_impl(_From) {
   return true;
@@ -1550,7 +1541,7 @@ public:
 
 template <class _Tp>
 class const_where_expression<bool, _Tp> {
-  static_assert(!__is_bool_v<_Tp>,"The type of second template parameter can not be 'bool'");
+  static_assert(!std::is_same_v<_Tp, bool>,"The type of second template parameter can not be 'bool'");
   //friend const_where_expression where<>(const _MaskType&, const _Tp&) noexcept;
   //friend const_where_expression where<>(const __identity_t<_MaskType>&, const _Tp&) noexcept;
   //friend const_where_expression where<>(bool, const _Tp&) noexcept;
@@ -1661,7 +1652,7 @@ public:
 
 template <class _Tp>
 class where_expression<bool, _Tp> : public const_where_expression<bool, _Tp> {
-  static_assert(!__is_bool_v<_Tp>,"The type of second template parameter can not be 'bool'");
+  static_assert(!std::is_same_v<_Tp, bool>,"The type of second template parameter can not be 'bool'");
   using const_where_expression<bool, _Tp>::__m_;
   using const_where_expression<bool, _Tp>::__s_;
 
