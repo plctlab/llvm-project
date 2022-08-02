@@ -749,12 +749,28 @@ public:
   _LIBCXX_SIMD_REFERENCE_OP_(*)
   _LIBCXX_SIMD_REFERENCE_OP_(/)
   _LIBCXX_SIMD_REFERENCE_OP_(%)
-  _LIBCXX_SIMD_REFERENCE_OP_(&)
-  _LIBCXX_SIMD_REFERENCE_OP_(|)
   _LIBCXX_SIMD_REFERENCE_OP_(^)
   _LIBCXX_SIMD_REFERENCE_OP_(<<)
   _LIBCXX_SIMD_REFERENCE_OP_(>>)
 #undef _LIBCXX_SIMD_REFERENCE_OP_
+
+  template<class _Up> // TODO: add SFINAE check here
+  __simd_reference operator &=(_Up&& __v) && noexcept {
+    if constexpr (std::is_same_v<_ValueType, bool>)
+      __set(__get() && std::forward<_Up>(__v));
+    else
+      __set(__get() & std::forward<_Up>(__v));
+    return {__s_, __idx_};
+  }
+
+  template<class _Up> // TODO: add SFINAE check here
+  __simd_reference operator |=(_Up&& __v) && noexcept {
+    if constexpr (std::is_same_v<_ValueType, bool>)
+      __set(__get() || std::forward<_Up>(__v));
+    else
+      __set(__get() | std::forward<_Up>(__v));
+    return {__s_, __idx_};
+  }
 
   // TODO: add SFINAE check here
   _LIBCPP_HIDE_FROM_ABI __simd_reference operator++() && noexcept {
