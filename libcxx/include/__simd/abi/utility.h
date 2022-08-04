@@ -77,6 +77,11 @@ auto __choose_mask_type() {
   } else if constexpr (sizeof(_Tp) == 8) {
     return uint64_t{};
   }
+#ifndef _LIBCPP_HAS_NO_INT128
+  else if constexpr (sizeof(_Tp) == 16) {
+    return __uint128_t{};
+  }
+#endif
 }
 
 template <typename Tuple, typename Func, size_t ... N>
