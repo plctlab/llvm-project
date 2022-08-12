@@ -1398,13 +1398,15 @@ where(const __identity_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>&
   return {__m, __s};
 }
 
-template <class _Tp> // TODO: add SFINAE check here
-where_expression<bool, _Tp> where(_Bool __m, _Tp& __s) noexcept {
+template <class _Tp>
+where_expression<bool, _Tp>
+where(_Bool __m, _Tp& __s) noexcept {
   return {__m, __s};
 }
 
-template <class _Tp> // TODO: add SFINAE check here
-const_where_expression<bool, _Tp> where(_Bool __m, const _Tp& __s) noexcept {
+template <class _Tp>
+const_where_expression<bool, _Tp>
+where(_Bool __m, const _Tp& __s) noexcept {
   return {__m, __s};
 }
 
@@ -1532,19 +1534,6 @@ simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>& __v, const simd<_Tp, _Abi>& __lo, c
 // Where expression class templates [parallel.simd.whereexpr]
 template <class _MaskType, class _SimdType>
 class const_where_expression {
-  static_assert( is_simd_mask_v<_MaskType>,
-                "The type of  first template parameter must be 'bool' or 'simd_mask'");
-  static_assert( is_simd_mask_v<_MaskType> &&
-                (is_simd_v<std::remove_cvref_t<_SimdType>> ||
-                is_simd_mask_v<std::remove_cvref_t<_SimdType>>),
-                "The type of second template parameter must be 'simd' or 'simd_mask'" );
-
-  using _Impl = typename _SimdType::_Impl;
-
-  //friend const_where_expression where<>(const _MaskType&, const _SimdType&) noexcept;
-  //friend const_where_expression where<>(const __identity_t<_MaskType>&, const _SimdType&) noexcept;
-  //friend const_where_expression where<>(bool, const _SimdType&) noexcept;
-
   template <class _Mp, class _Vp, class _BinaryOp>
   friend typename _Vp::value_type
   reduce(const const_where_expression<_Mp, _Vp>& __w,
@@ -1559,6 +1548,7 @@ class const_where_expression {
   hmax(const const_where_expression<_Mp, _Vp>& __w);
 
 protected:
+  using _Impl = typename _SimdType::_Impl;
   const _MaskType __m_;
   _SimdType& __s_;
 
@@ -1580,11 +1570,6 @@ public:
 
 template <class _Tp>
 class const_where_expression<bool, _Tp> {
-  static_assert(!std::is_same_v<_Tp, bool>,"The type of second template parameter can not be 'bool'");
-  //friend const_where_expression where<>(const _MaskType&, const _Tp&) noexcept;
-  //friend const_where_expression where<>(const __identity_t<_MaskType>&, const _Tp&) noexcept;
-  //friend const_where_expression where<>(bool, const _Tp&) noexcept;
-
   template <class _Mp, class _Vp, class _BinaryOp>
   friend typename _Vp::value_type
   reduce(const const_where_expression<_Mp, _Vp>& __w,
@@ -1621,19 +1606,9 @@ public:
 
 template <class _MaskType, class _SimdType>
 class where_expression : public const_where_expression<_MaskType, _SimdType> {
-  static_assert( is_simd_mask_v<_MaskType> &&
-                (is_simd_v<std::remove_cvref_t<_SimdType>> ||
-                 is_simd_mask_v<std::remove_cvref_t<_SimdType>>),
-                "The type of second template parameter must be 'simd' or 'simd_mask'" );
-
-  using _Impl = typename _SimdType::_Impl;
-
+  using _Impl = typename const_where_expression<_MaskType, _SimdType>::_Impl;
   using const_where_expression<_MaskType, _SimdType>::__m_;
   using const_where_expression<_MaskType, _SimdType>::__s_;
-
-  //friend where_expression where<>(const _MaskType&, _SimdType&) noexcept;
-  //friend where_expression where<>(const __identity_t<_MaskType>&, _SimdType&) noexcept;
-  //friend where_expression where<>(bool, _SimdType&) noexcept;
 
 public:
   where_expression(const _MaskType& __m, _SimdType& s)
@@ -1652,7 +1627,7 @@ public:
   template <class _Tp>                                                                         \
   void operator __op##=(_Tp&& __v) && noexcept {                                               \
     if constexpr(std::is_arithmetic_v<std::remove_reference_t<_Tp>>){                          \
-      _Impl::__masked##__name(__s_.__s_, __m_.__s_,__v);                                       \
+      _Impl::__masked##__name(__s_.__s_, __m_.__s_, __v);                                      \
     }else{                                                                                     \
       _Impl::__masked##__name(__s_.__s_, __m_.__s_, __v.__s_);                                 \
     }                                                                                          \
@@ -1691,13 +1666,8 @@ public:
 
 template <class _Tp>
 class where_expression<bool, _Tp> : public const_where_expression<bool, _Tp> {
-  static_assert(!std::is_same_v<_Tp, bool>,"The type of second template parameter can not be 'bool'");
   using const_where_expression<bool, _Tp>::__m_;
   using const_where_expression<bool, _Tp>::__s_;
-
-  //friend where_expression where<>(const _MaskType&, _Tp&) noexcept;
-  //friend where_expression where<>(const type_identity_t<_MaskType>&, _Tp&) noexcept;
-  //friend where_expression where<>(bool, _Tp&) noexcept;
 
 public:
   where_expression(const bool __m, _Tp& s)
