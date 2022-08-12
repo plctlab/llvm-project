@@ -24,6 +24,34 @@ struct __simd_serial {
     return __max;
   }
 
+  static _Tp __masked_hmax(_Mask __m, _Simd __s) noexcept{
+    if (__mask_serial<_Tp, _Abi>::__none_of(__m)) {
+      return numeric_limits<_Tp>::lowest();
+    } else {
+      _Tp __max = numeric_limits<_Tp>::lowest();
+      for (size_t i = 0; i < _Abi::__simd_size; i++) {
+        if ( __m.__data[i] > 0 && __s.__data[i] >= __max) {
+          __max = __s.__data[i];
+        }
+      }
+      return __max;
+    }
+  }
+
+  static _Tp __masked_hmin(_Mask __m, _Simd __s) noexcept{
+    if (__mask_serial<_Tp, _Abi>::__none_of(__m)) {
+      return numeric_limits<_Tp>::max();
+    } else {
+      _Tp __min = numeric_limits<_Tp>::max();
+      for (size_t i = 0; i < _Abi::__simd_size; i++) {
+        if ( __m.__data[i] > 0 && __s.__data[i] <= __min) {
+          __min = __s.__data[i];
+        }
+      }
+      return __min;
+    }
+  }
+
   static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept {
     _Simd __r;
     for (size_t __i = 0; __i < _Abi::__simd_size; ++__i)
