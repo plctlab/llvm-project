@@ -123,6 +123,14 @@ struct __simd_traits {
     return {__a.__data > __b.__data ? __a.__data : __b.__data};
   }
 
+  static _Tp __masked_hmax(_Mask __m, _Simd __s) noexcept{
+    return _Impl::__masked_hmax(__m, __s);
+  }
+
+  static _Tp __masked_hmin(_Mask __m, _Simd __s) noexcept{
+    return _Impl::__masked_hmin(__m, __s);
+  }
+
   static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
     return {__min(__a,__b), __max(__a,__b)};
   }

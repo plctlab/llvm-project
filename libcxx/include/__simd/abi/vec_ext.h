@@ -26,6 +26,20 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
     return _Base::__hmax(__s);
   }
 
+  static _Tp __masked_hmin(_Mask __m, _Simd __s) noexcept{
+      // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_hmin(__m, __s);
+  }
+
+  static _Tp __masked_hmax(_Mask __m, _Simd __s) noexcept{
+      // if constexpr (__have_avx512)
+    //   avx512_intrinsics
+    // else
+    return _Base::__masked_hmax(__m, __s);
+  }
+
   static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept {
     // if constexpr (__have_avx512)
     //   avx512_intrinsics
@@ -156,6 +170,7 @@ struct __mask_impl<_Tp, simd_abi::__vec_ext<_Np>> {
     // else
     return _Base::__find_last_set(__s);
   }
+
   static _Mask __masked_unary_minus(_Mask __s, _Mask __m) noexcept {
     // if constexpr (__have_avx512)
     //   avx512_intrinsics

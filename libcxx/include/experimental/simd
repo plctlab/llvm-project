@@ -1474,17 +1474,7 @@ _Tp hmin(const simd<_Tp, _Abi>& __s) noexcept {
 // TODO: implement
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>& __w){
-  if (none_of(__w.__m_)) {
-    return numeric_limits<typename _SimdType::value_type>::max();
-  } else {
-    typename _SimdType::value_type __min = numeric_limits<typename _SimdType::value_type>::max();
-    for (size_t i=0; i < __w.__s_.size(); i++) {
-      if ( __w.__m_[i] == true && __w.__s_[i] <= __min) {
-        __min = __w.__s_[i];
-      }
-    }
-    return __min;
-  }
+  return _SimdType::_Impl::__masked_hmin(__w.__m_.__s_, __w.__s_.__s_);
 };
 
 
@@ -1496,17 +1486,7 @@ _Tp hmax(const simd<_Tp, _Abi>& __s) noexcept {
 // TODO: implement
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>& __w){
-  if (none_of(__w.__m_)) {
-        return numeric_limits<typename _SimdType::value_type>::lowest();
-  } else {
-    typename _SimdType::value_type __max = numeric_limits<typename _SimdType::value_type>::lowest();
-    for (size_t i=0; i < __w.__s_.size(); i++) {
-      if ( __w.__m_[i] == true && __w.__s_[i] >= __max) {
-        __max = __w.__s_[i];
-      }
-    }
-    return __max;
-  }
+  return _SimdType::_Impl::__masked_hmax(__w.__m_.__s_, __w.__s_.__s_);
 };
 
 // Algorithms [parallel.simd.alg]
@@ -1957,6 +1937,14 @@ class simd_mask {
   friend int popcount<>(const simd_mask&) noexcept;
   friend int find_first_set<>(const simd_mask&);
   friend int find_last_set<>(const simd_mask&);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type
+  hmin(const const_where_expression<_Mp, _Vp>& __w);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type
+  hmax(const const_where_expression<_Mp, _Vp>& __w);
 
 public:
   using value_type = bool;
