@@ -45,14 +45,15 @@ struct __simd_traits {
   }
 
   template <class _Up>
-  static _Simd __load(const _Up* __mem) noexcept {
-    // TODO: optimized implementation
-    return __generate([=](size_t __i) { return static_cast<_Tp>(__mem[__i]); });
+  static void __load(_Simd& __s, const _Up* __mem) noexcept {
+    // TODO: Optimize with intrinsics
+    for (size_t __i = 0; __i < _Abi::__simd_size; __i++)
+     __s.__data[__i] = static_cast<_Tp>(__mem[__i]);
   }
 
   template <class _Up>
   static void __store(_Simd __s, _Up* __mem) noexcept {
-    // TODO: optimized implementation
+    // TODO: Optimize with intrinsics
     for (size_t __i = 0; __i < _Abi::__simd_size; __i++)
       __mem[__i] = static_cast<_Up>(__s.__data[__i]);
   }
@@ -228,19 +229,20 @@ struct __mask_traits {
     return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Abi::__simd_size>());
   }
 
-
   template <class _Up>
-  static _Mask __load(const _Up* __mem) noexcept {
-    // TODO: optimized implementation
-    return __generate([=](size_t __i) { return static_cast<decltype(__choose_mask_type<_Tp>())>(__mem[__i]); });
+  static void __load(_Mask& __s, const _Up* __mem) noexcept {
+    // TODO: Optimize with intrinsics
+    for (size_t __i = 0; __i < _Abi::__simd_size; __i++)
+     __s.__data[__i] = static_cast<decltype(__choose_mask_type<_Tp>())>(__mem[__i]);
   }
 
   template <class _Up>
   static void __store(_Mask __s, _Up* __mem) noexcept {
-    // TODO: optimized implementation
+    // TODO: Optimize with intrinsics
     for (size_t __i = 0; __i < _Abi::__simd_size; __i++)
       __mem[__i] = static_cast<_Up>(__s.__data[__i]);
   }
+
   static _Mask __negate(_Mask __s) noexcept { return {{~__s.__data}}; }
 
   static _Mask __unary_minus(_Mask __s) noexcept { return {{-__s.__data}}; }

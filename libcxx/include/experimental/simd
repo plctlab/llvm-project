@@ -1761,12 +1761,14 @@ public:
 
   // load constructor
   template <class _Up, class _Flags, class = std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>>>
-  _LIBCPP_HIDE_FROM_ABI simd(const _Up* __mem, _Flags) : __s_(_Impl::__load(_Flags::template __apply<simd>(__mem))) {}
+  _LIBCPP_HIDE_FROM_ABI simd(const _Up* __mem, _Flags){
+    _Impl::__load(__s_, _Flags::template __apply<simd>(__mem));
+  }
 
   // loads [simd.load]
   template <class _Up, class _Flags>
   std::enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> _LIBCPP_HIDE_FROM_ABI copy_from(const _Up* __mem, _Flags) {
-    __s_ = _Impl::__load(_Flags::template __apply<simd>(__mem));
+    _Impl::__load(__s_, _Flags::template __apply<simd>(__mem));
   }
 
   // stores [simd.store]
@@ -1969,12 +1971,14 @@ public:
 
   // load constructor
   template <class _Flags, class = std::enable_if_t<is_simd_flag_type_v<_Flags>>>
-  simd_mask(const value_type* __mem, _Flags) : __s_(_Impl::__load(_Flags::template __apply<simd_mask>(__mem))) {}
+  simd_mask(const value_type* __mem, _Flags){
+    _Impl::__load(__s_, _Flags::template __apply<simd_mask>(__mem));
+  }
 
   // loads [simd.mask.copy]
   template <class _Flags>
   std::enable_if_t<is_simd_flag_type_v<_Flags>> copy_from(const value_type* __mem, _Flags) {
-    __s_ = _Impl::__load(_Flags::template __apply<simd_mask>(__mem));
+    _Impl::__load(__s_, _Flags::template __apply<simd_mask>(__mem));
   }
 
   template <class _Flags>
