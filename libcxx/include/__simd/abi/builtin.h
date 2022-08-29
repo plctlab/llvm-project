@@ -109,11 +109,11 @@ struct __simd_traits {
   }
 
   static _Tp __hmin(_Simd __s) noexcept{
-    return _Impl::__hmin(__s);
+    return __builtin_reduce_min(__s.__data);
   }
 
   static _Tp __hmax(_Simd __s) noexcept{
-    return _Impl::__hmax(__s);
+    return __builtin_reduce_max(__s.__data);
   }
 
   static _Simd __min(_Simd __a, _Simd __b) noexcept {
