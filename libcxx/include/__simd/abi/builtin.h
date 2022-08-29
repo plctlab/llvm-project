@@ -144,9 +144,24 @@ struct __simd_traits {
     return _Impl::__masked_assign(__s, __m, __v);
   }
 
-  template<class _BinaryOp>
-  static _Tp __reduce(const _Simd& __s, _BinaryOp __op) {
-    return _Impl::__reduce(__s, __op);
+  static _Tp __reduce(const _Simd& __s, plus<>) {
+    return __builtin_reduce_add(__s.__data);
+  }
+
+  static _Tp __reduce(const _Simd& __s, multiplies<>) {
+    return __builtin_reduce_mul(__s.__data);
+  }
+
+  static _Tp __reduce(const _Simd& __s, bit_and<>) {
+    return __builtin_reduce_and(__s.__data);
+  }
+
+  static _Tp __reduce(const _Simd& __s, bit_or<>) {
+    return __builtin_reduce_or(__s.__data);
+  }
+
+  static _Tp __reduce(const _Simd& __s, bit_xor<>) {
+    return __builtin_reduce_xor(__s.__data);
   }
 };
 
