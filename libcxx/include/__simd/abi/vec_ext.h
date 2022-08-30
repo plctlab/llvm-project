@@ -12,20 +12,6 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
   using _Mask = __mask_storage<_Tp, simd_abi::__vec_ext<_Np>>;
   using _Base = __simd_serial<_Tp, simd_abi::__vec_ext<_Np>>;
 
-  static _Tp __hmin(_Simd __s) noexcept{
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    return _Base::__hmin(__s);
-  }
-
-  static _Tp __hmax(_Simd __s) noexcept{
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    return _Base::__hmax(__s);
-  }
-
   static _Tp __masked_hmin(_Mask __m, _Simd __s) noexcept{
       // if constexpr (__have_avx512)
     //   avx512_intrinsics
@@ -40,71 +26,11 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
     return _Base::__masked_hmax(__m, __s);
   }
 
-  static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    return _Base::__masked_unary_minus(__s, __m);
-  }
-
-  static _Simd __masked_bitwise_not(_Simd __s, _Mask __m) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    return _Base::__masked_bitwise_not(__s, __m);
-  }
-
-  template <typename _Up>
-  static _Simd __masked_assign(_Simd& __s, _Mask __m, _Up __v) noexcept {
+  static _Simd __masked_assign(_Simd& __s, _Mask __m, _Simd __v) noexcept {
     // if constexpr (__have_avx512)
     //   avx512_intrinsics
     // else
     return _Base::__masked_assign(__s, __m, __v);
-  }
-
-#define _LIBCXX_MASKED_OP_(__op, __name)                                    \
-  template <typename _Up>                                                   \
-  static void __masked##__name(_Simd& __s, _Mask __m, _Up __v) noexcept {   \
-    _Base::__masked##__name(__s, __m, __v);                                 \
-  }
-  _LIBCXX_MASKED_OP_(+, _plus)
-  _LIBCXX_MASKED_OP_(-, _minus)
-  _LIBCXX_MASKED_OP_(*, _multiplues)
-  _LIBCXX_MASKED_OP_(/, _divides)
-  _LIBCXX_MASKED_OP_(%, _modulus)
-  _LIBCXX_MASKED_OP_(&, _bit_and)
-  _LIBCXX_MASKED_OP_(|, _bit_or)
-  _LIBCXX_MASKED_OP_(^, _bit_xor)
-  _LIBCXX_MASKED_OP_(<<, _shift_left)
-  _LIBCXX_MASKED_OP_(>>, _shift_right)
-#undef _LIBCXX_MASKED_OP_
-
-  static void __masked_incre(_Simd& __s, _Mask __m) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    _Base::__masked_incre(__s, __m);
-  }
-
-  static void __masked_decre(_Simd& __s, _Mask __m) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    _Base::__masked_decre(__s, __m);
-  }
-  template<class _Up>
-  static void __masked_load(_Simd& __s, _Mask __m, _Up* __mem) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    _Base::__masked_load(__s, __m, __mem);
-  }
- template<class _Up>
- static void __masked_store(const _Simd& __s,  _Mask __m, _Up* __mem) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    _Base::__masked_store(__s, __m, __mem);
   }
 
   template<class _BinaryOp>
@@ -114,7 +40,6 @@ struct __simd_impl<_Tp, simd_abi::__vec_ext<_Np>> {
     // else
     return _Base::__reduce(__s, __op);
   }
-
 };
 
 template <class _Tp, int _Np>
@@ -171,72 +96,12 @@ struct __mask_impl<_Tp, simd_abi::__vec_ext<_Np>> {
     return _Base::__find_last_set(__s);
   }
 
-  static _Mask __masked_unary_minus(_Mask __s, _Mask __m) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    return _Base::__masked_unary_minus(__s, __m);
-  }
-
-  static _Mask __masked_bitwise_not(_Mask __s, _Mask __m) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    return _Base::__masked_bitwise_not(__s, __m);
-  }
-
-  template <typename _Up>
-  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Up __v) noexcept {
+  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Mask __v) noexcept {
     // if constexpr (__have_avx512)
     //   avx512_intrinsics
     // else
     return _Base::__masked_assign(__s, __m, __v);
   }
-
-#define _LIBCXX_MASKED_OP_M(__op, __name)                                   \
-  template <typename _Up>                                                   \
-  static void __masked##__name(_Mask& __s, _Mask __m, _Up __v) noexcept {   \
-    _Base::__masked##__name(__s, __m, __v);                                 \
-  }
-  _LIBCXX_MASKED_OP_M(+, _plus)
-  _LIBCXX_MASKED_OP_M(-, _minus)
-  _LIBCXX_MASKED_OP_M(*, _multiplues)
-  _LIBCXX_MASKED_OP_M(/, _divides)
-  _LIBCXX_MASKED_OP_M(%, _modulus)
-  _LIBCXX_MASKED_OP_M(&, _bit_and)
-  _LIBCXX_MASKED_OP_M(|, _bit_or)
-  _LIBCXX_MASKED_OP_M(^, _bit_xor)
-  _LIBCXX_MASKED_OP_M(<<, _shift_left)
-  _LIBCXX_MASKED_OP_M(>>, _shift_right)
-#undef _LIBCXX_MASKED_OP_M
-
-  static void __masked_incre(_Mask& __s, _Mask __m) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    _Base::__masked_incre(__s, __m);
-  }
-  static void __masked_decre(_Mask& __s, _Mask __m) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    _Base::__masked_decre(__s, __m);
-  }
-  template<class _Up>
-  static void __masked_load(_Mask& __s, _Mask __m, _Up* __mem) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    _Base::__masked_load(__s, __m, __mem);
-  }
- template<class _Up>
- static void __masked_store(const _Mask& __s, _Mask __m, _Up* __mem) noexcept {
-    // if constexpr (__have_avx512)
-    //   avx512_intrinsics
-    // else
-    _Base::__masked_store(__s, __m, __mem);
-  }
-
 };
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
