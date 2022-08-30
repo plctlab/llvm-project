@@ -1538,13 +1538,15 @@ public:
   const_where_expression(const _MaskType& __m, const _SimdType& s)
     : __m_(__m), __s_(const_cast<_SimdType&>(s)) {}
 
-  _SimdType operator-() const && noexcept { return _Impl::__masked_unary_minus(__s_.__s_, __m_.__s_); }
+  _SimdType operator-() const && noexcept { return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__unary_minus(__s_.__s_)); }
   _SimdType operator+() const && noexcept { return __s_; }
-  _SimdType operator~() const && noexcept { return _Impl::__masked_bitwise_not(__s_.__s_, __m_.__s_); }
+  _SimdType operator~() const && noexcept { return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__bitwise_not(__s_.__s_)); }
 
   template <class _Tp, class _Flags>
   void copy_to(_Tp* __mem, _Flags) const && {
-    _Impl::__masked_store(__s_.__s_, __m_.__s_, _Flags::template __apply<_SimdType>(__mem));
+    _SimdType __tmp;
+    _Impl::__load(__tmp.__s_, _Flags::template __apply<_SimdType>(__mem));
+    _Impl::__store(_Impl::__masked_assign(__tmp.__s_, __m_.__s_, __s_.__s_), _Flags::template __apply<_SimdType>(__mem));
   }
 };
 
@@ -1597,50 +1599,60 @@ public:
   template <class _Tp>
   void operator=(_Tp&& __v) && noexcept {
     if constexpr(std::is_arithmetic_v<std::remove_reference_t<_Tp>>){
-      _Impl::__masked_assign(__s_.__s_, __m_.__s_, __v);
+      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__broadcast(__v));
     }else{
       _Impl::__masked_assign(__s_.__s_, __m_.__s_, __v.__s_);
     }
   }
 
-#define _LIBCXX_SIMD_MASK_OP_(__op,__name)                                                     \
-  template <class _Tp>                                                                         \
-  void operator __op##=(_Tp&& __v) && noexcept {                                               \
-    if constexpr(std::is_arithmetic_v<std::remove_reference_t<_Tp>>){                          \
-      _Impl::__masked##__name(__s_.__s_, __m_.__s_, __v);                                      \
-    }else{                                                                                     \
-      _Impl::__masked##__name(__s_.__s_, __m_.__s_, __v.__s_);                                 \
-    }                                                                                          \
+#define _LIBCXX_SIMD_MASK_OP_(__op,__name)                                                                       \
+  template <class _Tp>                                                                                           \
+  void operator __op##=(_Tp&& __v) && noexcept {                                                                 \
+    if constexpr(std::is_arithmetic_v<std::remove_reference_t<_Tp>>){                                            \
+      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::_##__name(__s_.__s_, _Impl::__broadcast(__v)));        \
+    }else{                                                                                                       \
+      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::_##__name((__s_.__s_, __v.__s_)));                     \
+    }                                                                                                            \
   }
 
   _LIBCXX_SIMD_MASK_OP_(+, _plus)
   _LIBCXX_SIMD_MASK_OP_(-, _minus)
-  _LIBCXX_SIMD_MASK_OP_(*, _multiplues)
+  _LIBCXX_SIMD_MASK_OP_(*, _multiplies)
   _LIBCXX_SIMD_MASK_OP_(/, _divides)
   _LIBCXX_SIMD_MASK_OP_(%, _modulus)
-  _LIBCXX_SIMD_MASK_OP_(&, _bit_and)
-  _LIBCXX_SIMD_MASK_OP_(|, _bit_or)
-  _LIBCXX_SIMD_MASK_OP_(^, _bit_xor)
+  _LIBCXX_SIMD_MASK_OP_(&, _bitwise_and)
+  _LIBCXX_SIMD_MASK_OP_(|, _bitwise_or)
+  _LIBCXX_SIMD_MASK_OP_(^, _bitwise_xor)
   _LIBCXX_SIMD_MASK_OP_(<<, _shift_left)
   _LIBCXX_SIMD_MASK_OP_(>>, _shift_right)
 #undef _LIBCXX_SIMD_MASK_OP_
 
   void operator++() && noexcept {
-    _Impl::__masked_incre(__s_.__s_, __m_.__s_);
+    _SimdType __tmp = __s_;
+    _Impl::__increment(__tmp.__s_);
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
   void operator++(int) && noexcept {
-    _Impl::__masked_incre(__s_.__s_, __m_.__s_);
+    _SimdType __tmp = __s_;
+    _Impl::__increment(__tmp.__s_);
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
   void operator--() && noexcept {
-    _Impl::__masked_decre(__s_.__s_, __m_.__s_);
+    _SimdType __tmp = __s_;
+    _Impl::__decrement(__tmp.__s_);
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
   void operator--(int) && noexcept {
-    _Impl::__masked_decre(__s_.__s_, __m_.__s_);
+    _SimdType __tmp = __s_;
+    _Impl::__decrement(__tmp.__s_);
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
 
   template <class _Up, class _Flags>
   void copy_from(const _Up* __mem, _Flags) && {
-    _Impl::__masked_load(__s_.__s_, __m_.__s_, _Flags::template __apply<_SimdType>(__mem));
+    _SimdType __tmp;
+    _Impl::__load(__tmp.__s_, _Flags::template __apply<_SimdType>(__mem));
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
 };
 
