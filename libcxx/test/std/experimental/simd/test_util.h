@@ -36,7 +36,7 @@ void test_all_simd() {
 
     // private ABIs
     simd<int, __scalar>,
-    simd<int, __vec_ext<4>>
+    simd<int, __builtin<4>>
   >();
   // clang-format on
 }

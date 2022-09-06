@@ -17,17 +17,13 @@
 #include <type_traits>
 #include <utility>
 #include <__simd/abi/simd_storage.h>
-#include <__simd/abi/vec_ext.h>
-#include <__simd/abi/neon.h>
-#include <__simd/abi/ppc.h>
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
-template <class _Tp, class _Abi>
-struct __simd_traits {
-  using _Simd = __simd_storage<_Tp, _Abi>;
-  using _Mask = __mask_storage<_Tp, _Abi>;
-  using _Impl = __simd_impl<_Tp, _Abi>;
+template <class _Tp, int _Np>
+struct __simd_traits<_Tp, simd_abi::__builtin<_Np>> {
+  using _Simd = __simd_storage<_Tp, simd_abi::__builtin<_Np>>;
+  using _Mask = __mask_storage<_Tp, simd_abi::__builtin<_Np>>;
 
   static _Simd __broadcast(_Tp __v) noexcept {
     return __generate([=](size_t) { return __v; });
@@ -41,20 +37,20 @@ struct __simd_traits {
 
   template <class _Generator>
   static _Simd __generate(_Generator&& __g) noexcept {
-    return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Abi::__simd_size>());
+    return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Np>());
   }
 
   template <class _Up>
   static void __load(_Simd& __s, const _Up* __mem) noexcept {
     // TODO: Optimize with intrinsics
-    for (size_t __i = 0; __i < _Abi::__simd_size; __i++)
+    for (size_t __i = 0; __i < _Np; __i++)
      __s.__data[__i] = static_cast<_Tp>(__mem[__i]);
   }
 
   template <class _Up>
   static void __store(_Simd __s, _Up* __mem) noexcept {
     // TODO: Optimize with intrinsics
-    for (size_t __i = 0; __i < _Abi::__simd_size; __i++)
+    for (size_t __i = 0; __i < _Np; __i++)
       __mem[__i] = static_cast<_Up>(__s.__data[__i]);
   }
 
@@ -125,11 +121,31 @@ struct __simd_traits {
   }
 
   static _Tp __masked_hmax(_Mask __m, _Simd __s) noexcept{
-    return _Impl::__masked_hmax(__m, __s);
+    if (__mask_traits<_Tp, simd_abi::__builtin<_Np>>::__none_of(__m)) {
+      return numeric_limits<_Tp>::lowest();
+    } else {
+      _Tp __max = numeric_limits<_Tp>::lowest();
+      for (size_t i = 0; i < _Np; i++) {
+        if ( __m.__data[i] > 0 && __s.__data[i] >= __max) {
+          __max = __s.__data[i];
+        }
+      }
+      return __max;
+    }
   }
 
   static _Tp __masked_hmin(_Mask __m, _Simd __s) noexcept{
-    return _Impl::__masked_hmin(__m, __s);
+    if (__mask_traits<_Tp, simd_abi::__builtin<_Np>>::__none_of(__m)) {
+      return numeric_limits<_Tp>::max();
+    } else {
+      _Tp __min = numeric_limits<_Tp>::max();
+      for (size_t i = 0; i < _Np; i++) {
+        if ( __m.__data[i] > 0 && __s.__data[i] <= __min) {
+          __min = __s.__data[i];
+        }
+      }
+      return __min;
+    }
   }
 
   static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
@@ -141,7 +157,9 @@ struct __simd_traits {
   }
 
   static _Simd __masked_assign(_Simd& __s, _Mask __m, _Simd __v) noexcept {
-    return _Impl::__masked_assign(__s, __m, __v);
+    for (size_t __i = 0; __i < _Np; ++__i)
+      __s.__data[__i] = __m.__data[__i] ? __v.__data[__i] : __s.__data[__i];
+    return __s;
   }
 
   static _Tp __reduce(const _Simd& __s, plus<>) {
@@ -165,10 +183,9 @@ struct __simd_traits {
   }
 };
 
-template <class _Tp, class _Abi>
-struct __mask_traits {
-  using _Mask = __mask_storage<_Tp, _Abi>;
-  using _Impl = __mask_impl<_Tp, _Abi>;
+template <class _Tp, int _Np>
+struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
+  using _Mask = __mask_storage<_Tp, simd_abi::__builtin<_Np>>;
 
   static _Mask __broadcast(_Tp __v) noexcept {
     return __generate([=](size_t) { return  static_cast<decltype(__choose_mask_type<_Tp>())>(__v); });
@@ -181,20 +198,20 @@ struct __mask_traits {
 
   template <class _Generator>
   static _Mask __generate(_Generator&& __g) noexcept {
-    return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Abi::__simd_size>());
+    return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Np>());
   }
 
   template <class _Up>
   static void __load(_Mask& __s, const _Up* __mem) noexcept {
     // TODO: Optimize with intrinsics
-    for (size_t __i = 0; __i < _Abi::__simd_size; __i++)
+    for (size_t __i = 0; __i < _Np; __i++)
      __s.__data[__i] = static_cast<decltype(__choose_mask_type<_Tp>())>(__mem[__i]);
   }
 
   template <class _Up>
   static void __store(_Mask __s, _Up* __mem) noexcept {
     // TODO: Optimize with intrinsics
-    for (size_t __i = 0; __i < _Abi::__simd_size; __i++)
+    for (size_t __i = 0; __i < _Np; __i++)
       __mem[__i] = static_cast<_Up>(__s.__data[__i]);
   }
 
@@ -213,35 +230,60 @@ struct __mask_traits {
   static _Mask __bitwise_xor(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data ^ __rhs.__data}}; }
 
   static bool __all_of(_Mask __s) noexcept {
-    return _Impl::__all_of(__s);
+    for (size_t __i = 0; __i < _Np; ++__i)
+      if (!__s.__data[__i])
+        return false;
+    return true;
   }
 
   static bool __any_of(_Mask __s) noexcept {
-    return _Impl::__any_of(__s);
+    for (size_t __i = 0; __i < _Np; ++__i)
+      if (__s.__data[__i])
+        return true;
+    return false;
   }
 
   static bool __none_of(_Mask __s) noexcept {
-    return _Impl::__none_of(__s);
+    for (size_t __i = 0; __i < _Np; ++__i)
+      if (__s.__data[__i])
+        return false;
+    return true;
   }
 
   static bool __some_of(_Mask __s) noexcept {
-    return _Impl::__some_of(__s);
+    for (size_t __i = 1; __i < _Np; ++__i)
+      if (__s.__data[__i] != __s.__data[__i - 1])
+        return true;
+    return false;
   }
 
   static int __popcount(_Mask __s) noexcept {
-    return _Impl::__popcount(__s);
+    int __count = 0;
+    for (size_t __i = 0; __i < _Np; ++__i)
+      __count += __s.__data[__i] != 0;
+    return __count;
   }
 
   static int __find_first_set(_Mask __s) {
-    return _Impl::__find_first_set(__s);
+    size_t __i = 0;
+    for (; __i < _Np; ++__i)
+      if (__s.__data[__i])
+        break;
+    return __i;
   }
 
   static int __find_last_set(_Mask __s) {
-    return _Impl::__find_last_set(__s);
+    size_t __i = 1;
+    for (; __i < _Np; ++__i)
+      if (__s.__data[_Np - __i])
+        break;
+    return _Np - __i;
   }
 
   static _Mask __masked_assign(_Mask& __s, _Mask __m, _Mask __v) noexcept {
-    return _Impl::__masked_assign(__s, __m, __v);
+    for (size_t __i = 0; __i < _Np; ++__i)
+      __s.__data[__i] = __m.__data[__i] ? __v.__data[__i] : __s.__data[__i];
+    return __s;
   }
 };
 
