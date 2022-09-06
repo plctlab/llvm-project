@@ -645,13 +645,9 @@ set(files
   __ranges/views.h
   __ranges/zip_view.h
   __simd/abi/builtin.h
-  __simd/abi/neon.h
-  __simd/abi/ppc.h
   __simd/abi/scalar.h
-  __simd/abi/serial.h
   __simd/abi/simd_storage.h
   __simd/abi/utility.h
-  __simd/abi/vec_ext.h
   __simd/arch/config.h
   __split_buffer
   __std_mbstate_t.h

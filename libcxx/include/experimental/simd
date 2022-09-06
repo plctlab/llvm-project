@@ -886,39 +886,16 @@ using scalar = __scalar;
 template <class _Tp>
 inline constexpr size_t max_fixed_size = 32;
 
-#if _LIBCPP_SIMD_X86INTRIN
 template <int _Np>
-using fixed_size = __vec_ext<_Np>;
+using fixed_size = __builtin<_Np>;
 template <class _Tp>
-using compatible = __vec_ext<16 / sizeof(_Tp)>;
+using compatible = __builtin<16 / sizeof(_Tp)>;
+#if defined(__AVX__)
 template <class _Tp>
-using native = __vec_ext<_LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp)>;
-
-#elif _LIBCPP_SIMD_HAVE_NEON
-// FIXED ME: fixed_size implementation for NEON
-template <int _Np>
-using fixed_size = __vec_ext<_Np>;
-template <class _Tp>
-using compatible = __neon<16 / sizeof(_Tp)>;
-template <class _Tp>
-using native = __neon<16 / sizeof(_Tp)>;
-
-#elif _LIBCPP_SIMD_HAVE_PPC
-// FIXED ME: fixed_size implementation for PPC
-template <int _Np>
-using fixed_size = __vec_ext<_Np>;
-template <class _Tp>
-using compatible = __ppc<16 / sizeof(_Tp)>;
-template <class _Tp>
-using native = __ppc<16 / sizeof(_Tp)>;
-
+using native = __builtin<_LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp)>;
 #else
-template <int>
-using fixed_size = scalar;
-template <class>
-using compatible = scalar;
-template <class>
-using native = scalar;
+template <class _Tp>
+using native = __builtin<16 / sizeof(_Tp)>;
 #endif
 
 template <class _Tp, size_t _Np, class... Abis>
