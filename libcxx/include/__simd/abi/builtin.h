@@ -149,7 +149,7 @@ struct __simd_traits<_Tp, simd_abi::__builtin<_Np>> {
   }
 
   static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
-    return {__min(__a,__b), __max(__a,__b)};
+    return {__min(__a, __b), __max(__a, __b)};
   }
 
   static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {

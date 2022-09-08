@@ -17,13 +17,13 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
     return {__g(std::integral_constant<size_t, 0>())};
   }
 
-  template <class _Up, class _Flags>
-  static _Simd __load(_Up* __mem, _Flags) noexcept {
-    return {static_cast<_Tp>(*__mem)};
+  template <class _Up>
+  static void __load(_Simd& __s, const _Up* __mem) noexcept {
+     __s.__data = static_cast<_Tp>(__mem[0]);
   }
 
-  template <class _Up, class _Flags>
-  static void __store(_Simd __s, const _Up* __mem, _Flags) noexcept {
+  template <class _Up>
+  static void __store(_Simd __s, _Up* __mem) noexcept {
     *__mem = static_cast<_Up>(__s.__data);
   }
 
@@ -78,12 +78,11 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   static _Simd __max(_Simd __a, _Simd __b) noexcept { return {std::max(__a.__data, __b.__data)}; }
 
   static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
-    auto [__min, __max] = std::minmax(__a.__data, __b.__data);
-    return {__min, __max};
+    return {__min(__a, __b), __max(__a, __b)};
   }
 
   static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {
-    return {std::clamp(__v.__data, __lo.__data, __hi.__data)};
+    return __min(__max(__v, __lo), __hi);
   }
 
   static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept { return {__m.__data ? -__s.__data : __s.__data}; }
