@@ -157,8 +157,7 @@ struct __simd_traits<_Tp, simd_abi::__builtin<_Np>> {
   }
 
   static _Simd __masked_assign(_Simd& __s, _Mask __m, _Simd __v) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __v.__data[__i] : __s.__data[__i];
+    __s.__data = __m.__data ? __v.__data : __s.__data;
     return __s;
   }
 
@@ -281,8 +280,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   }
 
   static _Mask __masked_assign(_Mask& __s, _Mask __m, _Mask __v) noexcept {
-    for (size_t __i = 0; __i < _Np; ++__i)
-      __s.__data[__i] = __m.__data[__i] ? __v.__data[__i] : __s.__data[__i];
+    __s.__data = __m.__data ? __v.__data : __s.__data;
     return __s;
   }
 };
