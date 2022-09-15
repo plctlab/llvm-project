@@ -28,17 +28,6 @@ static_assert(
                  ex::native_simd_mask<int>>,
     "");
 
-static_assert(
-    !(std::is_same_v<decltype(ex::to_native<int,8>(ex::fixed_size_simd_mask<int,8>())),
-                 ex::native_simd_mask<int>>),
-    "");
-
-static_assert(
-    !(std::is_same_v<decltype(ex::to_native<int,15>(ex::fixed_size_simd_mask<int,15>())),
-                 ex::native_simd_mask<int>>),
-    "");
-
-
 int main(int, char**) {
     return 0;
 }
