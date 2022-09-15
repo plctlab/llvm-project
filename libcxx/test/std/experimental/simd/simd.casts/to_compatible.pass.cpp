@@ -25,17 +25,6 @@ static_assert(
                  ex::simd<int>>,
     "");
 
-static_assert(
-    !(std::is_same_v<decltype(ex::to_compatible<int,8>(ex::fixed_size_simd<int,8>())),
-                 ex::simd<int>>),
-    "");
-
-static_assert(
-    !(std::is_same_v<decltype(ex::to_compatible<int,15>(ex::fixed_size_simd<int,15>())),
-                 ex::simd<int>>),
-    "");
-
-
 int main(int, char**) {
     return 0;
 }
