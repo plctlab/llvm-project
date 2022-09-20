@@ -1452,16 +1452,10 @@ _Tp reduce(const simd<_Tp, _Abi>& __s, _BinaryOp __binary_op = {}) {
 
 template <class _MaskType, class _SimdType, class _BinaryOp>
 typename _SimdType::value_type reduce(const const_where_expression<_MaskType, _SimdType>& __w,
-                                      typename _SimdType::value_type __identity, _BinaryOp __binary_op){
-  if (none_of(__w.__m_)) {
-    return __identity;
-  }
-  else {
-    _SimdType tmp;
-    for (size_t __i = 0; __i < _SimdType::abi_type::__simd_size; ++__i)
-      tmp.__s_.__data[__i] = __w.__m_.__s_.__data[__i] ? __w.__s_.__s_.__data[__i] : __identity;
-    return reduce(tmp, __binary_op);
-  }
+                                      typename _SimdType::value_type __identity, _BinaryOp __binary_op) {
+  _SimdType __tmp(__w.__s_);
+  return _SimdType::_Impl::__reduce(_SimdType::_Impl::__masked_assign(__tmp.__s_, _MaskType::_Impl::__negate(__w.__m_.__s_),
+                                    _SimdType::_Impl::__broadcast(__identity)), __binary_op);
 }
 
 template <class _MaskType, class _SimdType>
@@ -1501,7 +1495,9 @@ _Tp hmin(const simd<_Tp, _Abi>& __s) noexcept {
 
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>& __w) noexcept {
-  return _SimdType::_Impl::__masked_hmin(__w.__m_.__s_, __w.__s_.__s_);
+  _SimdType __tmp(__w.__s_);
+  return _SimdType::_Impl::__hmin(_SimdType::_Impl::__masked_assign(__tmp.__s_, _MaskType::_Impl::__negate(__w.__m_.__s_),
+                                  _SimdType::_Impl::__broadcast(numeric_limits<typename _SimdType::value_type>::max())));
 };
 
 
@@ -1512,7 +1508,9 @@ _Tp hmax(const simd<_Tp, _Abi>& __s) noexcept {
 
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>& __w) noexcept {
-  return _SimdType::_Impl::__masked_hmax(__w.__m_.__s_, __w.__s_.__s_);
+  _SimdType __tmp(__w.__s_);
+  return _SimdType::_Impl::__hmax(_SimdType::_Impl::__masked_assign(__tmp.__s_, _MaskType::_Impl::__negate(__w.__m_.__s_),
+                                  _SimdType::_Impl::__broadcast(numeric_limits<typename _SimdType::value_type>::lowest())));
 };
 
 // Algorithms [parallel.simd.alg]
