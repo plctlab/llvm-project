@@ -120,34 +120,6 @@ struct __simd_traits<_Tp, simd_abi::__builtin<_Np>> {
     return {__a.__data > __b.__data ? __a.__data : __b.__data};
   }
 
-  static _Tp __masked_hmax(_Mask __m, _Simd __s) noexcept{
-    if (__mask_traits<_Tp, simd_abi::__builtin<_Np>>::__none_of(__m)) {
-      return numeric_limits<_Tp>::lowest();
-    } else {
-      _Tp __max = numeric_limits<_Tp>::lowest();
-      for (size_t i = 0; i < _Np; i++) {
-        if ( __m.__data[i] > 0 && __s.__data[i] >= __max) {
-          __max = __s.__data[i];
-        }
-      }
-      return __max;
-    }
-  }
-
-  static _Tp __masked_hmin(_Mask __m, _Simd __s) noexcept{
-    if (__mask_traits<_Tp, simd_abi::__builtin<_Np>>::__none_of(__m)) {
-      return numeric_limits<_Tp>::max();
-    } else {
-      _Tp __min = numeric_limits<_Tp>::max();
-      for (size_t i = 0; i < _Np; i++) {
-        if ( __m.__data[i] > 0 && __s.__data[i] <= __min) {
-          __min = __s.__data[i];
-        }
-      }
-      return __min;
-    }
-  }
-
   static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
     return {__min(__a, __b), __max(__a, __b)};
   }
@@ -189,6 +161,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   static _Mask __broadcast(bool __v) noexcept {
     return __generate([=](size_t) { return  __set_all_bits<_Tp>(__v); });
   }
+
  template <class _Generator, size_t... _Is>
   static _Mask __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
     // _Simd specified here is to work around GCC
