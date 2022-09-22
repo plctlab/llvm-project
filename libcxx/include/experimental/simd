@@ -741,7 +741,7 @@ public:
 #define _LIBCXX_SIMD_REFERENCE_OP_(__op)                                    \
   template<class _Up> /* TODO: add SFINAE check here */                     \
   _LIBCPP_HIDE_FROM_ABI __simd_reference operator __op##=(_Up&& __v) && noexcept {                \
-    __set(__get() __op std::forward<_Up>(__v));                             \
+    __set(__get() __op static_cast<value_type>(std::forward<_Up>(__v)));    \
     return {__s_, __idx_};                                                  \
   }
   _LIBCXX_SIMD_REFERENCE_OP_(+)
@@ -757,18 +757,18 @@ public:
   template<class _Up> // TODO: add SFINAE check here
   __simd_reference operator &=(_Up&& __v) && noexcept {
     if constexpr (std::is_same_v<_ValueType, bool>)
-      __set(__get() && std::forward<_Up>(__v));
+      __set(__get() && static_cast<value_type>(std::forward<_Up>(__v)));
     else
-      __set(__get() & std::forward<_Up>(__v));
+      __set(__get() & static_cast<value_type>(std::forward<_Up>(__v)));
     return {__s_, __idx_};
   }
 
   template<class _Up> // TODO: add SFINAE check here
   __simd_reference operator |=(_Up&& __v) && noexcept {
     if constexpr (std::is_same_v<_ValueType, bool>)
-      __set(__get() || std::forward<_Up>(__v));
+      __set(__get() || static_cast<value_type>(std::forward<_Up>(__v)));
     else
-      __set(__get() | std::forward<_Up>(__v));
+      __set(__get() | static_cast<value_type>(std::forward<_Up>(__v)));
     return {__s_, __idx_};
   }
 
@@ -1494,9 +1494,8 @@ _Tp hmin(const simd<_Tp, _Abi>& __s) noexcept {
   return __simd_traits<_Tp, _Abi>::__hmin(__s.__s_);
 }
 
-// TODO: implement
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>& __w){
+typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>& __w) noexcept {
   return _SimdType::_Impl::__masked_hmin(__w.__m_.__s_, __w.__s_.__s_);
 };
 
@@ -1506,9 +1505,8 @@ _Tp hmax(const simd<_Tp, _Abi>& __s) noexcept {
   return __simd_traits<_Tp, _Abi>::__hmax(__s.__s_);
 }
 
-// TODO: implement
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>& __w){
+typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>& __w) noexcept {
   return _SimdType::_Impl::__masked_hmax(__w.__m_.__s_, __w.__s_.__s_);
 };
 
@@ -1525,8 +1523,7 @@ simd<_Tp, _Abi> max(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noex
 
 template <class _Tp, class _Abi>
 pair<simd<_Tp, _Abi>, simd<_Tp, _Abi>> minmax(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
-  auto [__min, __max] = __simd_traits<_Tp, _Abi>::__minmax(__a.__s_, __b.__s_);
-  return {__min, __max};
+  return __simd_traits<_Tp, _Abi>::__minmax(__a.__s_, __b.__s_);
 }
 
 template <class _Tp, class _Abi>
@@ -1544,11 +1541,11 @@ class const_where_expression {
 
   template <class _Mp, class _Vp>
   friend typename _Vp::value_type
-  hmin(const const_where_expression<_Mp, _Vp>& __w);
+  hmin(const const_where_expression<_Mp, _Vp>& __w) noexcept;
 
   template <class _Mp, class _Vp>
   friend typename _Vp::value_type
-  hmax(const const_where_expression<_Mp, _Vp>& __w);
+  hmax(const const_where_expression<_Mp, _Vp>& __w) noexcept;
 
 protected:
   using _Impl = typename _SimdType::_Impl;
@@ -1582,11 +1579,11 @@ class const_where_expression<bool, _Tp> {
 
   template <class _Mp, class _Vp>
   friend typename _Vp::value_type
-  hmin(const const_where_expression<_Mp, _Vp>& __w);
+  hmin(const const_where_expression<_Mp, _Vp>& __w) noexcept;
 
   template <class _Mp, class _Vp>
   friend typename _Vp::value_type
-  hmax(const const_where_expression<_Mp, _Vp>& __w);
+  hmax(const const_where_expression<_Mp, _Vp>& __w) noexcept;
 
 protected:
   const bool __m_;
@@ -1632,22 +1629,22 @@ public:
   template <class _Tp>                                                                                           \
   void operator __op##=(_Tp&& __v) && noexcept {                                                                 \
     if constexpr(std::is_arithmetic_v<std::remove_reference_t<_Tp>>){                                            \
-      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::_##__name(__s_.__s_, _Impl::__broadcast(__v)));        \
+      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name(__s_.__s_, _Impl::__broadcast(__v)));           \
     }else{                                                                                                       \
-      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::_##__name((__s_.__s_, __v.__s_)));                     \
+      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name((__s_.__s_, __v.__s_)));                        \
     }                                                                                                            \
   }
 
-  _LIBCXX_SIMD_MASK_OP_(+, _plus)
-  _LIBCXX_SIMD_MASK_OP_(-, _minus)
-  _LIBCXX_SIMD_MASK_OP_(*, _multiplies)
-  _LIBCXX_SIMD_MASK_OP_(/, _divides)
-  _LIBCXX_SIMD_MASK_OP_(%, _modulus)
-  _LIBCXX_SIMD_MASK_OP_(&, _bitwise_and)
-  _LIBCXX_SIMD_MASK_OP_(|, _bitwise_or)
-  _LIBCXX_SIMD_MASK_OP_(^, _bitwise_xor)
-  _LIBCXX_SIMD_MASK_OP_(<<, _shift_left)
-  _LIBCXX_SIMD_MASK_OP_(>>, _shift_right)
+  _LIBCXX_SIMD_MASK_OP_(+, __plus)
+  _LIBCXX_SIMD_MASK_OP_(-, __minus)
+  _LIBCXX_SIMD_MASK_OP_(*, __multiplies)
+  _LIBCXX_SIMD_MASK_OP_(/, __divides)
+  _LIBCXX_SIMD_MASK_OP_(%, __modulus)
+  _LIBCXX_SIMD_MASK_OP_(&, __bitwise_and)
+  _LIBCXX_SIMD_MASK_OP_(|, __bitwise_or)
+  _LIBCXX_SIMD_MASK_OP_(^, __bitwise_xor)
+  _LIBCXX_SIMD_MASK_OP_(<<, __shift_left)
+  _LIBCXX_SIMD_MASK_OP_(>>, __shift_right)
 #undef _LIBCXX_SIMD_MASK_OP_
 
   void operator++() && noexcept {
@@ -1759,11 +1756,11 @@ class simd {
 
   template <class _Mp, class _Vp>
   friend typename _Vp::value_type
-  hmin(const const_where_expression<_Mp, _Vp>& __w);
+  hmin(const const_where_expression<_Mp, _Vp>& __w) noexcept;
 
   template <class _Mp, class _Vp>
   friend typename _Vp::value_type
-  hmax(const const_where_expression<_Mp, _Vp>& __w);
+  hmax(const const_where_expression<_Mp, _Vp>& __w) noexcept;
 
 public:
   using value_type = _Tp;
@@ -1977,11 +1974,11 @@ class simd_mask {
 
   template <class _Mp, class _Vp>
   friend typename _Vp::value_type
-  hmin(const const_where_expression<_Mp, _Vp>& __w);
+  hmin(const const_where_expression<_Mp, _Vp>& __w) noexcept;
 
   template <class _Mp, class _Vp>
   friend typename _Vp::value_type
-  hmax(const const_where_expression<_Mp, _Vp>& __w);
+  hmax(const const_where_expression<_Mp, _Vp>& __w) noexcept;
 
 public:
   using value_type = bool;
@@ -1996,7 +1993,7 @@ public:
   simd_mask(_Storage __s) : __s_(__s) {}
 
   // broadcast constructor
-  explicit simd_mask(value_type __v) noexcept : __s_(_Impl::__broadcast(static_cast<value_type>(__v))) {}
+  explicit simd_mask(value_type __v) noexcept : __s_(_Impl::__broadcast(__v)) {}
 
   // implicit type conversion constructor
   template <class _Up, class = std::enable_if_t<std::is_same_v<abi_type, simd_abi::fixed_size<size()>> &&
