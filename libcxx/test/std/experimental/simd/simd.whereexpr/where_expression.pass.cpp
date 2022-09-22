@@ -239,8 +239,8 @@ void test_operators_mask() {
     a[3] = false;
     ex::where(!a, a) ^= true;
     assert(a[0]);
-    assert(!a[1]);
-    assert(!a[2]);
+    assert(a[1]);
+    assert(a[2]);
     assert(a[3]);
   }
 }
@@ -285,7 +285,7 @@ void test_copy_from() {
     ex::where(!a, a).copy_from(buffer, ex::element_aligned_tag());
     assert(a[0]);
     assert(a[1]);
-    assert(!a[2]);
+    assert(a[2]);
     assert(!a[3]);
   }
   {

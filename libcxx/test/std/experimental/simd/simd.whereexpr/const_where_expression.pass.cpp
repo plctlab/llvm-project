@@ -114,7 +114,7 @@ void test_copy_to() {
       ex::where(!a, a).copy_to(buffer, ex::element_aligned_tag());
       assert(!buffer[0]);
       assert(buffer[1]);
-      assert(buffer[2]);
+      assert(!buffer[2]);
       assert(!buffer[3]);
     }
   }

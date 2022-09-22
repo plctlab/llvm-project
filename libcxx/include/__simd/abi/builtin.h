@@ -187,7 +187,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   using _Mask = __mask_storage<_Tp, simd_abi::__builtin<_Np>>;
 
   static _Mask __broadcast(bool __v) noexcept {
-    return __generate([=](size_t) { return  static_cast<decltype(__choose_mask_type<_Tp>())>(__v); });
+    return __generate([=](size_t) { return  __set_all_bits<_Tp>(__v); });
   }
  template <class _Generator, size_t... _Is>
   static _Mask __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
@@ -203,7 +203,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   static void __load(_Mask& __s, const bool* __mem) noexcept {
     // TODO: Optimize with intrinsics
     for (size_t __i = 0; __i < _Np; __i++)
-      __s.__data[__i] = static_cast<decltype(__choose_mask_type<_Tp>())>(__mem[__i]);
+      __s.__data[__i] = __set_all_bits<_Tp>(__mem[__i]);
   }
 
   static void __store(_Mask __s, bool* __mem) noexcept {

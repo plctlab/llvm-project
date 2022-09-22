@@ -72,6 +72,15 @@ auto __choose_mask_type() {
 #endif
 }
 
+template <class _Tp>
+auto __set_all_bits(bool __v) {
+  using _Up = decltype(__choose_mask_type<_Tp>());
+  _Up __res = 0;
+  for(unsigned long __i = 0; __i < __CHAR_BIT__ * sizeof(_Tp); __i++)
+    __res |= static_cast<_Up>(__v) << __i;
+  return __res;
+}
+
 template <typename Tuple, typename Func, size_t ... N>
 void __call_tuple( Tuple& t, Func&& func, std::index_sequence<N...>) {
   static_cast<void>(std::initializer_list<int>{(func(std::get<N>(t)), 0)...});
