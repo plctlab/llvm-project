@@ -33,33 +33,33 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
 
   static _Simd __negate(_Simd __s) noexcept { return {!__s.__data}; }
 
-  static _Simd __bitwise_not(_Simd __s) noexcept { return {~__s.__data}; }
+  static _Simd __bitwise_not(_Simd __s) noexcept { return {static_cast<_Tp>(~__s.__data)}; }
 
-  static _Simd __unary_minus(_Simd __s) noexcept { return {-__s.__data}; }
+  static _Simd __unary_minus(_Simd __s) noexcept { return {static_cast<_Tp>(-__s.__data)}; }
 
-  static _Simd __plus(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data + __rhs.__data}; }
+  static _Simd __plus(_Simd __lhs, _Simd __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data + __rhs.__data)}; }
 
-  static _Simd __minus(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data - __rhs.__data}; }
+  static _Simd __minus(_Simd __lhs, _Simd __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data - __rhs.__data)}; }
 
-  static _Simd __multiplies(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data * __rhs.__data}; }
+  static _Simd __multiplies(_Simd __lhs, _Simd __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data * __rhs.__data)}; }
 
-  static _Simd __divides(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data / __rhs.__data}; }
+  static _Simd __divides(_Simd __lhs, _Simd __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data / __rhs.__data)}; }
 
-  static _Simd __modulus(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data % __rhs.__data}; }
+  static _Simd __modulus(_Simd __lhs, _Simd __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data % __rhs.__data)}; }
 
-  static _Simd __bitwise_and(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data & __rhs.__data}; }
+  static _Simd __bitwise_and(_Simd __lhs, _Simd __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data & __rhs.__data)}; }
 
-  static _Simd __bitwise_or(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data | __rhs.__data}; }
+  static _Simd __bitwise_or(_Simd __lhs, _Simd __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data | __rhs.__data)}; }
 
-  static _Simd __bitwise_xor(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data ^ __rhs.__data}; }
+  static _Simd __bitwise_xor(_Simd __lhs, _Simd __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data ^ __rhs.__data)}; }
 
-  static _Simd __shift_left(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data << __rhs.__data}; }
+  static _Simd __shift_left(_Simd __lhs, _Simd __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data << __rhs.__data)}; }
 
-  static _Simd __shift_right(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data >> __rhs.__data}; }
+  static _Simd __shift_right(_Simd __lhs, _Simd __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data >> __rhs.__data)}; }
 
-  static _Simd __shift_left(_Simd __lhs, int __rhs) noexcept { return {__lhs.__data << __rhs}; }
+  static _Simd __shift_left(_Simd __lhs, int __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data << __rhs)}; }
 
-  static _Simd __shift_right(_Simd __lhs, int __rhs) noexcept { return {__lhs.__data >> __rhs}; }
+  static _Simd __shift_right(_Simd __lhs, int __rhs) noexcept { return {static_cast<_Tp>(__lhs.__data >> __rhs)}; }
 
   static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept { return {__lhs.__data == __rhs.__data}; }
 
