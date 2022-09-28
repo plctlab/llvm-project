@@ -1,7 +1,9 @@
-#ifndef _LIBCPP___SIMD_ABI_SCALAR_H
-#define _LIBCPP___SIMD_ABI_SCALAR_H
+#ifndef _LIBCPP___SIMD_SCALAR_H
+#define _LIBCPP___SIMD_SCALAR_H
 
-#include <__simd/abi/simd_storage.h>
+#include <algorithm>
+#include <__simd/simd_storage.h>
+#include <__simd/utility.h>
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
@@ -213,4 +215,4 @@ struct __mask_traits<_Tp, simd_abi::__scalar> {
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
-#endif // _LIBCPP___SIMD_ABI_SCALAR_H
+#endif // _LIBCPP___SIMD_SCALAR_H

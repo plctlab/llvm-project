@@ -644,11 +644,11 @@ set(files
   __ranges/view_interface.h
   __ranges/views.h
   __ranges/zip_view.h
-  __simd/abi/builtin.h
-  __simd/abi/scalar.h
-  __simd/abi/simd_storage.h
-  __simd/abi/utility.h
-  __simd/arch/config.h
+  __simd/builtin.h
+  __simd/config.h
+  __simd/scalar.h
+  __simd/simd_storage.h
+  __simd/utility.h
   __split_buffer
   __std_mbstate_t.h
   __stop_token/atomic_unique_lock.h
