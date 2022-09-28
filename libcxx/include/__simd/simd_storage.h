@@ -1,9 +1,5 @@
-#ifndef _LIBCPP___SIMD_ABI_SIMD_STORAGE_H
-#define _LIBCPP___SIMD_ABI_SIMD_STORAGE_H
-
-#include <experimental/__config>
-#include <__simd/arch/config.h>
-#include <__simd/abi/utility.h>
+#ifndef _LIBCPP___SIMD_SIMD_STORAGE_H
+#define _LIBCPP___SIMD_SIMD_STORAGE_H
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 
@@ -21,6 +17,41 @@ struct __builtin {
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
+
+// TODO: replace it by std::bit_ceil when bump to C++20
+constexpr size_t __next_pow_of_2(size_t __val) {
+  size_t __pow = 1;
+  while (__pow < __val)
+    __pow <<= 1;
+  return __pow;
+}
+
+template <class _Tp>
+auto __choose_mask_type() {
+  if constexpr (sizeof(_Tp) == 1) {
+    return uint8_t{};
+  } else if constexpr (sizeof(_Tp) == 2) {
+    return uint16_t{};
+  } else if constexpr (sizeof(_Tp) == 4) {
+    return uint32_t{};
+  } else if constexpr (sizeof(_Tp) == 8) {
+    return uint64_t{};
+  }
+#ifndef _LIBCPP_HAS_NO_INT128
+  else if constexpr (sizeof(_Tp) == 16) {
+    return __uint128_t{};
+  }
+#endif
+}
+
+template <class _Tp>
+auto __set_all_bits(bool __v) {
+  using _Up = decltype(__choose_mask_type<_Tp>());
+  _Up __res = 0;
+  for(unsigned long __i = 0; __i < __CHAR_BIT__ * sizeof(_Tp); __i++)
+    __res |= static_cast<_Up>(__v) << __i;
+  return __res;
+}
 
 template <class _Tp, class _Abi>
 struct __simd_storage;
@@ -59,4 +90,4 @@ struct __mask_storage <_Tp, simd_abi::__builtin<_Np>> : __simd_storage<decltype(
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
-#endif // _LIBCPP___SIMD_ABI_SIMD_STORAGE_H
+#endif // _LIBCPP___SIMD_SIMD_STORAGE_H

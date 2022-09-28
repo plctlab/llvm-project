@@ -6,17 +6,11 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-#ifndef _LIBCPP___SIMD_ABI_BUILTIN_H
-#define _LIBCPP___SIMD_ABI_BUILTIN_H
+#ifndef _LIBCPP___SIMD_BUILTIN_H
+#define _LIBCPP___SIMD_BUILTIN_H
 
-#include <experimental/__config>
-#include <algorithm>
-#include <cstddef>
-#include <cstring>
-#include <tuple>
-#include <type_traits>
-#include <utility>
-#include <__simd/abi/simd_storage.h>
+#include <__simd/simd_storage.h>
+#include <__simd/utility.h>
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
@@ -256,4 +250,4 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
-#endif // _LIBCPP___SIMD_ABI_BUILTIN_H
+#endif // _LIBCPP___SIMD_BUILTIN_H

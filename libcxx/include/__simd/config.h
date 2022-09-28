@@ -6,10 +6,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-#ifndef _LIBCPP___SIMD_ARCH_CONFIG_H
-#define _LIBCPP___SIMD_ARCH_CONFIG_H
-
-#include <experimental/__config>
+#ifndef _LIBCPP___SIMD_CONFIG_H
+#define _LIBCPP___SIMD_CONFIG_H
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
@@ -235,4 +233,4 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
-#endif // _LIBCPP___SIMD_ARCH_CONFIG_H
+#endif // _LIBCPP___SIMD_CONFIG_H
