@@ -20,17 +20,20 @@ struct __simd_traits<_Tp, simd_abi::__builtin<_Np>> {
   using _Mask = __mask_storage<_Tp, simd_abi::__builtin<_Np>>;
 
   static _Simd __broadcast(_Tp __v) noexcept {
+    // TODO: Optimizeable
     return __generate([=](size_t) { return __v; });
   }
 
   template <class _Generator, size_t... _Is>
   static _Simd __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
+    // TODO: Optimizeable
     // _Simd specified here is to work around GCC
     return _Simd{{__g(std::integral_constant<size_t, _Is>())...}};
   }
 
   template <class _Generator>
   static _Simd __generate(_Generator&& __g) noexcept {
+    // TODO: Optimizeable
     return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Np>());
   }
 
@@ -153,17 +156,20 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   using _Mask = __mask_storage<_Tp, simd_abi::__builtin<_Np>>;
 
   static _Mask __broadcast(bool __v) noexcept {
+    // TODO: Optimizeable
     return __generate([=](size_t) { return  __set_all_bits<_Tp>(__v); });
   }
 
  template <class _Generator, size_t... _Is>
   static _Mask __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
+    // TODO: Optimizeable
     // _Simd specified here is to work around GCC
     return _Mask{{__g(std::integral_constant<size_t, _Is>())...}};
   }
 
   template <class _Generator>
   static _Mask __generate(_Generator&& __g) noexcept {
+    // TODO: Optimizeable
     return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Np>());
   }
 
@@ -192,6 +198,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   static _Mask __bitwise_xor(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data ^ __rhs.__data}}; }
 
   static bool __all_of(_Mask __s) noexcept {
+    // TODO: Optimizeable
     for (size_t __i = 0; __i < _Np; ++__i)
       if (!__s.__data[__i])
         return false;
@@ -199,6 +206,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   }
 
   static bool __any_of(_Mask __s) noexcept {
+    // TODO: Optimizeable
     for (size_t __i = 0; __i < _Np; ++__i)
       if (__s.__data[__i])
         return true;
@@ -206,6 +214,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   }
 
   static bool __none_of(_Mask __s) noexcept {
+    // TODO: Optimizeable
     for (size_t __i = 0; __i < _Np; ++__i)
       if (__s.__data[__i])
         return false;
@@ -213,6 +222,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   }
 
   static bool __some_of(_Mask __s) noexcept {
+    // TODO: Optimizeable
     for (size_t __i = 1; __i < _Np; ++__i)
       if (__s.__data[__i] != __s.__data[__i - 1])
         return true;
@@ -220,6 +230,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   }
 
   static int __popcount(_Mask __s) noexcept {
+    // TODO: Optimizeable
     int __count = 0;
     for (size_t __i = 0; __i < _Np; ++__i)
       __count += __s.__data[__i] != 0;
@@ -227,6 +238,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   }
 
   static int __find_first_set(_Mask __s) {
+    // TODO: Optimizeable
     size_t __i = 0;
     for (; __i < _Np; ++__i)
       if (__s.__data[__i])
@@ -235,6 +247,7 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
   }
 
   static int __find_last_set(_Mask __s) {
+    // TODO: Optimizeable
     size_t __i = 1;
     for (; __i < _Np; ++__i)
       if (__s.__data[_Np - __i])

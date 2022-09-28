@@ -827,6 +827,7 @@ public:
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+// TODO: Elaboration of implementation-defined ABIs
 
 using scalar = __scalar;
 
@@ -1222,7 +1223,6 @@ split_by(const simd<_Tp, _Abi>& __v) noexcept {
   }
   return __arr;
 }
-
 
 template<size_t _Num, class _Tp, class _Abi>
 std::enable_if_t<simd_size_v<_Tp, _Abi> % _Num == 0,
