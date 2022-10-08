@@ -802,21 +802,18 @@ public:
     return __r;
   }
 
-  // TODO: add SFINAE check here
   friend void swap(__simd_reference&& __a, __simd_reference&& __b) noexcept {
     value_type __tmp = static_cast<__simd_reference&&>(__a);
     static_cast<__simd_reference&&>(__a) = static_cast<value_type>(__b);
     static_cast<__simd_reference&&>(__b) = std::move(__tmp);
   }
 
-  // TODO: add SFINAE check here
   friend void swap(value_type& __a, __simd_reference&& __b) noexcept {
     value_type __tmp(std::move(__a));
     __a = static_cast<value_type>(__b);
     static_cast<__simd_reference&&>(__b) = std::move(__tmp);
   }
 
-  // TODO: add SFINAE check here
   friend void swap(__simd_reference&& __a, value_type& __b) noexcept {
     value_type __tmp(__a);
     static_cast<__simd_reference&&>(__a) = std::move(__b);
@@ -1367,12 +1364,14 @@ where(const type_identity_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Ab
   return {__m, __s};
 }
 
+// TODO: add SFINAE check here
 template <class _Tp>
 where_expression<bool, _Tp>
 where(_Bool __m, _Tp& __s) noexcept {
   return {__m, __s};
 }
 
+// TODO: add SFINAE check here
 template <class _Tp>
 const_where_expression<bool, _Tp>
 where(_Bool __m, const _Tp& __s) noexcept {
@@ -1478,6 +1477,7 @@ simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>& __v, const simd<_Tp, _Abi>& __lo, c
 // Where expression class templates [parallel.simd.whereexpr]
 template <class _MaskType, class _SimdType>
 class const_where_expression {
+  // TODO: check type of _MaskType and _SimdType
   template <class _Mp, class _Vp, class _BinaryOp>
   friend typename _Vp::value_type
   reduce(const const_where_expression<_Mp, _Vp>& __w,
@@ -1506,7 +1506,7 @@ public:
   _SimdType operator+() const && noexcept { return __s_; }
   _SimdType operator~() const && noexcept { return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__bitwise_not(__s_.__s_)); }
 
-  template <class _Tp, class _Flags>
+  template <class _Tp, class _Flags> // TODO: add SFINAE check here
   void copy_to(_Tp* __mem, _Flags) const && {
     _SimdType __tmp;
     _Impl::__load(__tmp.__s_, _Flags::template __apply<_SimdType>(__mem));
@@ -1516,6 +1516,7 @@ public:
 
 template <class _Tp>
 class const_where_expression<bool, _Tp> {
+  // TODO: check type of _Tp
   template <class _Mp, class _Vp, class _BinaryOp>
   friend typename _Vp::value_type
   reduce(const const_where_expression<_Mp, _Vp>& __w,
@@ -1543,7 +1544,7 @@ public:
   _Tp operator+() const && noexcept { return __s_; }
   _Tp operator~() const && noexcept { return __m_ ? !__s_ : __s_; }
 
-  template <class _Up, class _Flags>
+  template <class _Up, class _Flags> // TODO: add SFINAE check here
   void copy_to(_Up* __mem, _Flags) const && {
     if(__m_)__mem[0] = __m_ ? __s_ : __mem[0];
   };
@@ -1560,7 +1561,7 @@ public:
   where_expression(const _MaskType& __m, _SimdType& s)
     : const_where_expression<_MaskType, _SimdType>(__m, s){}
 
-  template <class _Tp>
+  template <class _Tp> // TODO: add SFINAE check here
   void operator=(_Tp&& __v) && noexcept {
     if constexpr(std::is_arithmetic_v<std::remove_reference_t<_Tp>>){
       _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__broadcast(__v));
@@ -1570,7 +1571,7 @@ public:
   }
 
 #define _LIBCXX_SIMD_MASK_OP_(__op,__name)                                                                       \
-  template <class _Tp>                                                                                           \
+  template <class _Tp> /* TODO: add SFINAE check here */                                                         \
   void operator __op##=(_Tp&& __v) && noexcept {                                                                 \
     if constexpr(std::is_arithmetic_v<std::remove_reference_t<_Tp>>){                                            \
       _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name(__s_.__s_, _Impl::__broadcast(__v)));           \
@@ -1591,28 +1592,35 @@ public:
   _LIBCXX_SIMD_MASK_OP_(>>, __shift_right)
 #undef _LIBCXX_SIMD_MASK_OP_
 
+  // TODO: add SFINAE check here
   void operator++() && noexcept {
     _SimdType __tmp = __s_;
     _Impl::__increment(__tmp.__s_);
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
+
+  // TODO: add SFINAE check here
   void operator++(int) && noexcept {
     _SimdType __tmp = __s_;
     _Impl::__increment(__tmp.__s_);
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
+
+  // TODO: add SFINAE check here
   void operator--() && noexcept {
     _SimdType __tmp = __s_;
     _Impl::__decrement(__tmp.__s_);
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
+
+  // TODO: add SFINAE check here
   void operator--(int) && noexcept {
     _SimdType __tmp = __s_;
     _Impl::__decrement(__tmp.__s_);
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
 
-  template <class _Up, class _Flags>
+  template <class _Up, class _Flags> // TODO: add SFINAE check here
   void copy_from(const _Up* __mem, _Flags) && {
     _SimdType __tmp;
     _Impl::__load(__tmp.__s_, _Flags::template __apply<_SimdType>(__mem));
@@ -1630,7 +1638,7 @@ public:
     : const_where_expression<bool, _Tp>(__m, s){}
 
 #define _LIBCXX_SIMD_MASK_OP_(__op)                              \
-  template <class _Up>                                           \
+  template <class _Up> /* TODO: add SFINAE check here */         \
   void operator __op (_Up&& __v) && noexcept {                   \
     __s_ = __m_ ? __s_ __op static_cast<_Up&&>(__v) : __s_;      \
   }
@@ -1647,20 +1655,27 @@ public:
   _LIBCXX_SIMD_MASK_OP_(>>=)
 #undef _LIBCXX_SIMD_MASK_OP_
 
+  // TODO: add SFINAE check here
   void operator++() && noexcept {
     if(__m_) __s_++;
   }
+
+  // TODO: add SFINAE check here
   void operator++(int) && noexcept {
     if(__m_) ++__s_;
   }
+
+  // TODO: add SFINAE check here
   void operator--() && noexcept {
     if(__m_) __s_--;
   }
+
+  // TODO: add SFINAE check here
   void operator--(int) && noexcept {
     if(__m_) --__s_;
   }
 
-  template <class _Up, class _Flags>
+  template <class _Up, class _Flags> // TODO: add SFINAE check here
   void copy_from(const _Up* __mem, _Flags) && {
     __s_ = __m_ ? __mem[0] : __s_;
   }
@@ -1783,6 +1798,7 @@ public:
 
   mask_type operator!() const noexcept { return _Impl::__negate(__s_); }
 
+  // TODO: add SFINAE check here
   simd operator~() const noexcept { return _Impl::__bitwise_not(__s_); }
 
   simd operator+() const noexcept { return *this; }
