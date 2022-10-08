@@ -51,33 +51,6 @@ void test_access() {
 
     {
       auto c = a;
-      ++c[0];
-      assert(bool(c[0]) == true);
-      assert(bool(c[1]) == false);
-    }
-    {
-      auto c = a;
-      auto ret = c[0]++;
-      assert(ret == false);
-      assert(bool(c[0]) == true);
-      assert(bool(c[1]) == false);
-    }
-    {
-      auto c = a;
-      --c[0];
-      assert(bool(c[0]) == true);
-      assert(bool(c[1]) == false);
-    }
-    {
-      auto c = a;
-      auto ret = c[0]--;
-      assert(ret == false);
-      assert(bool(c[0]) == true);
-      assert(bool(c[1]) == false);
-    }
-
-    {
-      auto c = a;
       c[0] += b[0];
       assert(bool(c[0]) == true);
       assert(bool(c[1]) == false);
