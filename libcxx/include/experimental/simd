@@ -1508,8 +1508,11 @@ public:
   _SimdType operator+() const && noexcept { return __s_; }
   _SimdType operator~() const && noexcept { return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__bitwise_not(__s_.__s_)); }
 
-  template <class _Tp, class _Flags> // TODO: add SFINAE check here
-  void copy_to(_Tp* __mem, _Flags) const && {
+  template <class _Up, class _Flags>
+  enable_if_t<is_simd_flag_type_v<_Flags> &&
+              ((is_same_v<_Up, bool> && is_same_v<typename _SimdType::value_type, bool>) ||
+               (__is_vectorizable<_Up>() && !is_same_v<typename _SimdType::value_type, bool>))>
+  copy_to(_Up* __mem, _Flags) const && {
     _SimdType __tmp;
     _Impl::__load(__tmp.__s_, _Flags::template __apply<_SimdType>(__mem));
     _Impl::__store(_Impl::__masked_assign(__tmp.__s_, __m_.__s_, __s_.__s_), _Flags::template __apply<_SimdType>(__mem));
@@ -1546,8 +1549,11 @@ public:
   _Tp operator+() const && noexcept { return __s_; }
   _Tp operator~() const && noexcept { return __m_ ? !__s_ : __s_; }
 
-  template <class _Up, class _Flags> // TODO: add SFINAE check here
-  void copy_to(_Up* __mem, _Flags) const && {
+  template <class _Up, class _Flags>
+  enable_if_t<is_simd_flag_type_v<_Flags> &&
+              ((is_same_v<_Up, bool> && is_same_v<_Tp, bool>) ||
+               (__is_vectorizable<_Up>() && !is_same_v<_Tp, bool>))>
+  copy_to(_Up* __mem, _Flags) const && {
     if(__m_)__mem[0] = __m_ ? __s_ : __mem[0];
   };
 };
