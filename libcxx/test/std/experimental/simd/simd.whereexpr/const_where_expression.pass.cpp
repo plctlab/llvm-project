@@ -60,22 +60,6 @@ void test_operator_positive() {
 }
 
 
-void test_operator_negation() {
-  {
-    ex::fixed_size_simd_mask<int, 4> a;
-    {
-      bool input[] = {false, true, true, false};
-      a.copy_from(input, ex::element_aligned_tag());
-    }
-    auto b = ~ex::where(true, a);
-    assert(b[0]);
-    assert(!b[1]);
-    assert(!b[2]);
-    assert(b[3]);
-  }
-}
-
-
 void test_copy_to() {
   {
     const ex::fixed_size_simd<int, 4> a([](int i) { return i - 2; });
