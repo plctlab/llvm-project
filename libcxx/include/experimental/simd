@@ -1569,23 +1569,17 @@ public:
   where_expression(const _MaskType& __m, _SimdType& s)
     : const_where_expression<_MaskType, _SimdType>(__m, s){}
 
-  template <class _Tp> // TODO: add SFINAE check here
-  void operator=(_Tp&& __v) && noexcept {
-    if constexpr(std::is_arithmetic_v<std::remove_reference_t<_Tp>>){
-      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__broadcast(__v));
-    }else{
-      _Impl::__masked_assign(__s_.__s_, __m_.__s_, __v.__s_);
-    }
+  template <class _Up>
+  enable_if_t<is_convertible_v<_Up, _SimdType>>
+  operator=(_Up&& __v) && noexcept {
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __v.__s_);
   }
 
 #define _LIBCXX_SIMD_MASK_OP_(__op,__name)                                                                       \
-  template <class _Tp> /* TODO: add SFINAE check here */                                                         \
-  void operator __op##=(_Tp&& __v) && noexcept {                                                                 \
-    if constexpr(std::is_arithmetic_v<std::remove_reference_t<_Tp>>){                                            \
-      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name(__s_.__s_, _Impl::__broadcast(__v)));           \
-    }else{                                                                                                       \
-      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name((__s_.__s_, __v.__s_)));                        \
-    }                                                                                                            \
+  template <class _Up>                                                                                           \
+  enable_if_t<is_convertible_v<decltype(declval<_SimdType&>() __op declval<_Up>()), _SimdType>>                  \
+  operator __op##=(_Up&& __v) && noexcept {                                                                      \
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name((__s_.__s_, __v.__s_)));                          \
   }
 
   _LIBCXX_SIMD_MASK_OP_(+, __plus)
@@ -1600,36 +1594,39 @@ public:
   _LIBCXX_SIMD_MASK_OP_(>>, __shift_right)
 #undef _LIBCXX_SIMD_MASK_OP_
 
-  // TODO: add SFINAE check here
+  template <class _Up = void, class = decltype(++declval<conditional_t<true, _SimdType, _Up>&>())>
   void operator++() && noexcept {
     _SimdType __tmp = __s_;
     _Impl::__increment(__tmp.__s_);
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
 
-  // TODO: add SFINAE check here
+  template <class _Up = void, class = decltype(declval<conditional_t<true, _SimdType, _Up>&>()++)>
   void operator++(int) && noexcept {
     _SimdType __tmp = __s_;
     _Impl::__increment(__tmp.__s_);
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
 
-  // TODO: add SFINAE check here
+  template <class _Up = void, class = decltype(--declval<conditional_t<true, _SimdType, _Up>&>())>
   void operator--() && noexcept {
     _SimdType __tmp = __s_;
     _Impl::__decrement(__tmp.__s_);
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
 
-  // TODO: add SFINAE check here
+  template <class _Up = void, class = decltype(declval<conditional_t<true, _SimdType, _Up>&>()--)>
   void operator--(int) && noexcept {
     _SimdType __tmp = __s_;
     _Impl::__decrement(__tmp.__s_);
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
   }
 
-  template <class _Up, class _Flags> // TODO: add SFINAE check here
-  void copy_from(const _Up* __mem, _Flags) && {
+  template <class _Up, class _Flags>
+  enable_if_t<is_simd_flag_type_v<_Flags> &&
+              ((is_same_v<_Up, bool> && is_same_v<typename _SimdType::value_type, bool>) ||
+               (__is_vectorizable<_Up>() && !is_same_v<typename _SimdType::value_type, bool>))>
+  copy_from(const _Up* __mem, _Flags) && {
     _SimdType __tmp;
     _Impl::__load(__tmp.__s_, _Flags::template __apply<_SimdType>(__mem));
     _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
@@ -1645,46 +1642,55 @@ public:
   where_expression(const bool __m, _Tp& s)
     : const_where_expression<bool, _Tp>(__m, s){}
 
-#define _LIBCXX_SIMD_MASK_OP_(__op)                              \
-  template <class _Up> /* TODO: add SFINAE check here */         \
-  void operator __op (_Up&& __v) && noexcept {                   \
-    __s_ = __m_ ? __s_ __op static_cast<_Up&&>(__v) : __s_;      \
+template <class _Up>
+enable_if_t<is_convertible_v<_Up, _Tp>>
+operator=(_Up&& __v) && noexcept {
+  __s_ = __m_ ? static_cast<_Up&&>(__v) : __s_;
+}
+
+#define _LIBCXX_SIMD_MASK_OP_(__op)                                                                  \
+  template <class _Up>                                                                               \
+  enable_if_t<is_convertible_v<decltype(declval<_Tp&>() __op declval<_Up>()), _Tp>>                  \
+  operator __op##=(_Up&& __v) && noexcept {                                                          \
+    __s_ = __m_ ? __s_ __op static_cast<_Up&&>(__v) : __s_;                                          \
   }
-  _LIBCXX_SIMD_MASK_OP_(=)
-  _LIBCXX_SIMD_MASK_OP_(+=)
-  _LIBCXX_SIMD_MASK_OP_(-=)
-  _LIBCXX_SIMD_MASK_OP_(*=)
-  _LIBCXX_SIMD_MASK_OP_(/=)
-  _LIBCXX_SIMD_MASK_OP_(%=)
-  _LIBCXX_SIMD_MASK_OP_(&=)
-  _LIBCXX_SIMD_MASK_OP_(|=)
-  _LIBCXX_SIMD_MASK_OP_(^=)
-  _LIBCXX_SIMD_MASK_OP_(<<=)
-  _LIBCXX_SIMD_MASK_OP_(>>=)
+  _LIBCXX_SIMD_MASK_OP_(+)
+  _LIBCXX_SIMD_MASK_OP_(-)
+  _LIBCXX_SIMD_MASK_OP_(*)
+  _LIBCXX_SIMD_MASK_OP_(/)
+  _LIBCXX_SIMD_MASK_OP_(%)
+  _LIBCXX_SIMD_MASK_OP_(&)
+  _LIBCXX_SIMD_MASK_OP_(|)
+  _LIBCXX_SIMD_MASK_OP_(^)
+  _LIBCXX_SIMD_MASK_OP_(<<)
+  _LIBCXX_SIMD_MASK_OP_(>>)
 #undef _LIBCXX_SIMD_MASK_OP_
 
-  // TODO: add SFINAE check here
+  template <class _Up = void, class = decltype(++declval<conditional_t<true, _Tp, _Up>&>())>
   void operator++() && noexcept {
     if(__m_) __s_++;
   }
 
-  // TODO: add SFINAE check here
+  template <class _Up = void, class = decltype(declval<conditional_t<true, _Tp, _Up>&>()++)>
   void operator++(int) && noexcept {
     if(__m_) ++__s_;
   }
 
-  // TODO: add SFINAE check here
+  template <class _Up = void, class = decltype(--declval<conditional_t<true, _Tp, _Up>&>())>
   void operator--() && noexcept {
     if(__m_) __s_--;
   }
 
-  // TODO: add SFINAE check here
+  template <class _Up = void, class = decltype(declval<conditional_t<true, _Tp, _Up>&>()--)>
   void operator--(int) && noexcept {
     if(__m_) --__s_;
   }
 
-  template <class _Up, class _Flags> // TODO: add SFINAE check here
-  void copy_from(const _Up* __mem, _Flags) && {
+  template <class _Up, class _Flags>
+  enable_if_t<is_simd_flag_type_v<_Flags> &&
+              ((is_same_v<_Up, bool> && is_same_v<_Tp, bool>) ||
+               (__is_vectorizable<_Up>() && !is_same_v<_Tp, bool>))>
+  copy_from(const _Up* __mem, _Flags) && {
     __s_ = __m_ ? __mem[0] : __s_;
   }
 };
