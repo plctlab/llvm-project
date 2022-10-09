@@ -44,14 +44,6 @@ namespace ex = std::experimental::parallelism_v2;
 void test_operators_simd() {
   {
     ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a < 2, a) = -1;
-    assert(a[0] == -1);
-    assert(a[1] == -1);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
-  }
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
     ex::fixed_size_simd<int, 4> b([](int i) { return i + 1; });
     ex::where(a < 2, a) = b;
     assert(a[0] == 1);
@@ -69,54 +61,6 @@ void test_operators_simd() {
     assert(b[3] == true);
   }
   {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a < 2, a) += -1;
-    assert(a[0] == -1);
-    assert(a[1] == 0);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
-  }
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a < 2, a) -= -1;
-    assert(a[0] == 1);
-    assert(a[1] == 2);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
-  }
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a < 2, a) *= -1;
-    assert(a[0] == 0);
-    assert(a[1] == -1);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
-  }
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return 3 * i; });
-    ex::where(a >= 6, a) /= 2;
-    assert(a[0] == 0);
-    assert(a[1] == 3);
-    assert(a[2] == 3);
-    assert(a[3] == 4);
-  }
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return 3 * i; });
-    ex::where(a >= 6, a) %= 2;
-    assert(a[0] == 0);
-    assert(a[1] == 3);
-    assert(a[2] == 0);
-    assert(a[3] == 1);
-  }
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a > -2, a) &= 1;
-    assert(a[0] == 0);
-    assert(a[1] == 1);
-    assert(a[2] == 0);
-    assert(a[3] == 1);
-  }
-    {
     int buf[]{1,2,3,4};
     ex::fixed_size_simd<int, 4> a;
     a.copy_from(buf,ex::element_aligned_tag());
@@ -139,109 +83,6 @@ void test_operators_simd() {
     assert(a[1] == 1);
     assert(a[2] == 2);
     assert(a[3] == 3);
-  }
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a < 2, a) |= 2;
-    assert(a[0] == 2);
-    assert(a[1] == 3);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
-  }
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a < 2, a) ^= 1;
-    assert(a[0] == 1);
-    assert(a[1] == 0);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
-  }
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a < 2, a) <<= 1;
-    assert(a[0] == 0);
-    assert(a[1] == 2);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
-  }
-  /* {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a < 2, a) <<= ex::fixed_size_simd<int, 4>(1);
-    assert(a[0] == 0);
-    assert(a[1] == 2);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
-  } */
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return 2 * i; });
-    ex::where(a < 4, a) >>= 1;
-    assert(a[0] == 0);
-    assert(a[1] == 1);
-    assert(a[2] == 4);
-    assert(a[3] == 6);
-  }
-}
-
-void test_operators_mask() {
-  {
-    ex::fixed_size_simd_mask<int, 4> a;
-    a[0] = false;
-    a[1] = true;
-    a[2] = true;
-    a[3] = false;
-    ex::where(a, a) = false;
-    assert(!a[0]);
-    assert(!a[1]);
-    assert(!a[2]);
-    assert(!a[3]);
-  }
-  {
-    ex::fixed_size_simd_mask<int, 4> a;
-    a[0] = false;
-    a[1] = true;
-    a[2] = true;
-    a[3] = false;
-    ex::where(a, a) &= false;
-    assert(!a[0]);
-    assert(!a[1]);
-    assert(!a[2]);
-    assert(!a[3]);
-  }
-  {
-    ex::fixed_size_simd_mask<int, 4> a;
-    a[0] = false;
-    a[1] = true;
-    a[2] = true;
-    a[3] = false;
-    ex::where(!a, a) |= true;
-    assert(a[0]);
-    assert(a[1]);
-    assert(a[2]);
-    assert(a[3]);
-  }
-  {
-    ex::fixed_size_simd_mask<int, 4> a;
-    a[0] = false;
-    a[1] = true;
-    a[2] = true;
-    a[3] = false;
-    ex::where(a, a) ^= true;
-    assert(!a[0]);
-    assert(!a[1]);
-    assert(!a[2]);
-    assert(!a[3]);
-  }
-  {
-    ex::fixed_size_simd_mask<int, 4> a;
-    a[0] = false;
-    a[1] = true;
-    a[2] = true;
-    a[3] = false;
-    ex::where(!a, a) ^= true;
-    assert(a[0]);
-    assert(a[1]);
-    assert(a[2]);
-    assert(a[3]);
   }
 }
 
@@ -304,6 +145,5 @@ void test_copy_from() {
 
 int main() {
   test_operators_simd();
-  test_operators_mask();
   test_copy_from();
 }
