@@ -1368,16 +1368,14 @@ where(const type_identity_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Ab
   return {__m, __s};
 }
 
-// TODO: add SFINAE check here
 template <class _Tp>
-where_expression<bool, _Tp>
+enable_if_t<!(is_simd_v<_Tp> || is_simd_mask_v<_Tp>), where_expression<bool, _Tp>>
 where(_Bool __m, _Tp& __s) noexcept {
   return {__m, __s};
 }
 
-// TODO: add SFINAE check here
 template <class _Tp>
-const_where_expression<bool, _Tp>
+enable_if_t<!(is_simd_v<_Tp> || is_simd_mask_v<_Tp>), const_where_expression<bool, _Tp>>
 where(_Bool __m, const _Tp& __s) noexcept {
   return {__m, __s};
 }
