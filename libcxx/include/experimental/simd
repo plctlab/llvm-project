@@ -1812,7 +1812,7 @@ public:
 
   mask_type operator!() const noexcept { return _Impl::__negate(__s_); }
 
-  // TODO: add SFINAE check here
+  // TODO: add SFINAE check here. This operator shall not participate in overload resolution unless _Tp is an integral type.
   simd operator~() const noexcept { return _Impl::__bitwise_not(__s_); }
 
   simd operator+() const noexcept { return *this; }
