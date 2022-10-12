@@ -22,6 +22,7 @@ struct __mask_traits;
 
 class _Bool {
   const bool __v;
+
 public:
   constexpr _Bool(bool __b) : __v(__b) {}
   _Bool(int) = delete;
