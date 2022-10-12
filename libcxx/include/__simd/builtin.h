@@ -86,70 +86,40 @@ struct __simd_traits<_Tp, simd_abi::__builtin<_Np>> {
 
   static _Simd __shift_right(_Simd __lhs, int __rhs) noexcept { return {__lhs.__data >> __rhs}; }
 
-  static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-    return {{__lhs.__data == __rhs.__data}};
-  }
+  static _Mask __equal_to(_Simd __lhs, _Simd __rhs) noexcept { return {{__lhs.__data == __rhs.__data}}; }
 
-  static _Mask __not_equal_to(_Simd __lhs, _Simd __rhs) noexcept {
-    return {{__lhs.__data != __rhs.__data}};
-  }
+  static _Mask __not_equal_to(_Simd __lhs, _Simd __rhs) noexcept { return {{__lhs.__data != __rhs.__data}}; }
 
-  static _Mask __less_equal(_Simd __lhs, _Simd __rhs) noexcept {
-    return {{__lhs.__data <= __rhs.__data}};
-  }
+  static _Mask __less_equal(_Simd __lhs, _Simd __rhs) noexcept { return {{__lhs.__data <= __rhs.__data}}; }
 
-  static _Mask __less(_Simd __lhs, _Simd __rhs) noexcept{
-    return {{__lhs.__data < __rhs.__data}};
-  }
+  static _Mask __less(_Simd __lhs, _Simd __rhs) noexcept { return {{__lhs.__data < __rhs.__data}}; }
 
-  static _Tp __hmin(_Simd __s) noexcept{
-    return __builtin_reduce_min(__s.__data);
-  }
+  static _Tp __hmin(_Simd __s) noexcept { return __builtin_reduce_min(__s.__data); }
 
-  static _Tp __hmax(_Simd __s) noexcept{
-    return __builtin_reduce_max(__s.__data);
-  }
+  static _Tp __hmax(_Simd __s) noexcept { return __builtin_reduce_max(__s.__data); }
 
-  static _Simd __min(_Simd __a, _Simd __b) noexcept {
-    return {__a.__data < __b.__data ? __a.__data : __b.__data};
-  }
+  static _Simd __min(_Simd __a, _Simd __b) noexcept { return {__a.__data < __b.__data ? __a.__data : __b.__data}; }
 
-  static _Simd __max(_Simd __a, _Simd __b) noexcept {
-    return {__a.__data > __b.__data ? __a.__data : __b.__data};
-  }
+  static _Simd __max(_Simd __a, _Simd __b) noexcept { return {__a.__data > __b.__data ? __a.__data : __b.__data}; }
 
-  static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept {
-    return {__min(__a, __b), __max(__a, __b)};
-  }
+  static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept { return {__min(__a, __b), __max(__a, __b)}; }
 
-  static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept {
-    return __min(__max(__v, __lo), __hi);
-  }
+  static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept { return __min(__max(__v, __lo), __hi); }
 
   static _Simd __masked_assign(_Simd& __s, _Mask __m, _Simd __v) noexcept {
     __s.__data = __m.__data ? __v.__data : __s.__data;
     return __s;
   }
 
-  static _Tp __reduce(const _Simd& __s, plus<>) {
-    return __builtin_reduce_add(__s.__data);
-  }
+  static _Tp __reduce(const _Simd& __s, plus<>) { return __builtin_reduce_add(__s.__data); }
 
-  static _Tp __reduce(const _Simd& __s, multiplies<>) {
-    return __builtin_reduce_mul(__s.__data);
-  }
+  static _Tp __reduce(const _Simd& __s, multiplies<>) { return __builtin_reduce_mul(__s.__data); }
 
-  static _Tp __reduce(const _Simd& __s, bit_and<>) {
-    return __builtin_reduce_and(__s.__data);
-  }
+  static _Tp __reduce(const _Simd& __s, bit_and<>) { return __builtin_reduce_and(__s.__data); }
 
-  static _Tp __reduce(const _Simd& __s, bit_or<>) {
-    return __builtin_reduce_or(__s.__data);
-  }
+  static _Tp __reduce(const _Simd& __s, bit_or<>) { return __builtin_reduce_or(__s.__data); }
 
-  static _Tp __reduce(const _Simd& __s, bit_xor<>) {
-    return __builtin_reduce_xor(__s.__data);
-  }
+  static _Tp __reduce(const _Simd& __s, bit_xor<>) { return __builtin_reduce_xor(__s.__data); }
 };
 
 template <class _Tp, int _Np>
@@ -158,10 +128,10 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
 
   static _Mask __broadcast(bool __v) noexcept {
     // TODO: Optimizeable
-    return __generate([=](size_t) { return  __set_all_bits<_Tp>(__v); });
+    return __generate([=](size_t) { return __set_all_bits<_Tp>(__v); });
   }
 
- template <class _Generator, size_t... _Is>
+  template <class _Generator, size_t... _Is>
   static _Mask __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
     // TODO: Optimizeable
     // _Simd specified here is to work around GCC

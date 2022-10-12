@@ -13,13 +13,13 @@
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 
 struct __scalar {
-  static constexpr bool __is_abi_tag = true;
+  static constexpr bool __is_abi_tag  = true;
   static constexpr size_t __simd_size = 1;
 };
 
 template <int _Np>
 struct __builtin {
-  static constexpr bool __is_abi_tag = _Np > 0;
+  static constexpr bool __is_abi_tag  = _Np > 0;
   static constexpr size_t __simd_size = _Np;
 };
 
@@ -57,7 +57,7 @@ template <class _Tp>
 auto __set_all_bits(bool __v) {
   using _Up = decltype(__choose_mask_type<_Tp>());
   _Up __res = 0;
-  for(unsigned long __i = 0; __i < __CHAR_BIT__ * sizeof(_Tp); __i++)
+  for (unsigned long __i = 0; __i < __CHAR_BIT__ * sizeof(_Tp); __i++)
     __res |= static_cast<_Up>(__v) << __i;
   return __res;
 }
@@ -69,7 +69,7 @@ template <class _Tp, class _Abi>
 struct __mask_storage;
 
 template <class _Tp>
-struct __simd_storage <_Tp, simd_abi::__scalar> {
+struct __simd_storage<_Tp, simd_abi::__scalar> {
   _Tp __data;
 
   _Tp __get(size_t __idx) const noexcept { return (&__data)[__idx]; }
@@ -78,10 +78,10 @@ struct __simd_storage <_Tp, simd_abi::__scalar> {
 };
 
 template <class _Tp>
-struct __mask_storage <_Tp, simd_abi::__scalar> : __simd_storage<bool, simd_abi::__scalar> {};
+struct __mask_storage<_Tp, simd_abi::__scalar> : __simd_storage<bool, simd_abi::__scalar> {};
 
 template <class _Tp, int _Np>
-struct __simd_storage <_Tp, simd_abi::__builtin<_Np>> {
+struct __simd_storage<_Tp, simd_abi::__builtin<_Np>> {
 #if defined(_LIBCPP_COMPILER_CLANG_BASED)
   _Tp __data __attribute__((vector_size(sizeof(_Tp) * _Np)));
 #else
@@ -94,8 +94,8 @@ struct __simd_storage <_Tp, simd_abi::__builtin<_Np>> {
 };
 
 template <class _Tp, int _Np>
-struct __mask_storage <_Tp, simd_abi::__builtin<_Np>> : __simd_storage<decltype(__choose_mask_type<_Tp>()), simd_abi::__builtin<_Np>> {};
-
+struct __mask_storage<_Tp, simd_abi::__builtin<_Np>>
+    : __simd_storage<decltype(__choose_mask_type<_Tp>()), simd_abi::__builtin<_Np>> {};
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
