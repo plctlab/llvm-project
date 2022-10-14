@@ -10,6 +10,10 @@
 #ifndef _LIBCPP___SIMD_SIMD_STORAGE_H
 #define _LIBCPP___SIMD_SIMD_STORAGE_H
 
+#include <cstddef>
+#include <cstdint>
+#include <experimental/__config>
+
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
 
 struct __scalar {

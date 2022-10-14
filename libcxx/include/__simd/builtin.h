@@ -12,6 +12,7 @@
 
 #include <__simd/simd_storage.h>
 #include <__simd/utility.h>
+#include <functional>
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
