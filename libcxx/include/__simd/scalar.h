@@ -10,9 +10,9 @@
 #ifndef _LIBCPP___SIMD_SCALAR_H
 #define _LIBCPP___SIMD_SCALAR_H
 
-#include <algorithm>
 #include <__simd/simd_storage.h>
 #include <__simd/utility.h>
+#include <algorithm>
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
