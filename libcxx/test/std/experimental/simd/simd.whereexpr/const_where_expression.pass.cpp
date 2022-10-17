@@ -24,41 +24,79 @@
 //   template<class U, class Flags> void copy_to(U* mem, Flags f) const &&;
 // };
 
-#include <experimental/simd>
+#include "../test_utils.h"
 #include <cassert>
-#include <cstdint>
-#include <algorithm>
-#include "test_macros.h"
+#include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
 
-void test_operator_minus() {
-  {
-    const ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    auto b = -ex::where(a < 2, a);
-    assert(b[0] == 0);
-    assert(b[1] == -1);
-    assert(b[2] == 2);
-    assert(b[3] == 3);
+struct CheckConstWhereExprOperatorMinus {
+    template<class _Tp, class SimdAbi, std::size_t _Np>
+    void operator()(){
+        if constexpr (ex::simd_size_v<_Tp, SimdAbi> >= 2 && !std::is_unsigned_v<_Tp>) {
+            const ex::simd<_Tp, SimdAbi> a([](_Tp i){return i;});
+            auto b = -ex::where(a < static_cast<_Tp>(2), a);
+            assert(b[0] == static_cast<_Tp>(0));
+            assert(b[1] == -static_cast<_Tp>(1));
+            for (size_t i = 2; i < b.size(); ++i) {
+                assert(b[i] == static_cast<_Tp>(i));
+            }
+        }
+    }
+};
+
+struct CheckConstWhereExprOperatorPositive {
+    template<class _Tp, class SimdAbi, std::size_t _Np>
+    void operator()(){
+            const ex::simd<_Tp, SimdAbi> a([](_Tp i){return i;});
+            auto b = +ex::where(a < static_cast<_Tp>(2), a);
+            for (size_t i = 0; i < b.size(); ++i) {
+                assert(b[i] == static_cast<_Tp>(i));
+            }
+        
+    }
+};
+
+struct CheckConstWhereExprOperatorNegation {
+template<class _Tp, class SimdAbi, std::size_t _Np>
+  void operator()(){
+    if constexpr (std::is_same_v<SimdAbi, ex::simd_abi::scalar>) return;
+    const ex::simd_mask<_Tp, SimdAbi> a([](_Tp i){return i;});
+    auto b = ~ex::where(true, a);
+            for (size_t i = 0; i < b.size(); ++i) {
+              assert(!b[i]);
+            }
   }
-  //assert((-ex::where(true, 3)) == -3);
-  //assert((-ex::where(false, 3)) == 3);
-}
+};
 
-
-void test_operator_positive() {
-  {
-    const ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    auto b = +ex::where(a < 2, a);
-    assert(b[0] == 0);
-    assert(b[1] == 1);
-    assert(b[2] == 2);
-    assert(b[3] == 3);
+/*
+struct CheckConstWhereExprCopyTo {
+template<class _Tp, class SimdAbi, std::size_t _Np>
+  void operator()(){
+    ex::simd<_Tp, SimdAbi> 
+    ex::simd_mask<_Tp, SimdAbi> a;
+    {
+      constexpr auto array_size = a.size();
+      bool input[array_size];
+      input[0] = false;
+      for (size_t i = 1; i < array_size; ++i) {
+        input[i] = true;
+      }
+    }
+    auto b = ~ex::where(true, a);
+    assert(b[0]);
   }
-  //assert((+ex::where(true, 3)) == 3);
-  //assert((+ex::where(false, -3)) == -3);
-}
+};
+*/
 
+template <class F, std::size_t _Np, class _Tp>
+void test_simd_abi() {
+}
+template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
+void test_simd_abi() {
+  F{}.template operator()<_Tp, SimdAbi, _Np>();
+  test_simd_abi<F, _Np, _Tp, SimdAbis...>();
+}
 
 void test_copy_to() {
   {
@@ -113,8 +151,8 @@ void test_copy_to() {
     assert(b == 1);
   }
 }
-
 int main() {
-  test_operator_minus();
-  test_copy_to();
+    test_all_simd_abi<CheckConstWhereExprOperatorMinus>();
+    test_all_simd_abi<CheckConstWhereExprOperatorPositive>();
+    test_all_simd_abi<CheckConstWhereExprOperatorNegation>();
 }
