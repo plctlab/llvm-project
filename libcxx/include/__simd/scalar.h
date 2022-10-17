@@ -42,7 +42,7 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
 
   static void __decrement(_Simd& __s) noexcept { --__s.__data; }
 
-  static _Simd __negate(_Simd __s) noexcept { return {!__s.__data}; }
+  static _Mask __negate(_Simd __s) noexcept { return {!__s.__data}; }
 
   static _Simd __bitwise_not(_Simd __s) noexcept { return {static_cast<_Tp>(~__s.__data)}; }
 
@@ -104,36 +104,10 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
 
   static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept { return __min(__max(__v, __lo), __hi); }
 
-  static _Simd __masked_unary_minus(_Simd __s, _Mask __m) noexcept { return {__m.__data ? -__s.__data : __s.__data}; }
-
   static _Simd __masked_assign(_Simd& __s, _Mask __m, _Tp __v) noexcept { __s.__data = __m.__data ? __v : __v; }
 
-#define _LIBCXX_MASKED_OP_(__op, __name)                                                                               \
-  static void __masked##__name(_Simd& __s, _Mask __m, _Tp __v) noexcept {                                              \
-    __s.__data = __m.__data ? __s.__data __op __v : __s.__data;                                                        \
-  }
-  _LIBCXX_MASKED_OP_(+, _plus)
-  _LIBCXX_MASKED_OP_(-, _minus)
-  _LIBCXX_MASKED_OP_(*, _multiplues)
-  _LIBCXX_MASKED_OP_(/, _divides)
-  _LIBCXX_MASKED_OP_(%, _modulus)
-  _LIBCXX_MASKED_OP_(&, _bit_and)
-  _LIBCXX_MASKED_OP_(|, _bit_or)
-  _LIBCXX_MASKED_OP_(^, _bit_xor)
-  _LIBCXX_MASKED_OP_(<<, _shift_left)
-  _LIBCXX_MASKED_OP_(>>, _shift_right)
-#undef _LIBCXX_MASKED_OP_
-  static void __masked_incre(_Simd& __s, _Mask __m) noexcept { __s.__data = __m.__data ? __s.__data++ : __s.__data; }
-
-  static void __masked_decre(_Simd& __s, _Mask __m) noexcept { __s.__data = __m.__data ? __s.__data-- : __s.__data; }
-  template <class _Up>
-  static void __masked_load(_Simd& __s, _Mask __m, _Up* __mem) noexcept {
-    __s.__data = __m.__data ? static_cast<_Tp>(__mem) : __s.__data;
-  }
-  template <class _Up>
-  static void __masked_store(const _Simd& __s, _Mask __m, _Up* __mem) noexcept {
-    __mem = __m.__data ? static_cast<_Up>(__s.__data) : __mem;
-  }
+  template <class _BinaryOp>
+  static _Tp __reduce(const _Simd& __s, _BinaryOp) { return __s.__data; }
 };
 
 template <class _Tp>
@@ -152,25 +126,17 @@ struct __mask_traits<_Tp, simd_abi::__scalar> {
     *__mem = static_cast<_Up>(__s.__data);
   }
 
+  static _Mask __negate(_Mask __s) noexcept { return {{!__s.__data}}; }
+
   static _Mask __logical_and(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data && __rhs.__data}}; }
 
   static _Mask __logical_or(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data || __rhs.__data}}; }
 
-  static _Mask __bitwise_and(_Mask __lhs, _Mask __rhs) noexcept {
-    return {{static_cast<bool>(__lhs.__data & __rhs.__data)}};
-  }
+  static _Mask __bitwise_and(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data && __rhs.__data}}; }
 
-  static _Mask __bitwise_or(_Mask __lhs, _Mask __rhs) noexcept {
-    return {{static_cast<bool>(__lhs.__data | __rhs.__data)}};
-  }
+  static _Mask __bitwise_or(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data || __rhs.__data}}; }
 
-  static _Mask __bitwise_xor(_Mask __lhs, _Mask __rhs) noexcept {
-    return {{static_cast<bool>(__lhs.__data ^ __rhs.__data)}};
-  }
-
-  static _Mask __equal_to(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data == __rhs.__data}}; }
-
-  static _Mask __not_equal_to(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data != __rhs.__data}}; }
+  static _Mask __bitwise_xor(_Mask __lhs, _Mask __rhs) noexcept { return {{__lhs.__data != __rhs.__data}}; }
 
   static bool __all_of(_Mask __s) noexcept { return __s.__data; }
 
@@ -186,33 +152,8 @@ struct __mask_traits<_Tp, simd_abi::__scalar> {
 
   static int __find_last_set(_Mask) { return 0; }
 
-  static _Mask __masked_unary_minus(_Mask __s, _Mask __m) noexcept { return __m.__data ? -__s.__data : __s.__data; }
-
-  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept { return __m.__data ? __v : __s.__data; }
-#define _LIBCXX_MASKED_OP_M(__op, __name)                                                                              \
-  static void __masked##__name(_Mask& __s, _Mask __m, _Tp __v) noexcept {                                              \
-    __s.__data = __m.__data ? __s.__data __op __v : __s.__data;                                                        \
-  }
-  _LIBCXX_MASKED_OP_M(+, _plus)
-  _LIBCXX_MASKED_OP_M(-, _minus)
-  _LIBCXX_MASKED_OP_M(*, _multiplues)
-  _LIBCXX_MASKED_OP_M(/, _divides)
-  _LIBCXX_MASKED_OP_M(%, _modulus)
-  _LIBCXX_MASKED_OP_M(&, _bit_and)
-  _LIBCXX_MASKED_OP_M(|, _bit_or)
-  _LIBCXX_MASKED_OP_M(^, _bit_xor)
-  _LIBCXX_MASKED_OP_M(<<, _shift_left)
-  _LIBCXX_MASKED_OP_M(>>, _shift_right)
-#undef _LIBCXX_MASKED_OP_M
-  static void __masked_incre(_Mask& __s, _Mask __m) noexcept { __s.__data = __m.__data ? __s.__data++ : __s.__data; }
-  static void __masked_decre(_Mask& __s, _Mask __m) noexcept { __s.__data = __m.__data ? __s.__data-- : __s.__data; }
-  template <class _Up>
-  static void __masked_load(_Mask& __s, _Mask __m, _Up* __mem) noexcept {
-    __s.__data = __m.__data ? static_cast<_Tp>(__mem) : __s.__data;
-  }
-  template <class _Up>
-  static void __masked_store(const _Mask& __s, _Mask __m, _Up* __mem) noexcept {
-    __mem = __m.__data ? static_cast<_Up>(__s.__data) : __mem;
+  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept {
+    return __m.__data ? __v : __s.__data;
   }
 };
 
