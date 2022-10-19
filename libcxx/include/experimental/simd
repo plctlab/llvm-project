@@ -1509,7 +1509,7 @@ protected:
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
-  const_where_expression(const _MaskType& __m, const _SimdType& s) : __m_(__m), __s_(const_cast<_SimdType&>(s)) {}
+  const_where_expression(const _MaskType& __m, const _SimdType& __s) : __m_(__m), __s_(const_cast<_SimdType&>(__s)) {}
 
   _SimdType operator-() const&& noexcept {
     return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__unary_minus(__s_.__s_));
@@ -1551,7 +1551,7 @@ protected:
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
-  const_where_expression(const bool __m, const _Tp& s) : __m_(__m), __s_(const_cast<_Tp&>(s)) {}
+  const_where_expression(const bool __m, const _Tp& __s) : __m_(__m), __s_(const_cast<_Tp&>(__s)) {}
 
   _Tp operator-() const&& noexcept { return __m_ ? -__s_ : __s_; }
   _Tp operator+() const&& noexcept { return __s_; }
@@ -1573,7 +1573,7 @@ class where_expression : public const_where_expression<_MaskType, _SimdType> {
   using const_where_expression<_MaskType, _SimdType>::__s_;
 
 public:
-  where_expression(const _MaskType& __m, _SimdType& s) : const_where_expression<_MaskType, _SimdType>(__m, s) {}
+  where_expression(const _MaskType& __m, _SimdType& __s) : const_where_expression<_MaskType, _SimdType>(__m, __s) {}
 
   template <class _Up>
   enable_if_t<is_convertible_v<_Up, _SimdType>> operator=(_Up&& __v) && noexcept {
@@ -1644,7 +1644,7 @@ class where_expression<bool, _Tp> : public const_where_expression<bool, _Tp> {
   using const_where_expression<bool, _Tp>::__s_;
 
 public:
-  where_expression(const bool __m, _Tp& s) : const_where_expression<bool, _Tp>(__m, s) {}
+  where_expression(const bool __m, _Tp& __s) : const_where_expression<bool, _Tp>(__m, __s) {}
 
   template <class _Up>
   enable_if_t<is_convertible_v<_Up, _Tp>> operator=(_Up&& __v) && noexcept {
