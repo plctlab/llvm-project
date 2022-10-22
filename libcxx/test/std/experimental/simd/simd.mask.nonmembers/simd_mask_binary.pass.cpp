@@ -16,9 +16,7 @@
 // friend simd_mask operator& (const simd_mask& lhs, const simd_mask& rhs) noexcept;
 // friend simd_mask operator| (const simd_mask& lhs, const simd_mask& rhs) noexcept;
 // friend simd_mask operator^ (const simd_mask& lhs, const simd_mask& rhs) noexcept;
-// 1 Returns: 
-// A simd_mask object initialized with the results of applying the indicated operator to lhs and
-// rhs as a binary element-wise operation.
+
 #include "../test_utils.h"
 #include <cassert>
 #include <experimental/simd>
@@ -26,25 +24,56 @@
 namespace ex = std::experimental::parallelism_v2;
 
 struct CheckSimdMaskBinary {
-template<class _Tp, class SimdAbi>
-void operator()(){
-    ex::simd_mask_lhs<_Tp, SimdAbi>([](bool i) { return i;});
-    ex::simd_mask_rhs<_Tp, SimdAbi>([](bool i) { return i;});
+  template <class _Tp, class SimdAbi>
+  void operator()() {
+    ex::simd<_Tp, SimdAbi> l_simd(static_cast<_Tp>(5));
+    ex::simd<_Tp, SimdAbi> r_simd([](_Tp i) { return i; });
 
-}
+    const ex::simd_mask<_Tp, SimdAbi> lhs(l_simd == r_simd);
+    const ex::simd_mask<_Tp, SimdAbi> rhs(l_simd > r_simd);
+
+    {
+      ex::simd_mask<_Tp, SimdAbi> logical_and_mask(lhs && rhs);
+      for (size_t i = 0; i < logical_and_mask.size(); ++i) {
+        assert(logical_and_mask[i] == (lhs[i] && rhs[i]));
+      }
+    }
+    {
+      ex::simd_mask<_Tp, SimdAbi> logical_or_mask(lhs || rhs);
+      for (size_t i = 0; i < logical_or_mask.size(); ++i) {
+        assert(logical_or_mask[i] == (lhs[i] || rhs[i]));
+      }
+    }
+    {
+      ex::simd_mask<_Tp, SimdAbi> bitwise_and_mask(lhs & rhs);
+      for (size_t i = 0; i < bitwise_and_mask.size(); ++i) {
+        assert(bitwise_and_mask[i] == (lhs[i] && rhs[i]));
+      }
+    }
+    {
+      ex::simd_mask<_Tp, SimdAbi> bitwise_or_mask(lhs | rhs);
+      for (size_t i = 0; i < bitwise_or_mask.size(); ++i) {
+        assert(bitwise_or_mask[i] == (lhs[i] || rhs[i]));
+      }
+    }
+    {
+      ex::simd_mask<_Tp, SimdAbi> bitwise_xor_mask(lhs ^ rhs);
+      for (size_t i = 0; i < bitwise_xor_mask.size(); ++i) {
+        assert(bitwise_xor_mask[i] == (lhs[i] ^ rhs[i]));
+      }
+    }
+  }
 };
-
 
 template <class F, std::size_t _Np, class _Tp>
 void test_simd_abi() {
 }
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
-  F{}.template operator()<_Tp, SimdAbi, _Np>();
+  F{}.template operator()<_Tp, SimdAbi>();
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 
-
 int main() {
-
+  test_all_simd_abi<CheckSimdMaskBinary>();
 }
