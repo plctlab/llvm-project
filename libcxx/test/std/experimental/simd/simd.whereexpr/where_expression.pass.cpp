@@ -34,116 +34,263 @@
 //   template <class U, class Flags> void copy_from(const U* mem, Flags);
 // };
 
-#include <experimental/simd>
+#include "../test_utils.h"
 #include <cassert>
-#include <cstdint>
-#include <algorithm>
+#include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
 
-void test_operators_simd() {
-  {
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::fixed_size_simd<int, 4> b([](int i) { return i + 1; });
-    ex::where(a < 2, a) = b;
-    assert(a[0] == 1);
-    assert(a[1] == 2);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
-  }
-  {
-    ex::fixed_size_simd_mask<int, 4> a(true);
-    ex::fixed_size_simd_mask<int, 4> b(false);
-    ex::where(a , b) = a;
-    assert(b[0] == true);
-    assert(b[1] == true);
-    assert(b[2] == true);
-    assert(b[3] == true);
-  }
-  {
-    int buf[]{1,2,3,4};
-    ex::fixed_size_simd<int, 4> a;
-    a.copy_from(buf,ex::element_aligned_tag());
-    ex::fixed_size_simd_mask<int, 4> b(true);
+struct CheckWhereExprOperators {
+  template <class _Tp, class SimdAbi>
+  void operator()() {
+    if constexpr (ex::simd_size_v<_Tp, SimdAbi> == 4) {
+      {
+        ex::simd_mask<_Tp, SimdAbi> lhs(true);
+        ex::simd_mask<_Tp, SimdAbi> rhs(false);
+        ex::where(lhs, rhs) = lhs;
+        assert(rhs[0] == true);
+        assert(rhs[1] == true);
+        assert(rhs[2] == true);
+        assert(rhs[3] == true);
+      }
+      {
+        _Tp buf[]{1, 2, 3, 4};
+        ex::simd<_Tp, SimdAbi> lhs;
+        lhs.copy_from(buf, ex::element_aligned_tag());
+        ex::simd_mask<_Tp, SimdAbi> rhs(true);
 
-    ex::where(b , a)++;
-    assert(a[0] == 2);
-    assert(a[1] == 3);
-    assert(a[2] == 4);
-    assert(a[3] == 5);
-  }
-  {
-    int buf[]{1,2,3,4};
-    ex::fixed_size_simd<int, 4> a;
-    a.copy_from(buf,ex::element_aligned_tag());
-    ex::fixed_size_simd_mask<int, 4> b(true);
+        ex::where(rhs, lhs).operator+=(2);
+        assert(lhs[0] == static_cast<_Tp>(3));
+        assert(lhs[1] == static_cast<_Tp>(4));
+        assert(lhs[2] == static_cast<_Tp>(5));
+        assert(lhs[3] == static_cast<_Tp>(6));
+      }
+      {
+        _Tp buf[]{1, 2, 3, 4};
+        ex::simd<_Tp, SimdAbi> lhs;
+        lhs.copy_from(buf, ex::element_aligned_tag());
+        ex::simd_mask<_Tp, SimdAbi> rhs(true);
 
-    ex::where(b , a)--;
-    assert(a[0] == 0);
-    assert(a[1] == 1);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
+        ex::where(rhs, lhs).operator-=(2);
+        assert(lhs[0] == static_cast<_Tp>(-1));
+        assert(lhs[1] == static_cast<_Tp>(0));
+        assert(lhs[2] == static_cast<_Tp>(1));
+        assert(lhs[3] == static_cast<_Tp>(2));
+      }
+      {
+        _Tp buf[]{2, 2, 4, 4};
+        ex::simd<_Tp, SimdAbi> lhs;
+        lhs.copy_from(buf, ex::element_aligned_tag());
+        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+        ex::where(rhs, lhs).operator/=(2);
+        assert(lhs[0] == static_cast<_Tp>(1));
+        assert(lhs[1] == static_cast<_Tp>(1));
+        assert(lhs[2] == static_cast<_Tp>(2));
+        assert(lhs[3] == static_cast<_Tp>(2));
+      }
+      {
+        if constexpr (!std::is_floating_point_v<_Tp>()) {
+          _Tp buf[]{3, 3, 4, 4};
+          ex::simd<_Tp, SimdAbi> lhs;
+          lhs.copy_from(buf, ex::element_aligned_tag());
+          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+          ex::where(rhs, lhs).operator%=(2);
+          assert(lhs[0] == static_cast<_Tp>(1));
+          assert(lhs[1] == static_cast<_Tp>(1));
+          assert(lhs[2] == static_cast<_Tp>(0));
+          assert(lhs[3] == static_cast<_Tp>(0));
+        }
+      }
+      {
+        if constexpr (!std::is_floating_point_v<_Tp>()) {
+          _Tp buf[]{3, 3, 4, 4};
+          ex::simd<_Tp, SimdAbi> lhs;
+          lhs.copy_from(buf, ex::element_aligned_tag());
+          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+          ex::where(rhs, lhs).operator&=(2);
+          assert(lhs[0] == static_cast<_Tp>(2));
+          assert(lhs[1] == static_cast<_Tp>(2));
+          assert(lhs[2] == static_cast<_Tp>(0));
+          assert(lhs[3] == static_cast<_Tp>(0));
+        }
+      }
+      {
+        if constexpr (!std::is_floating_point_v<_Tp>()) {
+          _Tp buf[]{3, 3, 4, 4};
+          ex::simd<_Tp, SimdAbi> lhs;
+          lhs.copy_from(buf, ex::element_aligned_tag());
+          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+          ex::where(rhs, lhs).operator|=(2);
+          assert(lhs[0] == static_cast<_Tp>(3));
+          assert(lhs[1] == static_cast<_Tp>(3));
+          assert(lhs[2] == static_cast<_Tp>(6));
+          assert(lhs[3] == static_cast<_Tp>(6));
+        }
+      }
+      {
+        if constexpr (!std::is_floating_point_v<_Tp>()) {
+          _Tp buf[]{3, 3, 4, 4};
+          ex::simd<_Tp, SimdAbi> lhs;
+          lhs.copy_from(buf, ex::element_aligned_tag());
+          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+          ex::where(rhs, lhs).operator^=(2);
+          assert(lhs[0] == static_cast<_Tp>(1));
+          assert(lhs[1] == static_cast<_Tp>(1));
+          assert(lhs[2] == static_cast<_Tp>(6));
+          assert(lhs[3] == static_cast<_Tp>(6));
+        }
+      }
+      {
+        if constexpr (!std::is_floating_point_v<_Tp>()) {
+          _Tp buf[]{3, 3, 4, 4};
+          ex::simd<_Tp, SimdAbi> lhs;
+          lhs.copy_from(buf, ex::element_aligned_tag());
+          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+          ex::where(rhs, lhs).operator<<=(2);
+          assert(lhs[0] == static_cast<_Tp>(12));
+          assert(lhs[1] == static_cast<_Tp>(12));
+          assert(lhs[2] == static_cast<_Tp>(16));
+          assert(lhs[3] == static_cast<_Tp>(16));
+        }
+      }
+      {
+        if constexpr (!std::is_floating_point_v<_Tp>()) {
+          _Tp buf[]{3, 3, 4, 4};
+          ex::simd<_Tp, SimdAbi> lhs;
+          lhs.copy_from(buf, ex::element_aligned_tag());
+          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+          ex::where(rhs, lhs).operator>>=(2);
+          assert(lhs[0] == static_cast<_Tp>(0));
+          assert(lhs[1] == static_cast<_Tp>(0));
+          assert(lhs[2] == static_cast<_Tp>(1));
+          assert(lhs[3] == static_cast<_Tp>(1));
+        }
+      }
+      {
+        _Tp buf[]{1, 2, 3, 4};
+        ex::simd<_Tp, SimdAbi> lhs;
+        lhs.copy_from(buf, ex::element_aligned_tag());
+        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+        ex::where(rhs, lhs).operator*=(2);
+        assert(lhs[0] == static_cast<_Tp>(2));
+        assert(lhs[1] == static_cast<_Tp>(4));
+        assert(lhs[2] == static_cast<_Tp>(6));
+        assert(lhs[3] == static_cast<_Tp>(8));
+      }
+      {
+        _Tp buf[]{1, 2, 3, 4};
+        ex::simd<_Tp, SimdAbi> lhs;
+        lhs.copy_from(buf, ex::element_aligned_tag());
+        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+        ex::where(rhs, lhs)++;
+        assert(lhs[0] == static_cast<_Tp>(2));
+        assert(lhs[1] == static_cast<_Tp>(3));
+        assert(lhs[2] == static_cast<_Tp>(4));
+        assert(lhs[3] == static_cast<_Tp>(5));
+      }
+      {
+        _Tp buf[]{1, 2, 3, 4};
+        ex::simd<_Tp, SimdAbi> lhs;
+        lhs.copy_from(buf, ex::element_aligned_tag());
+        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+        ex::where(rhs, lhs).operator++(2);
+        assert(lhs[0] == static_cast<_Tp>(2));
+        assert(lhs[1] == static_cast<_Tp>(3));
+        assert(lhs[2] == static_cast<_Tp>(4));
+        assert(lhs[3] == static_cast<_Tp>(5));
+      }
+      {
+        _Tp buf[]{1, 2, 3, 4};
+        ex::simd<_Tp, SimdAbi> lhs;
+        lhs.copy_from(buf, ex::element_aligned_tag());
+        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+        ex::where(rhs, lhs)--;
+        assert(lhs[0] == static_cast<_Tp>(0));
+        assert(lhs[1] == static_cast<_Tp>(1));
+        assert(lhs[2] == static_cast<_Tp>(2));
+        assert(lhs[3] == static_cast<_Tp>(3));
+      }
+      {
+        _Tp buf[]{1, 2, 3, 4};
+        ex::simd<_Tp, SimdAbi> lhs;
+        lhs.copy_from(buf, ex::element_aligned_tag());
+        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+
+        ex::where(rhs, lhs).operator--(2);
+        assert(lhs[0] == static_cast<_Tp>(0));
+        assert(lhs[1] == static_cast<_Tp>(1));
+        assert(lhs[2] == static_cast<_Tp>(2));
+        assert(lhs[3] == static_cast<_Tp>(3));
+      }
+    }
   }
+};
+
+struct CheckWhereExprCopyFrom {
+  template <class _Tp, class SimdAbi>
+  void operator()() {
+    if constexpr (ex::simd_size_v<_Tp, SimdAbi> == 4) {
+      {
+        alignas(alignof(_Tp))
+            const _Tp buffer[]{static_cast<_Tp>(-1), static_cast<_Tp>(-2), static_cast<_Tp>(-3), static_cast<_Tp>(-4)};
+        ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return i; });
+        ex::where(lhs < 2, lhs).copy_from(buffer, ex::element_aligned_tag());
+        assert(lhs[0] == static_cast<_Tp>(-1));
+        assert(lhs[1] == static_cast<_Tp>(-2));
+        assert(lhs[2] == static_cast<_Tp>(2));
+        assert(lhs[3] == static_cast<_Tp>(3));
+      }
+      {
+        alignas(alignof(_Tp))
+            const _Tp buffer[]{static_cast<_Tp>(-1), static_cast<_Tp>(-2), static_cast<_Tp>(-3), static_cast<_Tp>(-4)};
+        ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return i; });
+        ex::where(lhs < 2, lhs).copy_from(buffer, ex::overaligned_tag<alignof(_Tp)>());
+        assert(lhs[0] == static_cast<_Tp>(-1));
+        assert(lhs[1] == static_cast<_Tp>(-2));
+        assert(lhs[2] == static_cast<_Tp>(2));
+        assert(lhs[3] == static_cast<_Tp>(3));
+      }
+      {
+        alignas(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>, _Tp>)
+            const _Tp buffer[]{static_cast<_Tp>(-1), static_cast<_Tp>(-2), static_cast<_Tp>(-3), static_cast<_Tp>(-4)};
+        ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return i; });
+        ex::where(lhs < 2, lhs).copy_from(buffer, ex::vector_aligned_tag());
+        assert(lhs[0] == static_cast<_Tp>(-1));
+        assert(lhs[1] == static_cast<_Tp>(-2));
+        assert(lhs[2] == static_cast<_Tp>(2));
+        assert(lhs[3] == static_cast<_Tp>(3));
+      }
+    }
+
+    {
+      constexpr _Tp rhs = static_cast<_Tp>(1);
+      _Tp lhs = 3;
+      ex::where(true, lhs).copy_from(&rhs, ex::element_aligned_tag());
+      assert(lhs == 1);
+    }
+  }
+};
+
+template <class F, std::size_t _Np, class _Tp>
+void test_simd_abi() {
 }
-
-void test_copy_from() {
-  {
-    const int buffer[] = {-1, -2, -3, -4};
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a < 2, a).copy_from(buffer, ex::element_aligned_tag());
-    assert(a[0] == -1);
-    assert(a[1] == -2);
-    assert(a[2] == 2);
-    assert(a[3] == 3);
-  }
-  {
-    const int buffer[] = {-1, -2, -3, -4};
-    ex::fixed_size_simd<int, 4> a([](int i) { return i; });
-    ex::where(a >= 2, a).copy_from(buffer, ex::element_aligned_tag());
-    assert(a[0] == 0);
-    assert(a[1] == 1);
-    assert(a[2] == -3);
-    assert(a[3] == -4);
-  }
-  {
-    ex::fixed_size_simd_mask<int, 4> a;
-    const bool input[] = {false, true, true, false};
-    a.copy_from(input, ex::element_aligned_tag());
-
-    const bool buffer[] = {true, true, false, false};
-    ex::where(a, a).copy_from(buffer, ex::element_aligned_tag());
-    assert(!a[0]);
-    assert(a[1]);
-    assert(!a[2]);
-    assert(!a[3]);
-  }
-  {
-    ex::fixed_size_simd_mask<int, 4> a;
-    const bool input[] = {false, true, true, false};
-    a.copy_from(input, ex::element_aligned_tag());
-
-    const bool buffer[] = {true, true, false, false};
-    ex::where(!a, a).copy_from(buffer, ex::element_aligned_tag());
-    assert(a[0]);
-    assert(a[1]);
-    assert(a[2]);
-    assert(!a[3]);
-  }
-  {
-    const int b = 1;
-    int a = 3;
-    ex::where(true, a).copy_from(&b, ex::element_aligned_tag());
-    assert(a == 1);
-  }
-  {
-    const int b = 1;
-    int a = 3;
-    ex::where(false, a).copy_from(&b, ex::element_aligned_tag());
-    assert(b == 1);
-  }
+template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
+void test_simd_abi() {
+  F{}.template operator()<_Tp, SimdAbi>();
+  test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
-
 int main() {
-  test_operators_simd();
-  test_copy_from();
+  test_all_simd_abi<CheckWhereExprOperators>();
+  test_all_simd_abi<CheckWhereExprCopyFrom>();
 }

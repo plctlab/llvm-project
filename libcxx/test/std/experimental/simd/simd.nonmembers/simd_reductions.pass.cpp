@@ -60,7 +60,8 @@ struct CheckSimdReduction {
 
     {
       _Tp result = ex::reduce(rhs, std::plus<>);
-      _Tp expected = std::reduce(rhs.data, rhs.data + rhs.size(), static_cast<_Tp>(0), std::plus<>());
+      _Tp expected{};
+      for (size_t i = 0; i < rhs.size(); ++i) expected += rhs[i];
       assert(result == expected);
     }
   }

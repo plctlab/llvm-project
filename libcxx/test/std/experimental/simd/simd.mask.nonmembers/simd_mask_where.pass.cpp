@@ -11,8 +11,22 @@
 // <experimental/simd>
 //
 // [simd.mask.nonmembers]
-// friend simd_mask operator==(const simd_mask&, const simd_mask&) noexcept;
-// friend simd_mask operator!=(const simd_mask&, const simd_mask&) noexcept;
+// template <class T, class Abi>
+// where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type& k,
+//                                                         simd<T, Abi>& v) noexcept;
+// template <class T, class Abi>
+// const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type& k,
+//                                                               const simd<T, Abi>& v) noexcept;
+// template <class T, class Abi>
+// where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const type_identity_t<simd_mask<T, Abi>>& k,
+//                                                              simd_mask<T, Abi>& v) noexcept;
+// template <class T, class Abi>
+// const_where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const type_identity_t<simd_mask<T, Abi>>& k,
+//                                                                    const simd_mask<T, Abi>& v) noexcept;
+// template <class T>
+// where_expression<bool T> where(see below k, T& v) noexcept;
+// template <class T>
+// const_where_expression<bool, T> where(see below k, const T& v) noexcept;
 
 #include "../test_utils.h"
 #include <cassert>
@@ -23,24 +37,14 @@ namespace ex = std::experimental::parallelism_v2;
 struct CheckSimdMaskComparision {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    ex::simd<_Tp, SimdAbi> l_simd(static_cast<_Tp>(5));
-    ex::simd<_Tp, SimdAbi> r_simd([](_Tp i) { return i; });
+    const typename ex::simd<_Tp, SimdAbi>::mask_type mask_{};
+    ex::simd<_Tp, SimdAbi> simd_([](_Tp i){return i;});
+    const ex::simd<_Tp, SimdAbi> const_simd_([](_Tp i){return i;});
 
-    const ex::simd_mask<_Tp, SimdAbi> lhs(l_simd == r_simd);
-    const ex::simd_mask<_Tp, SimdAbi> rhs(l_simd > r_simd);
-
-    {
-      ex::simd_mask<_Tp, SimdAbi> equal_mask(lhs == rhs);
-      for (size_t i = 0; i < equal_mask.size(); ++i) {
-        assert(equal_mask[i] == (lhs[i] == rhs[i]));
-      }
-    }
-    {
-      ex::simd_mask<_Tp, SimdAbi> not_equal_mask(lhs != rhs);
-      for (size_t i = 0; i < not_equal_mask.size(); ++i) {
-        assert(not_equal_mask[i] == (lhs[i] != rhs[i]));
-      }
-    }
+    ex::where_expression<ex::simd_mask<_Tp, SimdAbi>, ex::simd<_Tp, SimdAbi>> ex::where pure_where(mask_, simd_);
+    //assert(pure_where.)
+    ex::where_expression<ex::simd_mask<_Tp, SimdAbi>, ex::simd<_Tp, SimdAbi>> ex::where const_where(mask_, const_simd_);
+    
   }
 };
 

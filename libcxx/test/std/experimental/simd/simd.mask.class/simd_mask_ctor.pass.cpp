@@ -25,19 +25,46 @@ struct CheckSimdMaskCtor {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
     {
-        const ex::simd_mask<_Tp, SimdAbi> lhs(true);
-        assert(ex::all_of(lhs) == true);
+      const ex::simd_mask<_Tp, SimdAbi> lhs(true);
+      assert(ex::all_of(lhs) == true);
     }
     {
-        if constexpr (std::is_same_v<SimdAbi, ex::simd_abi::fixed_size<_Np>>) {
-            ex::simd<_Tp, SimdAbi> lhs(static_cast<_Tp>(4));
-            ex::simd<_Tp, SimdAbi> rhs([](_Tp i){return i;});
+      if constexpr (std::is_same_v<SimdAbi, ex::simd_abi::fixed_size<_Np>>) {
+        ex::simd<_Tp, SimdAbi> lhs(static_cast<_Tp>(4));
+        ex::simd<_Tp, SimdAbi> rhs([](_Tp i) { return i; });
 
-            const ex::simd_mask<_Tp, SimdAbi> mask_(lhs == rhs);
-            ex::simd_mask<_Tp, SimdAbi> result(mask_);
+        const ex::simd_mask<_Tp, SimdAbi> mask_(lhs == rhs);
+        ex::simd_mask<_Tp, SimdAbi> result(mask_);
 
-            assert(ex::all_of(result == mask_) == true);
-        }
+        assert(ex::all_of(result == mask_) == true);
+      }
+    }
+    {
+      constexpr size_t array_length = ex::simd_size_v<_Tp, SimdAbi>;
+      alignas(alignof(bool)) const bool arr[array_length]{};
+
+      ex::simd_mask<_Tp, SimdAbi> simd_mask_(arr, ex::element_aligned_tag());
+      for (size_t i = 0; i < array_length; i++) {
+        assert(simd_mask_[i] == false);
+      }
+    }
+    {
+      constexpr size_t array_length = ex::simd_size_v<_Tp, SimdAbi>;
+      alignas(ex::memory_alignment_v<ex::simd_mask<bool, SimdAbi>, bool>) const bool arr[array_length]{};
+
+      ex::simd_mask<_Tp, SimdAbi> simd_mask_(arr, ex::vector_aligned_tag());
+      for (size_t i = 0; i < array_length; i++) {
+        assert(simd_mask_[i] == false);
+      }
+    }
+    {
+      constexpr size_t array_length = ex::simd_size_v<_Tp, SimdAbi>;
+      alignas(sizeof(bool)) const bool arr[array_length]{};
+
+      ex::simd_mask<_Tp, SimdAbi> simd_mask_(arr, ex::overaligned_tag<sizeof(bool)>());
+      for (size_t i = 0; i < array_length; i++) {
+        assert(simd_mask_[i] == false);
+      }
     }
   }
 };
