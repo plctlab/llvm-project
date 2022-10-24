@@ -59,6 +59,7 @@ struct CheckSimdReduction {
 
     if constexpr (!std::is_floating_point_v<_Tp>) // ex::reduce has not finish?
     {
+      const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
       _Tp result = ex::reduce(simd_, std::plus<>());
       _Tp expected{};
       for (size_t i = 0; i < simd_.size(); ++i)
