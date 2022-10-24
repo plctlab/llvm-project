@@ -706,7 +706,7 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 // TODO: handle _LIBCPP_HAS_NO_VECTOR_EXTENSION
 
-template <class _Storage, class _ValueType>
+template <class _Tp, class _Storage, class _ValueType>
 class __simd_reference {
   template <class, class>
   friend class simd;
@@ -723,7 +723,7 @@ class __simd_reference {
 
   void __set(_ValueType __v) {
     if constexpr (is_same_v<_ValueType, bool>)
-      __s_.__set(__idx_, __set_all_bits<decltype(__s_.__data[0])>(__v));
+      __s_.__set(__idx_, __set_all_bits<_Tp>(__v));
     else
       __s_.__set(__idx_, __v);
   }
@@ -1739,7 +1739,7 @@ class simd {
 
 public:
   using value_type = _Tp;
-  using reference  = __simd_reference<_Storage, value_type>;
+  using reference  = __simd_reference<_Tp, _Storage, value_type>;
   using mask_type  = simd_mask<_Tp, _Abi>;
   using abi_type   = _Abi;
 
@@ -1957,7 +1957,7 @@ class simd_mask {
 
 public:
   using value_type = bool;
-  using reference  = __simd_reference<_Storage, value_type>;
+  using reference  = __simd_reference<_Tp, _Storage, value_type>;
   using simd_type  = simd<_Tp, _Abi>;
   using abi_type   = _Abi;
 
