@@ -11,16 +11,12 @@
 // <experimental/simd>
 //
 // [simd.casts]
-
 // template <class T, class... Abis>
 // simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>> concat(const simd<T, Abis>&...) noexcept;
-
 // template <class T, class... Abis>
 // simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>> concat(const simd_mask<T, Abis>&...) noexcept;
-
 // template <class T, class Abi, size_t N>
 // resize_simd<simd_size_v<T, Abi> * N, simd<T, Abi>> concat(const array<simd<T, Abi>, N>& arr) noexcept;
-
 // template <class T, class Abi, size_t N>
 // resize_simd<simd_size_v<T, Abi> * N, simd_mask<T, Abi>> concat(const array<simd_mask<T, Abi>, N>& arr) noexcept;
 
@@ -106,25 +102,41 @@ struct CheckConcatSimdMask {
   }
 };
 
-struct CheckConcatResizeSimd { //waiting implementation
+struct CheckConcatResizeSimd {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
-    //_Np = _Np+1;
     std::array<ex::simd<_Tp, SimdAbi>, _Np> arr;
     for (auto& sub_simd : arr) {
       for (size_t i = 0; i < sub_simd.size(); ++i) {
         sub_simd[i] = static_cast<_Tp>(i);
       }
     }
-    // auto temp = ex::concat<_Tp, SimdAbi, _Np>(arr);
-    // std::cout << TypeName<decltype(temp)>() << '\n';
-    //typename decltype(temp)::type temp_simd;
-    //std::cout <<temp_simd.size()<<'\n';
-    // constexpr size_t prev_length = ex::simd_size_v<_Tp, SimdAbi>;
+    auto res = ex::concat<_Tp, SimdAbi, _Np>(arr);
 
-    // for (size_t i = 0; i < temp_simd.size(); ++i) {
-    //   assert(temp_simd[i] == arr[i / prev_length][i % prev_length]);
-    // }
+    constexpr size_t prev_length = ex::simd_size_v<_Tp, SimdAbi>;
+
+    for (size_t i = 0; i < res.size(); ++i) {
+      assert(res[i] == arr[i / prev_length][i % prev_length]);
+    }
+  }
+};
+
+struct CheckConcatResizeSimdMask {
+  template <class _Tp, class SimdAbi, std::size_t _Np>
+  void operator()() {
+    std::array<ex::simd_mask<_Tp, SimdAbi>, _Np> arr;
+    for (auto& sub_simd_mask : arr) {
+      for (size_t i = 0; i < sub_simd_mask.size(); ++i) {
+        sub_simd_mask[i] = static_cast<bool>(i);
+      }
+    }
+    auto res = ex::concat<_Tp, SimdAbi, _Np>(arr);
+
+    constexpr size_t prev_length = ex::simd_size_v<_Tp, SimdAbi>;
+
+    for (size_t i = 0; i < res.size(); ++i) {
+      assert(res[i] == arr[i / prev_length][i % prev_length]);
+    }
   }
 };
 
@@ -139,4 +151,6 @@ void test_simd_abi() {
 int main() {
   test_all_simd_abi<CheckConcatSimd>();
   test_all_simd_abi<CheckConcatSimdMask>();
+  test_all_simd_abi<CheckConcatResizeSimd>();
+  test_all_simd_abi<CheckConcatResizeSimdMask>();
 }
