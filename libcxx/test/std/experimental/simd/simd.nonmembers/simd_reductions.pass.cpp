@@ -48,21 +48,160 @@
 #include "../test_utils.h"
 #include <cassert>
 #include <experimental/simd>
-#include <numeric>
 
 namespace ex = std::experimental::parallelism_v2;
-
+#include <iostream>
 struct CheckSimdReduction {
   template <class _Tp, class SimdAbi>
   void operator()() {
     const ex::simd<_Tp, SimdAbi> lhs(static_cast<_Tp>(5));
     const ex::simd<_Tp, SimdAbi> rhs([](_Tp i) { return i; });
 
+    if constexpr (!std::is_floating_point_v<_Tp>) // ex::reduce has not finish?
     {
-      _Tp result = ex::reduce(rhs, std::plus<>);
+      _Tp result = ex::reduce(simd_, std::plus<>());
       _Tp expected{};
-      for (size_t i = 0; i < rhs.size(); ++i) expected += rhs[i];
+      for (size_t i = 0; i < simd_.size(); ++i)
+        expected += simd_[i];
       assert(result == expected);
+    }
+    if constexpr (!std::is_floating_point_v<_Tp>) // ex::reduce has not finish?
+    {
+      const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
+      _Tp identity_element{};
+      auto reduce_result = ex::reduce(ex::where(simd_ > 0, simd_), identity_element, std::plus<>());
+
+      if (ex::none_of(simd_ > 0)) {
+        assert(identity_element == reduce_result);
+      } else {
+        _Tp result = ex::reduce(simd_, std::plus<>());
+        _Tp expected{};
+        for (size_t i = 0; i < simd_.size(); ++i)
+          expected += simd_[i];
+        assert(result == expected);
+      }
+    }
+    if constexpr (!std::is_floating_point_v<_Tp>) // ex::reduce has not finish?
+    {
+      const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
+      auto reduce_result = ex::reduce(ex::where(simd_ > 0, simd_), std::plus<>());
+
+      if (ex::none_of(simd_ > 0)) {
+        assert(0 == reduce_result);
+      } else {
+        _Tp result = ex::reduce(simd_, std::plus<>());
+        _Tp expected{};
+        for (size_t i = 0; i < simd_.size(); ++i)
+          expected += simd_[i];
+        assert(result == expected);
+      }
+    }
+    if constexpr (!std::is_floating_point_v<_Tp>) // ex::reduce has not finish?
+    {
+      const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
+      auto reduce_result = ex::reduce(ex::where(simd_ > 0, simd_), std::multiplies<>());
+
+      if (ex::none_of(simd_ > 0)) {
+        assert(1 == reduce_result);
+      } else {
+        _Tp result = ex::reduce(simd_, std::multiplies<>());
+        _Tp expected{1};
+        for (size_t i = 0; i < simd_.size(); ++i)
+          expected *= simd_[i];
+        assert(result == expected);
+      }
+    }
+    if constexpr (std::is_integral_v<_Tp> && std::is_signed_v<_Tp>) // ex::reduce has not finish?
+    {
+      const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
+      auto reduce_result = ex::reduce(ex::where(simd_ > 0, simd_), std::bit_and<>());
+
+      if (ex::none_of(simd_ > 0)) {
+        assert(~(_Tp()) == reduce_result);
+      } else {
+        _Tp result = ex::reduce(simd_, std::bit_and<>());
+        _Tp expected{1};
+        for (size_t i = 0; i < simd_.size(); ++i)
+          expected &= simd_[i];
+        assert(result == expected);
+      }
+    }
+    if constexpr (std::is_integral_v<_Tp> && std::is_signed_v<_Tp>) // ex::reduce has not finish?
+    {
+      const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
+      auto reduce_result = ex::reduce(ex::where(simd_ > 0, simd_), std::bit_or<>());
+
+      if (ex::none_of(simd_ > 0)) {
+        assert(0 == reduce_result);
+      } else {
+        _Tp result = ex::reduce(simd_, std::bit_or<>());
+        _Tp expected{0};
+        for (size_t i = 0; i < simd_.size(); ++i)
+          expected |= simd_[i];
+        assert(result == expected);
+      }
+    }
+    if constexpr (std::is_integral_v<_Tp> && std::is_signed_v<_Tp>) // ex::reduce has not finish?
+    {
+      const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
+      auto reduce_result = ex::reduce(ex::where(simd_ > 0, simd_), std::bit_xor<>());
+
+      if (ex::none_of(simd_ > 0)) {
+        assert(0 == reduce_result);
+      } else {
+        _Tp result = ex::reduce(simd_, std::bit_xor<>());
+        _Tp expected{0};
+        for (size_t i = 0; i < simd_.size(); ++i)
+          expected ^= simd_[i];
+        assert(result == expected);
+      }
+    }
+
+    {
+      const ex::simd<_Tp, SimdAbi> origin([](_Tp i) { return i; });
+      assert(ex::hmin(origin) == 0);
+
+      const ex::simd_mask<_Tp, SimdAbi> mask_(origin > 0);
+      auto where_expr = ex::where(mask_, origin);
+      _Tp result = ex::hmin(where_expr);
+
+      if (ex::none_of(mask_)) {
+        assert(std::numeric_limits<_Tp>::max() == result);
+      } else {
+        _Tp expected(std::numeric_limits<_Tp>::max());
+        for (size_t i = 0; i < origin.size(); ++i) {
+          if (mask_[i] == true) {
+            if (expected == std::numeric_limits<_Tp>::max())
+              expected = origin[i];
+            else
+              expected = std::min(expected, origin[i]);
+          }
+        }
+        assert(result == expected);
+      }
+    }
+    {
+      const ex::simd<_Tp, SimdAbi> origin([](_Tp i) { return i; });
+      assert(ex::hmax(origin) == static_cast<_Tp>(origin.size() - 1));
+
+      const ex::simd_mask<_Tp, SimdAbi> mask_(origin > 0);
+      auto where_expr = ex::where(mask_, origin);
+      _Tp result = ex::hmax(where_expr);
+
+      if (ex::none_of(mask_)) {
+        assert(std::numeric_limits<_Tp>::lowest() == result);
+      } else {
+        _Tp expected{0};
+        for (size_t i = 0; i < origin.size(); ++i) {
+          if (mask_[i] == true) {
+            if (expected == 0)
+              expected = origin[i];
+            else
+              expected = std::max(expected, origin[i]);
+          }
+        }
+        assert(result == expected);
+      }
     }
   }
 };

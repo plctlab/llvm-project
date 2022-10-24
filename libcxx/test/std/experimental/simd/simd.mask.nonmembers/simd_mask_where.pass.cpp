@@ -34,17 +34,39 @@
 
 namespace ex = std::experimental::parallelism_v2;
 
-struct CheckSimdMaskComparision {
+struct CheckSimdMaskWhere {
   template <class _Tp, class SimdAbi>
   void operator()() {
     const typename ex::simd<_Tp, SimdAbi>::mask_type mask_{};
-    ex::simd<_Tp, SimdAbi> simd_([](_Tp i){return i;});
-    const ex::simd<_Tp, SimdAbi> const_simd_([](_Tp i){return i;});
-
-    ex::where_expression<ex::simd_mask<_Tp, SimdAbi>, ex::simd<_Tp, SimdAbi>> ex::where pure_where(mask_, simd_);
-    //assert(pure_where.)
-    ex::where_expression<ex::simd_mask<_Tp, SimdAbi>, ex::simd<_Tp, SimdAbi>> ex::where const_where(mask_, const_simd_);
-    
+    ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
+    const ex::simd<_Tp, SimdAbi> const_simd_([](_Tp i) { return i; });
+    const ex::simd_mask<_Tp, SimdAbi> const_mask_(simd_ == const_simd_);
+    {
+      auto pure_simd = +ex::where(mask_, simd_);
+      assert(ex::all_of(pure_simd == simd_) == true);
+    }
+    {
+      auto const_simd = +ex::where(mask_, const_simd_);
+      assert(ex::all_of(const_simd == simd_) == true);
+    }
+    {
+      auto pure_mask = +ex::where(std::type_identity_t<ex::simd_mask<_Tp, SimdAbi>>(mask_), mask_);
+      assert(ex::all_of(pure_mask == mask_) == true);
+    }
+    {
+      auto const_mask = +ex::where(std::type_identity_t<ex::simd_mask<_Tp, SimdAbi>>(mask_), const_mask_);
+      assert(ex::all_of(const_mask == const_mask_) == true);
+    }
+    {
+      _Tp val{1};
+      auto data = +ex::where<_Tp>(true, val);
+      assert(ex::all_of(data == ex::simd<_Tp, SimdAbi>(val)) == true);
+    }
+    {
+      const _Tp val{1};
+      auto data = +ex::where<_Tp>(true, val);
+      assert(ex::all_of(data == ex::simd<_Tp, SimdAbi>(val)) == true);
+    }
   }
 };
 
@@ -58,5 +80,5 @@ void test_simd_abi() {
 }
 
 int main() {
-  test_all_simd_abi<CheckSimdMaskComparision>();
+  test_all_simd_abi<CheckSimdMaskWhere>();
 }
