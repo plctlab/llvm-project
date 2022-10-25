@@ -600,7 +600,7 @@ def UKCRSA32 : RVPBinary<0b0011011, 0b010, "ukcrsa32">,
                Sched<[]>;
 def UKSTAS32 : RVPBinary<0b1110000, 0b010, "ukstas32">,
                Sched<[]>;
-def UKSTSA32 : RVPBinary<0b1110001, 0b011, "ukstsa32">,
+def UKSTSA32 : RVPBinary<0b1110001, 0b010, "ukstsa32">,
                Sched<[]>;
 def UKSUB32  : RVPBinary<0b0011001, 0b010, "uksub32">,
                Sched<[]>;

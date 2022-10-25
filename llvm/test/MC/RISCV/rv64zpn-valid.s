@@ -199,9 +199,9 @@ urstsa32 a0, a1, a2
 kstsa32 a0, a1, a2
 
 # CHECK-INST: ukstsa32 a0, a1, a2
-# CHECK-ENCODING: [0x77,0xb5,0xc5,0xe2]
+# CHECK-ENCODING: [0x77,0xa5,0xc5,0xe2]
 # CHECK-ERROR: instruction requires the following: 'Zpn' (Normal 'P' Instructions)
-# CHECK-UNKNOWN: 77 b5 c5 e2 <unknown>
+# CHECK-UNKNOWN: 77 a5 c5 e2 <unknown>
 ukstsa32 a0, a1, a2
 
 # SIMD 32-bit Shift
