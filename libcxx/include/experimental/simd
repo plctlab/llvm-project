@@ -892,7 +892,7 @@ struct element_aligned_tag {
 
 struct vector_aligned_tag {
   template <class _Tp, class _Up = typename _Tp::value_type>
-  static constexpr size_t __alignment = sizeof(_Up) * _Tp::size();
+  static constexpr size_t __alignment = bit_ceil(sizeof(_Up) * _Tp::size());
 
   template <class _Tp, class _Up>
   static constexpr _Up* __apply(_Up* __ptr) {
