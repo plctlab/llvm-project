@@ -104,7 +104,10 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
 
   static _Simd __clamp(_Simd __v, _Simd __lo, _Simd __hi) noexcept { return __min(__max(__v, __lo), __hi); }
 
-  static _Simd __masked_assign(_Simd& __s, _Mask __m, _Tp __v) noexcept { __s.__data = __m.__data ? __v : __v; }
+  static _Simd __masked_assign(_Simd& __s, _Mask __m, _Simd __v) noexcept {
+    __s.__data = __m.__data ? __v.__data : __s.__data;
+    return __s;
+  }
 
   template <class _BinaryOp>
   static _Tp __reduce(const _Simd& __s, _BinaryOp) { return __s.__data; }
@@ -152,8 +155,9 @@ struct __mask_traits<_Tp, simd_abi::__scalar> {
 
   static int __find_last_set(_Mask) { return 0; }
 
-  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Tp __v) noexcept {
-    return __m.__data ? __v : __s.__data;
+  static _Mask __masked_assign(_Mask& __s, _Mask __m, _Mask __v) noexcept {
+    __s.__data = __m.__data ? __v.__data : __s.__data;
+    return __s;
   }
 };
 
