@@ -114,7 +114,7 @@ template <class _Tp>
 struct __mask_traits<_Tp, simd_abi::__scalar> {
   using _Mask = __mask_storage<_Tp, simd_abi::__scalar>;
 
-  static _Mask __broadcast(_Tp __v) noexcept { return {__v}; }
+  static _Mask __broadcast(bool __v) noexcept { return {__v}; }
 
   template <class _Up, class _Flags>
   static _Mask __load(_Up* __mem, _Flags) noexcept {
