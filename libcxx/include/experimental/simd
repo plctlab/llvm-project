@@ -1227,7 +1227,7 @@ split_by(const simd<_Tp, _Abi>& __v) noexcept {
   array<resize_simd<__size, simd<_Tp, _Abi>>, _Num> __arr{};
   for (size_t __i = 0; __i < __arr.size(); __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __arr[__i][__j] = __v[__i * __size + __j];
+      __arr[__i].type[__j] = __v[__i * __size + __j];
   }
   return __arr;
 }
@@ -1240,7 +1240,7 @@ split_by(const simd_mask<_Tp, _Abi>& __m) noexcept {
   array<resize_simd<__size, simd_mask<_Tp, _Abi>>, _Num> __arr{};
   for (size_t __i = 0; __i < __arr.size(); __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __arr[__i][__j] = __m[__i * __size + __j];
+      __arr[__i].type[__j] = __m[__i * __size + __j];
   }
   return __arr;
 }
@@ -1274,7 +1274,7 @@ resize_simd<simd_size_v<_Tp, _Abi> * _Num, simd<_Tp, _Abi>> concat(const array<s
   resize_simd<__size * _Num, simd<_Tp, _Abi>> __s;
   for (size_t __i = 0; __i < _Num; __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __s[__i * __size + __j] = __arr[__i][__j];
+      __s.type[__i * __size + __j] = __arr[__i][__j];
   }
   return __s;
 }
@@ -1286,7 +1286,7 @@ concat(const array<simd_mask<_Tp, _Abi>, _Num>& __arr) noexcept {
   resize_simd<__size * _Num, simd_mask<_Tp, _Abi>> __m;
   for (size_t __i = 0; __i < _Num; __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __m[__i * __size + __j] = __arr[__i][__j];
+      __m.type[__i * __size + __j] = __arr[__i][__j];
   }
   return __m;
 }
