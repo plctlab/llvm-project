@@ -14,17 +14,26 @@
 // simd_mask operator!() const noexcept;
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 struct CheckSimdMaskUnary {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    ex::simd<_Tp, SimdAbi> lhs{}, rhs{};
-    ex::simd_mask<_Tp, SimdAbi> mask_(lhs == rhs);
-    assert(ex::all_of(mask_) == true);
-    auto result = mask_.operator!();
-    assert(ex::all_of(result) == false);
+    constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
+
+    bool origin_value[array_size];
+    for (size_t i = 0; i < array_size; i++)
+      origin_value[i] = static_cast<bool>(i % 2);
+
+    ex::simd_mask<_Tp, SimdAbi> origin_mask(origin_value, ex::element_aligned_tag());
+
+    ex::simd_mask<_Tp, SimdAbi> after_convert_mask = !origin_mask;
+
+    std::array<bool, array_size> expected_value;
+    for (size_t i = 0; i < array_size; i++)
+      expected_value[i] = !origin_value[i];
+
+    assert_simd_mask_value_correct<array_size, bool>(after_convert_mask, expected_value);
   }
 };
 

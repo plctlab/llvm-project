@@ -15,7 +15,6 @@
 // template<class Flags> void copy_to(value_type* mem, Flags);
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -31,15 +30,12 @@ constexpr size_t next_pow2(size_t v) noexcept {
   v++;
   return v;
 }
-template <class T>
-constexpr bool is_pow2(T x) noexcept {
-  return x != 0 && (x & (x - 1)) == 0;
-}
+
 struct CheckSimdCopyFrom {
   template <class _Tp, class SimdAbi, size_t _Np>
   void operator()() {
-    if constexpr (is_pow2(_Np) == true) { // waiting to more check
-      constexpr auto alignas_size = next_pow2(ex::memory_alignment_v<ex::simd_mask<_Tp, SimdAbi>, _Tp>);
+    {
+      constexpr auto alignas_size = ex::memory_alignment_v<ex::simd_mask<_Tp, SimdAbi>>;
       ex::simd_mask<_Tp, SimdAbi> origin_simd_mask{};
 
       constexpr auto array_length = origin_simd_mask.size();
@@ -50,9 +46,7 @@ struct CheckSimdCopyFrom {
 
       origin_simd_mask.copy_from(buffer, ex::vector_aligned_tag());
 
-      ex::simd_mask<_Tp, SimdAbi> expected_simd_mask([](bool i) { return i; });
-
-      assert(ex::all_of(expected_simd_mask == origin_simd_mask) == true);
+      assert_simd_mask_value_correct(origin_simd_mask, buffer);
     }
 
     {
@@ -66,9 +60,7 @@ struct CheckSimdCopyFrom {
 
       origin_simd_mask.copy_from(buffer, ex::overaligned_tag<alignas_size>());
 
-      ex::simd_mask<_Tp, SimdAbi> expected_simd_mask([](bool i) { return i; });
-
-      assert(ex::all_of(expected_simd_mask == origin_simd_mask) == true);
+      assert_simd_mask_value_correct(origin_simd_mask, buffer);
     }
 
     {
@@ -80,11 +72,9 @@ struct CheckSimdCopyFrom {
       for (size_t i = 0; i < array_length; i++)
         buffer[i] = static_cast<bool>(i + 1);
 
-      origin_simd_mask.copy_from(buffer, ex::overaligned_tag<alignas_size>());
+      origin_simd_mask.copy_from(buffer, ex::element_aligned_tag());
 
-      ex::simd_mask<_Tp, SimdAbi> expected_simd_mask([](bool i) { return i; });
-
-      assert(ex::all_of(expected_simd_mask == origin_simd_mask) == true);
+      assert_simd_mask_value_correct(origin_simd_mask, buffer);
     }
   }
 };
@@ -92,8 +82,8 @@ struct CheckSimdCopyFrom {
 struct CheckSimdCopyTo {
   template <class _Tp, class SimdAbi, size_t _Np>
   void operator()() {
-    if constexpr (is_pow2(_Np) == true) { // waiting to more check
-      constexpr auto alignas_size = next_pow2(ex::memory_alignment_v<ex::simd_mask<_Tp, SimdAbi>, _Tp>);
+    {
+      constexpr auto alignas_size = ex::memory_alignment_v<ex::simd_mask<_Tp, SimdAbi>>;
 
       const ex::simd_mask<_Tp, SimdAbi> origin_simd_mask([](bool i) { return static_cast<bool>(i + 1); });
       constexpr auto array_length = origin_simd_mask.size();

@@ -16,7 +16,6 @@
 //inline constexpr size_t ex::simd_size_v = ex::simd_size<T, Abi>::value;
 
 #include "../test_utils.h"
-#include <cstdint>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -35,6 +34,8 @@ struct CheckSimdSizeVTrue {
   }
 };
 
+// the `native abi` will be set to different size(if turn to `AVX` within 256bit or more)
+// current we will focus on 128bit
 struct CheckSimdSizeExtraTrue {
   template <class _Tp, class _Np>
   void operator()() {

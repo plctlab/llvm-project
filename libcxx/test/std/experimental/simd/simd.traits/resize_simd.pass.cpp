@@ -15,7 +15,6 @@
 // template<int N, class V> using resize_simd_t = typename resize_simd<N, V>::type;
 
 #include "../test_utils.h"
-#include <cstdint>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -26,19 +25,27 @@ public:
   void operator()(Func func) {
     using U1 = ex::resize_simd<func(ex::simd_size_v<_Tp, SimdAbi>, _Np), ex::simd_mask<_Tp, SimdAbi>>;
     using V1 = ex::simd_mask<_Tp, SimdAbi>;
-    static_assert(U1::type::size() == func(V1::size(), _Np));
+    static_assert(std::is_same_v<
+                  typename U1::type,
+                  ex::simd_mask<_Tp, ex::simd_abi::deduce_t<_Tp, func(ex::simd_size_v<_Tp, SimdAbi>, _Np), SimdAbi>>>);
 
     using U2 = ex::resize_simd<func(ex::simd_size_v<_Tp, SimdAbi>, _Np), ex::simd<_Tp, SimdAbi>>;
     using V2 = ex::simd<_Tp, SimdAbi>;
-    static_assert(U2::type::size() == func(V2::size(), _Np));
+    static_assert(
+        std::is_same_v<typename U2::type,
+                       ex::simd<_Tp, ex::simd_abi::deduce_t<_Tp, func(ex::simd_size_v<_Tp, SimdAbi>, _Np), SimdAbi>>>);
 
     using U3 = ex::resize_simd_t<func(ex::simd_size_v<_Tp, SimdAbi>, _Np), ex::simd_mask<_Tp, SimdAbi>>;
     using V3 = ex::simd_mask<_Tp, SimdAbi>;
-    static_assert(U3::size() == func(V3::size(), _Np));
+    static_assert(std::is_same_v<
+                  U3,
+                  ex::simd_mask<_Tp, ex::simd_abi::deduce_t<_Tp, func(ex::simd_size_v<_Tp, SimdAbi>, _Np), SimdAbi>>>);
 
     using U4 = ex::resize_simd_t<func(ex::simd_size_v<_Tp, SimdAbi>, _Np), ex::simd<_Tp, SimdAbi>>;
     using V4 = ex::simd<_Tp, SimdAbi>;
-    static_assert(U4::size() == func(V4::size(), _Np));
+    static_assert(
+        std::is_same_v<U4,
+                       ex::simd<_Tp, ex::simd_abi::deduce_t<_Tp, func(ex::simd_size_v<_Tp, SimdAbi>, _Np), SimdAbi>>>);
   }
 };
 

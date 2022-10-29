@@ -14,7 +14,6 @@
 // operator value_type() const noexcept;
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;

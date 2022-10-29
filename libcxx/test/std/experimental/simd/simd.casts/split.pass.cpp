@@ -25,53 +25,79 @@
 // split(const simd_mask<typename V::simd_type::value_type, Abi>&) noexcept;
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
 
 // TODO: implement call in utility.h? or replace with std::apply later
 template <typename Tuple, typename Func, size_t... N>
-[[maybe_unused]] void __call_tuple(Tuple& t, Func&& func, std::index_sequence<N...>) {
+[[maybe_unused]] void call_tuple(Tuple& t, Func&& func, std::index_sequence<N...>) {
   static_cast<void>(std::initializer_list<int>{(func(std::get<N>(t)), 0)...});
 }
 
 template <typename... Args, typename Func>
-[[maybe_unused]] void __for_tuple(std::tuple<Args...>& t, Func&& func) {
-  __call_tuple(t, std::forward<Func>(func), std::make_index_sequence<sizeof...(Args)>{});
+[[maybe_unused]] void for_tuple(std::tuple<Args...>& t, Func&& func) {
+  call_tuple(t, std::forward<Func>(func), std::make_index_sequence<sizeof...(Args)>{});
 }
 
 struct CheckSplitToArray {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    using simd_type = ex::simd<_Tp, SimdAbi>;
-    using simd_mask_type = ex::simd_mask<_Tp, SimdAbi>;
+    using simd_type_ = ex::simd<_Tp, SimdAbi>;
+    using simd_mask_type_ = ex::simd_mask<_Tp, SimdAbi>;
+    using target_simd_abi = ex::simd_abi::fixed_size<60>;
+    constexpr size_t origin_simd_size = simd_type_::size();
+    constexpr size_t origin_simd_mask_size = simd_mask_type_::size();
 
     {
-      simd_type origin_simd([](_Tp i) { return static_cast<_Tp>(i + 1); });
-      const auto expected_array_simd = split<simd_type, SimdAbi>(origin_simd);
-      for (size_t i = 0; i < expected_array_simd.size(); ++i) {
-        assert(ex::all_of(expected_array_simd[i] == origin_simd) == true);
+      if constexpr (ex::simd_size_v<_Tp, target_simd_abi> % origin_simd_size == 0) {
+        constexpr size_t array_count = ex::simd_size_v<_Tp, target_simd_abi> / origin_simd_size;
+        using split_result_type = std::array<simd_type_, array_count>;
+
+        const ex::simd<_Tp, target_simd_abi> origin_simd([](_Tp i) { return i; });
+        split_result_type split_result = split<simd_type_, target_simd_abi>(origin_simd);
+
+        std::array<std::array<_Tp, origin_simd_size>, array_count> expected_value;
+        for (size_t i = 0, idx = 0; i < expected_value.size(); ++i) {
+          for (size_t j = 0; j < expected_value[i].size(); ++j) {
+            expected_value[i][j] = origin_simd[idx++];
+          }
+        }
+
+        for (size_t i = 0; i < split_result.size(); ++i) {
+          assert(ex::is_simd_v<std::remove_reference_t<decltype(split_result[i])>>);
+          assert_simd_value_correct<origin_simd_size>(split_result[i], expected_value[i]);
+        }
       }
     }
 
     {
-      constexpr size_t simd_mask_size = simd_mask_type().size();
+      if constexpr (ex::simd_size_v<_Tp, target_simd_abi> % origin_simd_mask_size == 0) {
+        constexpr size_t array_count = ex::simd_size_v<_Tp, target_simd_abi> / origin_simd_mask_size;
+        using split_result_type = std::array<simd_mask_type_, array_count>;
 
-      simd_mask_type origin_simd_mask;
+        ex::simd_mask<_Tp, target_simd_abi> origin_simd_mask;
 
-      for (size_t i = 0; i < simd_mask_size;) {
-        origin_simd_mask[i++] = 0;
-        if (i + 1 < simd_mask_size) {
-          origin_simd_mask[i + 1] = 1;
-          i++;
+        for (size_t i = 0; i < origin_simd_mask_size;) {
+          origin_simd_mask[i++] = 0;
+          if (i + 1 < origin_simd_mask_size) {
+            origin_simd_mask[i + 1] = 1;
+            i++;
+          }
         }
-      }
+        split_result_type split_result = split<simd_mask_type_, target_simd_abi>(origin_simd_mask);
 
-      const auto expected_array_simd_mask = split<simd_mask_type, SimdAbi>(origin_simd_mask);
+        std::array<std::array<_Tp, origin_simd_mask_size>, array_count> expected_value;
+        for (size_t i = 0, idx = 0; i < expected_value.size(); ++i) {
+          for (size_t j = 0; j < expected_value[i].size(); ++j) {
+            expected_value[i][j] = origin_simd_mask[idx++];
+          }
+        }
 
-      for (size_t i = 0; i < expected_array_simd_mask.size(); ++i) {
-        assert(ex::all_of(expected_array_simd_mask[i] == origin_simd_mask) == true);
+        for (size_t i = 0; i < split_result.size(); ++i) {
+          assert(ex::is_simd_mask_v<std::remove_reference_t<decltype(split_result[i])>>);
+          assert_simd_mask_value_correct<origin_simd_mask_size>(split_result[i], expected_value[i]);
+        }
       }
     }
   }
@@ -127,7 +153,7 @@ struct CheckSplitToTuple {
       static const auto split22 = [](const auto& origin_simd_or_mask) {
         auto temp = ex::split<2, 2>(origin_simd_or_mask);
         size_t k = 0;
-        __for_tuple(temp, [origin_simd_or_mask, &k](auto&& item) {
+        for_tuple(temp, [origin_simd_or_mask, &k](auto&& item) {
           for (size_t i = 0; i < item.size(); ++i) {
             assert(item[i] == origin_simd_or_mask[k]);
             ++k;
@@ -137,7 +163,7 @@ struct CheckSplitToTuple {
       static const auto split13 = [](const auto& origin_simd_or_mask) {
         auto temp = ex::split<1, 3>(origin_simd_or_mask);
         size_t k = 0;
-        __for_tuple(temp, [origin_simd_or_mask, &k](auto&& item) {
+        for_tuple(temp, [origin_simd_or_mask, &k](auto&& item) {
           for (size_t i = 0; i < item.size(); ++i) {
             assert(item[i] == origin_simd_or_mask[k]);
             ++k;
@@ -147,7 +173,7 @@ struct CheckSplitToTuple {
       static const auto split31 = [](const auto& origin_simd_or_mask) {
         auto temp = ex::split<3, 1>(origin_simd_or_mask);
         size_t k = 0;
-        __for_tuple(temp, [origin_simd_or_mask, &k](auto&& item) {
+        for_tuple(temp, [origin_simd_or_mask, &k](auto&& item) {
           for (size_t i = 0; i < item.size(); ++i) {
             assert(item[i] == origin_simd_or_mask[k]);
             ++k;
@@ -157,7 +183,7 @@ struct CheckSplitToTuple {
       static const auto split112 = [](const auto& origin_simd_or_mask) {
         auto temp = ex::split<1, 1, 2>(origin_simd_or_mask);
         size_t k = 0;
-        __for_tuple(temp, [origin_simd_or_mask, &k](auto&& item) {
+        for_tuple(temp, [origin_simd_or_mask, &k](auto&& item) {
           for (size_t i = 0; i < item.size(); ++i) {
             assert(item[i] == origin_simd_or_mask[k]);
             ++k;
@@ -167,7 +193,7 @@ struct CheckSplitToTuple {
       static const auto split1111 = [](const auto& origin_simd_or_mask) {
         auto temp = ex::split<1, 1, 1, 1>(origin_simd_or_mask);
         size_t k = 0;
-        __for_tuple(temp, [origin_simd_or_mask, &k](auto&& item) {
+        for_tuple(temp, [origin_simd_or_mask, &k](auto&& item) {
           for (size_t i = 0; i < item.size(); ++i) {
             assert(item[i] == origin_simd_or_mask[k]);
             ++k;

@@ -16,7 +16,6 @@
 // template<class Flags> simd_mask(const value_type* mem, Flags);
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -24,47 +23,49 @@ namespace ex = std::experimental::parallelism_v2;
 struct CheckSimdMaskCtor {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
+    constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
     {
-      const ex::simd_mask<_Tp, SimdAbi> lhs(true);
-      assert(ex::all_of(lhs) == true);
+      const ex::simd_mask<_Tp, SimdAbi> mask_ctor_from_broadcast(false);
+      const std::array<bool, array_size> expected_value{};
+      assert_simd_mask_value_correct(mask_ctor_from_broadcast, expected_value);
     }
     {
       if constexpr (std::is_same_v<SimdAbi, ex::simd_abi::fixed_size<_Np>>) {
-        ex::simd<_Tp, SimdAbi> lhs(static_cast<_Tp>(4));
-        ex::simd<_Tp, SimdAbi> rhs([](_Tp i) { return i; });
+        ex::simd_mask<_Tp, SimdAbi> origin_fixed_size_abi_mask;
+        for (size_t i = 0; i < array_size; i++)
+          origin_fixed_size_abi_mask[i] = static_cast<bool>(i % 2);
+        ex::simd_mask<_Tp, SimdAbi> mask_ctor_from_fixed_abi(origin_fixed_size_abi_mask);
 
-        const ex::simd_mask<_Tp, SimdAbi> mask_(lhs == rhs);
-        ex::simd_mask<_Tp, SimdAbi> result(mask_);
+        std::array<bool, array_size> expected_value;
+        for (size_t i = 0; i < array_size; i++)
+          expected_value[i] = static_cast<bool>(i % 2);
 
-        assert(ex::all_of(result == mask_) == true);
+        assert_simd_mask_value_correct<array_size, bool>(mask_ctor_from_fixed_abi, expected_value);
       }
     }
     {
-      constexpr size_t array_length = ex::simd_size_v<_Tp, SimdAbi>;
-      alignas(alignof(bool)) const bool arr[array_length]{};
+      alignas(alignof(bool)) bool expected_value[array_size];
+      for (size_t i = 0; i < array_size; i++)
+        expected_value[i] = static_cast<bool>(i % 2);
 
-      ex::simd_mask<_Tp, SimdAbi> simd_mask_(arr, ex::element_aligned_tag());
-      for (size_t i = 0; i < array_length; i++) {
-        assert(simd_mask_[i] == false);
-      }
+      ex::simd_mask<_Tp, SimdAbi> simd_mask_(expected_value, ex::element_aligned_tag());
+      assert_simd_mask_value_correct(simd_mask_, expected_value);
     }
     {
-      constexpr size_t array_length = ex::simd_size_v<_Tp, SimdAbi>;
-      alignas(ex::memory_alignment_v<ex::simd_mask<bool, SimdAbi>, bool>) const bool arr[array_length]{};
+      alignas(ex::memory_alignment_v<ex::simd_mask<_Tp, SimdAbi>>) bool expected_value[array_size];
+      for (size_t i = 0; i < array_size; i++)
+        expected_value[i] = static_cast<bool>(i % 2);
 
-      ex::simd_mask<_Tp, SimdAbi> simd_mask_(arr, ex::vector_aligned_tag());
-      for (size_t i = 0; i < array_length; i++) {
-        assert(simd_mask_[i] == false);
-      }
+      ex::simd_mask<_Tp, SimdAbi> simd_mask_(expected_value, ex::vector_aligned_tag());
+      assert_simd_mask_value_correct(simd_mask_, expected_value);
     }
     {
-      constexpr size_t array_length = ex::simd_size_v<_Tp, SimdAbi>;
-      alignas(sizeof(bool)) const bool arr[array_length]{};
+      alignas(ex::memory_alignment_v<ex::simd_mask<_Tp, SimdAbi>>) bool expected_value[array_size];
+      for (size_t i = 0; i < array_size; i++)
+        expected_value[i] = static_cast<bool>(i % 2);
 
-      ex::simd_mask<_Tp, SimdAbi> simd_mask_(arr, ex::overaligned_tag<sizeof(bool)>());
-      for (size_t i = 0; i < array_length; i++) {
-        assert(simd_mask_[i] == false);
-      }
+      ex::simd_mask<_Tp, SimdAbi> simd_mask_(expected_value, ex::overaligned_tag<sizeof(bool)>());
+      assert_simd_mask_value_correct(simd_mask_, expected_value);
     }
   }
 };

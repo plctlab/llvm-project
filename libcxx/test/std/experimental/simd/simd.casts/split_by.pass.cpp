@@ -17,7 +17,6 @@
 // array<resize_simd<simd_size_v<T, A> / N, simd_mask<T, A>>, N> split_by(const simd_mask<T, A>& x) noexcept;
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -27,7 +26,7 @@ struct CheckSplitBySimd {
   void operator()() {
     if constexpr (_Np % ex::simd_size_v<_Tp, SimdAbi> == 0) {
       const ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return i; });
-      auto arr = ex::split_by(origin_simd);
+      auto arr = ex::split_by<_Np>(origin_simd);
 
       for (size_t i = 0; i < _Np; ++i) {
         for (size_t j = 0; j < arr[i].size(); ++j) {
@@ -43,7 +42,7 @@ struct CheckSplitBySimdMask {
   void operator()() {
     if constexpr (_Np % ex::simd_size_v<_Tp, SimdAbi> == 0) {
       const ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return i; });
-      auto arr = ex::split_by(origin_simd);
+      auto arr = ex::split_by<_Np>(origin_simd);
 
       for (size_t i = 0; i < _Np; ++i) {
         for (size_t j = 0; j < arr[i].size(); ++j) {

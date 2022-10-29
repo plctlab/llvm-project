@@ -17,7 +17,6 @@
 // template<class U, class Flags> simd(const U* mem, Flags f);
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -34,23 +33,26 @@ public:
 struct CheckBroadCastSimdCtor {
   template <class _Tp, class SimdAbi, std::size_t>
   void operator()() {
-    ex::simd<_Tp, SimdAbi> origin_simd(static_cast<_Tp>(3));
+    constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
+    std::array<_Tp, array_size> origin_value;
+    for (size_t i = 0; i < array_size; ++i)
+      origin_value[i] = static_cast<_Tp>(3);
 
-    ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type(std::move(origin_simd));
-    assert(ex::all_of(expected_simd_from_vectorizable_type == origin_simd) == true);
+    ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type(ex::simd<_Tp, SimdAbi>(static_cast<_Tp>(3)));
+    assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type, origin_value);
 
-    zero_init<_Tp> implicit_convert_to_3 = 3;
+    zero_init<_Tp> implicit_convert_to_3(3);
     ex::simd<_Tp, SimdAbi> expected_simd_from_implicit_convert(std::move(implicit_convert_to_3));
-    assert(ex::all_of(expected_simd_from_implicit_convert == origin_simd) == true);
+    assert_simd_value_correct<array_size>(expected_simd_from_implicit_convert, origin_value);
 
-    int int_value_3 = static_cast<int>(3);
+    int int_value_3 = 3;
     ex::simd<_Tp, SimdAbi> expected_simd_from_int(std::move(int_value_3));
-    assert(ex::all_of(expected_simd_from_int == origin_simd) == true);
+    assert_simd_value_correct<array_size>(expected_simd_from_int, origin_value);
 
     if constexpr (std::is_unsigned_v<_Tp>) {
       unsigned int uint_value_3 = static_cast<unsigned int>(3);
       ex::simd<_Tp, SimdAbi> expected_simd_from_uint(std::move(uint_value_3));
-      assert(ex::all_of(expected_simd_from_uint == origin_simd) == true);
+      assert_simd_value_correct<array_size>(expected_simd_from_uint, origin_value);
     }
   }
 };
@@ -59,6 +61,7 @@ struct CheckFixedSimdCtor {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
     if constexpr (std::is_same_v<SimdAbi, ex::simd_abi::fixed_size<_Np>>) {
+      constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
       if constexpr (std::is_integral_v<_Tp>) {
         if constexpr (std::is_same_v<_Tp, char> || std::is_same_v<_Tp, unsigned char> ||
                       std::is_same_v<_Tp, signed char>) {
@@ -67,7 +70,11 @@ struct CheckFixedSimdCtor {
         {
           ex::simd<char, SimdAbi> char_simd([](char i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_char(char_simd);
-          assert(ex::all_of(convert_from_char == char_simd) == true);
+
+          std::array<char, array_size> expected_value;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value[i] = static_cast<char>(i);
+          assert_simd_value_correct<array_size, char>(convert_from_char, expected_value);
         }
         if constexpr (std::is_same_v<_Tp, short> || std::is_same_v<_Tp, unsigned short>) {
           return;
@@ -75,7 +82,11 @@ struct CheckFixedSimdCtor {
         {
           ex::simd<short, SimdAbi> short_simd([](short i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_short(short_simd);
-          assert(ex::all_of(convert_from_short == short_simd) == true);
+
+          std::array<short, array_size> expected_value_in_short;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value_in_short[i] = static_cast<short>(i);
+          assert_simd_value_correct<array_size, short>(convert_from_short, expected_value_in_short);
         }
         if constexpr (std::is_same_v<_Tp, wchar_t> || std::is_same_v<_Tp, char16_t>) {
           return;
@@ -83,11 +94,19 @@ struct CheckFixedSimdCtor {
         {
           ex::simd<wchar_t, SimdAbi> wchar_simd([](wchar_t i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_wchar(wchar_simd);
-          assert(ex::all_of(convert_from_wchar == wchar_simd) == true);
+
+          std::array<wchar_t, array_size> expected_value_in_wchar;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value_in_wchar[i] = static_cast<wchar_t>(i);
+          assert_simd_value_correct<array_size, wchar_t>(convert_from_wchar, expected_value_in_wchar);
 
           ex::simd<char16_t, SimdAbi> char16_simd([](char16_t i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_char16(char16_simd);
-          assert(ex::all_of(convert_from_char16 == char16_simd) == true);
+
+          std::array<char16_t, array_size> expected_value_in_char16;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value_in_char16[i] = static_cast<char16_t>(i);
+          assert_simd_value_correct<array_size, char16_t>(convert_from_char16, expected_value_in_char16);
         }
         if constexpr (std::is_same_v<_Tp, int> || std::is_same_v<_Tp, unsigned int> || std::is_same_v<_Tp, char32_t>) {
           return;
@@ -95,11 +114,19 @@ struct CheckFixedSimdCtor {
         {
           ex::simd<int, SimdAbi> int_simd([](int i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_int(int_simd);
-          assert(ex::all_of(convert_from_int == int_simd) == true);
+
+          std::array<int, array_size> expected_value_in_int;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value_in_int[i] = static_cast<int>(i);
+          assert_simd_value_correct<array_size, int>(convert_from_int, expected_value_in_int);
 
           ex::simd<char32_t, SimdAbi> char32_simd([](char32_t i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_char32(int_simd);
-          assert(ex::all_of(convert_from_int == int_simd) == true);
+
+          std::array<char32_t, array_size> expected_value_in_char32;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value_in_char32[i] = static_cast<char32_t>(i);
+          assert_simd_value_correct<array_size, char32_t>(convert_from_char32, expected_value_in_char32);
         }
         if constexpr (std::is_same_v<_Tp, long> || std::is_same_v<_Tp, unsigned long>) {
           return;
@@ -107,23 +134,39 @@ struct CheckFixedSimdCtor {
         {
           ex::simd<long, SimdAbi> long_simd([](long i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_long(long_simd);
-          assert(ex::all_of(convert_from_long == long_simd) == true);
+
+          std::array<long, array_size> expected_value_in_long;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value_in_long[i] = static_cast<long>(i);
+          assert_simd_value_correct<array_size, long>(convert_from_long, expected_value_in_long);
         }
       } else {
         {
           const ex::simd<float, SimdAbi> float_simd([](float i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_float(float_simd);
-          assert(ex::all_of(convert_from_float == float_simd) == true);
+
+          std::array<float, array_size> expected_value_in_float;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value_in_float[i] = static_cast<float>(i);
+          assert_simd_value_correct<array_size, float>(convert_from_float, expected_value_in_float);
         }
         {
           const ex::simd<double, SimdAbi> double_simd([](double i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_double(double_simd);
-          assert(ex::all_of(convert_from_double == double_simd) == true);
+
+          std::array<double, array_size> expected_value_in_double;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value_in_double[i] = static_cast<double>(i);
+          assert_simd_value_correct<array_size, double>(convert_from_double, expected_value_in_double);
         }
         {
           const ex::simd<long double, SimdAbi> long_double_simd([](long double i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_long_double(long_double_simd);
-          assert(ex::all_of(convert_from_long_double == long_double_simd) == true);
+
+          std::array<long double, array_size> expected_value_in_long_double;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value_in_long_double[i] = static_cast<long double>(i);
+          assert_simd_value_correct<array_size, long double>(convert_from_long_double, expected_value_in_long_double);
         }
       }
     }
@@ -133,7 +176,7 @@ struct CheckFixedSimdCtor {
 struct CheckGenerateSimdCtor {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
-    ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return static_cast<_Tp>(i); });
+    ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return i; });
 
     for (size_t i = 0; i < origin_simd.size(); ++i) {
       assert(origin_simd[i] == static_cast<_Tp>(i));
@@ -152,16 +195,12 @@ constexpr size_t next_pow2(size_t v) noexcept {
   v++;
   return v;
 }
-template <class T>
-constexpr bool is_pow2(T x) noexcept {
-  return x != 0 && (x & (x - 1)) == 0;
-}
 
 struct CheckLoadSimdCtor {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
-    if constexpr (is_pow2(_Np) == true) {
-      constexpr auto alignas_size = next_pow2(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>, _Tp>);
+    {
+      constexpr auto alignas_size = ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>, _Tp>;
 
       constexpr auto array_length = ex::simd_size_v<_Tp, SimdAbi>;
 
@@ -170,10 +209,7 @@ struct CheckLoadSimdCtor {
         buffer[i] = static_cast<_Tp>(i + 1);
 
       ex::simd<_Tp, SimdAbi> origin_simd(buffer, ex::vector_aligned_tag());
-
-      ex::simd<_Tp, SimdAbi> expected_simd([](_Tp i) { return static_cast<_Tp>(i + 1); });
-
-      assert(ex::all_of(expected_simd == origin_simd) == true);
+      assert_simd_value_correct(origin_simd, buffer);
     }
 
     {
@@ -186,10 +222,7 @@ struct CheckLoadSimdCtor {
         buffer[i] = static_cast<_Tp>(i);
 
       ex::simd<_Tp, SimdAbi> origin_simd(buffer, ex::overaligned_tag<alignas_size>());
-
-      ex::simd<_Tp, SimdAbi> expected_simd([](_Tp i) { return static_cast<_Tp>(i); });
-
-      assert(ex::all_of(expected_simd == origin_simd) == true);
+      assert_simd_value_correct(origin_simd, buffer);
     }
 
     {
@@ -201,11 +234,8 @@ struct CheckLoadSimdCtor {
       for (size_t i = 0; i < array_length; i++)
         buffer[i] = static_cast<_Tp>(i);
 
-      ex::simd<_Tp, SimdAbi> origin_simd(buffer, ex::overaligned_tag<alignas_size>());
-
-      ex::simd<_Tp, SimdAbi> expected_simd([](_Tp i) { return static_cast<_Tp>(i); });
-
-      assert(ex::all_of(expected_simd == origin_simd) == true);
+      ex::simd<_Tp, SimdAbi> origin_simd(buffer, ex::element_aligned_tag());
+      assert_simd_value_correct(origin_simd, buffer);
     }
   }
 };

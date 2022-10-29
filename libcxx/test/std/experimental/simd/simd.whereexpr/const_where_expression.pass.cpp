@@ -25,7 +25,6 @@
 // };
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -34,13 +33,17 @@ struct CheckConstWhereExprOperatorMinus {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
     if constexpr (ex::simd_size_v<_Tp, SimdAbi> >= 2 && !std::is_unsigned_v<_Tp>) {
-      const ex::simd<_Tp, SimdAbi> a([](_Tp i) { return i; });
-      auto b = -ex::where(a < static_cast<_Tp>(2), a);
-      assert(b[0] == static_cast<_Tp>(0));
-      assert(b[1] == -static_cast<_Tp>(1));
-      for (size_t i = 2; i < b.size(); ++i) {
-        assert(b[i] == static_cast<_Tp>(i));
-      }
+      const ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return i; });
+      auto where_result = -ex::where(origin_simd < static_cast<_Tp>(2), origin_simd);
+
+      constexpr size_t array_size = origin_simd.size();
+      std::array<_Tp, array_size> expected_value;
+      for (size_t i = 0; i < array_size; ++i)
+        expected_value[i] = static_cast<_Tp>(i);
+
+      expected_value[1] = -static_cast<_Tp>(1);
+
+      assert_simd_value_correct<array_size>(where_result, expected_value);
     }
   }
 };
@@ -48,22 +51,31 @@ struct CheckConstWhereExprOperatorMinus {
 struct CheckConstWhereExprOperatorPositive {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
-    const ex::simd<_Tp, SimdAbi> a([](_Tp i) { return i; });
-    auto b = +ex::where(a < static_cast<_Tp>(2), a);
-    for (size_t i = 0; i < b.size(); ++i) {
-      assert(b[i] == static_cast<_Tp>(i));
-    }
+    const ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return i; });
+    auto where_result = +ex::where(origin_simd < static_cast<_Tp>(2), origin_simd);
+
+    constexpr size_t array_size = origin_simd.size();
+    std::array<_Tp, array_size> expected_value;
+    for (size_t i = 0; i < array_size; ++i)
+      expected_value[i] = static_cast<_Tp>(i);
+
+    assert_simd_value_correct<array_size>(where_result, expected_value);
   }
 };
 
 struct CheckConstWhereExprOperatorNegation {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
-    const ex::simd_mask<_Tp, SimdAbi> a([](_Tp i) { return i; });
-    auto b = ~ex::where(true, a);
-    for (size_t i = 0; i < b.size(); ++i) {
-      assert(!b[i]);
-    }
+    const ex::simd_mask<_Tp, SimdAbi> origin_simd([](_Tp i) { return i; });
+    auto where_result = ~ex::where(true, origin_simd);
+
+    constexpr size_t array_size = origin_simd.size();
+    std::array<bool, array_size> expected_value;
+
+    for (size_t i = 0; i < array_size; ++i)
+      expected_value[i] = false;
+
+    assert_simd_mask_value_correct<array_size>(where_result, expected_value);
   }
 };
 
@@ -71,52 +83,53 @@ struct CheckConstWhereExprCopyTo {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
     {
-      const ex::simd<_Tp, SimdAbi> simd_(static_cast<_Tp>(5));
-      constexpr size_t array_length = simd_.size();
-      alignas(alignof(_Tp)) _Tp arr[array_length]{};
+      const ex::simd<_Tp, SimdAbi> origin_simd(static_cast<_Tp>(5));
+      constexpr size_t array_size = origin_simd.size();
+      alignas(alignof(_Tp)) _Tp arr[array_size]{};
 
-      ex::where(simd_ > 0, simd_).copy_to(arr, ex::element_aligned_tag());
-      for (size_t i = 0; i < array_length; i++) {
+      ex::where(origin_simd > 0, origin_simd).copy_to(arr, ex::element_aligned_tag());
+      for (size_t i = 0; i < array_size; i++) {
         assert(arr[i] == static_cast<_Tp>(5));
       }
     }
     {
-      const ex::simd<_Tp, SimdAbi> simd_(static_cast<_Tp>(5));
-      constexpr size_t array_length = simd_.size();
-      alignas(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>, _Tp>) _Tp arr[array_length]{};
+      const ex::simd<_Tp, SimdAbi> origin_simd(static_cast<_Tp>(5));
+      constexpr size_t array_size = origin_simd.size();
+      alignas(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>, _Tp>) _Tp arr[array_size]{};
 
-      ex::where(simd_ > 0, simd_).copy_to(arr, ex::vector_aligned_tag());
-      for (size_t i = 0; i < array_length; i++) {
+      ex::where(origin_simd > 0, origin_simd).copy_to(arr, ex::vector_aligned_tag());
+      for (size_t i = 0; i < array_size; i++) {
         assert(arr[i] == static_cast<_Tp>(5));
       }
     }
 
     {
-      const ex::simd<_Tp, SimdAbi> simd_(static_cast<_Tp>(5));
-      constexpr size_t array_length = simd_.size();
-      alignas(alignof(_Tp)) _Tp arr[array_length]{};
+      const ex::simd<_Tp, SimdAbi> origin_simd(static_cast<_Tp>(5));
+      constexpr size_t array_size = origin_simd.size();
+      alignas(alignof(_Tp)) _Tp arr[array_size]{};
 
-      ex::where(simd_ > 0, simd_).copy_to(arr, ex::overaligned_tag<alignof(_Tp)>());
-      for (size_t i = 0; i < array_length; i++) {
+      ex::where(origin_simd > 0, origin_simd).copy_to(arr, ex::overaligned_tag<alignof(_Tp)>());
+      for (size_t i = 0; i < array_size; i++) {
         assert(arr[i] == static_cast<_Tp>(5));
       }
     }
     {
-      const ex::simd<_Tp, SimdAbi> simd_(static_cast<_Tp>(5));
-      constexpr size_t array_length = simd_.size();
-      alignas(alignof(_Tp)) _Tp arr[array_length]{};
+      const ex::simd<_Tp, SimdAbi> origin_simd(static_cast<_Tp>(5));
+      constexpr size_t array_size = origin_simd.size();
+      alignas(alignof(_Tp)) _Tp arr[array_size]{};
 
-      ex::where(simd_ > 0, simd_).copy_to(arr, ex::element_aligned_tag());
-      for (size_t i = 0; i < array_length; i++) {
+      ex::where(origin_simd > 0, origin_simd).copy_to(arr, ex::element_aligned_tag());
+      for (size_t i = 0; i < array_size; i++) {
         assert(arr[i] == static_cast<_Tp>(5));
       }
     }
     {
-      constexpr ex::simd_mask<_Tp, SimdAbi> a{};
+      ex::simd_mask<_Tp, SimdAbi> origin_mask{};
 
-      if constexpr (a.size() == 4) {
+      if constexpr (origin_mask.size() == 4) {
         bool buffer[] = {true, true, false, false};
-        ex::where(a, a).copy_to(buffer, ex::element_aligned_tag());
+        ex::where(origin_mask, origin_mask).copy_to(buffer, ex::element_aligned_tag());
+
         assert(buffer[0]);
         assert(buffer[1]);
         assert(!buffer[2]);

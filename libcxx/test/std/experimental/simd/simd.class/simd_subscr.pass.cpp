@@ -15,16 +15,9 @@
 // value_type operator[](size_t i) const;
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
-
-template <class T>
-struct is_simd_reference : std::false_type {};
-
-template <class _Storage, class _ValueType>
-struct is_simd_reference<ex::__simd_reference<_Storage, _ValueType>> : std::true_type {};
 
 struct CheckSimdReferenceSubscr {
   template <class _Tp, class SimdAbi, size_t _Np>
