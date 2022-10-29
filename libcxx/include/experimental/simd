@@ -706,7 +706,7 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 // TODO: handle _LIBCPP_HAS_NO_VECTOR_EXTENSION
 
-template <class _Storage, class _ValueType>
+template <class _Tp, class _Storage, class _ValueType>
 class __simd_reference {
   template <class, class>
   friend class simd;
@@ -723,7 +723,7 @@ class __simd_reference {
 
   void __set(_ValueType __v) {
     if constexpr (is_same_v<_ValueType, bool>)
-      __s_.__set(__idx_, __set_all_bits<decltype(__s_.__data[0])>(__v));
+      __s_.__set(__idx_, __set_all_bits<_Tp>(__v));
     else
       __s_.__set(__idx_, __v);
   }
@@ -892,7 +892,7 @@ struct element_aligned_tag {
 
 struct vector_aligned_tag {
   template <class _Tp, class _Up = typename _Tp::value_type>
-  static constexpr size_t __alignment = sizeof(_Up) * _Tp::size();
+  static constexpr size_t __alignment = bit_ceil(sizeof(_Up) * _Tp::size());
 
   template <class _Tp, class _Up>
   static constexpr _Up* __apply(_Up* __ptr) {
@@ -1227,7 +1227,7 @@ split_by(const simd<_Tp, _Abi>& __v) noexcept {
   array<resize_simd<__size, simd<_Tp, _Abi>>, _Num> __arr{};
   for (size_t __i = 0; __i < __arr.size(); __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __arr[__i][__j] = __v[__i * __size + __j];
+      __arr[__i].type[__j] = __v[__i * __size + __j];
   }
   return __arr;
 }
@@ -1240,7 +1240,7 @@ split_by(const simd_mask<_Tp, _Abi>& __m) noexcept {
   array<resize_simd<__size, simd_mask<_Tp, _Abi>>, _Num> __arr{};
   for (size_t __i = 0; __i < __arr.size(); __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __arr[__i][__j] = __m[__i * __size + __j];
+      __arr[__i].type[__j] = __m[__i * __size + __j];
   }
   return __arr;
 }
@@ -1274,7 +1274,7 @@ resize_simd<simd_size_v<_Tp, _Abi> * _Num, simd<_Tp, _Abi>> concat(const array<s
   resize_simd<__size * _Num, simd<_Tp, _Abi>> __s;
   for (size_t __i = 0; __i < _Num; __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __s[__i * __size + __j] = __arr[__i][__j];
+      __s.type[__i * __size + __j] = __arr[__i][__j];
   }
   return __s;
 }
@@ -1286,7 +1286,7 @@ concat(const array<simd_mask<_Tp, _Abi>, _Num>& __arr) noexcept {
   resize_simd<__size * _Num, simd_mask<_Tp, _Abi>> __m;
   for (size_t __i = 0; __i < _Num; __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __m[__i * __size + __j] = __arr[__i][__j];
+      __m.type[__i * __size + __j] = __arr[__i][__j];
   }
   return __m;
 }
@@ -1509,7 +1509,7 @@ protected:
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
-  const_where_expression(const _MaskType& __m, const _SimdType& s) : __m_(__m), __s_(const_cast<_SimdType&>(s)) {}
+  const_where_expression(const _MaskType& __m, const _SimdType& __s) : __m_(__m), __s_(const_cast<_SimdType&>(__s)) {}
 
   _SimdType operator-() const&& noexcept {
     return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__unary_minus(__s_.__s_));
@@ -1551,7 +1551,7 @@ protected:
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
-  const_where_expression(const bool __m, const _Tp& s) : __m_(__m), __s_(const_cast<_Tp&>(s)) {}
+  const_where_expression(const bool __m, const _Tp& __s) : __m_(__m), __s_(const_cast<_Tp&>(__s)) {}
 
   _Tp operator-() const&& noexcept { return __m_ ? -__s_ : __s_; }
   _Tp operator+() const&& noexcept { return __s_; }
@@ -1573,7 +1573,7 @@ class where_expression : public const_where_expression<_MaskType, _SimdType> {
   using const_where_expression<_MaskType, _SimdType>::__s_;
 
 public:
-  where_expression(const _MaskType& __m, _SimdType& s) : const_where_expression<_MaskType, _SimdType>(__m, s) {}
+  where_expression(const _MaskType& __m, _SimdType& __s) : const_where_expression<_MaskType, _SimdType>(__m, __s) {}
 
   template <class _Up>
   enable_if_t<is_convertible_v<_Up, _SimdType>> operator=(_Up&& __v) && noexcept {
@@ -1644,7 +1644,7 @@ class where_expression<bool, _Tp> : public const_where_expression<bool, _Tp> {
   using const_where_expression<bool, _Tp>::__s_;
 
 public:
-  where_expression(const bool __m, _Tp& s) : const_where_expression<bool, _Tp>(__m, s) {}
+  where_expression(const bool __m, _Tp& __s) : const_where_expression<bool, _Tp>(__m, __s) {}
 
   template <class _Up>
   enable_if_t<is_convertible_v<_Up, _Tp>> operator=(_Up&& __v) && noexcept {
@@ -1739,7 +1739,7 @@ class simd {
 
 public:
   using value_type = _Tp;
-  using reference  = __simd_reference<_Storage, value_type>;
+  using reference  = __simd_reference<_Tp, _Storage, value_type>;
   using mask_type  = simd_mask<_Tp, _Abi>;
   using abi_type   = _Abi;
 
@@ -1957,7 +1957,7 @@ class simd_mask {
 
 public:
   using value_type = bool;
-  using reference  = __simd_reference<_Storage, value_type>;
+  using reference  = __simd_reference<_Tp, _Storage, value_type>;
   using simd_type  = simd<_Tp, _Abi>;
   using abi_type   = _Abi;
 
