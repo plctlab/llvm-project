@@ -9,9 +9,56 @@
 #ifndef TEST_UTIL_H
 #define TEST_UTIL_H
 
+#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
+
+template <class T>
+struct is_simd_reference : std::false_type {};
+
+template <class _Tp, class _Storage, class _ValueType>
+struct is_simd_reference<ex::__simd_reference<_Tp, _Storage, _ValueType>> : std::true_type {};
+
+template <class SimdAbi, class _Tp>
+void assert_simd_value_correct(const ex::simd<_Tp, SimdAbi>& origin_simd, _Tp* expected_value) {
+  for (size_t i = 0; i < origin_simd.size(); ++i)
+    assert(origin_simd[i] == expected_value[i]);
+}
+
+template <class SimdAbi, class _Tp>
+void assert_simd_mask_value_correct(const ex::simd_mask<_Tp, SimdAbi>& origin_mask, bool* expected_value) {
+  for (size_t i = 0; i < origin_mask.size(); ++i)
+    assert(origin_mask[i] == expected_value[i]);
+}
+
+template <std::size_t ArraySize, class SimdAbi, class _Tp>
+void assert_simd_value_correct(const ex::simd<_Tp, SimdAbi>& origin_simd,
+                               const std::array<_Tp, ArraySize>& expected_value) {
+  for (size_t i = 0; i < origin_simd.size(); ++i)
+    assert(origin_simd[i] == expected_value[i]);
+}
+
+template <std::size_t ArraySize, class SimdAbi, class _Tp>
+void assert_simd_mask_value_correct(const ex::simd_mask<_Tp, SimdAbi>& origin_mask,
+                                    const std::array<_Tp, ArraySize>& expected_value) {
+  for (size_t i = 0; i < origin_mask.size(); ++i)
+    assert(origin_mask[i] == expected_value[i]);
+}
+
+template <std::size_t ArraySize, class ArrayType, class SimdAbi, class _Tp>
+void assert_simd_value_correct(const ex::simd<_Tp, SimdAbi>& origin_simd,
+                               const std::array<ArrayType, ArraySize>& expected_value) {
+  for (size_t i = 0; i < origin_simd.size(); ++i)
+    assert(origin_simd[i] == static_cast<_Tp>(expected_value[i]));
+}
+
+template <std::size_t ArraySize, class ArrayType, class SimdAbi, class _Tp>
+void assert_simd_mask_value_correct(const ex::simd_mask<_Tp, SimdAbi>& origin_mask,
+                                    const std::array<ArrayType, ArraySize>& expected_value) {
+  for (size_t i = 0; i < origin_mask.size(); ++i)
+    assert(origin_mask[i] == static_cast<_Tp>(expected_value[i]));
+}
 
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi();

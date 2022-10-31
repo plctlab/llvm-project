@@ -51,8 +51,7 @@ struct CheckSimdUnaryOperator {
       for (size_t i = 0; i < array_size; i++)
         origin_value[i] = static_cast<_Tp>(i);
 
-      constexpr int increment_value = static_cast<int>(_Np);
-      auto after_increment_simd = origin_simd.operator++(increment_value);
+      auto after_increment_simd = origin_simd++;
 
       assert_simd_value_correct<array_size>(after_increment_simd, origin_value);
 
@@ -85,8 +84,7 @@ struct CheckSimdUnaryOperator {
       for (size_t i = 0; i < array_size; i++)
         origin_value[i] = static_cast<_Tp>(i + 1);
 
-      constexpr int decrement_value = static_cast<int>(_Np);
-      auto after_decrement_simd = origin_simd.operator--(decrement_value);
+      auto after_decrement_simd = origin_simd--;
 
       assert_simd_value_correct<array_size>(after_decrement_simd, origin_value);
 

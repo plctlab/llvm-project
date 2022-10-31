@@ -89,7 +89,7 @@ struct CheckWhereExprOperators {
         assert(lhs[3] == static_cast<_Tp>(2));
       }
       {
-        if constexpr (!std::is_floating_point_v<_Tp>()) {
+        if constexpr (!std::is_floating_point_v<_Tp>) {
           _Tp buf[]{3, 3, 4, 4};
           ex::simd<_Tp, SimdAbi> lhs;
           lhs.copy_from(buf, ex::element_aligned_tag());
@@ -103,7 +103,7 @@ struct CheckWhereExprOperators {
         }
       }
       {
-        if constexpr (!std::is_floating_point_v<_Tp>()) {
+        if constexpr (!std::is_floating_point_v<_Tp>) {
           _Tp buf[]{3, 3, 4, 4};
           ex::simd<_Tp, SimdAbi> lhs;
           lhs.copy_from(buf, ex::element_aligned_tag());
@@ -117,7 +117,7 @@ struct CheckWhereExprOperators {
         }
       }
       {
-        if constexpr (!std::is_floating_point_v<_Tp>()) {
+        if constexpr (!std::is_floating_point_v<_Tp>) {
           _Tp buf[]{3, 3, 4, 4};
           ex::simd<_Tp, SimdAbi> lhs;
           lhs.copy_from(buf, ex::element_aligned_tag());
@@ -131,7 +131,7 @@ struct CheckWhereExprOperators {
         }
       }
       {
-        if constexpr (!std::is_floating_point_v<_Tp>()) {
+        if constexpr (!std::is_floating_point_v<_Tp>) {
           _Tp buf[]{3, 3, 4, 4};
           ex::simd<_Tp, SimdAbi> lhs;
           lhs.copy_from(buf, ex::element_aligned_tag());
@@ -145,13 +145,13 @@ struct CheckWhereExprOperators {
         }
       }
       {
-        if constexpr (!std::is_floating_point_v<_Tp>()) {
+        if constexpr (!std::is_floating_point_v<_Tp>) {
           _Tp buf[]{3, 3, 4, 4};
           ex::simd<_Tp, SimdAbi> lhs;
           lhs.copy_from(buf, ex::element_aligned_tag());
           ex::simd_mask<_Tp, SimdAbi> rhs(true);
 
-          ex::where(rhs, lhs).operator<<=(2);
+          ex::where(rhs, lhs) <<= 2;
           assert(lhs[0] == static_cast<_Tp>(12));
           assert(lhs[1] == static_cast<_Tp>(12));
           assert(lhs[2] == static_cast<_Tp>(16));
@@ -159,13 +159,13 @@ struct CheckWhereExprOperators {
         }
       }
       {
-        if constexpr (!std::is_floating_point_v<_Tp>()) {
+        if constexpr (!std::is_floating_point_v<_Tp>) {
           _Tp buf[]{3, 3, 4, 4};
           ex::simd<_Tp, SimdAbi> lhs;
           lhs.copy_from(buf, ex::element_aligned_tag());
           ex::simd_mask<_Tp, SimdAbi> rhs(true);
 
-          ex::where(rhs, lhs).operator>>=(2);
+          ex::where(rhs, lhs) >>= 2;
           assert(lhs[0] == static_cast<_Tp>(0));
           assert(lhs[1] == static_cast<_Tp>(0));
           assert(lhs[2] == static_cast<_Tp>(1));
@@ -202,7 +202,7 @@ struct CheckWhereExprOperators {
         lhs.copy_from(buf, ex::element_aligned_tag());
         ex::simd_mask<_Tp, SimdAbi> rhs(true);
 
-        ex::where(rhs, lhs).operator++(2);
+        ++ex::where(rhs, lhs);
         assert(lhs[0] == static_cast<_Tp>(2));
         assert(lhs[1] == static_cast<_Tp>(3));
         assert(lhs[2] == static_cast<_Tp>(4));
@@ -226,7 +226,7 @@ struct CheckWhereExprOperators {
         lhs.copy_from(buf, ex::element_aligned_tag());
         ex::simd_mask<_Tp, SimdAbi> rhs(true);
 
-        ex::where(rhs, lhs).operator--(2);
+        --ex::where(rhs, lhs);
         assert(lhs[0] == static_cast<_Tp>(0));
         assert(lhs[1] == static_cast<_Tp>(1));
         assert(lhs[2] == static_cast<_Tp>(2));

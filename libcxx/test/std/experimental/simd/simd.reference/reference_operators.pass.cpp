@@ -215,11 +215,7 @@ struct CheckReferenceOperators {
       if constexpr (!std::is_floating_point_v<_Tp>) {
         assert(origin_simd[0] == static_cast<_Tp>(11));
 
-        _Tp origin_val = static_cast<_Tp>(2);
-
-        { origin_val++; }
-
-        auto res = origin_simd[0].operator++(origin_val);
+        auto res = origin_simd[0]++;
 
         assert(origin_simd[0] == static_cast<_Tp>(12));
         static_assert(!is_simd_reference<decltype(res)>::value);
@@ -228,11 +224,7 @@ struct CheckReferenceOperators {
       } else {
         assert(origin_simd[0] == static_cast<_Tp>(6));
 
-        _Tp origin_val = static_cast<_Tp>(2);
-
-        { origin_val++; }
-
-        auto res = origin_simd[0].operator++(origin_val);
+        auto res = origin_simd[0]++;
 
         assert(origin_simd[0] == static_cast<_Tp>(7));
         static_assert(!is_simd_reference<decltype(res)>::value);
@@ -243,11 +235,7 @@ struct CheckReferenceOperators {
       if constexpr (!std::is_floating_point_v<_Tp>) {
         assert(origin_simd[0] == static_cast<_Tp>(12));
 
-        _Tp origin_val = static_cast<_Tp>(2);
-
-        { origin_val--; }
-
-        auto res = origin_simd[0].operator--(origin_val);
+        auto res = origin_simd[0]--;
 
         assert(origin_simd[0] == static_cast<_Tp>(11));
         static_assert(!is_simd_reference<decltype(res)>::value);
@@ -256,11 +244,7 @@ struct CheckReferenceOperators {
       } else {
         assert(origin_simd[0] == static_cast<_Tp>(7));
 
-        _Tp origin_val = static_cast<_Tp>(2);
-
-        { origin_val--; }
-
-        auto res = origin_simd[0].operator--(origin_val);
+        auto res = origin_simd[0]--;
 
         assert(origin_simd[0] == static_cast<_Tp>(6));
         static_assert(!is_simd_reference<decltype(res)>::value);
