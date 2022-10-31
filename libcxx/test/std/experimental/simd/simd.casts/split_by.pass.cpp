@@ -27,6 +27,7 @@ struct CheckSplitBySimd {
     if constexpr (_Np % ex::simd_size_v<_Tp, SimdAbi> == 0) {
       const ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return i; });
       auto arr = ex::split_by<_Np>(origin_simd);
+      static_assert(std::is_same_v<decltype(arr), std::array<ex::resize_simd<ex::simd_size_v<_Tp, SimdAbi> / _Np, ex::simd<_Tp, SimdAbi>>, _Np> >);
 
       for (size_t i = 0; i < _Np; ++i) {
         for (size_t j = 0; j < arr[i].size(); ++j) {
@@ -43,6 +44,7 @@ struct CheckSplitBySimdMask {
     if constexpr (_Np % ex::simd_size_v<_Tp, SimdAbi> == 0) {
       const ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return i; });
       auto arr = ex::split_by<_Np>(origin_simd);
+      static_assert(std::is_same_v<decltype(arr), std::array<ex::resize_simd<ex::simd_size_v<_Tp, SimdAbi> / _Np, ex::simd_mask<_Tp, SimdAbi>>, _Np> >);
 
       for (size_t i = 0; i < _Np; ++i) {
         for (size_t j = 0; j < arr[i].size(); ++j) {

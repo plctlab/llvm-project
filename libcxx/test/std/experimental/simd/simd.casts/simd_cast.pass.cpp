@@ -14,7 +14,6 @@
 // template <class T, class U, class Abi> see below ex::simd_cast<(const ex::simd<U, Abi>&);
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -26,9 +25,14 @@ namespace ex = std::experimental::parallelism_v2;
 // 3. test for the final case
 #define GNERATOR_FULL_TYPE(TYPE)                                                                                       \
   if constexpr (!std::is_same_v<_Tp, TYPE>) {                                                                          \
-    auto after_cast = ex::simd_cast<TYPE>(ex::simd<_Tp, SimdAbi>());                                                   \
-    auto expected = ex::simd<TYPE, ex::simd_abi::fixed_size<ex::simd<_Tp, SimdAbi>::size()>>{};                        \
-    ASSERT_AND_TEST_EQUAL(after_cast, expected);                                                                       \
+    auto origin = ex::simd<_Tp, SimdAbi>([](_Tp i) { return i; });                                                     \
+    auto after_cast = ex::simd_cast<TYPE>(origin);                                                                     \
+    static_assert(std::is_same_v<decltype(after_cast),                                                                 \
+                                 ex::simd<TYPE, ex::simd_abi::fixed_size<ex::simd<_Tp, SimdAbi>::size()>>>);           \
+    std::array<_Tp, ex::simd_size_v<_Tp, SimdAbi>> expected_values;                                                    \
+    for (size_t i = 0; i < origin.size(); ++i)                                                                         \
+      expected_values[i] = static_cast<_Tp>(i);                                                                        \
+    assert_simd_value_correct(after_cast, expected_values);                                                            \
   }
 struct CheckSimdCast {
   template <class _Tp, class SimdAbi, std::size_t _Np>
@@ -52,17 +56,21 @@ struct CheckSimdCast {
 
     // 2. test for the `std::is_same_v<U, T>`
     {
-      auto after_cast = ex::simd_cast<_Tp>(ex::simd<_Tp, SimdAbi>());
-      auto expected = ex::simd<_Tp, SimdAbi>{};
-      ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      auto origin = ex::simd<_Tp, SimdAbi>([](_Tp i) { return i; });
+      auto after_cast = ex::simd_cast<_Tp>(origin);
+      static_assert(std::is_same_v<decltype(after_cast),
+                                   ex::simd<TYPE, ex::simd_abi::fixed_size<ex::simd<_Tp, SimdAbi>::size()>>>);
+      std::array<_Tp, ex::simd_size_v<_Tp, SimdAbi>> expected_values;
+      for (size_t i = 0; i < origin.size(); ++i)
+        expected_values[i] = static_cast<_Tp>(i);
+      assert_simd_value_correct(after_cast, expected_values);
     }
 
     constexpr std::size_t origin_full_abi_simd_size = ex::simd<_Tp, SimdAbi>::size();
     static auto InitializeSimd = [](auto& origin_simd) {
       const size_t simd_size = origin_simd.size();
-      for (size_t i = 0; i < simd_size; ++i) {
-        origin_simd[i++] = static_cast<_Tp>(i + 1);
-      }
+      for (size_t i = 0; i < simd_size; ++i)
+        origin_simd[i] = static_cast<_Tp>(i);
     };
     // 1. test for the `ex::is_simd_v<T>`
     if constexpr (origin_full_abi_simd_size == ex::native_simd<_Tp>::size()) {
@@ -168,14 +176,11 @@ struct CheckSimdCast {
 };
 
 template <class F, std::size_t _Np, class _Tp>
-void test_simd_abi() {
-}
+void test_simd_abi() {}
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
   F{}.template operator()<_Tp, SimdAbi, _Np>();
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 
-int main(int, char**) {
-  test_all_simd_abi<CheckSimdCast>();
-}
+int main(int, char**) { test_all_simd_abi<CheckSimdCast>(); }

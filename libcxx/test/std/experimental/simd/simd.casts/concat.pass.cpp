@@ -39,10 +39,10 @@ struct CheckConcatSimd {
                                (ex::simd_size_v<_Tp, ex::simd_abi::native<_Tp>> +
                                 ex::simd_size_v<_Tp, ex::simd_abi::fixed_size<_Np>> + ex::simd_size_v<_Tp, SimdAbi>)>>;
 
-    concat_result_type concat_result =
-        ex::concat<_Tp, ex::simd_abi::native<_Tp>, ex::simd_abi::fixed_size<_Np>, SimdAbi>(
-            native_simd_, fixed_size_simd_, full_type_simd_);
+    auto concat_result = ex::concat<_Tp, ex::simd_abi::native<_Tp>, ex::simd_abi::fixed_size<_Np>, SimdAbi>(
+        native_simd_, fixed_size_simd_, full_type_simd_);
     static_assert(ex::is_simd_v<decltype(concat_result)>);
+    static_assert(std::is_same_v<decltype(concat_result), concat_result_type>);
 
     size_t k = 0;
     for (size_t i = 0; i < native_simd_.size(); ++i) {
@@ -76,10 +76,10 @@ struct CheckConcatSimdMask {
                                                (ex::simd_size_v<_Tp, ex::simd_abi::native<_Tp>> +
                                                 ex::simd_size_v<_Tp, ex::simd_abi::fixed_size<_Np>> +
                                                 ex::simd_size_v<_Tp, SimdAbi>)>>;
-      concat_result_type concat_result =
-          ex::concat<_Tp, ex::simd_abi::native<_Tp>, ex::simd_abi::fixed_size<_Np>, SimdAbi>(
-              native_simd_mask_, fixed_size_simd_mask_, full_type_simd_mask_);
+      auto concat_result = ex::concat<_Tp, ex::simd_abi::native<_Tp>, ex::simd_abi::fixed_size<_Np>, SimdAbi>(
+          native_simd_mask_, fixed_size_simd_mask_, full_type_simd_mask_);
       static_assert(ex::is_simd_mask_v<decltype(concat_result)>);
+      static_assert(std::is_same_v<decltype(concat_result), concat_result_type>);
 
       size_t k = 0;
       for (size_t i = 0; i < native_simd_mask_.size(); ++i) {
@@ -109,12 +109,17 @@ struct CheckConcatResizeSimd {
         sub_simd[i] = static_cast<_Tp>(i);
       }
     }
-    auto res = ex::concat<_Tp, SimdAbi, _Np>(arr);
+
+    using concat_result_type = ex::resize_simd<ex::simd_size_v<_Tp, SimdAbi> * _Np, ex::simd<_Tp, SimdAbi>>;
+    auto concat_result = ex::concat<_Tp, SimdAbi, _Np>(arr);
+
+    static_assert(ex::is_simd_mask_v<decltype(concat_result)>);
+    static_assert(std::is_same_v<decltype(concat_result), concat_result_type>);
 
     constexpr size_t prev_length = ex::simd_size_v<_Tp, SimdAbi>;
 
-    for (size_t i = 0; i < res.size(); ++i) {
-      assert(res[i] == arr[i / prev_length][i % prev_length]);
+    for (size_t i = 0; i < concat_result.size(); ++i) {
+      assert(concat_result[i] == arr[i / prev_length][i % prev_length]);
     }
   }
 };
@@ -128,27 +133,31 @@ struct CheckConcatResizeSimdMask {
         sub_simd_mask[i] = static_cast<bool>(i);
       }
     }
-    auto res = ex::concat<_Tp, SimdAbi, _Np>(arr);
+
+    using concat_result_type = ex::resize_simd<ex::simd_size_v<_Tp, SimdAbi> * _Np, ex::simd_mask<_Tp, SimdAbi>>;
+    auto concat_result = ex::concat<_Tp, SimdAbi, _Np>(arr);
+
+    static_assert(ex::is_simd_mask_v<decltype(concat_result)>);
+    static_assert(std::is_same_v<decltype(concat_result), concat_result_type>);
 
     constexpr size_t prev_length = ex::simd_size_v<_Tp, SimdAbi>;
 
-    for (size_t i = 0; i < res.size(); ++i) {
-      assert(res[i] == arr[i / prev_length][i % prev_length]);
+    for (size_t i = 0; i < concat_result.size(); ++i) {
+      assert(concat_result[i] == arr[i / prev_length][i % prev_length]);
     }
   }
 };
 
 template <class F, std::size_t _Np, class _Tp>
-void test_simd_abi() {
-}
+void test_simd_abi() {}
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
   F{}.template operator()<_Tp, SimdAbi, _Np>();
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 int main() {
-  // test_all_simd_abi<CheckConcatSimd>();
-  // test_all_simd_abi<CheckConcatSimdMask>();
+  test_all_simd_abi<CheckConcatSimd>();
+  test_all_simd_abi<CheckConcatSimdMask>();
   test_all_simd_abi<CheckConcatResizeSimd>();
-  // test_all_simd_abi<CheckConcatResizeSimdMask>();
+  test_all_simd_abi<CheckConcatResizeSimdMask>();
 }

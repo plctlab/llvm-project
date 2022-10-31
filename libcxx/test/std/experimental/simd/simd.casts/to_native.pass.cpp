@@ -17,7 +17,6 @@
 // native_simd_mask<T> to_native(const fixed_size_simd_mask<T, N>&) noexcept;
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -29,17 +28,17 @@ struct CheckToNativeSimd {
         std::is_same_v<decltype(ex::to_native<_Tp, _Np>(ex::fixed_size_simd<_Tp, _Np>())), ex::native_simd<_Tp>>, "");
     static auto InitializeSimd = [](auto& origin_simd) {
       const size_t simd_size = origin_simd.size();
-      for (size_t i = 0; i < simd_size; ++i) {
-        origin_simd[i++] = static_cast<_Tp>(i + 1);
-      }
+      for (size_t i = 0; i < simd_size; ++i)
+        origin_simd[i] = static_cast<_Tp>(i);
     };
     {
       auto origin = ex::fixed_size_simd<_Tp, _Np>();
       InitializeSimd(origin);
       auto after_cast = ex::to_native<_Tp, _Np>(origin);
-      auto expected = ex::native_simd<_Tp>{};
-      InitializeSimd(expected);
-      assert(ex::all_of(after_cast == expected) == true);
+      std::array<_Tp, origin.size()> expected_values;
+      for (size_t i = 0; i < origin.size(); ++i)
+        expected_values[i] = static_cast<_Tp>(i);
+      assert_simd_value_correct(after_cast, expected_values);
     }
   }
 };
@@ -51,16 +50,17 @@ struct CheckToNativeSimdMask {
     static auto InitializeSimdMask = [](auto& origin_simd_mask) {
       const size_t mask_size = origin_simd_mask.size();
       for (size_t i = 0; i < mask_size; ++i) {
-        origin_simd_mask[i++] = static_cast<bool>(i + 1);
+        origin_simd_mask[i] = static_cast<bool>(i);
       }
     };
     {
       auto origin = ex::fixed_size_simd_mask<_Tp, _Np>();
       InitializeSimdMask(origin);
       auto after_cast = ex::to_native<_Tp, _Np>(origin);
-      auto expected = ex::native_simd_mask<_Tp>{};
-      InitializeSimdMask(expected);
-      assert(ex::all_of(after_cast == expected) == true);
+      std::array<_Tp, origin.size()> expected_values;
+      for (size_t i = 0; i < origin.size(); ++i)
+        expected_values[i] = static_cast<bool>(i);
+      assert_simd_mask_value_correct(after_cast, expected_values);
     }
   }
 };
