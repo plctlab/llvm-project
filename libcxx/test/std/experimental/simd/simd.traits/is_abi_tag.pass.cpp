@@ -12,103 +12,67 @@
 //
 // [simd.traits]
 // template <class T> struct is_abi_tag;
-// template <class T> inline constexpr bool ex::is_abi_tag_v =
-// ex::is_abi_tag<T>::value;
+// template <class T> inline constexpr bool ex::is_abi_tag_v = ex::is_abi_tag<T>::value;
 
+#include "../test_utils.h"
 #include <cstdint>
 #include <experimental/simd>
-#include "test_macros.h"
 
 namespace ex = std::experimental::parallelism_v2;
 
-struct UserType {};
+struct CheckIsAbiTagTrue {
+  template <class _Tp>
+  void operator()() {
+    static_assert(_Tp::value);
+  }
+};
 
-static_assert(ex::is_abi_tag<ex::simd_abi::native<int8_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::native<int16_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::native<int32_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::native<int64_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::native<uint8_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::native<uint16_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::native<uint32_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::native<uint64_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::native<float>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::native<double>>::value, "");
+struct CheckIsAbiTagFalse {
+  template <class _Tp>
+  void operator()() {
+    static_assert(!_Tp::value);
+  }
+};
 
-static_assert(ex::is_abi_tag<ex::simd_abi::compatible<int8_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::compatible<int16_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::compatible<int32_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::compatible<int64_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::compatible<uint8_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::compatible<uint16_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::compatible<uint32_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::compatible<uint64_t>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::compatible<float>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::compatible<double>>::value, "");
+struct CheckIsAbiTagVTrue {
+  template <bool _Tp>
+  void operator()() {
+    static_assert(_Tp);
+  }
+};
 
-static_assert(ex::is_abi_tag<ex::simd_abi::scalar>::value, "");
-static_assert(
-    !std::is_same<ex::simd_abi::scalar, ex::simd_abi::fixed_size<1>>::value,
-    "");
+struct CheckIsAbiTagVFalse {
+  template <bool _Tp>
+  void operator()() {
+    static_assert(!_Tp);
+  }
+};
 
-static_assert(ex::is_abi_tag<ex::simd_abi::fixed_size<1>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::fixed_size<2>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::fixed_size<3>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::fixed_size<4>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::fixed_size<5>>::value, "");
-static_assert(ex::is_abi_tag<ex::simd_abi::fixed_size<32>>::value, "");
+template <class F, std::size_t _Np, class _Tp>
+void test_simd_abi() {
+}
+template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
+void test_simd_abi() {
+  if constexpr (std::is_same<F, CheckIsAbiTagTrue>::value) {
+    F{}.template operator()<ex::is_abi_tag<SimdAbi>>();
+  } else if constexpr (std::is_same<F, CheckIsAbiTagFalse>::value) {
+    F{}.template operator()<ex::is_abi_tag<_Tp>>();
+    F{}.template operator()<ex::is_abi_tag<ex::simd<_Tp, SimdAbi>>>();
+    F{}.template operator()<ex::is_abi_tag<ex::simd_mask<_Tp, SimdAbi>>>();
+  } else if constexpr (std::is_same<F, CheckIsAbiTagVTrue>::value) {
+    F{}.template operator()<ex::is_abi_tag_v<SimdAbi>>();
+  } else {
+    F{}.template operator()<ex::is_abi_tag_v<_Tp>>();
+    F{}.template operator()<ex::is_abi_tag_v<ex::simd<_Tp, SimdAbi>>>();
+    F{}.template operator()<ex::is_abi_tag_v<ex::simd_mask<_Tp, SimdAbi>>>();
+  }
 
-static_assert(!ex::is_abi_tag<void>::value, "");
-static_assert(!ex::is_abi_tag<int>::value, "");
-static_assert(!ex::is_abi_tag<float>::value, "");
-static_assert(!ex::is_abi_tag<UserType>::value, "");
-static_assert(!ex::is_abi_tag<ex::simd<int>>::value, "");
-static_assert(!ex::is_abi_tag<ex::simd<float>>::value, "");
-static_assert(!ex::is_abi_tag<ex::simd_mask<int>>::value, "");
-static_assert(!ex::is_abi_tag<ex::simd_mask<float>>::value, "");
-
-static_assert(ex::is_abi_tag_v<ex::simd_abi::native<int8_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::native<int16_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::native<int32_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::native<int64_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::native<uint8_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::native<uint16_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::native<uint32_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::native<uint64_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::native<float>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::native<double>>, "");
-
-static_assert(ex::is_abi_tag_v<ex::simd_abi::compatible<int8_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::compatible<int16_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::compatible<int32_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::compatible<int64_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::compatible<uint8_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::compatible<uint16_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::compatible<uint32_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::compatible<uint64_t>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::compatible<float>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::compatible<double>>, "");
-
-static_assert(ex::is_abi_tag_v<ex::simd_abi::scalar>, "");
-static_assert(
-    !std::is_same<ex::simd_abi::scalar, ex::simd_abi::fixed_size<1>>::value,
-    "");
-
-static_assert(ex::is_abi_tag_v<ex::simd_abi::fixed_size<1>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::fixed_size<2>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::fixed_size<3>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::fixed_size<4>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::fixed_size<5>>, "");
-static_assert(ex::is_abi_tag_v<ex::simd_abi::fixed_size<32>>, "");
-
-static_assert(!ex::is_abi_tag_v<void>, "");
-static_assert(!ex::is_abi_tag_v<int>, "");
-static_assert(!ex::is_abi_tag_v<float>, "");
-static_assert(!ex::is_abi_tag_v<UserType>, "");
-static_assert(!ex::is_abi_tag_v<ex::simd<int>>, "");
-static_assert(!ex::is_abi_tag_v<ex::simd<float>>, "");
-static_assert(!ex::is_abi_tag_v<ex::simd_mask<int>>, "");
-static_assert(!ex::is_abi_tag_v<ex::simd_mask<float>>, "");
+  test_simd_abi<F, _Np, _Tp, SimdAbis...>();
+}
 
 int main(int, char**) {
-  return 0;
+  test_all_simd_abi<CheckIsAbiTagTrue>();
+  test_all_simd_abi<CheckIsAbiTagFalse>();
+  test_all_simd_abi<CheckIsAbiTagVTrue>();
+  test_all_simd_abi<CheckIsAbiTagVFalse>();
 }

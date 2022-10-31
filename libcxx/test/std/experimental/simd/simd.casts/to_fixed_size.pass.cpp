@@ -11,31 +11,69 @@
 // <experimental/simd>
 //
 // [simd.casts]
-//template <class T, class Abi>
-//fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi>&) noexcept;
+// template <class T, class Abi>
+// fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi>&) noexcept;
+// template<class T, class Abi>
+// fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi>&) noexcept;
 
+#include "../test_utils.h"
 #include <experimental/simd>
-#include <cstdint>
-
-#include "test_macros.h"
 
 namespace ex = std::experimental::parallelism_v2;
 
-static_assert(
-    std::is_same_v<decltype(ex::to_fixed_size<int,ex::simd_abi::native<int>>(ex::simd<int,ex::simd_abi::native<int>>())),
-                 ex::fixed_size_simd<int,ex::simd_size_v<int,ex::simd_abi::native<int>>>>,
-    "");
-
-static_assert(
-    std::is_same_v<decltype(ex::to_fixed_size<int,ex::simd_abi::fixed_size<4>>(ex::simd<int,ex::simd_abi::fixed_size<4>>())),
-                 ex::fixed_size_simd<int,ex::simd_size_v<int,ex::simd_abi::fixed_size<4>>>>,
-    "");
-
-static_assert(
-    std::is_same_v<decltype(ex::to_fixed_size<int,ex::simd_abi::scalar>(ex::simd<int,ex::simd_abi::scalar>())),
-                 ex::fixed_size_simd<int,ex::simd_size_v<int,ex::simd_abi::scalar>>>,
-    "");
+struct CheckToFixedSizeSimd {
+  template <class _Tp, class SimdAbi>
+  void operator()() {
+    static_assert(std::is_same_v<decltype(ex::to_fixed_size<_Tp, SimdAbi>(ex::simd<_Tp, SimdAbi>())),
+                                 ex::fixed_size_simd<_Tp, origin.size()>>,
+                  "");
+    static auto InitializeSimd = [](auto& origin_simd) {
+      const size_t simd_size = origin_simd.size();
+      for (size_t i = 0; i < simd_size; ++i)
+        origin_simd[i] = static_cast<_Tp>(i);
+    };
+    {
+      auto origin = ex::simd<_Tp, SimdAbi>();
+      InitializeSimd(origin);
+      auto after_cast = ex::to_fixed_size<_Tp, SimdAbi>(origin);
+      std::array<_Tp, origin.size()> expected_values;
+      for (size_t i = 0; i < origin.size(); ++i)
+        expected_values[i] = static_cast<_Tp>(i);
+      assert_simd_value_correct(after_cast, expected_values);
+    }
+  }
+};
+struct CheckToFixedSizeSimdMask {
+  template <class _Tp, class SimdAbi>
+  void operator()() {
+    static_assert(std::is_same_v<decltype(ex::to_fixed_size<_Tp, SimdAbi>(ex::simd<_Tp, SimdAbi>())),
+                                 ex::fixed_size_simd<_Tp, origin.size()>>,
+                  "");
+    static auto InitializeSimdMask = [](auto& origin_simd_mask) {
+      const size_t mask_size = origin_simd_mask.size();
+      for (size_t i = 0; i < mask_size; ++i)
+        origin_simd_mask[i] = static_cast<bool>(i);
+    };
+    {
+      auto origin = ex::simd_mask<_Tp, SimdAbi>();
+      InitializeSimdMask(origin);
+      auto after_cast = ex::to_fixed_size<_Tp, SimdAbi>(origin);
+      std::array<_Tp, origin.size()> expected_values;
+      for (size_t i = 0; i < origin.size(); ++i)
+        expected_values[i] = static_cast<bool>(i);
+      assert_simd_mask_value_correct(after_cast, expected_values);
+    }
+  }
+};
+template <class F, std::size_t _Np, class _Tp>
+void test_simd_abi() {}
+template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
+void test_simd_abi() {
+  F{}.template operator()<_Tp, SimdAbi>();
+  test_simd_abi<F, _Np, _Tp, SimdAbis...>();
+}
 
 int main(int, char**) {
-    return 0;
+  test_all_simd_abi<CheckToFixedSizeSimd>();
+  test_all_simd_abi<CheckToFixedSizeSimdMask>();
 }

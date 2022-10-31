@@ -11,39 +11,176 @@
 // <experimental/simd>
 //
 // [simd.casts]
-// template <class T, class U, class Abi> see below ex::simd_cast<(const
-// ex::simd<U, Abi>&);
+// template <class T, class U, class Abi> see below ex::simd_cast<(const ex::simd<U, Abi>&);
 
+#include "../test_utils.h"
 #include <experimental/simd>
-#include <cstdint>
-
-#include "test_macros.h"
 
 namespace ex = std::experimental::parallelism_v2;
 
-static_assert(
-    std::is_same<decltype(ex::simd_cast<int32_t>(ex::native_simd<int32_t>())),
-                 ex::native_simd<int32_t>>::value,
-    "");
+#define ASSERT_AND_TEST_EQUAL(ORIGIN, EXPECTED)                                                                        \
+  static_assert(std::is_same_v<decltype(ORIGIN), decltype(EXPECTED)>, "");                                             \
+  assert(ex::all_of(ORIGIN == EXPECTED) == true);
 
-static_assert(std::is_same<decltype(ex::simd_cast<int64_t>(
-                               ex::fixed_size_simd<int32_t, 4>())),
-                           ex::fixed_size_simd<int64_t, 4>>::value,
-              "");
+// 3. test for the final case
+#define GNERATOR_FULL_TYPE(TYPE)                                                                                       \
+  if constexpr (!std::is_same_v<_Tp, TYPE>) {                                                                          \
+    auto origin = ex::simd<_Tp, SimdAbi>([](_Tp i) { return i; });                                                     \
+    auto after_cast = ex::simd_cast<TYPE>(origin);                                                                     \
+    static_assert(std::is_same_v<decltype(after_cast),                                                                 \
+                                 ex::simd<TYPE, ex::simd_abi::fixed_size<ex::simd<_Tp, SimdAbi>::size()>>>);           \
+    std::array<_Tp, ex::simd_size_v<_Tp, SimdAbi>> expected_values;                                                    \
+    for (size_t i = 0; i < origin.size(); ++i)                                                                         \
+      expected_values[i] = static_cast<_Tp>(i);                                                                        \
+    assert_simd_value_correct(after_cast, expected_values);                                                            \
+  }
+struct CheckSimdCast {
+  template <class _Tp, class SimdAbi, std::size_t _Np>
+  void operator()() {
+    GNERATOR_FULL_TYPE(long double)
+    GNERATOR_FULL_TYPE(double)
+    GNERATOR_FULL_TYPE(float)
+    GNERATOR_FULL_TYPE(long long)
+    GNERATOR_FULL_TYPE(unsigned long long)
+    GNERATOR_FULL_TYPE(long)
+    GNERATOR_FULL_TYPE(unsigned long)
+    GNERATOR_FULL_TYPE(int)
+    GNERATOR_FULL_TYPE(unsigned int)
+    GNERATOR_FULL_TYPE(short)
+    GNERATOR_FULL_TYPE(unsigned short)
+    GNERATOR_FULL_TYPE(wchar_t)
+    GNERATOR_FULL_TYPE(signed char)
+    GNERATOR_FULL_TYPE(unsigned char)
+    GNERATOR_FULL_TYPE(char32_t)
+    GNERATOR_FULL_TYPE(char16_t)
 
-static_assert(
-    std::is_same<decltype(ex::simd_cast<ex::fixed_size_simd<int64_t, 1>>(
-                     ex::simd<int32_t, ex::simd_abi::scalar>())),
-                 ex::fixed_size_simd<int64_t, 1>>::value,
-    "");
+    // 2. test for the `std::is_same_v<U, T>`
+    {
+      auto origin = ex::simd<_Tp, SimdAbi>([](_Tp i) { return i; });
+      auto after_cast = ex::simd_cast<_Tp>(origin);
+      static_assert(std::is_same_v<decltype(after_cast),
+                                   ex::simd<TYPE, ex::simd_abi::fixed_size<ex::simd<_Tp, SimdAbi>::size()>>>);
+      std::array<_Tp, ex::simd_size_v<_Tp, SimdAbi>> expected_values;
+      for (size_t i = 0; i < origin.size(); ++i)
+        expected_values[i] = static_cast<_Tp>(i);
+      assert_simd_value_correct(after_cast, expected_values);
+    }
 
-static_assert(
-    std::is_same<
-        decltype(ex::simd_cast<ex::simd<int64_t, ex::simd_abi::scalar>>(
-            ex::fixed_size_simd<int32_t, 1>())),
-        ex::simd<int64_t, ex::simd_abi::scalar>>::value,
-    "");
+    constexpr std::size_t origin_full_abi_simd_size = ex::simd<_Tp, SimdAbi>::size();
+    static auto InitializeSimd = [](auto& origin_simd) {
+      const size_t simd_size = origin_simd.size();
+      for (size_t i = 0; i < simd_size; ++i)
+        origin_simd[i] = static_cast<_Tp>(i);
+    };
+    // 1. test for the `ex::is_simd_v<T>`
+    if constexpr (origin_full_abi_simd_size == ex::native_simd<_Tp>::size()) {
+      {
+        auto origin = ex::simd<_Tp, SimdAbi>();
+        InitializeSimd(origin);
+        auto after_cast = ex::simd_cast<ex::native_simd<_Tp>>(origin);
+        auto expected = ex::native_simd<_Tp>{};
+        InitializeSimd(expected);
+        ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      }
 
-int main(int, char**) {
-  return 0;
+      {
+        auto origin = ex::native_simd<_Tp>();
+        InitializeSimd(origin);
+        auto after_cast = ex::simd_cast<ex::simd<_Tp, SimdAbi>>(origin);
+        auto expected = ex::simd<_Tp, SimdAbi>{};
+        InitializeSimd(expected);
+        ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      }
+    }
+
+    if constexpr (origin_full_abi_simd_size == ex::fixed_size_simd<_Tp, _Np>::size()) {
+      {
+        auto origin = ex::simd<_Tp, SimdAbi>();
+        InitializeSimd(origin);
+        auto after_cast = ex::simd_cast<ex::fixed_size_simd<_Tp, _Np>>(origin);
+        auto expected = ex::fixed_size_simd<_Tp, _Np>{};
+        InitializeSimd(expected);
+        ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      }
+
+      {
+        auto origin = ex::fixed_size_simd<_Tp, _Np>();
+        InitializeSimd(origin);
+        auto after_cast = ex::simd_cast<ex::simd<_Tp, SimdAbi>>(origin);
+        auto expected = ex::simd<_Tp, SimdAbi>{};
+        InitializeSimd(expected);
+        ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      }
+    }
+
+    if constexpr (origin_full_abi_simd_size == ex::simd<_Tp, ex::simd_abi::scalar>::size()) {
+      {
+        auto origin = ex::simd<_Tp, SimdAbi>();
+        InitializeSimd(origin);
+        auto after_cast = ex::simd_cast<ex::simd<_Tp, ex::simd_abi::scalar>>(origin);
+        auto expected = ex::simd<_Tp, ex::simd_abi::scalar>{};
+        InitializeSimd(expected);
+        ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      }
+
+      {
+        auto origin = ex::simd<_Tp, ex::simd_abi::scalar>();
+        InitializeSimd(origin);
+        auto after_cast = ex::simd_cast<ex::simd<_Tp, SimdAbi>>(origin);
+        auto expected = ex::simd<_Tp, SimdAbi>{};
+        InitializeSimd(expected);
+        ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      }
+    }
+
+    if constexpr (origin_full_abi_simd_size == ex::simd<_Tp, ex::simd_abi::deduce_t<_Tp, _Np + 1>>::size()) {
+      {
+        auto origin = ex::simd<_Tp, SimdAbi>();
+        InitializeSimd(origin);
+        auto after_cast = ex::simd_cast<ex::simd<_Tp, ex::simd_abi::deduce_t<_Tp, _Np + 1>>>(origin);
+        auto expected = ex::simd<_Tp, ex::simd_abi::deduce_t<_Tp, _Np + 1>>{};
+        InitializeSimd(expected);
+        ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      }
+
+      {
+        auto origin = ex::simd<_Tp, ex::simd_abi::deduce_t<_Tp, _Np + 1>>();
+        InitializeSimd(origin);
+        auto after_cast = ex::simd_cast<ex::simd<_Tp, SimdAbi>>(origin);
+        auto expected = ex::simd<_Tp, SimdAbi>{};
+        InitializeSimd(expected);
+        ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      }
+    }
+
+    if constexpr (origin_full_abi_simd_size == ex::simd<_Tp, ex::simd_abi::compatible<_Tp>>::size()) {
+      {
+        auto origin = ex::simd<_Tp, SimdAbi>();
+        InitializeSimd(origin);
+        auto after_cast = ex::simd_cast<ex::simd<_Tp, ex::simd_abi::compatible<_Tp>>>(origin);
+        auto expected = ex::simd<_Tp, ex::simd_abi::compatible<_Tp>>{};
+        InitializeSimd(expected);
+        ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      }
+
+      {
+        auto origin = ex::simd<_Tp, ex::simd_abi::compatible<_Tp>>();
+        InitializeSimd(origin);
+        auto after_cast = ex::simd_cast<ex::simd<_Tp, SimdAbi>>(origin);
+        auto expected = ex::simd<_Tp, SimdAbi>{};
+        InitializeSimd(expected);
+        ASSERT_AND_TEST_EQUAL(after_cast, expected);
+      }
+    }
+  }
+};
+
+template <class F, std::size_t _Np, class _Tp>
+void test_simd_abi() {}
+template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
+void test_simd_abi() {
+  F{}.template operator()<_Tp, SimdAbi, _Np>();
+  test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
+
+int main(int, char**) { test_all_simd_abi<CheckSimdCast>(); }

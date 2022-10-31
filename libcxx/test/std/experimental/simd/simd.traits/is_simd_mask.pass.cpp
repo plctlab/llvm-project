@@ -12,142 +12,65 @@
 //
 // [simd.traits]
 // template <class T> struct ex::is_simd_mask;
-// template <class T> inline constexpr bool ex::is_simd_mask_v =
-// ex::is_simd_mask<T>::value;
+// template <class T> inline constexpr bool ex::is_simd_mask_v = ex::is_simd_mask<T>::value;
 
+#include "../test_utils.h"
 #include <cstdint>
 #include <experimental/simd>
-#include "test_macros.h"
 
 namespace ex = std::experimental::parallelism_v2;
 
-struct UserType {};
+struct CheckIsSimdMaskTrue {
+  template <class _Tp>
+  void operator()() {
+    static_assert(_Tp::value);
+  }
+};
 
-static_assert(ex::is_simd_mask<ex::native_simd_mask<int8_t>>::value, "");
-static_assert(ex::is_simd_mask<ex::native_simd_mask<int16_t>>::value, "");
-static_assert(ex::is_simd_mask<ex::native_simd_mask<int32_t>>::value, "");
-static_assert(ex::is_simd_mask<ex::native_simd_mask<int64_t>>::value, "");
-static_assert(ex::is_simd_mask<ex::native_simd_mask<uint8_t>>::value, "");
-static_assert(ex::is_simd_mask<ex::native_simd_mask<uint16_t>>::value, "");
-static_assert(ex::is_simd_mask<ex::native_simd_mask<uint32_t>>::value, "");
-static_assert(ex::is_simd_mask<ex::native_simd_mask<uint64_t>>::value, "");
-static_assert(ex::is_simd_mask<ex::native_simd_mask<float>>::value, "");
-static_assert(ex::is_simd_mask<ex::native_simd_mask<double>>::value, "");
+struct CheckIsSimdMaskFalse {
+  template <class _Tp>
+  void operator()() {
+    static_assert(!_Tp::value);
+  }
+};
 
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int8_t, 1>>::value, "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int16_t, 1>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int32_t, 1>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int64_t, 1>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint8_t, 1>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint16_t, 1>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint32_t, 1>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint64_t, 1>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<float, 1>>::value, "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<double, 1>>::value, "");
+struct CheckIsSimdMaskVTrue {
+  template <bool _Tp>
+  void operator()() {
+    static_assert(_Tp);
+  }
+};
 
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int8_t, 3>>::value, "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int16_t, 3>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int32_t, 3>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int64_t, 3>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint8_t, 3>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint16_t, 3>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint32_t, 3>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint64_t, 3>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<float, 3>>::value, "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<double, 3>>::value, "");
+struct CheckIsSimdMaskVFalse {
+  template <bool _Tp>
+  void operator()() {
+    static_assert(!_Tp);
+  }
+};
 
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int8_t, 32>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int16_t, 32>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int32_t, 32>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<int64_t, 32>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint8_t, 32>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint16_t, 32>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint32_t, 32>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<uint64_t, 32>>::value,
-              "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<float, 32>>::value, "");
-static_assert(ex::is_simd_mask<ex::fixed_size_simd_mask<double, 32>>::value,
-              "");
+template <class F, std::size_t _Np, class _Tp>
+void test_simd_abi() {
+}
+template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
+void test_simd_abi() {
+  if constexpr (std::is_same<F, CheckIsSimdMaskTrue>::value) {
+    F{}.template operator()<ex::is_simd_mask<ex::simd_mask<_Tp, SimdAbi>>>();
+  } else if constexpr (std::is_same<F, CheckIsSimdMaskFalse>::value) {
+    F{}.template operator()<ex::is_simd_mask<_Tp>>();
+    F{}.template operator()<ex::is_simd_mask<ex::simd<_Tp, SimdAbi>>>();
+  } else if constexpr (std::is_same<F, CheckIsSimdMaskVTrue>::value) {
+    F{}.template operator()<ex::is_simd_mask_v<ex::simd_mask<_Tp, SimdAbi>>>();
+  } else {
+    F{}.template operator()<ex::is_simd_mask_v<_Tp>>();
+    F{}.template operator()<ex::is_simd_mask_v<ex::simd<_Tp, SimdAbi>>>();
+  }
 
-static_assert(!ex::is_simd_mask<void>::value, "");
-static_assert(!ex::is_simd_mask<int>::value, "");
-static_assert(!ex::is_simd_mask<float>::value, "");
-static_assert(!ex::is_simd_mask<ex::simd<int>>::value, "");
-static_assert(!ex::is_simd_mask<ex::simd<float>>::value, "");
-static_assert(!ex::is_simd_mask<UserType>::value, "");
-
-static_assert(ex::is_simd_mask_v<ex::native_simd_mask<int8_t>>, "");
-static_assert(ex::is_simd_mask_v<ex::native_simd_mask<int16_t>>, "");
-static_assert(ex::is_simd_mask_v<ex::native_simd_mask<int32_t>>, "");
-static_assert(ex::is_simd_mask_v<ex::native_simd_mask<int64_t>>, "");
-static_assert(ex::is_simd_mask_v<ex::native_simd_mask<uint8_t>>, "");
-static_assert(ex::is_simd_mask_v<ex::native_simd_mask<uint16_t>>, "");
-static_assert(ex::is_simd_mask_v<ex::native_simd_mask<uint32_t>>, "");
-static_assert(ex::is_simd_mask_v<ex::native_simd_mask<uint64_t>>, "");
-static_assert(ex::is_simd_mask_v<ex::native_simd_mask<float>>, "");
-static_assert(ex::is_simd_mask_v<ex::native_simd_mask<double>>, "");
-
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int8_t, 1>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int16_t, 1>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int32_t, 1>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int64_t, 1>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint8_t, 1>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint16_t, 1>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint32_t, 1>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint64_t, 1>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<float, 1>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<double, 1>>, "");
-
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int8_t, 3>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int16_t, 3>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int32_t, 3>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int64_t, 3>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint8_t, 3>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint16_t, 3>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint32_t, 3>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint64_t, 3>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<float, 3>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<double, 3>>, "");
-
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int8_t, 32>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int16_t, 32>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int32_t, 32>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<int64_t, 32>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint8_t, 32>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint16_t, 32>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint32_t, 32>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<uint64_t, 32>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<float, 32>>, "");
-static_assert(ex::is_simd_mask_v<ex::fixed_size_simd_mask<double, 32>>, "");
-
-static_assert(!ex::is_simd_mask_v<void>, "");
-static_assert(!ex::is_simd_mask_v<int>, "");
-static_assert(!ex::is_simd_mask_v<float>, "");
-static_assert(!ex::is_simd_mask_v<ex::simd<int>>, "");
-static_assert(!ex::is_simd_mask_v<ex::simd<float>>, "");
-static_assert(!ex::is_simd_mask_v<UserType>, "");
+  test_simd_abi<F, _Np, _Tp, SimdAbis...>();
+}
 
 int main(int, char**) {
-  return 0;
+  test_all_simd_abi<CheckIsSimdMaskTrue>();
+  test_all_simd_abi<CheckIsSimdMaskFalse>();
+  test_all_simd_abi<CheckIsSimdMaskVTrue>();
+  test_all_simd_abi<CheckIsSimdMaskVFalse>();
 }
