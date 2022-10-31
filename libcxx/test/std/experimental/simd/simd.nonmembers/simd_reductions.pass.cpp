@@ -46,18 +46,16 @@
 //   typename V::value_type hmax(const const_where_expression<M, V>&) noexcept;
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
-#include <iostream>
+
 struct CheckSimdReduction {
   template <class _Tp, class SimdAbi>
   void operator()() {
     const ex::simd<_Tp, SimdAbi> lhs(static_cast<_Tp>(5));
     const ex::simd<_Tp, SimdAbi> rhs([](_Tp i) { return i; });
 
-    if constexpr (!std::is_floating_point_v<_Tp>) // ex::reduce has not finish?
     {
       const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
       _Tp result = ex::reduce(simd_, std::plus<>());
@@ -66,7 +64,6 @@ struct CheckSimdReduction {
         expected += simd_[i];
       assert(result == expected);
     }
-    if constexpr (!std::is_floating_point_v<_Tp>) // ex::reduce has not finish?
     {
       const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
       _Tp identity_element{};
@@ -82,7 +79,6 @@ struct CheckSimdReduction {
         assert(result == expected);
       }
     }
-    if constexpr (!std::is_floating_point_v<_Tp>) // ex::reduce has not finish?
     {
       const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
       auto reduce_result = ex::reduce(ex::where(simd_ > 0, simd_), std::plus<>());
@@ -97,7 +93,6 @@ struct CheckSimdReduction {
         assert(result == expected);
       }
     }
-    if constexpr (!std::is_floating_point_v<_Tp>) // ex::reduce has not finish?
     {
       const ex::simd<_Tp, SimdAbi> simd_([](_Tp i) { return i; });
       auto reduce_result = ex::reduce(ex::where(simd_ > 0, simd_), std::multiplies<>());

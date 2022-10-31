@@ -24,6 +24,7 @@
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
+
 struct CheckSimdUnaryOperator {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
@@ -36,6 +37,7 @@ struct CheckSimdUnaryOperator {
         origin_value[i] = static_cast<_Tp>(i);
 
       auto after_increment_simd = ++origin_simd;
+      static_assert(std::is_same_v<decltype(after_increment_simd), ex::simd<_Tp, SimdAbi>>);
 
       std::array<_Tp, array_size> expected_value;
       for (size_t i = 0; i < array_size; i++)
@@ -52,6 +54,7 @@ struct CheckSimdUnaryOperator {
         origin_value[i] = static_cast<_Tp>(i);
 
       auto after_increment_simd = origin_simd++;
+      static_assert(std::is_same_v<decltype(after_increment_simd), ex::simd<_Tp, SimdAbi>>);
 
       assert_simd_value_correct<array_size>(after_increment_simd, origin_value);
 
@@ -69,6 +72,7 @@ struct CheckSimdUnaryOperator {
         origin_value[i] = static_cast<_Tp>(i + 1);
 
       auto after_decrement_simd = --origin_simd;
+      static_assert(std::is_same_v<decltype(after_decrement_simd), ex::simd<_Tp, SimdAbi>>);
 
       std::array<_Tp, array_size> expected_value;
       for (size_t i = 0; i < array_size; i++)
@@ -85,6 +89,7 @@ struct CheckSimdUnaryOperator {
         origin_value[i] = static_cast<_Tp>(i + 1);
 
       auto after_decrement_simd = origin_simd--;
+      static_assert(std::is_same_v<decltype(after_decrement_simd), ex::simd<_Tp, SimdAbi>>);
 
       assert_simd_value_correct<array_size>(after_decrement_simd, origin_value);
 
@@ -97,7 +102,8 @@ struct CheckSimdUnaryOperator {
     {
       const ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return i; });
 
-      const auto origin_mask = !origin_simd;
+      auto origin_mask = !origin_simd;
+      static_assert(std::is_same_v<decltype(origin_mask), ex::simd_mask<_Tp, SimdAbi>>);
 
       std::array<bool, array_size> expected_value;
       for (size_t i = 0; i < array_size; ++i)
@@ -109,7 +115,8 @@ struct CheckSimdUnaryOperator {
       if constexpr (std::is_integral_v<_Tp> && !std::is_unsigned_v<_Tp>) {
         const ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return i; });
 
-        const auto after_inverse_simd = ~origin_simd;
+        auto after_inverse_simd = ~origin_simd;
+        static_assert(std::is_same_v<decltype(after_inverse_simd), ex::simd<_Tp, SimdAbi>>);
 
         std::array<_Tp, array_size> expected_value;
         for (size_t i = 0; i < array_size; ++i)
@@ -125,7 +132,8 @@ struct CheckSimdUnaryOperator {
       for (size_t i = 0; i < array_size; ++i)
         expected_value[i] = static_cast<_Tp>(i);
 
-      const auto expected_simd = +origin_simd;
+      auto expected_simd = +origin_simd;
+      static_assert(std::is_same_v<decltype(expected_simd), ex::simd<_Tp, SimdAbi>>);
 
       assert_simd_value_correct<array_size>(expected_simd, expected_value);
     }
@@ -137,7 +145,8 @@ struct CheckSimdUnaryOperator {
         for (size_t i = 0; i < array_size; ++i)
           expected_value[i] = -static_cast<_Tp>(i);
 
-        const auto expected_simd = -origin_simd;
+        auto expected_simd = -origin_simd;
+        static_assert(std::is_same_v<decltype(expected_simd), ex::simd<_Tp, SimdAbi>>);
 
         assert_simd_value_correct<array_size>(expected_simd, expected_value);
       }
