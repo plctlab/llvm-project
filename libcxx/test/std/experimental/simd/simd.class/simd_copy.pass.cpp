@@ -46,8 +46,7 @@ struct CheckSimdCopyFrom {
 
       origin_simd.copy_from(buffer, ex::vector_aligned_tag());
 
-      ex::simd<_Tp, SimdAbi> expected_simd([](_Tp i) { return static_cast<_Tp>(i + 1); });
-      assert_simd_value_correct(expected_simd, buffer);
+      assert_simd_value_correct(origin, buffer);
     }
 
     {
@@ -61,8 +60,7 @@ struct CheckSimdCopyFrom {
 
       origin_simd.copy_from(buffer, ex::overaligned_tag<alignas_size>());
 
-      ex::simd<_Tp, SimdAbi> expected_simd([](_Tp i) { return i; });
-      assert_simd_value_correct(expected_simd, buffer);
+      assert_simd_value_correct(origin, buffer);
     }
 
     {
@@ -76,8 +74,7 @@ struct CheckSimdCopyFrom {
 
       origin_simd.copy_from(buffer, ex::element_aligned_tag());
 
-      ex::simd<_Tp, SimdAbi> expected_simd([](_Tp i) { return i; });
-      assert_simd_value_correct(expected_simd, buffer);
+      assert_simd_value_correct(origin_simd, buffer);
     }
   }
 };
@@ -94,8 +91,7 @@ struct CheckSimdCopyTo {
 
       origin_simd.copy_to(expected_buffer, ex::vector_aligned_tag());
 
-      for (size_t i = 0; i < origin_simd.size(); i++)
-        assert(expected_buffer[i] == static_cast<_Tp>(i + 1));
+      assert_simd_value_correct(origin_simd, expected_buffer);
     }
 
     {
@@ -108,8 +104,7 @@ struct CheckSimdCopyTo {
 
       origin_simd.copy_to(expected_buffer, ex::overaligned_tag<alignas_size>());
 
-      for (size_t i = 0; i < array_length; i++)
-        assert(expected_buffer[i] == static_cast<_Tp>(i + 1));
+      assert_simd_value_correct(origin_simd, expected_buffer);
     }
 
     {
@@ -122,8 +117,7 @@ struct CheckSimdCopyTo {
 
       origin_simd.copy_to(expected_buffer, ex::element_aligned_tag());
 
-      for (size_t i = 0; i < array_length; i++)
-        assert(expected_buffer[i] == static_cast<_Tp>(i + 1));
+      assert_simd_value_correct(origin_simd, expected_buffer);
     }
   }
 };

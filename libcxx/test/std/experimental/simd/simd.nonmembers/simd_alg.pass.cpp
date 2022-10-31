@@ -17,7 +17,6 @@
 // template<class T, class Abi> simd<T, Abi> clamp(const simd<T, Abi>& v, const simd<T, Abi>& lo, const simd<T, Abi>& hi);
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -25,62 +24,86 @@ namespace ex = std::experimental::parallelism_v2;
 struct CheckSimdMin {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    const ex::simd<_Tp, SimdAbi> lhs([](_Tp i){return i;});
+    const ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return i; });
     const ex::simd<_Tp, SimdAbi> rhs(static_cast<_Tp>(5));
 
-    ex::simd<_Tp, SimdAbi> result_min_simd = ex::min(lhs, rhs);
-    for (size_t i = 0; i < result_min_simd.size(); ++i) {
-        assert(result_min_simd[i] == std::min(lhs[i], rhs[i]));
-    }
+    auto result_min_simd = ex::min(lhs, rhs);
+    static_assert(std::is_same_v<decltype(result_min_simd), ex::simd<_Tp, SimdAbi>>);
+
+    std::array<_Tp, lhs.size()> expected_values;
+
+    for (size_t i = 0; i < lhs.size(); ++i)
+      expected_values[i] = std::min(lhs[i], rhs[i]);
+
+    assert_simd_value_correct(result_min_simd, expected_values);
   }
 };
 
 struct CheckSimdMax {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    const ex::simd<_Tp, SimdAbi> lhs([](_Tp i){return i;});
+    const ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return i; });
     const ex::simd<_Tp, SimdAbi> rhs(static_cast<_Tp>(5));
 
-    ex::simd<_Tp, SimdAbi> result_max_simd = ex::max(lhs, rhs);
-    for (size_t i = 0; i < result_max_simd.size(); ++i) {
-        assert(result_max_simd[i] == std::max(lhs[i], rhs[i]));
-    }
+    auto result_max_simd = ex::max(lhs, rhs);
+    static_assert(std::is_same_v<decltype(result_max_simd), ex::simd<_Tp, SimdAbi>>);
+
+    std::array<_Tp, lhs.size()> expected_values;
+
+    for (size_t i = 0; i < lhs.size(); ++i)
+      expected_values[i] = std::max(lhs[i], rhs[i]);
+
+    assert_simd_value_correct(result_max_simd, expected_values);
   }
 };
 
 struct CheckSimdMinMax {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    const ex::simd<_Tp, SimdAbi> lhs([](_Tp i){return i;});
+    const ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return i; });
     const ex::simd<_Tp, SimdAbi> rhs(static_cast<_Tp>(5));
 
-    std::pair<ex::simd<_Tp, SimdAbi>,ex::simd<_Tp, SimdAbi>> result_min_max_simd = ex::minmax(lhs, rhs);
-    for (size_t i = 0; i < result_min_max_simd.first.size(); ++i) {
-        assert(result_min_max_simd.first[i] == std::min(lhs[i], rhs[i]));
-    }
-    for (size_t i = 0; i < result_min_max_simd.second.size(); ++i) {
-        assert(result_min_max_simd.second[i] == std::max(lhs[i], rhs[i]));
-    }
+    auto result_min_max_simd = ex::minmax(lhs, rhs);
+    static_assert(
+        std::is_same_v<decltype(result_min_max_simd), std::pair<ex::simd<_Tp, SimdAbi>, ex::simd<_Tp, SimdAbi>>>);
+
+    std::array<_Tp, lhs.size()> expected_min_values;
+
+    for (size_t i = 0; i < lhs.size(); ++i)
+      expected_min_values[i] = std::min(lhs[i], rhs[i]);
+
+    assert_simd_value_correct(result_min_max_simd.first, expected_min_values);
+
+    std::array<_Tp, lhs.size()> expected_max_values;
+
+    for (size_t i = 0; i < lhs.size(); ++i)
+      expected_max_values[i] = std::max(lhs[i], rhs[i]);
+
+    assert_simd_value_correct(result_min_max_simd.second, expected_max_values);
   }
 };
 
 struct CheckSimdClamp {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    const ex::simd<_Tp, SimdAbi> lo([](_Tp i){return i;});
-    const ex::simd<_Tp, SimdAbi> hi([](_Tp i){return static_cast<_Tp>(i+1);});
+    const ex::simd<_Tp, SimdAbi> lo([](_Tp i) { return i; });
+    const ex::simd<_Tp, SimdAbi> hi([](_Tp i) { return static_cast<_Tp>(i + 1); });
     const ex::simd<_Tp, SimdAbi> v(static_cast<_Tp>(5));
 
-    ex::simd<_Tp, SimdAbi> result_simd = ex::clamp(v, lo, hi);
-    for (size_t i = 0; i < result_simd.size(); ++i) {
-        assert(result_simd[i] == std::clamp(v[i], lo[i], hi[i]));
-    }
+    auto result_simd = ex::clamp(v, lo, hi);
+    static_assert(std::is_same_v<decltype(result_simd), ex::simd<_Tp, SimdAbi>>);
+
+    std::array<_Tp, lo.size()> expected_values;
+
+    for (size_t i = 0; i < lo.size(); ++i)
+      expected_values[i] = std::clamp(v[i], lo[i], hi[i]);
+
+    assert_simd_value_correct(result_simd, expected_values);
   }
 };
 
 template <class F, std::size_t _Np, class _Tp>
-void test_simd_abi() {
-}
+void test_simd_abi() {}
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
   F{}.template operator()<_Tp, SimdAbi>();
@@ -88,8 +111,8 @@ void test_simd_abi() {
 }
 
 int main() {
-    test_all_simd_abi<CheckSimdMin>();
-    test_all_simd_abi<CheckSimdMax>();
-    test_all_simd_abi<CheckSimdMinMax>();
-    test_all_simd_abi<CheckSimdClamp>();
+  test_all_simd_abi<CheckSimdMin>();
+  test_all_simd_abi<CheckSimdMax>();
+  test_all_simd_abi<CheckSimdMinMax>();
+  test_all_simd_abi<CheckSimdClamp>();
 }
