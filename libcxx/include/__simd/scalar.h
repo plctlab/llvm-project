@@ -119,14 +119,12 @@ struct __mask_traits<_Tp, simd_abi::__scalar> {
 
   static _Mask __broadcast(bool __v) noexcept { return {__v}; }
 
-  template <class _Up, class _Flags>
-  static _Mask __load(_Up* __mem, _Flags) noexcept {
-    return {static_cast<_Tp>(*__mem)};
+  static void __load(_Mask& __s, const bool* __mem) noexcept {
+    __s.__data = __mem[0];
   }
 
-  template <class _Up, class _Flags>
-  static void __store(_Mask __s, const _Up* __mem, _Flags) noexcept {
-    *__mem = static_cast<_Up>(__s.__data);
+  static void __store(_Mask __s, bool* __mem) noexcept {
+    __mem[0] = __s.__data;
   }
 
   static _Mask __negate(_Mask __s) noexcept { return {{!__s.__data}}; }
