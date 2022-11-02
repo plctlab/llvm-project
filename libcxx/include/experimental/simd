@@ -1221,26 +1221,26 @@ split(const simd_mask<typename _SimdMaskType::simd_type::value_type, _Abi>& __m)
 
 template <size_t _Num, class _Tp, class _Abi>
 enable_if_t<simd_size_v<_Tp, _Abi> % _Num == 0,
-            array<resize_simd<simd_size_v<_Tp, _Abi> / _Num, simd<_Tp, _Abi>>, _Num>>
+            array<resize_simd_t<simd_size_v<_Tp, _Abi> / _Num, simd<_Tp, _Abi>>, _Num>>
 split_by(const simd<_Tp, _Abi>& __v) noexcept {
   const size_t __size = simd_size_v<_Tp, _Abi> / _Num;
-  array<resize_simd<__size, simd<_Tp, _Abi>>, _Num> __arr{};
+  array<resize_simd_t<__size, simd<_Tp, _Abi>>, _Num> __arr{};
   for (size_t __i = 0; __i < __arr.size(); __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __arr[__i].type[__j] = __v[__i * __size + __j];
+      __arr[__i][__j] = __v[__i * __size + __j];
   }
   return __arr;
 }
 
 template <size_t _Num, class _Tp, class _Abi>
 enable_if_t<simd_size_v<_Tp, _Abi> % _Num == 0,
-            array<resize_simd<simd_size_v<_Tp, _Abi> / _Num, simd_mask<_Tp, _Abi>>, _Num>>
+            array<resize_simd_t<simd_size_v<_Tp, _Abi> / _Num, simd_mask<_Tp, _Abi>>, _Num>>
 split_by(const simd_mask<_Tp, _Abi>& __m) noexcept {
   const size_t __size = simd_size_v<_Tp, _Abi> / _Num;
-  array<resize_simd<__size, simd_mask<_Tp, _Abi>>, _Num> __arr{};
+  array<resize_simd_t<__size, simd_mask<_Tp, _Abi>>, _Num> __arr{};
   for (size_t __i = 0; __i < __arr.size(); __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __arr[__i].type[__j] = __m[__i * __size + __j];
+      __arr[__i][__j] = __m[__i * __size + __j];
   }
   return __arr;
 }
@@ -1269,24 +1269,24 @@ concat(const simd_mask<_Tp, _Abis>&... __m) noexcept {
 }
 
 template <class _Tp, class _Abi, size_t _Num>
-resize_simd<simd_size_v<_Tp, _Abi> * _Num, simd<_Tp, _Abi>> concat(const array<simd<_Tp, _Abi>, _Num>& __arr) noexcept {
+resize_simd_t<simd_size_v<_Tp, _Abi> * _Num, simd<_Tp, _Abi>> concat(const array<simd<_Tp, _Abi>, _Num>& __arr) noexcept {
   const size_t __size = simd_size_v<_Tp, _Abi>;
-  resize_simd<__size * _Num, simd<_Tp, _Abi>> __s;
+  resize_simd_t<__size * _Num, simd<_Tp, _Abi>> __s;
   for (size_t __i = 0; __i < _Num; __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __s.type[__i * __size + __j] = __arr[__i][__j];
+      __s[__i * __size + __j] = __arr[__i][__j];
   }
   return __s;
 }
 
 template <class _Tp, class _Abi, size_t _Num>
-resize_simd<simd_size_v<_Tp, _Abi> * _Num, simd_mask<_Tp, _Abi>>
+resize_simd_t<simd_size_v<_Tp, _Abi> * _Num, simd_mask<_Tp, _Abi>>
 concat(const array<simd_mask<_Tp, _Abi>, _Num>& __arr) noexcept {
   const size_t __size = simd_size_v<_Tp, _Abi>;
-  resize_simd<__size * _Num, simd_mask<_Tp, _Abi>> __m;
+  resize_simd_t<__size * _Num, simd_mask<_Tp, _Abi>> __m;
   for (size_t __i = 0; __i < _Num; __i++) {
     for (size_t __j = 0; __j < __size; __j++)
-      __m.type[__i * __size + __j] = __arr[__i][__j];
+      __m[__i * __size + __j] = __arr[__i][__j];
   }
   return __m;
 }
