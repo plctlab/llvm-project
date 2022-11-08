@@ -132,11 +132,18 @@ bool RISCVPushPopOpt::runOnMachineFunction(MachineFunction &Fn) {
   if (skipFunction(Fn.getFunction()))
     return false;
 
-  // If Zcea extension is not supported abort.
+  // If Zcea extension is not supported, abort.
   Subtarget = &static_cast<const RISCVSubtarget &>(Fn.getSubtarget());
   if (!(Subtarget->hasStdExtZcmp() || Subtarget->hasStdExtZcmpe())) {
     return false;
   }
+
+  // If frame pointer elimination has been disabled, 
+  // abort to avoid breaking the ABI.
+  if(Fn.getTarget().Options.DisableFramePointerElim(Fn)){
+    return false;
+  }
+
   TII = static_cast<const RISCVInstrInfo *>(Subtarget->getInstrInfo());
   TRI = Subtarget->getRegisterInfo();
   // Resize the modified and used register unit trackers.  We do this once

@@ -43,7 +43,7 @@ public:
 
   bool hasBP(const MachineFunction &MF) const;
 
-  bool isCSIpushable(const std::vector<CalleeSavedInfo> &CSI) const;
+  bool isCSIpushable(const MachineFunction &MF, const std::vector<CalleeSavedInfo> &CSI) const;
 
   bool hasReservedCallFrame(const MachineFunction &MF) const override;
   MachineBasicBlock::iterator

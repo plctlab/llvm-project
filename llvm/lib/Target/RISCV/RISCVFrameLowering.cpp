@@ -298,8 +298,9 @@ static uint64_t adjSPInPushPop(MachineBasicBlock::iterator MBBI, uint64_t StackA
 
 // Checks if Zce PUSH/POP instructions can be used with the given CSI.
 bool RISCVFrameLowering::isCSIpushable(
+    const MachineFunction &MF,
     const std::vector<CalleeSavedInfo> &CSI) const {
-  if (!(STI.hasStdExtZcmpe() || STI.hasStdExtZcmp()) || CSI.empty())
+  if (!(STI.hasStdExtZcmpe() || STI.hasStdExtZcmp()) || CSI.empty() || MF.getTarget().Options.DisableFramePointerElim(MF))
     return false;
   for (auto &CS: CSI){
       Register Reg = CS.getReg();
@@ -513,7 +514,7 @@ void RISCVFrameLowering::emitPrologue(MachineFunction &MF,
   }
 
   const auto &CSI = MFI.getCalleeSavedInfo();
-  bool PushEnabled = isCSIpushable(CSI);
+  bool PushEnabled = isCSIpushable(MF,CSI);
   if (PushEnabled && (CSI.size() != 0)){
     // Check at what offset spilling of registers starts and allocate space before it.
     int64_t preAdjustStack = 0;
@@ -698,7 +699,7 @@ void RISCVFrameLowering::emitEpilogue(MachineFunction &MF,
   // FIXME: assumes exactly one instruction is used to restore each
   // callee-saved register.
   auto LastFrameDestroy = MBBI;
-  bool PopEnabled = isCSIpushable(CSI);
+  bool PopEnabled = isCSIpushable(MF,CSI);
   if (PopEnabled)
     LastFrameDestroy = prev_nodbg(MBBI, MBB.begin());
   else if (!CSI.empty())
@@ -1173,7 +1174,7 @@ bool RISCVFrameLowering::spillCalleeSavedRegisters(
     DL = MI->getDebugLoc();
 
   // Emmit CM.PUSH with base SPimm & evaluate Push stack
-  if (isCSIpushable(CSI.vec())){
+  if (isCSIpushable(*MF,CSI.vec())){
     auto *RVFI = MF->getInfo<RISCVMachineFunctionInfo>();
     uint64_t PushStackSize = 0;
     std::vector<CalleeSavedInfo> NonePushCSI;
@@ -1252,7 +1253,7 @@ bool RISCVFrameLowering::restoreCalleeSavedRegisters(
   if (MI != MBB.end() && !MI->isDebugInstr())
     DL = MI->getDebugLoc();
 
-  if (isCSIpushable(CSI.vec())){
+  if (isCSIpushable(*MF,CSI.vec())){
      Register MaxReg = RISCV::NoRegister;
 
     for (auto &CS: reverse(CSI)){
