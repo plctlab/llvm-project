@@ -20,7 +20,7 @@ namespace ex = std::experimental::parallelism_v2;
 struct CheckSimdWidth {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    const ex::simd<_Tp, SimdAbi> origin_simd;
+    const ex::simd<_Tp, SimdAbi> origin_simd{};
     static_assert(origin_simd.size() == ex::simd_size_v<_Tp, SimdAbi>);
   }
 };
