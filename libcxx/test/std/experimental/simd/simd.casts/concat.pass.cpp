@@ -110,10 +110,10 @@ struct CheckConcatResizeSimd {
       }
     }
 
-    using concat_result_type = ex::resize_simd<ex::simd_size_v<_Tp, SimdAbi> * _Np, ex::simd<_Tp, SimdAbi>>;
+    using concat_result_type = ex::resize_simd_t<ex::simd_size_v<_Tp, SimdAbi> * _Np, ex::simd<_Tp, SimdAbi>>;
     auto concat_result = ex::concat<_Tp, SimdAbi, _Np>(arr);
 
-    static_assert(ex::is_simd_mask_v<decltype(concat_result)>);
+    static_assert(ex::is_simd_v<decltype(concat_result)>);
     static_assert(std::is_same_v<decltype(concat_result), concat_result_type>);
 
     constexpr size_t prev_length = ex::simd_size_v<_Tp, SimdAbi>;
@@ -134,7 +134,7 @@ struct CheckConcatResizeSimdMask {
       }
     }
 
-    using concat_result_type = ex::resize_simd<ex::simd_size_v<_Tp, SimdAbi> * _Np, ex::simd_mask<_Tp, SimdAbi>>;
+    using concat_result_type = ex::resize_simd_t<ex::simd_size_v<_Tp, SimdAbi> * _Np, ex::simd_mask<_Tp, SimdAbi>>;
     auto concat_result = ex::concat<_Tp, SimdAbi, _Np>(arr);
 
     static_assert(ex::is_simd_mask_v<decltype(concat_result)>);
