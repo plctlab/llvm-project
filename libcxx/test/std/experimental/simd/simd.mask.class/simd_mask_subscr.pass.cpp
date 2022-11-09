@@ -20,12 +20,6 @@
 
 namespace ex = std::experimental::parallelism_v2;
 
-template <class T>
-struct is_simd_reference : std::false_type {};
-
-template <class _Storage, class _ValueType>
-struct is_simd_reference<ex::__simd_reference<_Storage, _ValueType>> : std::true_type {};
-
 struct CheckSimdMaskReferenceSubscr {
   template <class _Tp, class SimdAbi, size_t _Np>
   void operator()() {
