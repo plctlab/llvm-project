@@ -1577,14 +1577,20 @@ public:
 
   template <class _Up>
   enable_if_t<is_convertible_v<_Up, _SimdType>> operator=(_Up&& __v) && noexcept {
-    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __v.__s_);
+    if constexpr (is_arithmetic_v<_Up>)
+      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__broadcast(__v));
+    else
+      _Impl::__masked_assign(__s_.__s_, __m_.__s_, __v.__s_);
   }
 
 #  define _LIBCXX_SIMD_MASK_OP_(__op, __name)                                                                          \
     template <class _Up>                                                                                               \
     enable_if_t<is_convertible_v<decltype(declval<_SimdType&>() __op declval<_Up>()), _SimdType>> operator __op##=(    \
         _Up&& __v)&& noexcept {                                                                                        \
-      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name((__s_.__s_, __v.__s_)));                              \
+      if constexpr (is_arithmetic_v<_Up>)                                                                              \
+        _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name(__s_.__s_, _Impl::__broadcast(__v)));               \
+      else                                                                                                             \
+        _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name(__s_.__s_, __v.__s_));                              \
     }
 
   _LIBCXX_SIMD_MASK_OP_(+, __plus)
