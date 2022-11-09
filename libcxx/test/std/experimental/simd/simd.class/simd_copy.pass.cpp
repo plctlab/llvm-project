@@ -46,7 +46,7 @@ struct CheckSimdCopyFrom {
 
       origin_simd.copy_from(buffer, ex::vector_aligned_tag());
 
-      assert_simd_value_correct(origin, buffer);
+      assert_simd_value_correct(origin_simd, buffer);
     }
 
     {
@@ -60,7 +60,7 @@ struct CheckSimdCopyFrom {
 
       origin_simd.copy_from(buffer, ex::overaligned_tag<alignas_size>());
 
-      assert_simd_value_correct(origin, buffer);
+      assert_simd_value_correct(origin_simd, buffer);
     }
 
     {
