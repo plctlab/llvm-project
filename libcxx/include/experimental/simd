@@ -1708,18 +1708,75 @@ public:
 };
 
 // Class template simd [parallel.simd.class]
+template <class _Simd, class _Impl, bool>
+class _SimdIntOperators {};
+
+template <class _Simd, class _Impl>
+class _SimdIntOperators<_Simd, _Impl, true> {
+public:
+  // unary operators for integral _Tp [simd.unary]
+  _Simd operator~() const noexcept { return _Impl::__bitwise_not((*static_cast<const _Simd*>(this)).__s_); }
+
+  // binary operators for integral _Tp [simd.binary]
+  friend _Simd operator%(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__modulus(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator&(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__bitwise_and(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator|(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__bitwise_or(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator^(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator<<(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__shift_left(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator>>(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__shift_right(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator<<(const _Simd& __lhs, int __rhs) noexcept { return _Impl::__shift_left(__lhs.__s_, __rhs); }
+
+  friend _Simd operator>>(const _Simd& __lhs, int __rhs) noexcept { return _Impl::__shift_right(__lhs.__s_, __rhs); }
+
+  // compound assignment for integral _Tp [simd.cassign]
+
+  friend _Simd& operator%=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs % __rhs; }
+
+  friend _Simd& operator&=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs & __rhs; }
+
+  friend _Simd& operator|=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs | __rhs; }
+
+  friend _Simd& operator^=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs ^ __rhs; }
+
+  friend _Simd& operator<<=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs << __rhs; }
+
+  friend _Simd& operator>>=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs >> __rhs; }
+
+  friend _Simd& operator<<=(_Simd& __lhs, int __rhs) noexcept { return __lhs = __lhs << __rhs; }
+
+  friend _Simd& operator>>=(_Simd& __lhs, int __rhs) noexcept { return __lhs = __lhs >> __rhs; }
+};
+
 template <class _Tp, class _Abi>
-class simd {
+class simd : public _SimdIntOperators<simd<_Tp, _Abi>, __simd_traits<_Tp, _Abi>, is_integral_v<_Tp>> {
   using _Impl    = __simd_traits<_Tp, _Abi>;
   using _Storage = typename _Impl::_Simd;
 
   _Storage __s_;
 
   friend class simd_mask<_Tp, _Abi>;
+  friend class _SimdIntOperators<simd, _Impl, true>;
 
   template <class _MaskType, class _SimdType>
   friend class const_where_expression;
-
   template <class _MaskType, class _SimdType>
   friend class where_expression;
 
@@ -1822,9 +1879,6 @@ public:
 
   mask_type operator!() const noexcept { return _Impl::__negate(__s_); }
 
-  // TODO: add SFINAE check here. This operator shall not participate in overload resolution unless _Tp is an integral type.
-  simd operator~() const noexcept { return _Impl::__bitwise_not(__s_); }
-
   simd operator+() const noexcept { return *this; }
 
   simd operator-() const noexcept { return _Impl::__unary_minus(__s_); }
@@ -1844,34 +1898,6 @@ public:
     return _Impl::__divides(__lhs.__s_, __rhs.__s_);
   }
 
-  friend simd operator%(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__modulus(__lhs.__s_, __rhs.__s_);
-  }
-
-  friend simd operator&(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__bitwise_and(__lhs.__s_, __rhs.__s_);
-  }
-
-  friend simd operator|(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__bitwise_or(__lhs.__s_, __rhs.__s_);
-  }
-
-  friend simd operator^(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_);
-  }
-
-  friend simd operator<<(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__shift_left(__lhs.__s_, __rhs.__s_);
-  }
-
-  friend simd operator>>(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__shift_right(__lhs.__s_, __rhs.__s_);
-  }
-
-  friend simd operator<<(const simd& __lhs, int __rhs) noexcept { return _Impl::__shift_left(__lhs.__s_, __rhs); }
-
-  friend simd operator>>(const simd& __lhs, int __rhs) noexcept { return _Impl::__shift_right(__lhs.__s_, __rhs); }
-
   // compound assignment [simd.cassign]
   friend simd& operator+=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs + __rhs; }
 
@@ -1880,22 +1906,6 @@ public:
   friend simd& operator*=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs * __rhs; }
 
   friend simd& operator/=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs / __rhs; }
-
-  friend simd& operator%=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs % __rhs; }
-
-  friend simd& operator&=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs & __rhs; }
-
-  friend simd& operator|=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs | __rhs; }
-
-  friend simd& operator^=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs ^ __rhs; }
-
-  friend simd& operator<<=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs << __rhs; }
-
-  friend simd& operator>>=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs >> __rhs; }
-
-  friend simd& operator<<=(simd& __lhs, int __rhs) noexcept { return __lhs = __lhs << __rhs; }
-
-  friend simd& operator>>=(simd& __lhs, int __rhs) noexcept { return __lhs = __lhs >> __rhs; }
 
   // compares [simd.comparison]
   friend mask_type operator==(const simd& __lhs, const simd& __rhs) noexcept {
@@ -1935,7 +1945,6 @@ class simd_mask {
 
   template <class _MaskType, class _SimdType>
   friend class const_where_expression;
-
   template <class _MaskType, class _SimdType>
   friend class where_expression;
 
