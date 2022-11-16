@@ -17,6 +17,7 @@
 // template<class U, class Flags> simd(const U* mem, Flags f);
 
 #include "../test_utils.h"
+#include<iostream>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -70,11 +71,10 @@ struct CheckFixedSimdCtor {
         {
           ex::simd<char, SimdAbi> char_simd([](char i) { return i; });
           ex::simd<_Tp, SimdAbi> convert_from_char(char_simd);
-
-          std::array<char, array_size> expected_value;
-          for (size_t i = 0; i < array_size; i++)
-            expected_value[i] = static_cast<char>(i);
-          assert_simd_value_correct<array_size, char>(convert_from_char, expected_value);
+          // std::array<char, array_size> expected_value;
+          // for (size_t i = 0; i < array_size; i++)
+          //   expected_value[i] = static_cast<char>(i);
+          // assert_simd_value_correct<array_size, char>(convert_from_char, expected_value);
         }
         if constexpr (std::is_same_v<_Tp, short> || std::is_same_v<_Tp, unsigned short>) {
           return;
@@ -152,21 +152,24 @@ struct CheckFixedSimdCtor {
         }
         {
           const ex::simd<double, SimdAbi> double_simd([](double i) { return i; });
-          ex::simd<_Tp, SimdAbi> convert_from_double(double_simd);
+          std::cout << double_simd.size()<<'\n';
+          
+          // ex::simd<_Tp, SimdAbi> convert_from_double(double_simd);
 
-          std::array<double, array_size> expected_value_in_double;
-          for (size_t i = 0; i < array_size; i++)
-            expected_value_in_double[i] = static_cast<double>(i);
-          assert_simd_value_correct<array_size, double>(convert_from_double, expected_value_in_double);
+          // std::array<double, array_size> expected_value_in_double;
+          // for (size_t i = 0; i < array_size; i++)
+          //   expected_value_in_double[i] = static_cast<double>(i);
+          // assert_simd_value_correct<array_size, double>(convert_from_double, expected_value_in_double);
         }
         {
           const ex::simd<long double, SimdAbi> long_double_simd([](long double i) { return i; });
-          ex::simd<_Tp, SimdAbi> convert_from_long_double(long_double_simd);
+          std::cout << long_double_simd.size()<<'\n';
+          // ex::simd<_Tp, SimdAbi> convert_from_long_double(long_double_simd);
 
-          std::array<long double, array_size> expected_value_in_long_double;
-          for (size_t i = 0; i < array_size; i++)
-            expected_value_in_long_double[i] = static_cast<long double>(i);
-          assert_simd_value_correct<array_size, long double>(convert_from_long_double, expected_value_in_long_double);
+          // std::array<long double, array_size> expected_value_in_long_double;
+          // for (size_t i = 0; i < array_size; i++)
+          //   expected_value_in_long_double[i] = static_cast<long double>(i);
+          // assert_simd_value_correct<array_size, long double>(convert_from_long_double, expected_value_in_long_double);
         }
       }
     }

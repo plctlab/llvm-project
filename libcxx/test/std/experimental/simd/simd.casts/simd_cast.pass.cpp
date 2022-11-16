@@ -25,7 +25,7 @@ namespace ex = std::experimental::parallelism_v2;
 // 3. test for the final case
 #define GNERATOR_FULL_TYPE(TYPE)                                                                                       \
   if constexpr (!std::is_same_v<_Tp, TYPE>) {                                                                          \
-    auto origin = ex::simd<_Tp, SimdAbi>([](_Tp i) { return i; });                                                     \
+    ex::simd<_Tp, SimdAbi> origin([](_Tp i) { return i; });                                                            \
     auto after_cast = ex::simd_cast<TYPE>(origin);                                                                     \
     static_assert(std::is_same_v<decltype(after_cast),                                                                 \
                                  ex::simd<TYPE, ex::simd_abi::fixed_size<ex::simd<_Tp, SimdAbi>::size()>>>);           \
@@ -56,10 +56,10 @@ struct CheckSimdCast {
 
     // 2. test for the `std::is_same_v<U, T>`
     {
-      auto origin = ex::simd<_Tp, SimdAbi>([](_Tp i) { return i; });
+      ex::simd<_Tp, SimdAbi> origin([](_Tp i) { return i; });
       auto after_cast = ex::simd_cast<_Tp>(origin);
       static_assert(std::is_same_v<decltype(after_cast),
-                                   ex::simd<TYPE, ex::simd_abi::fixed_size<ex::simd<_Tp, SimdAbi>::size()>>>);
+                                   ex::simd<_Tp, ex::simd_abi::fixed_size<ex::simd<_Tp, SimdAbi>::size()>>>);
       std::array<_Tp, ex::simd_size_v<_Tp, SimdAbi>> expected_values;
       for (size_t i = 0; i < origin.size(); ++i)
         expected_values[i] = static_cast<_Tp>(i);
@@ -179,8 +179,10 @@ template <class F, std::size_t _Np, class _Tp>
 void test_simd_abi() {}
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
-  F{}.template operator()<_Tp, SimdAbi, _Np>();
-  test_simd_abi<F, _Np, _Tp, SimdAbis...>();
+  if constexpr (!std::is_same_v<ex::simd_abi::scalar, SimdAbi>) {
+    F{}.template operator()<_Tp, SimdAbi, _Np>();
+    test_simd_abi<F, _Np, _Tp, SimdAbis...>();
+  }
 }
 
 int main(int, char**) { test_all_simd_abi<CheckSimdCast>(); }

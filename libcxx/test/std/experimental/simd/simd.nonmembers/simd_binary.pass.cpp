@@ -33,7 +33,7 @@ struct CheckSimdBinary {
   template <class _Tp, class SimdAbi>
   void operator()() {
     const ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return static_cast<_Tp>(i + 1); });
-    const ex::simd<_Tp, SimdAbi> rhs([](_Tp i) { return i; });
+    const ex::simd<_Tp, SimdAbi> rhs([]([[maybe_unused]] _Tp i) { return static_cast<_Tp>(2); });
     static_assert(lhs.size() == rhs.size());
     constexpr size_t array_size = lhs.size();
     {
@@ -44,7 +44,6 @@ struct CheckSimdBinary {
         expected_values[i] = static_cast<_Tp>(lhs[i] + rhs[i]);
       assert_simd_value_correct(result_plus_simd, expected_values);
     }
-
     {
       auto result_minus_simd = lhs - rhs;
       static_assert(std::is_same_v<decltype(result_minus_simd), ex::simd<_Tp, SimdAbi>>);
@@ -53,7 +52,6 @@ struct CheckSimdBinary {
         expected_values[i] = static_cast<_Tp>(lhs[i] - rhs[i]);
       assert_simd_value_correct(result_minus_simd, expected_values);
     }
-
     {
       auto result_multiply_simd = lhs * rhs;
       static_assert(std::is_same_v<decltype(result_multiply_simd), ex::simd<_Tp, SimdAbi>>);
@@ -62,16 +60,14 @@ struct CheckSimdBinary {
         expected_values[i] = static_cast<_Tp>(lhs[i] * rhs[i]);
       assert_simd_value_correct(result_multiply_simd, expected_values);
     }
-
-    // {
-    //    auto result_division_simd = lhs / rhs;
-    //    static_assert(std::is_same_v<decltype(result_division_simd), ex::simd<_Tp, SimdAbi>>);
-    //    std::array<_Tp, array_size> expected_values;
-    //    for (size_t i = 0; i < array_size; i++)
-    //      expected_values[i] = static_cast<_Tp>((i + 1) / (i));
-    //    assert_simd_value_correct(result_division_simd, expected_values);
-    // }
-
+    {
+       auto result_division_simd = lhs / rhs;
+       static_assert(std::is_same_v<decltype(result_division_simd), ex::simd<_Tp, SimdAbi>>);
+       std::array<_Tp, array_size> expected_values;
+       for (size_t i = 0; i < array_size; i++)
+         expected_values[i] = static_cast<_Tp>(lhs[i] / rhs[i]);
+       assert_simd_value_correct(result_division_simd, expected_values);
+    }
     {
       if constexpr (std::is_integral_v<_Tp>) {
         auto result_mod_simd = lhs % rhs;
@@ -82,7 +78,6 @@ struct CheckSimdBinary {
         assert_simd_value_correct(result_mod_simd, expected_values);
       }
     }
-
     {
       if constexpr (std::is_integral_v<_Tp>) {
         auto result_and_simd = lhs & rhs;
@@ -136,10 +131,9 @@ struct CheckSimdBinary {
     {
       if constexpr (std::is_integral_v<_Tp>) {
         constexpr int shift_size = 2;
-
         auto result_shift_left_simd = lhs << shift_size;
-
         static_assert(std::is_same_v<decltype(result_shift_left_simd), ex::simd<_Tp, SimdAbi>>);
+
         std::array<_Tp, array_size> expected_values;
         for (size_t i = 0; i < array_size; i++)
           expected_values[i] = static_cast<_Tp>(lhs[i] << shift_size);
@@ -149,9 +143,9 @@ struct CheckSimdBinary {
     {
       if constexpr (std::is_integral_v<_Tp>) {
         constexpr int shift_size = 2;
-
-        ex::simd<_Tp, SimdAbi> result_shift_right_simd = lhs >> shift_size;
+        auto result_shift_right_simd = lhs >> shift_size;
         static_assert(std::is_same_v<decltype(result_shift_right_simd), ex::simd<_Tp, SimdAbi>>);
+
         std::array<_Tp, array_size> expected_values;
         for (size_t i = 0; i < array_size; i++)
           expected_values[i] = static_cast<_Tp>(lhs[i] >> shift_size);
@@ -165,8 +159,10 @@ template <class F, std::size_t _Np, class _Tp>
 void test_simd_abi() {}
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
-  F{}.template operator()<_Tp, SimdAbi>();
-  test_simd_abi<F, _Np, _Tp, SimdAbis...>();
+  if constexpr (!std::is_same_v<_Tp, signed char> && !std::is_same_v<_Tp, unsigned char>) {
+    F{}.template operator()<_Tp, SimdAbi>();
+    test_simd_abi<F, _Np, _Tp, SimdAbis...>();
+  }
 }
 
 int main() { test_all_simd_abi<CheckSimdBinary>(); }

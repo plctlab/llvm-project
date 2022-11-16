@@ -86,22 +86,22 @@ void test_all_simd_abi(std::integer_sequence<std::size_t, _Np...>) {
 
 template <class F>
 void test_all_simd_abi() {
-  test_all_simd_abi<F, long double>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, double>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, float>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, long long>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, unsigned long long>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, long>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, unsigned long>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, int>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, unsigned int>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, short>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, unsigned short>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, wchar_t>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, signed char>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, unsigned char>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, char32_t>(std::make_integer_sequence<std::size_t, 64>());
-  test_all_simd_abi<F, char16_t>(std::make_integer_sequence<std::size_t, 64>());
+  test_all_simd_abi<F, long double>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, double>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, float>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, long long>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, unsigned long long>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, long>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, unsigned long>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, int>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, unsigned int>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, short>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, unsigned short>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, wchar_t>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, signed char>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, unsigned char>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, char32_t>(std::make_integer_sequence<std::size_t, 32>());
+  test_all_simd_abi<F, char16_t>(std::make_integer_sequence<std::size_t, 32>());
 }
 
 #endif // TEST_UTIL_H

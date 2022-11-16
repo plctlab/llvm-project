@@ -22,7 +22,6 @@
 // friend simd& operator<<=(simd& lhs, const simd& rhs) noexcept;
 // friend simd& operator>>=(simd& lhs, const simd& rhs) noexcept;
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
@@ -30,140 +29,180 @@ namespace ex = std::experimental::parallelism_v2;
 struct CheckSimdCassign {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return static_cast<_Tp>(i + 1); });
-    const ex::simd<_Tp, SimdAbi> rhs([](_Tp i) { return i; });
-
+    ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return static_cast<_Tp>(i + 2); });
+    const ex::simd<_Tp, SimdAbi> rhs([]([[maybe_unused]]_Tp i) { return static_cast<_Tp>(2); });
+    constexpr std::size_t array_size = lhs.size();
     {
-      auto check_operator_work_from_rhs = rhs[0];
-      check_operator_work_from_rhs += rhs[0];
-      assert(check_operator_work_from_rhs == rhs[0] + rhs[0]);
-
       const auto origin_lhs_backup = lhs;
-      ex::simd<_Tp, SimdAbi> result_plus_simd = lhs += rhs;
-      assert(ex::all_of(result_plus_simd == lhs) == true);
-      for (size_t i = 0; i < result_plus_simd.size(); ++i)
-        assert(result_plus_simd[i] == origin_lhs_backup[i] + rhs[i]);
+      auto result_plus_simd = lhs += rhs;
+      static_assert(std::is_same_v<decltype(result_plus_simd), ex::simd<_Tp, SimdAbi>>);
+      std::array<_Tp, array_size> expected_value;
+
+      for (size_t i = 0; i < array_size; ++i)
+        expected_value[i] = lhs[i];
+      assert_simd_value_correct(result_plus_simd, expected_value);
+
+      for (size_t i = 0; i < array_size; ++i)
+        expected_value[i] = origin_lhs_backup[i] + rhs[i];
+      assert_simd_value_correct(result_plus_simd, expected_value);
+
+      lhs = origin_lhs_backup;
+    }
+    
+    {
+      const auto origin_lhs_backup = lhs;
+      auto result_minus_simd = lhs -= rhs;
+      static_assert(std::is_same_v<decltype(result_minus_simd), ex::simd<_Tp, SimdAbi>>);
+      std::array<_Tp, array_size> expected_value;
+
+      for (size_t i = 0; i < array_size; ++i)
+        expected_value[i] = lhs[i];
+      assert_simd_value_correct(result_minus_simd, expected_value);
+
+      for (size_t i = 0; i < array_size; ++i)
+        expected_value[i] = origin_lhs_backup[i] - rhs[i];
+      assert_simd_value_correct(result_minus_simd, expected_value);
+
       lhs = origin_lhs_backup;
     }
     {
-      auto check_operator_work_from_rhs = rhs[0];
-      check_operator_work_from_rhs -= rhs[0];
-      assert(check_operator_work_from_rhs == rhs[0] - rhs[0]);
-
       const auto origin_lhs_backup = lhs;
-      ex::simd<_Tp, SimdAbi> result_minus_simd = lhs -= rhs;
-      assert(ex::all_of(result_minus_simd == lhs) == true);
-      for (size_t i = 0; i < result_minus_simd.size(); ++i)
-        assert(result_minus_simd[i] == origin_lhs_backup[i] - rhs[i]);
+      auto result_multiply_simd = lhs *= rhs;
+      static_assert(std::is_same_v<decltype(result_multiply_simd), ex::simd<_Tp, SimdAbi>>);
+      std::array<_Tp, array_size> expected_value;
+
+      for (size_t i = 0; i < array_size; ++i)
+        expected_value[i] = lhs[i];
+      assert_simd_value_correct(result_multiply_simd, expected_value);
+
+      for (size_t i = 0; i < array_size; ++i)
+        expected_value[i] = origin_lhs_backup[i] * rhs[i];
+      assert_simd_value_correct(result_multiply_simd, expected_value);
+
       lhs = origin_lhs_backup;
     }
     {
-      auto check_operator_work_from_rhs = rhs[0];
-      check_operator_work_from_rhs *= rhs[0];
-      assert(check_operator_work_from_rhs == rhs[0] * rhs[0]);
-
       const auto origin_lhs_backup = lhs;
-      ex::simd<_Tp, SimdAbi> result_multiply_simd = lhs *= rhs;
-      assert(ex::all_of(result_multiply_simd == lhs) == true);
-      for (size_t i = 0; i < result_multiply_simd.size(); ++i)
-        assert(result_multiply_simd[i] == origin_lhs_backup[i] * rhs[i]);
-      lhs = origin_lhs_backup;
-    }
-    {
-      auto check_operator_work_from_lhs = lhs[0];
-      auto check_operator_work_from_rhs = rhs[0];
-      check_operator_work_from_lhs /= check_operator_work_from_rhs;
-      assert(check_operator_work_from_lhs == lhs[0] / check_operator_work_from_rhs);
+      auto result_division_simd = lhs /= rhs;
+      static_assert(std::is_same_v<decltype(result_division_simd), ex::simd<_Tp, SimdAbi>>);
+      std::array<_Tp, array_size> expected_value;
 
-      const auto origin_lhs_backup = lhs;
-      ex::simd<_Tp, SimdAbi> result_division_simd = lhs /= rhs;
-      assert(ex::all_of(result_division_simd == lhs) == true);
-      for (size_t i = 0; i < result_division_simd.size(); ++i)
-        assert(result_division_simd[i] == (origin_lhs_backup[i] / rhs[i]));
+      for (size_t i = 0; i < array_size; ++i)
+        expected_value[i] = lhs[i];
+      assert_simd_value_correct(result_division_simd, expected_value);
+
+      for (size_t i = 0; i < array_size; ++i)
+        expected_value[i] = origin_lhs_backup[i] / rhs[i];
+      assert_simd_value_correct(result_division_simd, expected_value);
+
       lhs = origin_lhs_backup;
     }
     {
       if constexpr (std::is_integral_v<_Tp>) {
-        auto check_operator_work_from_lhs = lhs[0];
-        auto check_operator_work_from_rhs = rhs[0];
-        check_operator_work_from_lhs %= check_operator_work_from_rhs;
-        assert(check_operator_work_from_lhs == lhs[0] % check_operator_work_from_rhs);
-
         const auto origin_lhs_backup = lhs;
-        ex::simd<_Tp, SimdAbi> result_mod_simd = lhs %= rhs;
-        assert(ex::all_of(result_mod_simd == lhs) == true);
-        for (size_t i = 0; i < result_mod_simd.size(); ++i)
-          assert(result_mod_simd[i] == (origin_lhs_backup[i] % rhs[i]));
+        auto result_mod_simd = lhs %= rhs;
+        static_assert(std::is_same_v<decltype(result_mod_simd), ex::simd<_Tp, SimdAbi>>);
+        std::array<_Tp, array_size> expected_value;
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = lhs[i];
+        assert_simd_value_correct(result_mod_simd, expected_value);
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = origin_lhs_backup[i] % rhs[i];
+        assert_simd_value_correct(result_mod_simd, expected_value);
+
+        lhs = origin_lhs_backup;
+      }
+    }
+    
+    {
+      if constexpr (std::is_integral_v<_Tp>) {
+        const auto origin_lhs_backup = lhs;
+        auto result_and_simd = lhs &= rhs;
+        static_assert(std::is_same_v<decltype(result_and_simd), ex::simd<_Tp, SimdAbi>>);
+        std::array<_Tp, array_size> expected_value;
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = lhs[i];
+        assert_simd_value_correct(result_and_simd, expected_value);
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = origin_lhs_backup[i] & rhs[i];
+        assert_simd_value_correct(result_and_simd, expected_value);
+
         lhs = origin_lhs_backup;
       }
     }
     {
       if constexpr (std::is_integral_v<_Tp>) {
-        auto check_operator_work_from_rhs = rhs[0];
-        check_operator_work_from_rhs &= rhs[0];
-        assert(check_operator_work_from_rhs == (rhs[0] & rhs[0]));
-
         const auto origin_lhs_backup = lhs;
-        ex::simd<_Tp, SimdAbi> result_and_simd = lhs &= rhs;
-        assert(ex::all_of(result_and_simd == lhs) == true);
-        for (size_t i = 0; i < result_and_simd.size(); ++i)
-          assert(result_and_simd[i] == (origin_lhs_backup[i] & rhs[i]));
+        auto result_or_simd = lhs |= rhs;
+        static_assert(std::is_same_v<decltype(result_or_simd), ex::simd<_Tp, SimdAbi>>);
+        std::array<_Tp, array_size> expected_value;
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = lhs[i];
+        assert_simd_value_correct(result_or_simd, expected_value);
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = origin_lhs_backup[i] | rhs[i];
+        assert_simd_value_correct(result_or_simd, expected_value);
+
         lhs = origin_lhs_backup;
       }
     }
     {
       if constexpr (std::is_integral_v<_Tp>) {
-        auto check_operator_work_from_rhs = rhs[0];
-        check_operator_work_from_rhs |= rhs[0];
-        assert(check_operator_work_from_rhs == (rhs[0] | rhs[0]));
-
         const auto origin_lhs_backup = lhs;
-        ex::simd<_Tp, SimdAbi> result_or_simd = lhs |= rhs;
-        assert(ex::all_of(result_or_simd == lhs) == true);
-        for (size_t i = 0; i < result_or_simd.size(); ++i)
-          assert(result_or_simd[i] == (origin_lhs_backup[i] | rhs[i]));
+        auto result_exor_simd = lhs ^= rhs;
+        static_assert(std::is_same_v<decltype(result_exor_simd), ex::simd<_Tp, SimdAbi>>);
+        std::array<_Tp, array_size> expected_value;
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = lhs[i];
+        assert_simd_value_correct(result_exor_simd, expected_value);
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = origin_lhs_backup[i] ^ rhs[i];
+        assert_simd_value_correct(result_exor_simd, expected_value);
+
         lhs = origin_lhs_backup;
       }
     }
     {
       if constexpr (std::is_integral_v<_Tp>) {
-        auto check_operator_work_from_rhs = rhs[0];
-        check_operator_work_from_rhs ^= rhs[0];
-        assert(check_operator_work_from_rhs == (rhs[0] ^ rhs[0]));
-
         const auto origin_lhs_backup = lhs;
-        ex::simd<_Tp, SimdAbi> result_exor_simd = lhs ^= rhs;
-        assert(ex::all_of(result_exor_simd == lhs) == true);
-        for (size_t i = 0; i < result_exor_simd.size(); ++i)
-          assert(result_exor_simd[i] == (origin_lhs_backup[i] ^ rhs[i]));
+        auto result_shift_left_simd = lhs <<= rhs;
+        static_assert(std::is_same_v<decltype(result_shift_left_simd), ex::simd<_Tp, SimdAbi>>);
+        std::array<_Tp, array_size> expected_value;
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = lhs[i];
+        assert_simd_value_correct(result_shift_left_simd, expected_value);
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = origin_lhs_backup[i] << rhs[i];
+        assert_simd_value_correct(result_shift_left_simd, expected_value);
+
         lhs = origin_lhs_backup;
       }
     }
     {
       if constexpr (std::is_integral_v<_Tp>) {
-        auto check_operator_work_from_rhs = rhs[0];
-        check_operator_work_from_rhs <<= rhs[0];
-        assert(check_operator_work_from_rhs == (rhs[0] << rhs[0]));
-
         const auto origin_lhs_backup = lhs;
-        ex::simd<_Tp, SimdAbi> result_shift_left_simd = lhs <<= rhs;
-        assert(ex::all_of(result_shift_left_simd == lhs) == true);
-        for (size_t i = 0; i < result_shift_left_simd.size(); ++i)
-          assert(result_shift_left_simd[i] == (origin_lhs_backup[i] << rhs[i]));
-        lhs = origin_lhs_backup;
-      }
-    }
-    {
-      if constexpr (std::is_integral_v<_Tp>) {
-        auto check_operator_work_from_rhs = rhs[0];
-        check_operator_work_from_rhs >>= rhs[0];
-        assert(check_operator_work_from_rhs == (rhs[0] >> rhs[0]));
+        auto result_shift_right_simd = lhs >>= rhs;
+        static_assert(std::is_same_v<decltype(result_shift_right_simd), ex::simd<_Tp, SimdAbi>>);
+        std::array<_Tp, array_size> expected_value;
 
-        const auto origin_lhs_backup = lhs;
-        ex::simd<_Tp, SimdAbi> result_shift_right_simd = lhs >>= rhs;
-        assert(ex::all_of(result_shift_right_simd == lhs) == true);
-        for (size_t i = 0; i < result_shift_right_simd.size(); ++i)
-          assert(result_shift_right_simd[i] == (origin_lhs_backup[i] >> rhs[i]));
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = lhs[i];
+        assert_simd_value_correct(result_shift_right_simd, expected_value);
+
+        for (size_t i = 0; i < array_size; ++i)
+          expected_value[i] = origin_lhs_backup[i] >> rhs[i];
+        assert_simd_value_correct(result_shift_right_simd, expected_value);
+
         lhs = origin_lhs_backup;
       }
     }
@@ -175,8 +214,10 @@ void test_simd_abi() {
 }
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
-  F{}.template operator()<_Tp, SimdAbi>();
-  test_simd_abi<F, _Np, _Tp, SimdAbis...>();
+  if constexpr (!std::is_same_v<_Tp, signed char> && !std::is_same_v<_Tp, unsigned char>) {
+    F{}.template operator()<_Tp, SimdAbi>();
+    test_simd_abi<F, _Np, _Tp, SimdAbis...>();
+  }
 }
 
 int main() {
