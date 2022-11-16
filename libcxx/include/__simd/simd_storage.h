@@ -23,7 +23,7 @@ struct __scalar {
 
 template <int _Np>
 struct __builtin {
-  static constexpr bool __is_abi_tag  = _Np > 0;
+  static constexpr bool __is_abi_tag  = _Np > 0 && _Np <= 32;
   static constexpr size_t __simd_size = _Np;
 };
 
