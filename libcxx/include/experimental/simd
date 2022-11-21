@@ -1118,12 +1118,12 @@ __mask_conversion(_From __m) { // TODO: Optimizeable
 }
 
 template <class _Tp, class _Up, class _Abi>
-auto simd_cast(const simd<_Up, _Abi>& __v) {
+typename __simd_cast_return_type<_Tp, _Up, _Abi>::type simd_cast(const simd<_Up, _Abi>& __v) {
   return __simd_conversion<typename __simd_cast_return_type<_Tp, _Up, _Abi>::type, simd<_Up, _Abi>>(__v);
 }
 
 template <class _Tp, class _Up, class _Abi>
-auto static_simd_cast(const simd<_Up, _Abi>& __v) {
+typename __static_simd_cast_return_type<_Tp, _Up, _Abi>::type static_simd_cast(const simd<_Up, _Abi>& __v) {
   return __simd_conversion<typename __static_simd_cast_return_type<_Tp, _Up, _Abi>::type, simd<_Up, _Abi>>(__v);
 }
 
