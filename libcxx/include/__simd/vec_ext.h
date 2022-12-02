@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP___SIMD_BUILTIN_H
-#define _LIBCPP___SIMD_BUILTIN_H
+#ifndef _LIBCPP___SIMD_vec_ext_H
+#define _LIBCPP___SIMD_vec_ext_H
 
 #include <__simd/simd_storage.h>
 #include <__simd/utility.h>
@@ -17,9 +17,9 @@
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 template <class _Tp, int _Np>
-struct __simd_traits<_Tp, simd_abi::__builtin<_Np>> {
-  using _Simd = __simd_storage<_Tp, simd_abi::__builtin<_Np>>;
-  using _Mask = __mask_storage<_Tp, simd_abi::__builtin<_Np>>;
+struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
+  using _Simd = __simd_storage<_Tp, simd_abi::__vec_ext<_Np>>;
+  using _Mask = __mask_storage<_Tp, simd_abi::__vec_ext<_Np>>;
 
   static _Simd __broadcast(_Tp __v) noexcept {
     // TODO: Optimizeable
@@ -124,8 +124,8 @@ struct __simd_traits<_Tp, simd_abi::__builtin<_Np>> {
 };
 
 template <class _Tp, int _Np>
-struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
-  using _Mask = __mask_storage<_Tp, simd_abi::__builtin<_Np>>;
+struct __mask_traits<_Tp, simd_abi::__vec_ext<_Np>> {
+  using _Mask = __mask_storage<_Tp, simd_abi::__vec_ext<_Np>>;
 
   static _Mask __broadcast(bool __v) noexcept {
     // TODO: Optimizeable
@@ -235,4 +235,4 @@ struct __mask_traits<_Tp, simd_abi::__builtin<_Np>> {
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
-#endif // _LIBCPP___SIMD_BUILTIN_H
+#endif // _LIBCPP___SIMD_vec_ext_H

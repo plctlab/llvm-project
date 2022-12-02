@@ -685,7 +685,7 @@ public:
 
 */
 
-#include <__simd/builtin.h>
+#include <__simd/vec_ext.h>
 #include <__simd/config.h>
 #include <__simd/scalar.h>
 #include <experimental/__config>
@@ -836,15 +836,15 @@ template <class _Tp>
 inline constexpr size_t max_fixed_size = 32;
 
 template <int _Np>
-using fixed_size = __builtin<_Np>;
+using fixed_size = __vec_ext<_Np>;
 template <class _Tp>
-using compatible = __builtin<16 / sizeof(_Tp)>;
+using compatible = __vec_ext<16 / sizeof(_Tp)>;
 #  if defined(__AVX__)
 template <class _Tp>
-using native = __builtin<_LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp)>;
+using native = __vec_ext<_LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp)>;
 #  else
 template <class _Tp>
-using native = __builtin<16 / sizeof(_Tp)>;
+using native = __vec_ext<16 / sizeof(_Tp)>;
 #  endif
 
 template <class _Tp, size_t _Np, class... Abis>

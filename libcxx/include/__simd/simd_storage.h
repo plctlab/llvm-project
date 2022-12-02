@@ -22,7 +22,7 @@ struct __scalar {
 };
 
 template <int _Np>
-struct __builtin {
+struct __vec_ext {
   static constexpr bool __is_abi_tag  = _Np > 0 && _Np <= 32;
   static constexpr size_t __simd_size = _Np;
 };
@@ -85,7 +85,7 @@ template <class _Tp>
 struct __mask_storage<_Tp, simd_abi::__scalar> : __simd_storage<bool, simd_abi::__scalar> {};
 
 template <class _Tp, int _Np>
-struct __simd_storage<_Tp, simd_abi::__builtin<_Np>> {
+struct __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
 #if defined(_LIBCPP_COMPILER_CLANG_BASED)
   _Tp __data __attribute__((vector_size(sizeof(_Tp) * _Np)));
 #else
@@ -98,8 +98,8 @@ struct __simd_storage<_Tp, simd_abi::__builtin<_Np>> {
 };
 
 template <class _Tp, int _Np>
-struct __mask_storage<_Tp, simd_abi::__builtin<_Np>>
-    : __simd_storage<decltype(__choose_mask_type<_Tp>()), simd_abi::__builtin<_Np>> {};
+struct __mask_storage<_Tp, simd_abi::__vec_ext<_Np>>
+    : __simd_storage<decltype(__choose_mask_type<_Tp>()), simd_abi::__vec_ext<_Np>> {};
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
