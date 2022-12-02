@@ -1709,10 +1709,10 @@ public:
 
 // Class template simd [parallel.simd.class]
 template <class _Simd, class _Impl, bool>
-class _SimdIntOperators {};
+class __simd_int_operators {};
 
 template <class _Simd, class _Impl>
-class _SimdIntOperators<_Simd, _Impl, true> {
+class __simd_int_operators<_Simd, _Impl, true> {
 public:
   // unary operators for integral _Tp [simd.unary]
   _Simd operator~() const noexcept { return _Impl::__bitwise_not((*static_cast<const _Simd*>(this)).__s_); }
@@ -1766,14 +1766,14 @@ public:
 };
 
 template <class _Tp, class _Abi>
-class simd : public _SimdIntOperators<simd<_Tp, _Abi>, __simd_traits<_Tp, _Abi>, is_integral_v<_Tp>> {
+class simd : public __simd_int_operators<simd<_Tp, _Abi>, __simd_traits<_Tp, _Abi>, is_integral_v<_Tp>> {
   using _Impl    = __simd_traits<_Tp, _Abi>;
   using _Storage = typename _Impl::_Simd;
 
   _Storage __s_;
 
   friend class simd_mask<_Tp, _Abi>;
-  friend class _SimdIntOperators<simd, _Impl, true>;
+  friend class __simd_int_operators<simd, _Impl, true>;
 
   template <class _MaskType, class _SimdType>
   friend class const_where_expression;
