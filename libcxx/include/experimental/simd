@@ -10,6 +10,8 @@
 #ifndef _LIBCPP_EXPERIMENTAL_SIMD
 #define _LIBCPP_EXPERIMENTAL_SIMD
 
+#define __cpp_lib_experimental_parallel_simd 201803
+
 /*
     experimental/simd synopsis
 
@@ -25,6 +27,10 @@ template <typename T> inline constexpr int max_fixed_size = implementation-defin
 template <typename T> using compatible = implementation-defined;
 template <typename T> using native = implementation-defined;
 
+template <class T, size_t N, class... Abis> struct deduce { using type = see below; };
+template <class T, size_t N, class... Abis> using deduce_t =
+  typename deduce<T, N>::type;
+
 } // simd_abi
 
 struct element_aligned_tag {};
@@ -34,7 +40,7 @@ inline constexpr element_aligned_tag element_aligned{};
 inline constexpr vector_aligned_tag vector_aligned{};
 template <size_t N> inline constexpr overaligned_tag<N> overaligned{};
 
-// traits [simd.traits]
+// 9.4, simd type traits
 template <class T> struct is_abi_tag;
 template <class T> inline constexpr bool is_abi_tag_v = is_abi_tag<T>::value;
 
@@ -45,60 +51,87 @@ template <class T> struct is_simd_mask;
 template <class T> inline constexpr bool is_simd_mask_v = is_simd_mask<T>::value;
 
 template <class T> struct is_simd_flag_type;
-template <class T> inline constexpr bool is_simd_flag_type_v = is_simd_flag_type<T>::value;
-
-template <class T, size_t N> struct abi_for_size { using type = see below; };
-template <class T, size_t N> using abi_for_size_t = typename abi_for_size<T, N>::type;
+template <class T> inline constexpr bool is_simd_flag_type_v =
+  is_simd_flag_type<T>::value;
 
 template <class T, class Abi = simd_abi::compatible<T>> struct simd_size;
 template <class T, class Abi = simd_abi::compatible<T>>
-inline constexpr size_t simd_size_v = simd_size<T, Abi>::value;
+  inline constexpr size_t simd_size_v = simd_size<T, Abi>::value;
 
 template <class T, class U = typename T::value_type> struct memory_alignment;
 template <class T, class U = typename T::value_type>
-inline constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;
+  inline constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;
 
-// class template simd [simd.class]
+template<class T, class V> struct rebind_simd { using type = see below; };
+template<class T, class V> using rebind_simd_t = typename rebind_simd<T, V>::type;
+template<int N, class V> struct resize_simd { using type = see below; };
+template<int N, class V> using resize_simd_t = typename resize_simd<N, V>::type;
+
+// 9.6, Class template simd
 template <class T, class Abi = simd_abi::compatible<T>> class simd;
 template <class T> using native_simd = simd<T, simd_abi::native<T>>;
 template <class T, int N> using fixed_size_simd = simd<T, simd_abi::fixed_size<N>>;
 
-// class template simd_mask [simd.mask.class]
+// 9.8, Class template simd_mask
 template <class T, class Abi = simd_abi::compatible<T>> class simd_mask;
 template <class T> using native_simd_mask = simd_mask<T, simd_abi::native<T>>;
-template <class T, int N> using fixed_size_simd_mask = simd_mask<T, simd_abi::fixed_size<N>>;
+template <class T, int N> using fixed_size_simd_mask =
+  simd_mask<T, simd_abi::fixed_size<N>>;
 
-// casts [simd.casts]
-template <class T, class U, class Abi> see below simd_cast(const simd<U, Abi>&);
-template <class T, class U, class Abi> see below static_simd_cast(const simd<U, Abi>&);
+// 9.7.5, Casts
+template <class T, class U, class Abi> see below simd_cast(const simd<U, Abi>&) noexcept;
+template <class T, class U, class Abi> see below static_simd_cast(const simd<U, Abi>&) noexcept;
 
 template <class T, class Abi>
-fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi>&) noexcept;
+  fixed_size_simd<T, simd_size_v<T, Abi>>
+    to_fixed_size(const simd<T, Abi>&) noexcept;
 template <class T, class Abi>
-fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi>&) noexcept;
-template <class T, size_t N> native_simd<T> to_native(const fixed_size_simd<T, N>&) noexcept;
+  fixed_size_simd_mask<T, simd_size_v<T, Abi>>
+    to_fixed_size(const simd_mask<T, Abi>&) noexcept;
 template <class T, size_t N>
-native_simd_mask<T> to_native(const fixed_size_simd_mask<T, N>> &) noexcept;
-template <class T, size_t N> simd<T> to_compatible(const fixed_size_simd<T, N>&) noexcept;
-template <class T, size_t N> simd_mask<T> to_compatible(const fixed_size_simd_mask<T, N>&) noexcept;
+  native_simd<T> to_native(const fixed_size_simd<T, N>&) noexcept;
+template <class T, size_t N>
+  native_simd_mask<T> to_native(const fixed_size_simd_mask<T, N>> &) noexcept;
+template <class T, size_t N>
+  simd<T> to_compatible(const fixed_size_simd<T, N>&) noexcept;
+template <class T, size_t N>
+  simd_mask<T> to_compatible(const fixed_size_simd_mask<T, N>&) noexcept;
 
 template <size_t... Sizes, class T, class Abi>
-tuple<simd<T, abi_for_size_t<Sizes>>...> split(const simd<T, Abi>&);
+  tuple<simd<T, simd_abi::deduce_t<T, Sizes>>...>
+    split(const simd<T, Abi>&);
 template <size_t... Sizes, class T, class Abi>
-tuple<simd_mask<T, abi_for_size_t<Sizes>>...> split(const simd_mask<T, Abi>&);
+  tuple<simd_mask<T, simd_mask_abi::deduce_t<T, Sizes>>...>
+    split(const simd_mask<T, Abi>&);
 template <class V, class Abi>
-array<V, simd_size_v<typename V::value_type, Abi> / V::size()> split(
-const simd<typename V::value_type, Abi>&);
+  array<V, simd_size_v<typename V::value_type, Abi> / V::size()>
+    split(const simd<typename V::value_type, Abi>&) noexcept;
 template <class V, class Abi>
-array<V, simd_size_v<typename V::value_type, Abi> / V::size()> split(
-const simd_mask<typename V::value_type, Abi>&);
+  array<V, simd_size_v<typename V::value_type, Abi> / V::size()>
+    split(const simd_mask<typename V::simd_type::value_type, Abi>&) noexcept;
 
-template <class T, class... Abis>
-simd<T, abi_for_size_t<T, (simd_size_v<T, Abis> + ...)>> concat(const simd<T, Abis>&...);
-template <class T, class... Abis>
-simd_mask<T, abi_for_size_t<T, (simd_size_v<T, Abis> + ...)>> concat(const simd_mask<T, Abis>&...);
+template<size_t N, class T, class A>
+  array<resize_simd<simd_size_v<T, A> / N, simd<T, A>>, N>
+    split_by(const simd<T, A>& x) noexcept;
+template<size_t N, class T, class A>
+  array<resize_simd<simd_size_v<T, A> / N, simd_mask<T, A>>, N>
+    split_by(const simd_mask<T, A>& x) noexcept;
 
-// reductions [simd.mask.reductions]
+template<class T, class... Abis>
+  simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>>
+    concat(const simd<T, Abis>&...) noexcept;
+template<class T, class... Abis>
+  simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>>
+    concat(const simd_mask<T, Abis>&...) noexcept;
+
+template<class T, class Abi, size_t N>
+  resize_simd<simd_size_v<T, Abi> * N, simd<T, Abi>>
+    concat(const array<simd<T, Abi>, N>& arr) noexcept;
+template<class T, class Abi, size_t N>
+  resize_simd<simd_size_v<T, Abi> * N, simd_mask<T, Abi>>
+    concat(const array<simd_mask<T, Abi>, N>& arr) noexcept;
+
+// 9.9.4, reductions
 template <class T, class Abi> bool all_of(const simd_mask<T, Abi>&) noexcept;
 template <class T, class Abi> bool any_of(const simd_mask<T, Abi>&) noexcept;
 template <class T, class Abi> bool none_of(const simd_mask<T, Abi>&) noexcept;
@@ -107,200 +140,204 @@ template <class T, class Abi> int popcount(const simd_mask<T, Abi>&) noexcept;
 template <class T, class Abi> int find_first_set(const simd_mask<T, Abi>&);
 template <class T, class Abi> int find_last_set(const simd_mask<T, Abi>&);
 
-bool all_of(see below) noexcept;
-bool any_of(see below) noexcept;
-bool none_of(see below) noexcept;
-bool some_of(see below) noexcept;
-int popcount(see below) noexcept;
-int find_first_set(see below) noexcept;
-int find_last_set(see below) noexcept;
+bool all_of(T) noexcept;
+bool any_of(T) noexcept;
+bool none_of(T) noexcept;
+bool some_of(T) noexcept;
+int popcount(T) noexcept;
+int find_first_set(T);
+int find_last_set(T);
 
-// masked assignment [simd.whereexpr]
+// 9.5, Where expression class templates
 template <class M, class T> class const_where_expression;
 template <class M, class T> class where_expression;
 
-// masked assignment [simd.mask.where]
-template <class T> struct nodeduce { using type = T; }; // exposition only
-
-template <class T> using nodeduce_t = typename nodeduce<T>::type; // exposition only
+// 9.9.5, Where functions
+template <class T, class Abi>
+  where_expression<simd_mask<T, Abi>, simd<T, Abi>>
+    where(const typename simd<T, Abi>::mask_type&, simd<T, Abi>&) noexcept;
 
 template <class T, class Abi>
-where_expression<simd_mask<T, Abi>, simd<T, Abi>>
-where(const typename simd<T, Abi>::mask_type&, simd<T, Abi>&) noexcept;
+  const_where_expression<simd_mask<T, Abi>, const simd<T, Abi>>
+    where(const typename simd<T, Abi>::mask_type&, const simd<T, Abi>&) noexcept;
 
 template <class T, class Abi>
-const_where_expression<simd_mask<T, Abi>, const simd<T, Abi>>
-where(const typename simd<T, Abi>::mask_type&, const simd<T, Abi>&) noexcept;
+  where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>>
+    where(const type_identity_t<simd_mask<T, Abi>>&, simd_mask<T, Abi>&) noexcept;
 
 template <class T, class Abi>
-where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>>
-where(const nodeduce_t<simd_mask<T, Abi>>&, simd_mask<T, Abi>&) noexcept;
-
-template <class T, class Abi>
-const_where_expression<simd_mask<T, Abi>, const simd_mask<T, Abi>>
-where(const nodeduce_t<simd_mask<T, Abi>>&, const simd_mask<T, Abi>&) noexcept;
-
-template <class T> where_expression<bool, T> where(see below k, T& d) noexcept;
+  const_where_expression<simd_mask<T, Abi>, const simd_mask<T, Abi>>
+    where(const type_identity_t<simd_mask<T, Abi>>&, const simd_mask<T, Abi>&) noexcept;
 
 template <class T>
-const_where_expression<bool, const T> where(see below k, const T& d) noexcept;
+  where_expression<bool, T>
+    where(see below k, T& d) noexcept;
 
-// reductions [simd.reductions]
-template <class T, class Abi, class BinaryOperation = std::plus<>>
-T reduce(const simd<T, Abi>&, BinaryOperation = BinaryOperation());
+template <class T>
+  const_where_expression<bool, T>
+    where(see below k, const T& d) noexcept;
 
+// 9.7.4, Reductions
+template <class T, class Abi, class BinaryOperation = plus<>>
+  T reduce(const simd<T, Abi>&,
+           BinaryOperation = {});
 template <class M, class V, class BinaryOperation>
-typename V::value_type reduce(const const_where_expression<M, V>& x,
-typename V::value_type neutral_element, BinaryOperation binary_op);
-
+  typename V::value_type reduce(const const_where_expression<M, V>& x,
+                                typename V::value_type neutral_element,
+                                BinaryOperation binary_op);
 template <class M, class V>
-typename V::value_type reduce(const const_where_expression<M, V>& x, plus<> binary_op = plus<>());
-
+  typename V::value_type reduce(const const_where_expression<M, V>& x,
+                                plus<> binary_op = {}) noexcept;
 template <class M, class V>
-typename V::value_type reduce(const const_where_expression<M, V>& x, multiplies<> binary_op);
-
+  typename V::value_type reduce(const const_where_expression<M, V>& x,
+                                multiplies<> binary_op) noexcept;
 template <class M, class V>
-typename V::value_type reduce(const const_where_expression<M, V>& x, bit_and<> binary_op);
-
+  typename V::value_type reduce(const const_where_expression<M, V>& x,
+                                bit_and<> binary_op) noexcept;
 template <class M, class V>
-typename V::value_type reduce(const const_where_expression<M, V>& x, bit_or<> binary_op);
-
+  typename V::value_type reduce(const const_where_expression<M, V>& x,
+                                bit_or<> binary_op) noexcept;
 template <class M, class V>
-typename V::value_type reduce(const const_where_expression<M, V>& x, bit_xor<> binary_op);
-
-template <class T, class Abi> T hmin(const simd<T, Abi>&);
-template <class M, class V> T hmin(const const_where_expression<M, V>&);
-template <class T, class Abi> T hmax(const simd<T, Abi>&);
-template <class M, class V> T hmax(const const_where_expression<M, V>&);
-
-// algorithms [simd.alg]
-template <class T, class Abi> simd<T, Abi> min(const simd<T, Abi>&, const simd<T, Abi>&) noexcept;
-
-template <class T, class Abi> simd<T, Abi> max(const simd<T, Abi>&, const simd<T, Abi>&) noexcept;
+  typename V::value_type reduce(const const_where_expression<M, V>& x,
+                                bit_xor<> binary_op) noexcept;
 
 template <class T, class Abi>
-std::pair<simd<T, Abi>, simd<T, Abi>> minmax(const simd<T, Abi>&, const simd<T, Abi>&) noexcept;
-
+  T hmin(const simd<T, Abi>&) noexcept;
+template <class M, class V>
+  typename V::value_type hmin(const const_where_expression<M, V>&) noexcept;
 template <class T, class Abi>
-simd<T, Abi> clamp(const simd<T, Abi>& v, const simd<T, Abi>& lo, const simd<T, Abi>& hi);
+  T hmax(const simd<T, Abi>&) noexcept;
+template <class M, class V>
+  typename V::value_type hmax(const const_where_expression<M, V>&) noexcept;
 
-// [simd.whereexpr]
-template <class M, class T>
-class const_where_expression {
-  const M& mask; // exposition only
-  T& data; // exposition only
+// 9.7.6, Algorithms
+template <class T, class Abi>
+  simd<T, Abi>
+    min(const simd<T, Abi>& a, const simd<T, Abi>& b) noexcept;
+template <class T, class Abi>
+  simd<T, Abi>
+    max(const simd<T, Abi>& a, const simd<T, Abi>& b) noexcept;
+template <class T, class Abi>
+  pair<simd<T, Abi>, simd<T, Abi>>
+    minmax(const simd<T, Abi>& a, const simd<T, Abi>& b) noexcept;
+template <class T, class Abi>
+  simd<T, Abi>
+    clamp(const simd<T, Abi>& v,
+          const simd<T, Abi>& lo,
+          const simd<T, Abi>& hi);
+
+// 9.5, Where expression class templates [simd.whereexpr]
+template <class M, class T> class const_where_expression {
+  const M mask; // exposition only
+  T& data;      // exposition only
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
-  remove_const_t<T> operator-() const &&;
+
+  T operator-() const && noexcept;
+  T operator+() const && noexcept;
+  T operator~() const && noexcept;
+
   template <class U, class Flags> void copy_to(U* mem, Flags f) const &&;
 };
 
 template <class M, class T>
 class where_expression : public const_where_expression<M, T> {
 public:
-  where_expression(const where_expression&) = delete;
-  where_expression& operator=(const where_expression&) = delete;
-  template <class U> void operator=(U&& x);
-  template <class U> void operator+=(U&& x);
-  template <class U> void operator-=(U&& x);
-  template <class U> void operator*=(U&& x);
-  template <class U> void operator/=(U&& x);
-  template <class U> void operator%=(U&& x);
-  template <class U> void operator&=(U&& x);
-  template <class U> void operator|=(U&& x);
-  template <class U> void operator^=(U&& x);
-  template <class U> void operator<<=(U&& x);
-  template <class U> void operator>>=(U&& x);
-  void operator++();
-  void operator++(int);
-  void operator--();
-  void operator--(int);
-  template <class U, class Flags> void copy_from(const U* mem, Flags);
+  template <class U> void operator=(U&& x) noexcept;
+  template <class U> void operator+=(U&& x) noexcept;
+  template <class U> void operator-=(U&& x) noexcept;
+  template <class U> void operator*=(U&& x) noexcept;
+  template <class U> void operator/=(U&& x) noexcept;
+  template <class U> void operator%=(U&& x) noexcept;
+  template <class U> void operator&=(U&& x) noexcept;
+  template <class U> void operator|=(U&& x) noexcept;
+  template <class U> void operator^=(U&& x) noexcept;
+  template <class U> void operator<<=(U&& x) noexcept;
+  template <class U> void operator>>=(U&& x) noexcept;
+
+  void operator++() && noexcept;
+  void operator++(int) && noexcept;
+  void operator--() && noexcept;
+  void operator--(int) && noexcept;
+
+  template <class U, class Flags> void copy_from(const U* mem, Flags) &&;
 };
 
-// [simd.class]
+// 9.6.1, Class template simd overview [simd.class.overview]
 template <class T, class Abi> class simd {
 public:
   using value_type = T;
   using reference = see below;
   using mask_type = simd_mask<T, Abi>;
-
   using abi_type = Abi;
+
   static constexpr size_t size() noexcept;
-  simd() = default;
 
-  // implicit type conversion constructor
-  template <class U> simd(const simd<U, simd_abi::fixed_size<size()>>&);
+  simd() noexcept = default;
 
-  // implicit broadcast constructor (see below for constraints)
-  template <class U> simd(U&& value);
-
-  // generator constructor (see below for constraints)
-  template <class G> explicit simd(G&& gen);
-
-  // load constructor
+  // 9.6.4, simd constructors
+  template <class U> simd(U&& value) noexcept;
+  template <class U> simd(const simd<U, simd_abi::fixed_size<size()>>&) noexcept;
+  template <class G> explicit simd(G&& gen) noexcept;
   template <class U, class Flags> simd(const U* mem, Flags f);
 
-  // loads [simd.load]
+  // 9.6.5, simd copy functions
   template <class U, class Flags> void copy_from(const U* mem, Flags f);
+  template <class U, class Flags> void copy_to(U* mem, Flags f);
 
-  // stores [simd.store]
-  template <class U, class Flags> void copy_to(U* mem, Flags f) const;
-
-  // scalar access [simd.subscr]
+  // 9.6.6, simd subscript operators
   reference operator[](size_t);
   value_type operator[](size_t) const;
 
-  // unary operators [simd.unary]
-  simd& operator++();
-  simd operator++(int);
-  simd& operator--();
-  simd operator--(int);
-  mask_type operator!() const;
-  simd operator~() const; // see below
-  simd operator+() const;
-  simd operator-() const;
+  // 9.6.7, simd unary operators
+  simd& operator++() noexcept;
+  simd operator++(int) noexcept;
+  simd& operator--() noexcept;
+  simd operator--(int) noexcept;
+  mask_type operator!() const noexcept;
+  simd operator~() const noexcept;
+  simd operator+() const noexcept;
+  simd operator-() const noexcept;
 
-  // binary operators [simd.binary]
-  friend simd operator+ (const simd&, const simd&);
-  friend simd operator- (const simd&, const simd&);
-  friend simd operator* (const simd&, const simd&);
-  friend simd operator/ (const simd&, const simd&);
-  friend simd operator% (const simd&, const simd&);
-  friend simd operator& (const simd&, const simd&);
-  friend simd operator| (const simd&, const simd&);
-  friend simd operator^ (const simd&, const simd&);
-  friend simd operator<<(const simd&, const simd&);
-  friend simd operator>>(const simd&, const simd&);
-  friend simd operator<<(const simd&, int);
-  friend simd operator>>(const simd&, int);
+  // 9.7.1, simd binary operators
+  friend simd operator+ (const simd&, const simd&) noexcept;
+  friend simd operator- (const simd&, const simd&) noexcept;
+  friend simd operator* (const simd&, const simd&) noexcept;
+  friend simd operator/ (const simd&, const simd&) noexcept;
+  friend simd operator% (const simd&, const simd&) noexcept;
+  friend simd operator& (const simd&, const simd&) noexcept;
+  friend simd operator| (const simd&, const simd&) noexcept;
+  friend simd operator^ (const simd&, const simd&) noexcept;
+  friend simd operator<<(const simd&, const simd&) noexcept;
+  friend simd operator>>(const simd&, const simd&) noexcept;
+  friend simd operator<<(const simd&, int) noexcept;
+  friend simd operator>>(const simd&, int) noexcept;
 
-  // compound assignment [simd.cassign]
-  friend simd& operator+= (simd&, const simd&);
-  friend simd& operator-= (simd&, const simd&);
-  friend simd& operator*= (simd&, const simd&);
-  friend simd& operator/= (simd&, const simd&);
-  friend simd& operator%= (simd&, const simd&);
+  // 9.7.2, simd compound assignment
+  friend simd& operator+= (simd&, const simd&) noexcept;
+  friend simd& operator-= (simd&, const simd&) noexcept;
+  friend simd& operator*= (simd&, const simd&) noexcept;
+  friend simd& operator/= (simd&, const simd&) noexcept;
+  friend simd& operator%= (simd&, const simd&) noexcept;
+  friend simd& operator&= (simd&, const simd&) noexcept;
+  friend simd& operator|= (simd&, const simd&) noexcept;
+  friend simd& operator^= (simd&, const simd&) noexcept;
+  friend simd& operator<<=(simd&, const simd&) noexcept;
+  friend simd& operator>>=(simd&, const simd&) noexcept;
+  friend simd& operator<<=(simd&, int) noexcept;
+  friend simd& operator>>=(simd&, int) noexcept;
 
-  friend simd& operator&= (simd&, const simd&);
-  friend simd& operator|= (simd&, const simd&);
-  friend simd& operator^= (simd&, const simd&);
-  friend simd& operator<<=(simd&, const simd&);
-  friend simd& operator>>=(simd&, const simd&);
-  friend simd& operator<<=(simd&, int);
-  friend simd& operator>>=(simd&, int);
-
-  // compares [simd.comparison]
-  friend mask_type operator==(const simd&, const simd&);
-  friend mask_type operator!=(const simd&, const simd&);
-  friend mask_type operator>=(const simd&, const simd&);
-  friend mask_type operator<=(const simd&, const simd&);
-  friend mask_type operator> (const simd&, const simd&);
-  friend mask_type operator< (const simd&, const simd&);
+  // 9.7.3, simd compare operators
+  friend mask_type operator==(const simd&, const simd&) noexcept;
+  friend mask_type operator!=(const simd&, const simd&) noexcept;
+  friend mask_type operator>=(const simd&, const simd&) noexcept;
+  friend mask_type operator<=(const simd&, const simd&) noexcept;
+  friend mask_type operator> (const simd&, const simd&) noexcept;
+  friend mask_type operator< (const simd&, const simd&) noexcept;
 };
 
-// [simd.math]
+// 9.7.7, Math library [simd.math]
 template <class Abi> using scharv = simd<signed char, Abi>; // exposition only
 template <class Abi> using shortv = simd<short, Abi>; // exposition only
 template <class Abi> using intv = simd<int, Abi>; // exposition only
@@ -597,50 +634,48 @@ template <class Abi> simd_div_t<intv<Abi>> div(intv<Abi> numer, intv<Abi> denom)
 template <class Abi> simd_div_t<longv<Abi>> div(longv<Abi> numer, longv<Abi> denom);
 template <class Abi> simd_div_t<llongv<Abi>> div(llongv<Abi> numer, llongv<Abi> denom);
 
-// [simd.mask.class]
-template <class T, class Abi>
-class simd_mask {
+// 9.8.1, Class template simd_mask overview [simd.mask.overview]
+template <class T, class Abi> class simd_mask {
 public:
   using value_type = bool;
   using reference = see below;
   using simd_type = simd<T, Abi>;
   using abi_type = Abi;
+
   static constexpr size_t size() noexcept;
-  simd_mask() = default;
 
-  // broadcast constructor
+  simd_mask() noexcept = default;
+
+  // 9.8.3, Constructors
   explicit simd_mask(value_type) noexcept;
-
-  // implicit type conversion constructor
-  template <class U> simd_mask(const simd_mask<U, simd_abi::fixed_size<size()>>&) noexcept;
-
-  // load constructor
+  template <class U>
+    simd_mask(const simd_mask<U, simd_abi::fixed_size<size()>>&) noexcept;
   template <class Flags> simd_mask(const value_type* mem, Flags);
 
-  // loads [simd.mask.copy]
+  // 9.8.4, Copy functions
   template <class Flags> void copy_from(const value_type* mem, Flags);
   template <class Flags> void copy_to(value_type* mem, Flags) const;
 
-  // scalar access [simd.mask.subscr]
+  // 9.8.5, Subscript operators
   reference operator[](size_t);
   value_type operator[](size_t) const;
 
-  // unary operators [simd.mask.unary]
+  // 9.8.6, Unary operators
   simd_mask operator!() const noexcept;
 
-  // simd_mask binary operators [simd.mask.binary]
+  // 9.9.1, Binary operators
   friend simd_mask operator&&(const simd_mask&, const simd_mask&) noexcept;
   friend simd_mask operator||(const simd_mask&, const simd_mask&) noexcept;
   friend simd_mask operator& (const simd_mask&, const simd_mask&) noexcept;
   friend simd_mask operator| (const simd_mask&, const simd_mask&) noexcept;
   friend simd_mask operator^ (const simd_mask&, const simd_mask&) noexcept;
 
-  // simd_mask compound assignment [simd.mask.cassign]
+  // 9.9.2, Compound assignment
   friend simd_mask& operator&=(simd_mask&, const simd_mask&) noexcept;
   friend simd_mask& operator|=(simd_mask&, const simd_mask&) noexcept;
   friend simd_mask& operator^=(simd_mask&, const simd_mask&) noexcept;
 
-  // simd_mask compares [simd.mask.comparison]
+  // 9.9.3, Comparisons
   friend simd_mask operator==(const simd_mask&, const simd_mask&) noexcept;
   friend simd_mask operator!=(const simd_mask&, const simd_mask&) noexcept;
 };
@@ -650,12 +685,13 @@ public:
 
 */
 
-#include <__assert> // all public C++ headers provide the assertion handler
-#include <__functional/operations.h>
-#include <array>
-#include <cstddef>
+#include <__simd/vec_ext.h>
+#include <__simd/config.h>
+#include <__simd/scalar.h>
 #include <experimental/__config>
-#include <tuple>
+#include <functional>
+#include <type_traits>
+#include <utility>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -668,907 +704,1357 @@ _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
 #if _LIBCPP_STD_VER >= 17
 
-enum class _StorageKind {
-  _Scalar,
-  _Array,
-  _VecExt,
-};
+// TODO: handle _LIBCPP_HAS_NO_VECTOR_EXTENSION
 
-template <_StorageKind __kind, int _Np>
-struct __simd_abi {};
-
-template <class _Tp, class _Abi>
-class __simd_storage {};
-
-template <class _Tp, int __num_element>
-class __simd_storage<_Tp, __simd_abi<_StorageKind::_Array, __num_element>> {
-  std::array<_Tp, __num_element> __storage_;
-
-  template <class, class>
-  friend struct simd;
-
-  template <class, class>
-  friend struct simd_mask;
-
-public:
-  _Tp __get(size_t __index) const noexcept { return __storage_[__index]; }
-  void __set(size_t __index, _Tp __val) noexcept {
-    __storage_[__index] = __val;
-  }
-};
-
-template <class _Tp>
-class __simd_storage<_Tp, __simd_abi<_StorageKind::_Scalar, 1>> {
-  _Tp __storage_;
-
-  template <class, class>
-  friend struct simd;
-
-  template <class, class>
-  friend struct simd_mask;
-
-public:
-  _Tp __get(size_t __index) const noexcept { return (&__storage_)[__index]; }
-  void __set(size_t __index, _Tp __val) noexcept {
-    (&__storage_)[__index] = __val;
-  }
-};
-
-#ifndef _LIBCPP_HAS_NO_VECTOR_EXTENSION
-
-_LIBCPP_HIDE_FROM_ABI constexpr size_t __floor_pow_of_2(size_t __val) {
-  return ((__val - 1) & __val) == 0 ? __val
-                                    : __floor_pow_of_2((__val - 1) & __val);
-}
-
-_LIBCPP_HIDE_FROM_ABI constexpr size_t __ceil_pow_of_2(size_t __val) {
-  return __val == 1 ? 1 : __floor_pow_of_2(__val - 1) << 1;
-}
-
-template <class _Tp, size_t __bytes>
-struct __vec_ext_traits {
-#if !defined(_LIBCPP_COMPILER_CLANG_BASED)
-  typedef _Tp type __attribute__((vector_size(__ceil_pow_of_2(__bytes))));
-#endif
-};
-
-#if defined(_LIBCPP_COMPILER_CLANG_BASED)
-#define _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, _NUM_ELEMENT)                        \
-  template <>                                                                  \
-  struct __vec_ext_traits<_TYPE, sizeof(_TYPE) * _NUM_ELEMENT> {               \
-    using type =                                                               \
-        _TYPE __attribute__((vector_size(sizeof(_TYPE) * _NUM_ELEMENT)));      \
-  }
-
-#define _LIBCPP_SPECIALIZE_VEC_EXT_32(_TYPE)                                   \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 1);                                        \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 2);                                        \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 3);                                        \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 4);                                        \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 5);                                        \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 6);                                        \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 7);                                        \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 8);                                        \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 9);                                        \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 10);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 11);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 12);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 13);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 14);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 15);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 16);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 17);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 18);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 19);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 20);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 21);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 22);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 23);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 24);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 25);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 26);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 27);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 28);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 29);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 30);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 31);                                       \
-  _LIBCPP_SPECIALIZE_VEC_EXT(_TYPE, 32)
-
-_LIBCPP_SPECIALIZE_VEC_EXT_32(char);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(char16_t);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(char32_t);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(wchar_t);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(signed char);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(signed short);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(signed int);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(signed long);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(signed long long);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(unsigned char);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(unsigned short);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(unsigned int);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(unsigned long);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(unsigned long long);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(float);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(double);
-_LIBCPP_SPECIALIZE_VEC_EXT_32(long double);
-
-#undef _LIBCPP_SPECIALIZE_VEC_EXT_32
-#undef _LIBCPP_SPECIALIZE_VEC_EXT
-#endif
-
-template <class _Tp, int __num_element>
-class __simd_storage<_Tp, __simd_abi<_StorageKind::_VecExt, __num_element>> {
-  using _StorageType =
-      typename __vec_ext_traits<_Tp, sizeof(_Tp) * __num_element>::type;
-
-  _StorageType __storage_;
-
-  template <class, class>
-  friend struct simd;
-
-  template <class, class>
-  friend struct simd_mask;
-
-public:
-  _Tp __get(size_t __index) const noexcept { return __storage_[__index]; }
-  void __set(size_t __index, _Tp __val) noexcept {
-    __storage_[__index] = __val;
-  }
-};
-
-#endif // _LIBCPP_HAS_NO_VECTOR_EXTENSION
-
-template <class _Vp, class _Tp, class _Abi>
+template <class _Tp, class _Storage, class _ValueType>
 class __simd_reference {
-  static_assert(std::is_same<_Vp, _Tp>::value, "");
+  template <class, class>
+  friend class simd;
 
   template <class, class>
-  friend struct simd;
+  friend class simd_mask;
 
-  template <class, class>
-  friend struct simd_mask;
+  _Storage& __s_;
+  size_t __idx_;
 
-  __simd_storage<_Tp, _Abi>* __ptr_;
-  size_t __index_;
+  __simd_reference(_Storage& __s, size_t __idx) : __s_(__s), __idx_(__idx) {}
 
-  __simd_reference(__simd_storage<_Tp, _Abi>* __ptr, size_t __index)
-      : __ptr_(__ptr), __index_(__index) {}
+  _ValueType __get() const { return __s_.__get(__idx_); }
 
-  __simd_reference(const __simd_reference&) = default;
+  void __set(_ValueType __v) {
+    if constexpr (is_same_v<_ValueType, bool>)
+      __s_.__set(__idx_, __set_all_bits<_Tp>(__v));
+    else
+      __s_.__set(__idx_, __v);
+  }
 
 public:
-  __simd_reference() = delete;
-  __simd_reference& operator=(const __simd_reference&) = delete;
+  using value_type = _ValueType;
 
-  operator _Vp() const { return __ptr_->__get(__index_); }
+  __simd_reference()                        = delete;
+  __simd_reference(const __simd_reference&) = delete;
 
-  __simd_reference operator=(_Vp __value) && {
-    __ptr_->__set(__index_, __value);
-    return *this;
+  operator value_type() const noexcept { return __get(); }
+
+  template <class _Up>
+  enable_if_t<is_void_v<void_t<decltype(declval<value_type&>() = declval<_Up>())>>, __simd_reference>
+  operator=(_Up&& __v) && noexcept {
+    __set(static_cast<value_type>(std::forward<_Up>(__v)));
+    return {__s_, __idx_};
   }
 
-  __simd_reference operator++() && {
-    return std::move(*this) = __ptr_->__get(__index_) + 1;
+#  define _LIBCXX_SIMD_REFERENCE_OP_(__op)                                                                             \
+    template <class _Up>                                                                                               \
+    enable_if_t<is_void_v<void_t<decltype(declval<value_type&>() __op declval<_Up>())>>, __simd_reference>             \
+    operator __op##=(_Up&& __v)&& noexcept {                                                                           \
+      __set(__get() __op static_cast<value_type>(std::forward<_Up>(__v)));                                             \
+      return {__s_, __idx_};                                                                                           \
+    }
+  _LIBCXX_SIMD_REFERENCE_OP_(+)
+  _LIBCXX_SIMD_REFERENCE_OP_(-)
+  _LIBCXX_SIMD_REFERENCE_OP_(*)
+  _LIBCXX_SIMD_REFERENCE_OP_(/)
+  _LIBCXX_SIMD_REFERENCE_OP_(%)
+  _LIBCXX_SIMD_REFERENCE_OP_(^)
+  _LIBCXX_SIMD_REFERENCE_OP_(<<)
+  _LIBCXX_SIMD_REFERENCE_OP_(>>)
+#  undef _LIBCXX_SIMD_REFERENCE_OP_
+
+  template <class _Up>
+  enable_if_t<is_void_v<void_t<decltype(declval<value_type&>() &= declval<_Up>())>>, __simd_reference>
+  operator&=(_Up&& __v) && noexcept {
+    if constexpr (is_same_v<_ValueType, bool>)
+      __set(__get() && static_cast<value_type>(std::forward<_Up>(__v)));
+    else
+      __set(__get() & static_cast<value_type>(std::forward<_Up>(__v)));
+    return {__s_, __idx_};
   }
 
-  _Vp operator++(int) && {
-    auto __val = __ptr_->__get(__index_);
-    __ptr_->__set(__index_, __val + 1);
-    return __val;
+  template <class _Up>
+  enable_if_t<is_void_v<void_t<decltype(declval<value_type&>() |= declval<_Up>())>>, __simd_reference>
+  operator|=(_Up&& __v) && noexcept {
+    if constexpr (is_same_v<_ValueType, bool>)
+      __set(__get() || static_cast<value_type>(std::forward<_Up>(__v)));
+    else
+      __set(__get() | static_cast<value_type>(std::forward<_Up>(__v)));
+    return {__s_, __idx_};
   }
 
-  __simd_reference operator--() && {
-    return std::move(*this) = __ptr_->__get(__index_) - 1;
+  template <class _Up = void, class = decltype(++declval<conditional_t<true, value_type, _Up>&>())>
+  __simd_reference operator++() && noexcept {
+    __set(__get() + 1);
+    return {__s_, __idx_};
   }
 
-  _Vp operator--(int) && {
-    auto __val = __ptr_->__get(__index_);
-    __ptr_->__set(__index_, __val - 1);
-    return __val;
+  template <class _Up = void, class = decltype(declval<conditional_t<true, value_type, _Up>&>()++)>
+  value_type operator++(int) && noexcept {
+    auto __r = __get();
+    __set(__get() + 1);
+    return __r;
   }
 
-  __simd_reference operator+=(_Vp __value) && {
-    return std::move(*this) = __ptr_->__get(__index_) + __value;
+  template <class _Up = void, class = decltype(--declval<conditional_t<true, value_type, _Up>&>())>
+  __simd_reference operator--() && noexcept {
+    __set(__get() - 1);
+    return {__s_, __idx_};
   }
 
-  __simd_reference operator-=(_Vp __value) && {
-    return std::move(*this) = __ptr_->__get(__index_) - __value;
+  template <class _Up = void, class = decltype(declval<conditional_t<true, value_type, _Up>&>()--)>
+  value_type operator--(int) && noexcept {
+    auto __r = __get();
+    __set(__get() - 1);
+    return __r;
   }
 
-  __simd_reference operator*=(_Vp __value) && {
-    return std::move(*this) = __ptr_->__get(__index_) * __value;
+  friend void swap(__simd_reference&& __a, __simd_reference&& __b) noexcept {
+    value_type __tmp                     = static_cast<__simd_reference&&>(__a);
+    static_cast<__simd_reference&&>(__a) = static_cast<value_type>(__b);
+    static_cast<__simd_reference&&>(__b) = std::move(__tmp);
   }
 
-  __simd_reference operator/=(_Vp __value) && {
-    return std::move(*this) = __ptr_->__get(__index_) / __value;
+  friend void swap(value_type& __a, __simd_reference&& __b) noexcept {
+    value_type __tmp(std::move(__a));
+    __a                                  = static_cast<value_type>(__b);
+    static_cast<__simd_reference&&>(__b) = std::move(__tmp);
   }
 
-  __simd_reference operator%=(_Vp __value) && {
-    return std::move(*this) = __ptr_->__get(__index_) % __value;
-  }
-
-  __simd_reference operator>>=(_Vp __value) && {
-    return std::move(*this) = __ptr_->__get(__index_) >> __value;
-  }
-
-  __simd_reference operator<<=(_Vp __value) && {
-    return std::move(*this) = __ptr_->__get(__index_) << __value;
-  }
-
-  __simd_reference operator&=(_Vp __value) && {
-    return std::move(*this) = __ptr_->__get(__index_) & __value;
-  }
-
-  __simd_reference operator|=(_Vp __value) && {
-    return std::move(*this) = __ptr_->__get(__index_) | __value;
-  }
-
-  __simd_reference operator^=(_Vp __value) && {
-    return std::move(*this) = __ptr_->__get(__index_) ^ __value;
+  friend void swap(__simd_reference&& __a, value_type& __b) noexcept {
+    value_type __tmp(__a);
+    static_cast<__simd_reference&&>(__a) = std::move(__b);
+    __b                                  = std::move(__tmp);
   }
 };
-
-template <class _To, class _From>
-_LIBCPP_HIDE_FROM_ABI constexpr decltype(_To{std::declval<_From>()}, true)
-__is_non_narrowing_convertible_impl(_From) {
-  return true;
-}
-
-template <class _To>
-_LIBCPP_HIDE_FROM_ABI constexpr bool __is_non_narrowing_convertible_impl(...) {
-  return false;
-}
-
-template <class _From, class _To>
-_LIBCPP_HIDE_FROM_ABI
-constexpr typename std::enable_if<std::is_arithmetic<_To>::value &&
-                                      std::is_arithmetic<_From>::value,
-                                  bool>::type
-__is_non_narrowing_arithmetic_convertible() {
-  return __is_non_narrowing_convertible_impl<_To>(_From{});
-}
-
-template <class _From, class _To>
-_LIBCPP_HIDE_FROM_ABI
-constexpr typename std::enable_if<!(std::is_arithmetic<_To>::value &&
-                                    std::is_arithmetic<_From>::value),
-                                  bool>::type
-__is_non_narrowing_arithmetic_convertible() {
-  return false;
-}
-
-template <class _Tp>
-_LIBCPP_HIDE_FROM_ABI constexpr _Tp __variadic_sum() {
-  return _Tp{};
-}
-
-template <class _Tp, class _Up, class... _Args>
-_LIBCPP_HIDE_FROM_ABI constexpr _Tp __variadic_sum(_Up __first, _Args... __rest) {
-  return static_cast<_Tp>(__first) + __variadic_sum<_Tp>(__rest...);
-}
-
-template <class _Tp>
-struct __nodeduce {
-  using type = _Tp;
-};
-
-template <class _Tp>
-_LIBCPP_HIDE_FROM_ABI constexpr bool __vectorizable() {
-  return std::is_arithmetic<_Tp>::value && !std::is_const<_Tp>::value &&
-         !std::is_volatile<_Tp>::value && !std::is_same<_Tp, bool>::value;
-}
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
+
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+// TODO: Elaboration of implementation-defined ABIs
 
-using scalar = __simd_abi<_StorageKind::_Scalar, 1>;
-
-template <int _Np>
-using fixed_size = __simd_abi<_StorageKind::_Array, _Np>;
+using scalar = __scalar;
 
 template <class _Tp>
 inline constexpr size_t max_fixed_size = 32;
 
+template <int _Np>
+using fixed_size = __vec_ext<_Np>;
 template <class _Tp>
-using compatible = fixed_size<16 / sizeof(_Tp)>;
+using compatible = __vec_ext<16 / sizeof(_Tp)>;
+#  if defined(__AVX__)
+template <class _Tp>
+using native = __vec_ext<_LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp)>;
+#  else
+template <class _Tp>
+using native = __vec_ext<16 / sizeof(_Tp)>;
+#  endif
 
-#ifndef _LIBCPP_HAS_NO_VECTOR_EXTENSION
-template <class _Tp>
-using native = __simd_abi<_StorageKind::_VecExt,
-                          _LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp)>;
-#else
-template <class _Tp>
-using native =
-    fixed_size<_Tp, _LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp)>;
-#endif // _LIBCPP_HAS_NO_VECTOR_EXTENSION
+template <class _Tp, size_t _Np, class... Abis>
+struct deduce {
+  using type = fixed_size<_Np>;
+};
+
+template <class _Tp, size_t _Np, class... Abis>
+using deduce_t = typename deduce<_Tp, _Np>::type;
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
+// Class template simd [parallel.simd.class]
 template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
 class simd;
-template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
-class simd_mask;
 
-struct element_aligned_tag {};
-struct vector_aligned_tag {};
-template <size_t>
-struct overaligned_tag {};
-inline constexpr element_aligned_tag element_aligned{};
-inline constexpr vector_aligned_tag vector_aligned{};
-template <size_t _Np>
-inline constexpr overaligned_tag<_Np> overaligned{};
-
-// traits [simd.traits]
-template <class _Tp>
-struct is_abi_tag : std::integral_constant<bool, false> {};
-
-template <_StorageKind __kind, int _Np>
-struct is_abi_tag<__simd_abi<__kind, _Np>>
-    : std::integral_constant<bool, true> {};
-
-template <class _Tp>
-struct is_simd : std::integral_constant<bool, false> {};
-
-template <class _Tp, class _Abi>
-struct is_simd<simd<_Tp, _Abi>> : std::integral_constant<bool, true> {};
-
-template <class _Tp>
-struct is_simd_mask : std::integral_constant<bool, false> {};
-
-template <class _Tp, class _Abi>
-struct is_simd_mask<simd_mask<_Tp, _Abi>> : std::integral_constant<bool, true> {
-};
-
-template <class _Tp>
-struct is_simd_flag_type : std::integral_constant<bool, false> {};
-
-template <>
-struct is_simd_flag_type<element_aligned_tag>
-    : std::integral_constant<bool, true> {};
-
-template <>
-struct is_simd_flag_type<vector_aligned_tag>
-    : std::integral_constant<bool, true> {};
-
-template <size_t _Align>
-struct is_simd_flag_type<overaligned_tag<_Align>>
-    : std::integral_constant<bool, true> {};
-
-template <class _Tp>
-inline constexpr bool is_abi_tag_v = is_abi_tag<_Tp>::value;
-template <class _Tp>
-inline constexpr bool is_simd_v = is_simd<_Tp>::value;
-template <class _Tp>
-inline constexpr bool is_simd_mask_v = is_simd_mask<_Tp>::value;
-template <class _Tp>
-inline constexpr bool is_simd_flag_type_v = is_simd_flag_type<_Tp>::value;
-template <class _Tp, size_t _Np>
-struct abi_for_size {
-  using type = simd_abi::fixed_size<_Np>;
-};
-template <class _Tp, size_t _Np>
-using abi_for_size_t = typename abi_for_size<_Tp, _Np>::type;
-
-template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
-struct simd_size;
-
-template <class _Tp, _StorageKind __kind, int _Np>
-struct simd_size<_Tp, __simd_abi<__kind, _Np>>
-    : std::integral_constant<size_t, _Np> {
-  static_assert(
-      std::is_arithmetic<_Tp>::value &&
-          !std::is_same<__remove_const_t<_Tp>, bool>::value,
-      "Element type should be vectorizable");
-};
-
-// TODO: implement it.
-template <class _Tp, class _Up = typename _Tp::value_type>
-struct memory_alignment;
-
-template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
-inline constexpr size_t simd_size_v = simd_size<_Tp, _Abi>::value;
-
-template <class _Tp, class _Up = typename _Tp::value_type>
-inline constexpr size_t memory_alignment_v = memory_alignment<_Tp, _Up>::value;
-
-// class template simd [simd.class]
 template <class _Tp>
 using native_simd = simd<_Tp, simd_abi::native<_Tp>>;
+
 template <class _Tp, int _Np>
 using fixed_size_simd = simd<_Tp, simd_abi::fixed_size<_Np>>;
 
-// class template simd_mask [simd.mask.class]
+// Class template simd_mask [parallel.simd.mask.class]
+template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
+class simd_mask;
+
 template <class _Tp>
 using native_simd_mask = simd_mask<_Tp, simd_abi::native<_Tp>>;
 
 template <class _Tp, int _Np>
 using fixed_size_simd_mask = simd_mask<_Tp, simd_abi::fixed_size<_Np>>;
 
-// casts [simd.casts]
+// Memory alignment
+struct element_aligned_tag {
+  template <class _Tp, class _Up = typename _Tp::value_type>
+  static constexpr size_t __alignment = alignof(_Up);
+
+  template <class _Tp, class _Up>
+  static constexpr _Up* __apply(_Up* __ptr) {
+    return __ptr;
+  }
+};
+
+struct vector_aligned_tag {
+  template <class _Tp, class _Up = typename _Tp::value_type>
+  static constexpr size_t __alignment = bit_ceil(sizeof(_Up) * _Tp::size());
+
+  template <class _Tp, class _Up>
+  static constexpr _Up* __apply(_Up* __ptr) {
+    return static_cast<_Up*>(__builtin_assume_aligned(__ptr, __alignment<_Tp, _Up>));
+  }
+};
+
+template <size_t _Np>
+struct overaligned_tag {
+  template <class _Tp, class _Up = typename _Tp::value_type>
+  static constexpr size_t __alignment = _Np;
+
+  template <class _Tp, class _Up>
+  static constexpr _Up* __apply(_Up* __ptr) {
+    return static_cast<_Up*>(__builtin_assume_aligned(__ptr, _Np));
+  }
+};
+
+inline constexpr element_aligned_tag element_aligned{};
+
+inline constexpr vector_aligned_tag vector_aligned{};
+
+template <size_t _Np>
+inline constexpr overaligned_tag<_Np> overaligned{};
+
+// simd type traits [parallel.simd.traits]
+template <class _Tp, class = void>
+struct __is_abi_tag_impl : false_type {};
+
 template <class _Tp>
-struct __static_simd_cast_traits {
-  template <class _Up, class _Abi>
-  static simd<_Tp, _Abi> __apply(const simd<_Up, _Abi>& __v);
-};
-
-template <class _Tp, class _NewAbi>
-struct __static_simd_cast_traits<simd<_Tp, _NewAbi>> {
-  template <class _Up, class _Abi>
-  static typename std::enable_if<simd<_Up, _Abi>::size() ==
-                                     simd<_Tp, _NewAbi>::size(),
-                                 simd<_Tp, _NewAbi>>::type
-  __apply(const simd<_Up, _Abi>& __v);
-};
+struct __is_abi_tag_impl<_Tp, enable_if_t<_Tp::__is_abi_tag>> : bool_constant<_Tp::__is_abi_tag> {};
 
 template <class _Tp>
-struct __simd_cast_traits {
-  template <class _Up, class _Abi>
-  static typename std::enable_if<
-      __is_non_narrowing_arithmetic_convertible<_Up, _Tp>(),
-      simd<_Tp, _Abi>>::type
-  __apply(const simd<_Up, _Abi>& __v);
-};
+struct is_abi_tag : __is_abi_tag_impl<_Tp> {};
 
-template <class _Tp, class _NewAbi>
-struct __simd_cast_traits<simd<_Tp, _NewAbi>> {
-  template <class _Up, class _Abi>
-  static typename std::enable_if<
-      __is_non_narrowing_arithmetic_convertible<_Up, _Tp>() &&
-          simd<_Up, _Abi>::size() == simd<_Tp, _NewAbi>::size(),
-      simd<_Tp, _NewAbi>>::type
-  __apply(const simd<_Up, _Abi>& __v);
+template <class _Tp>
+inline constexpr bool is_abi_tag_v = is_abi_tag<_Tp>::value;
+
+template <class _Tp>
+struct is_simd : false_type {};
+
+template <class _Tp, class _Abi>
+struct is_simd<simd<_Tp, _Abi>> : true_type {};
+
+template <class _Tp>
+inline constexpr bool is_simd_v = is_simd<_Tp>::value;
+
+template <class _Tp>
+struct is_simd_mask : false_type {};
+
+template <class _Tp, class _Abi>
+struct is_simd_mask<simd_mask<_Tp, _Abi>> : true_type {};
+
+template <class _Tp>
+inline constexpr bool is_simd_mask_v = is_simd_mask<_Tp>::value;
+
+template <class _Tp>
+struct is_simd_flag_type : false_type {};
+
+template <>
+struct is_simd_flag_type<element_aligned_tag> : true_type {};
+
+template <>
+struct is_simd_flag_type<vector_aligned_tag> : true_type {};
+
+template <size_t _Np>
+struct is_simd_flag_type<overaligned_tag<_Np>> : true_type {};
+
+template <class _Tp>
+inline constexpr bool is_simd_flag_type_v = is_simd_flag_type<_Tp>::value;
+
+template <class _Tp, class _Abi, class = void>
+struct __simd_size_impl {};
+
+template <class _Tp, class _Abi>
+struct __simd_size_impl<_Tp, _Abi, enable_if_t<__is_vectorizable<_Tp>() && is_abi_tag_v<_Abi>>>
+    : integral_constant<size_t, _Abi::__simd_size> {};
+
+template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
+struct simd_size : __simd_size_impl<_Tp, _Abi> {};
+
+template <class _Tp, class _Abi = simd_abi::compatible<_Tp>>
+inline constexpr size_t simd_size_v = simd_size<_Tp, _Abi>::value;
+
+template <class _Tp, class _Up, class = void>
+struct __memory_alignment_impl {};
+
+template <class _Tp, class _Up>
+struct __memory_alignment_impl<
+    _Tp,
+    _Up,
+    enable_if_t<(is_simd_v<_Tp> && __is_vectorizable<_Up>()) || (is_simd_mask_v<_Tp> && is_same_v<_Up, bool>)>>
+    : integral_constant<size_t, vector_aligned_tag::__alignment<_Tp, _Up>> {};
+
+template <class _Tp, class _Up = typename _Tp::value_type>
+struct memory_alignment : __memory_alignment_impl<_Tp, _Up> {};
+
+template <class _Tp, class _Up = typename _Tp::value_type>
+inline constexpr size_t memory_alignment_v = memory_alignment<_Tp, _Up>::value;
+
+template <class _Tp, class _Vp, class = void>
+struct __rebind_simd_impl {};
+
+template <class _Tp, class _Up, class _Abi>
+struct __rebind_simd_impl<_Tp, simd<_Up, _Abi>, void_t<simd_abi::deduce_t<_Tp, simd_size_v<_Up, _Abi>, _Abi>> > {
+  using type = simd<_Tp, simd_abi::deduce_t<_Tp, simd_size_v<_Up, _Abi>, _Abi>>;
 };
 
 template <class _Tp, class _Up, class _Abi>
-_LIBCPP_HIDE_FROM_ABI auto simd_cast(const simd<_Up, _Abi>& __v)
-    -> decltype(__simd_cast_traits<_Tp>::__apply(__v)) {
-  return __simd_cast_traits<_Tp>::__apply(__v);
+struct __rebind_simd_impl<_Tp, simd_mask<_Up, _Abi>, void_t<simd_abi::deduce_t<_Tp, simd_size_v<_Up, _Abi>, _Abi>> > {
+  using type = simd_mask<_Tp, simd_abi::deduce_t<_Tp, simd_size_v<_Up, _Abi>, _Abi>>;
+};
+
+template <class _Tp, class _Vp>
+struct rebind_simd : __rebind_simd_impl<_Tp, _Vp> {};
+
+template <class _Tp, class _Vp>
+using rebind_simd_t = typename rebind_simd<_Tp, _Vp>::type;
+
+template <int _Np, class _Vp, class = void>
+struct __resize_simd_impl {};
+
+template <int _Np, class _Tp, class _Abi>
+struct __resize_simd_impl<_Np, simd<_Tp, _Abi>, void_t<simd_abi::deduce_t<_Tp, _Np, _Abi>> > {
+  using type = simd<_Tp, simd_abi::deduce_t<_Tp, _Np, _Abi>>;
+};
+
+template <int _Np, class _Tp, class _Abi>
+struct __resize_simd_impl<_Np, simd_mask<_Tp, _Abi>, void_t<simd_abi::deduce_t<_Tp, _Np, _Abi>> > {
+  using type = simd_mask<_Tp, simd_abi::deduce_t<_Tp, _Np, _Abi>>;
+};
+
+template <int _Np, class _Vp>
+struct resize_simd : __resize_simd_impl<_Np, _Vp> {};
+
+template <int _Np, class _Vp>
+using resize_simd_t = typename resize_simd<_Np, _Vp>::type;
+
+// Casts [parallel.simd.casts]
+template <class _Tp, class = void>
+struct __safe_make_signed {
+  using type = _Tp;
+};
+
+template <class _Tp>
+struct __safe_make_signed<_Tp, enable_if_t<is_integral_v<_Tp>>> {
+  using type = make_signed_t<_Tp>;
+};
+
+template <class _Tp, class _Up, class _Abi, class = void>
+struct __static_simd_cast_return_type {};
+
+template <class _Tp, class _Up, class _Abi>
+struct __static_simd_cast_return_type<_Tp,
+                                      _Up,
+                                      _Abi,
+                                      enable_if_t<is_simd_v<_Tp> && _Tp::size() == simd<_Up, _Abi>::size()>> {
+  using type = _Tp;
+};
+
+template <class _Tp, class _Up, class _Abi>
+struct __static_simd_cast_return_type<
+    _Tp,
+    _Up,
+    _Abi,
+    enable_if_t<!is_simd_v<_Tp> &&
+                (is_same_v<_Tp, _Up> || is_same_v<__safe_make_signed<_Tp>, __safe_make_signed<_Up>>) >> {
+  using type = simd<_Tp, _Abi>;
+};
+
+template <class _Tp, class _Up, class _Abi>
+struct __static_simd_cast_return_type<_Tp,
+                                      _Up,
+                                      _Abi,
+                                      enable_if_t<!is_simd_v<_Tp> && !is_same_v<_Tp, _Up> &&
+                                                  !is_same_v<__safe_make_signed<_Up>, __safe_make_signed<_Tp>>>> {
+  using type = simd<_Tp, simd_abi::fixed_size<simd<_Up, _Abi>::size()>>;
+};
+
+template <class _Tp, class _Up, class _Abi, class = void>
+struct __simd_cast_return_type {};
+
+template <class _Tp, class _Up, class _Abi>
+struct __simd_cast_return_type<_Tp,
+                               _Up,
+                               _Abi,
+                               enable_if_t<is_simd_v<_Tp> && _Tp::size() == simd<_Up, _Abi>::size() &&
+                                           is_convertible_v<_Up, typename _Tp::value_type>>> {
+  using type = _Tp;
+};
+
+template <class _Tp, class _Up, class _Abi>
+struct __simd_cast_return_type<_Tp, _Up, _Abi, enable_if_t<!is_simd_v<_Tp> && is_same_v<_Tp, _Up>>> {
+  using type = simd<_Tp, _Abi>;
+};
+
+template <class _Tp, class _Up, class _Abi>
+struct __simd_cast_return_type<_Tp,
+                               _Up,
+                               _Abi,
+                               enable_if_t<!is_simd_v<_Tp> && !is_same_v<_Tp, _Up> && is_convertible_v<_Up, _Tp>>> {
+  using type = simd<_Tp, simd_abi::fixed_size<simd<_Up, _Abi>::size()>>;
+};
+
+template <class _To, class _From>
+enable_if_t<is_simd_v<_To> && is_simd_v<_From> && _To::size() == _From::size(), _To>
+__simd_conversion(_From __v) { // TODO: Optimizeable
+  _To res;
+  for (size_t __i = 0; __i < _From::size(); __i++) {
+    res[__i] = static_cast<typename _To::value_type>(__v[__i]);
+  }
+  return res;
+}
+
+template <class _To, class _From>
+enable_if_t<is_simd_mask_v<_To> && is_simd_mask_v<_From> && _To::size() == _From::size(), _To>
+__mask_conversion(_From __m) { // TODO: Optimizeable
+  _To res;
+  for (size_t __i = 0; __i < _From::size(); __i++) {
+    res[__i] = __m[__i];
+  }
+  return res;
 }
 
 template <class _Tp, class _Up, class _Abi>
-_LIBCPP_HIDE_FROM_ABI auto static_simd_cast(const simd<_Up, _Abi>& __v)
-    -> decltype(__static_simd_cast_traits<_Tp>::__apply(__v)) {
-  return __static_simd_cast_traits<_Tp>::__apply(__v);
+typename __simd_cast_return_type<_Tp, _Up, _Abi>::type simd_cast(const simd<_Up, _Abi>& __v) {
+  return __simd_conversion<typename __simd_cast_return_type<_Tp, _Up, _Abi>::type, simd<_Up, _Abi>>(__v);
+}
+
+template <class _Tp, class _Up, class _Abi>
+typename __static_simd_cast_return_type<_Tp, _Up, _Abi>::type static_simd_cast(const simd<_Up, _Abi>& __v) {
+  return __simd_conversion<typename __static_simd_cast_return_type<_Tp, _Up, _Abi>::type, simd<_Up, _Abi>>(__v);
 }
 
 template <class _Tp, class _Abi>
-fixed_size_simd<_Tp, simd_size<_Tp, _Abi>::value>
-to_fixed_size(const simd<_Tp, _Abi>&) noexcept;
+fixed_size_simd<_Tp, simd_size_v<_Tp, _Abi>> to_fixed_size(const simd<_Tp, _Abi>& __v) noexcept {
+  return __simd_conversion<fixed_size_simd<_Tp, simd_size_v<_Tp, _Abi>>, simd<_Tp, _Abi>>(__v);
+}
 
 template <class _Tp, class _Abi>
-fixed_size_simd_mask<_Tp, simd_size<_Tp, _Abi>::value>
-to_fixed_size(const simd_mask<_Tp, _Abi>&) noexcept;
+fixed_size_simd_mask<_Tp, simd_size_v<_Tp, _Abi>> to_fixed_size(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __mask_conversion<fixed_size_simd_mask<_Tp, simd_size_v<_Tp, _Abi>>, simd_mask<_Tp, _Abi>>(__m);
+}
 
 template <class _Tp, size_t _Np>
-native_simd<_Tp> to_native(const fixed_size_simd<_Tp, _Np>&) noexcept;
+enable_if_t<simd_size_v<_Tp, simd_abi::native<_Tp>> == _Np, native_simd<_Tp>>
+to_native(const fixed_size_simd<_Tp, _Np>& __v) noexcept {
+  return __simd_conversion<native_simd<_Tp>, fixed_size_simd<_Tp, _Np>>(__v);
+}
 
 template <class _Tp, size_t _Np>
-native_simd_mask<_Tp> to_native(const fixed_size_simd_mask<_Tp, _Np>&) noexcept;
+enable_if_t<simd_size_v<_Tp, simd_abi::native<_Tp>> == _Np, native_simd_mask<_Tp>>
+to_native(const fixed_size_simd_mask<_Tp, _Np>& __m) noexcept {
+  return __mask_conversion<native_simd_mask<_Tp>, fixed_size_simd_mask<_Tp, _Np>>(__m);
+}
 
 template <class _Tp, size_t _Np>
-simd<_Tp> to_compatible(const fixed_size_simd<_Tp, _Np>&) noexcept;
+enable_if_t<simd_size_v<_Tp, simd_abi::compatible<_Tp>> == _Np, simd<_Tp>>
+to_compatible(const fixed_size_simd<_Tp, _Np>& __v) noexcept {
+  return __simd_conversion<simd<_Tp>, fixed_size_simd<_Tp, _Np>>(__v);
+}
 
 template <class _Tp, size_t _Np>
-simd_mask<_Tp> to_compatible(const fixed_size_simd_mask<_Tp, _Np>&) noexcept;
+enable_if_t<simd_size_v<_Tp, simd_abi::compatible<_Tp>> == _Np, simd_mask<_Tp>>
+to_compatible(const fixed_size_simd_mask<_Tp, _Np>& __m) noexcept {
+  return __mask_conversion<simd_mask<_Tp>, fixed_size_simd_mask<_Tp, _Np>>(__m);
+}
 
-template <size_t... __sizes, class _Tp, class _Abi>
-tuple<simd<_Tp, abi_for_size_t<_Tp, __sizes>>...> split(const simd<_Tp, _Abi>&);
+template <class _SimdType, class _Simd>
+void __split_assign(const _Simd& __v, _SimdType& __s, size_t& __count) {
+  for (size_t __i = 0; __i < __s.size(); __i++)
+    __s[__i] = __v[__count++];
+}
 
-template <size_t... __sizes, class _Tp, class _Abi>
-tuple<simd_mask<_Tp, abi_for_size_t<_Tp, __sizes>>...>
-split(const simd_mask<_Tp, _Abi>&);
+template <size_t... _Ip, class _Tuple, class _SimdType>
+void __split_tuple_impl(const _SimdType& __v, _Tuple& __t, size_t& __count, index_sequence<_Ip...>) {
+  (__split_assign(__v, get<_Ip>(__t), __count), ...);
+}
+
+template <size_t... _Sizes, class _Tp, class _Abi>
+enable_if_t<((_Sizes + ...) == simd_size_v<_Tp, _Abi>), tuple<simd<_Tp, simd_abi::deduce_t<_Tp, _Sizes>>...>>
+split(const simd<_Tp, _Abi>& __v) noexcept {
+  tuple<simd<_Tp, simd_abi::deduce_t<_Tp, _Sizes>>...> __t;
+  size_t __count = 0;
+  __split_tuple_impl(__v, __t, __count, make_index_sequence<sizeof...(_Sizes)>{});
+  return __t;
+}
+
+template <size_t... _Sizes, class _Tp, class _Abi>
+enable_if_t<((_Sizes + ...) == simd_size_v<_Tp, _Abi>), tuple<simd_mask<_Tp, simd_abi::deduce_t<_Tp, _Sizes>>...>>
+split(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  tuple<simd_mask<_Tp, simd_abi::deduce_t<_Tp, _Sizes>>...> __t;
+  size_t __count = 0;
+  __split_tuple_impl(__m, __t, __count, make_index_sequence<sizeof...(_Sizes)>{});
+  return __t;
+}
 
 template <class _SimdType, class _Abi>
-array<_SimdType, simd_size<typename _SimdType::value_type, _Abi>::value /
-                     _SimdType::size()>
-split(const simd<typename _SimdType::value_type, _Abi>&);
+// FIX ME: Why simd_size_v gives error here?
+enable_if_t<is_simd_v<_SimdType> && (simd_size<typename _SimdType::value_type, _Abi>::value % _SimdType::size() == 0),
+            array<_SimdType, simd_size_v<typename _SimdType::value_type, _Abi> / _SimdType::size()>>
+split(const simd<typename _SimdType::value_type, _Abi>& __v) noexcept {
+  const size_t __size = _SimdType::size();
+  array<_SimdType, simd_size_v<typename _SimdType::value_type, _Abi> / __size> __arr{};
+  for (size_t __i = 0; __i < __arr.size(); __i++) {
+    for (size_t __j = 0; __j < __size; __j++)
+      __arr[__i][__j] = __v[__i * __size + __j];
+  }
+  return __arr;
+}
 
-template <class _SimdType, class _Abi>
-array<_SimdType, simd_size<typename _SimdType::value_type, _Abi>::value /
-                     _SimdType::size()>
-split(const simd_mask<typename _SimdType::value_type, _Abi>&);
+template <class _SimdMaskType, class _Abi>
+enable_if_t<
+    is_simd_mask_v<_SimdMaskType> &&
+        (simd_size_v<typename _SimdMaskType::simd_type::value_type, _Abi> % _SimdMaskType::size() == 0),
+    array<_SimdMaskType, simd_size_v<typename _SimdMaskType::simd_type::value_type, _Abi> / _SimdMaskType::size()>>
+split(const simd_mask<typename _SimdMaskType::simd_type::value_type, _Abi>& __m) noexcept {
+  const size_t __size = _SimdMaskType::size();
+  array<_SimdMaskType, simd_size_v<typename _SimdMaskType::simd_type::value_type, _Abi> / __size> __arr{};
+  for (size_t __i = 0; __i < __arr.size(); __i++) {
+    for (size_t __j = 0; __j < __size; __j++)
+      __arr[__i][__j] = __m[__i * __size + __j];
+  }
+  return __arr;
+}
+
+template <size_t _Num, class _Tp, class _Abi>
+enable_if_t<simd_size_v<_Tp, _Abi> % _Num == 0,
+            array<resize_simd_t<simd_size_v<_Tp, _Abi> / _Num, simd<_Tp, _Abi>>, _Num>>
+split_by(const simd<_Tp, _Abi>& __v) noexcept {
+  const size_t __size = simd_size_v<_Tp, _Abi> / _Num;
+  array<resize_simd_t<__size, simd<_Tp, _Abi>>, _Num> __arr{};
+  for (size_t __i = 0; __i < __arr.size(); __i++) {
+    for (size_t __j = 0; __j < __size; __j++)
+      __arr[__i][__j] = __v[__i * __size + __j];
+  }
+  return __arr;
+}
+
+template <size_t _Num, class _Tp, class _Abi>
+enable_if_t<simd_size_v<_Tp, _Abi> % _Num == 0,
+            array<resize_simd_t<simd_size_v<_Tp, _Abi> / _Num, simd_mask<_Tp, _Abi>>, _Num>>
+split_by(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  const size_t __size = simd_size_v<_Tp, _Abi> / _Num;
+  array<resize_simd_t<__size, simd_mask<_Tp, _Abi>>, _Num> __arr{};
+  for (size_t __i = 0; __i < __arr.size(); __i++) {
+    for (size_t __j = 0; __j < __size; __j++)
+      __arr[__i][__j] = __m[__i * __size + __j];
+  }
+  return __arr;
+}
+
+template <class _SimdType, class _Simd>
+void __concat_assign(const _Simd& __v, _SimdType& __s, size_t& __count) {
+  for (size_t __i = 0; __i < __v.size(); __i++)
+    __s[__count++] = __v[__i];
+}
 
 template <class _Tp, class... _Abis>
-simd<_Tp, abi_for_size_t<_Tp, __variadic_sum(simd_size<_Tp, _Abis>::value...)>>
-concat(const simd<_Tp, _Abis>&...);
+simd<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, _Abis> + ...)>> concat(const simd<_Tp, _Abis>&... __v) noexcept {
+  simd<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, _Abis> + ...)>> __res;
+  size_t __count = 0;
+  (__concat_assign(__v, __res, __count), ...);
+  return __res;
+}
 
 template <class _Tp, class... _Abis>
-simd_mask<_Tp,
-          abi_for_size_t<_Tp, __variadic_sum(simd_size<_Tp, _Abis>::value...)>>
-concat(const simd_mask<_Tp, _Abis>&...);
+simd_mask<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, _Abis> + ...)>>
+concat(const simd_mask<_Tp, _Abis>&... __m) noexcept {
+  simd_mask<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, _Abis> + ...)>> __res;
+  size_t __count = 0;
+  (__concat_assign(__m, __res, __count), ...);
+  return __res;
+}
 
-// reductions [simd.mask.reductions]
-template <class _Tp, class _Abi>
-bool all_of(const simd_mask<_Tp, _Abi>&) noexcept;
-template <class _Tp, class _Abi>
-bool any_of(const simd_mask<_Tp, _Abi>&) noexcept;
-template <class _Tp, class _Abi>
-bool none_of(const simd_mask<_Tp, _Abi>&) noexcept;
-template <class _Tp, class _Abi>
-bool some_of(const simd_mask<_Tp, _Abi>&) noexcept;
-template <class _Tp, class _Abi>
-int popcount(const simd_mask<_Tp, _Abi>&) noexcept;
-template <class _Tp, class _Abi>
-int find_first_set(const simd_mask<_Tp, _Abi>&);
-template <class _Tp, class _Abi>
-int find_last_set(const simd_mask<_Tp, _Abi>&);
-bool all_of(bool) noexcept;
-bool any_of(bool) noexcept;
-bool none_of(bool) noexcept;
-bool some_of(bool) noexcept;
-int popcount(bool) noexcept;
-int find_first_set(bool) noexcept;
-int find_last_set(bool) noexcept;
+template <class _Tp, class _Abi, size_t _Num>
+resize_simd_t<simd_size_v<_Tp, _Abi> * _Num, simd<_Tp, _Abi>> concat(const array<simd<_Tp, _Abi>, _Num>& __arr) noexcept {
+  const size_t __size = simd_size_v<_Tp, _Abi>;
+  resize_simd_t<__size * _Num, simd<_Tp, _Abi>> __s;
+  for (size_t __i = 0; __i < _Num; __i++) {
+    for (size_t __j = 0; __j < __size; __j++)
+      __s[__i * __size + __j] = __arr[__i][__j];
+  }
+  return __s;
+}
 
-// masked assignment [simd.whereexpr]
-template <class _MaskType, class _Tp>
+template <class _Tp, class _Abi, size_t _Num>
+resize_simd_t<simd_size_v<_Tp, _Abi> * _Num, simd_mask<_Tp, _Abi>>
+concat(const array<simd_mask<_Tp, _Abi>, _Num>& __arr) noexcept {
+  const size_t __size = simd_size_v<_Tp, _Abi>;
+  resize_simd_t<__size * _Num, simd_mask<_Tp, _Abi>> __m;
+  for (size_t __i = 0; __i < _Num; __i++) {
+    for (size_t __j = 0; __j < __size; __j++)
+      __m[__i * __size + __j] = __arr[__i][__j];
+  }
+  return __m;
+}
+
+// Reductions [parallel.simd.mask.reductions]
+template <class _Tp, class _Abi>
+bool all_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __mask_traits<_Tp, _Abi>::__all_of(__m.__s_);
+}
+
+template <class _Tp, class _Abi>
+bool any_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __mask_traits<_Tp, _Abi>::__any_of(__m.__s_);
+}
+
+template <class _Tp, class _Abi>
+bool none_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __mask_traits<_Tp, _Abi>::__none_of(__m.__s_);
+}
+
+template <class _Tp, class _Abi>
+bool some_of(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __mask_traits<_Tp, _Abi>::__some_of(__m.__s_);
+}
+
+template <class _Tp, class _Abi>
+int popcount(const simd_mask<_Tp, _Abi>& __m) noexcept {
+  return __mask_traits<_Tp, _Abi>::__popcount(__m.__s_);
+}
+
+template <class _Tp, class _Abi>
+int find_first_set(const simd_mask<_Tp, _Abi>& __m) {
+  return __mask_traits<_Tp, _Abi>::__find_first_set(__m.__s_);
+}
+
+template <class _Tp, class _Abi>
+int find_last_set(const simd_mask<_Tp, _Abi>& __m) {
+  return __mask_traits<_Tp, _Abi>::__find_last_set(__m.__s_);
+}
+
+bool all_of(_Bool __v) noexcept { return __v; }
+
+bool any_of(_Bool __v) noexcept { return __v; }
+
+bool none_of(_Bool __v) noexcept { return !__v; }
+
+bool some_of(_Bool) noexcept { return false; }
+
+int popcount(_Bool __v) noexcept { return __v; }
+
+int find_first_set(_Bool) noexcept { return 0; }
+
+int find_last_set(_Bool) noexcept { return 0; }
+
+// Where expression class templates [parallel.simd.whereexpr]
+template <class _MaskType, class _SimdType>
 class const_where_expression;
-template <class _MaskType, class _Tp>
+
+template <class _MaskType, class _SimdType>
 class where_expression;
 
-// masked assignment [simd.mask.where]
+// where functions [parallel.simd.mask.where]
 template <class _Tp, class _Abi>
 where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>>
-where(const typename simd<_Tp, _Abi>::mask_type&, simd<_Tp, _Abi>&) noexcept;
+where(const typename simd<_Tp, _Abi>::mask_type& __m, simd<_Tp, _Abi>& __s) noexcept {
+  return {__m, __s};
+}
 
 template <class _Tp, class _Abi>
-const_where_expression<simd_mask<_Tp, _Abi>, const simd<_Tp, _Abi>>
-where(const typename simd<_Tp, _Abi>::mask_type&,
-      const simd<_Tp, _Abi>&) noexcept;
+const_where_expression<simd_mask<_Tp, _Abi>, simd<_Tp, _Abi>>
+where(const typename simd<_Tp, _Abi>::mask_type& __m, const simd<_Tp, _Abi>& __s) noexcept {
+  return {__m, __s};
+}
 
 template <class _Tp, class _Abi>
 where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>>
-where(const typename __nodeduce<simd_mask<_Tp, _Abi>>::type&,
-      simd_mask<_Tp, _Abi>&) noexcept;
+where(const type_identity_t<simd_mask<_Tp, _Abi>>& __m, simd_mask<_Tp, _Abi>& __s) noexcept {
+  return {__m, __s};
+}
 
 template <class _Tp, class _Abi>
-const_where_expression<simd_mask<_Tp, _Abi>, const simd_mask<_Tp, _Abi>>
-where(const typename __nodeduce<simd_mask<_Tp, _Abi>>::type&,
-      const simd_mask<_Tp, _Abi>&) noexcept;
+const_where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>>
+where(const type_identity_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>& __s) noexcept {
+  return {__m, __s};
+}
 
 template <class _Tp>
-where_expression<bool, _Tp> where(bool, _Tp&) noexcept;
+enable_if_t<!(is_simd_v<_Tp> || is_simd_mask_v<_Tp>), where_expression<bool, _Tp>> where(_Bool __m, _Tp& __s) noexcept {
+  return {__m, __s};
+}
 
 template <class _Tp>
-const_where_expression<bool, const _Tp> where(bool, const _Tp&) noexcept;
+enable_if_t<!(is_simd_v<_Tp> || is_simd_mask_v<_Tp>), const_where_expression<bool, _Tp>>
+where(_Bool __m, const _Tp& __s) noexcept {
+  return {__m, __s};
+}
 
-// reductions [simd.reductions]
-template <class _Tp, class _Abi, class _BinaryOp = std::plus<_Tp>>
-_Tp reduce(const simd<_Tp, _Abi>&, _BinaryOp = _BinaryOp());
+template <typename _Tp, typename _Abi>
+void where(bool __m, simd<_Tp, _Abi>& __v) = delete;
+
+template <typename _Tp, typename _Abi>
+void where(bool __m, const simd<_Tp, _Abi>& __v) = delete;
+
+// Reductions [parallel.simd.reductions]
+template <class _Tp, class _Abi, class _BinaryOp = plus<>>
+_Tp reduce(const simd<_Tp, _Abi>& __s, _BinaryOp __binary_op = {}) {
+  return __simd_traits<_Tp, _Abi>::__reduce(__s.__s_, __binary_op);
+}
 
 template <class _MaskType, class _SimdType, class _BinaryOp>
 typename _SimdType::value_type
-reduce(const const_where_expression<_MaskType, _SimdType>&,
-       typename _SimdType::value_type __neutral_element, _BinaryOp);
+reduce(const const_where_expression<_MaskType, _SimdType>& __w,
+       typename _SimdType::value_type __identity,
+       _BinaryOp __binary_op) {
+  _SimdType __tmp(__w.__s_);
+  return _SimdType::_Impl::__reduce(
+      _SimdType::_Impl::__masked_assign(
+          __tmp.__s_, _MaskType::_Impl::__negate(__w.__m_.__s_), _SimdType::_Impl::__broadcast(__identity)),
+      __binary_op);
+}
 
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type
-reduce(const const_where_expression<_MaskType, _SimdType>&,
-       plus<typename _SimdType::value_type> = {});
+reduce(const const_where_expression<_MaskType, _SimdType>& __w, plus<> __binary_op = {}) noexcept {
+  return reduce(__w, 0, __binary_op);
+};
 
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type
-reduce(const const_where_expression<_MaskType, _SimdType>&,
-       multiplies<typename _SimdType::value_type>);
+reduce(const const_where_expression<_MaskType, _SimdType>& __w, multiplies<> __binary_op) noexcept {
+  return reduce(__w, 1, __binary_op);
+};
 
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type
-reduce(const const_where_expression<_MaskType, _SimdType>&,
-       bit_and<typename _SimdType::value_type>);
+reduce(const const_where_expression<_MaskType, _SimdType>& __w, bit_and<> __binary_op) noexcept {
+  return reduce(__w, ~typename _SimdType::value_type(), __binary_op);
+};
 
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type
-reduce(const const_where_expression<_MaskType, _SimdType>&,
-       bit_or<typename _SimdType::value_type>);
+reduce(const const_where_expression<_MaskType, _SimdType>& __w, bit_or<> __binary_op) noexcept {
+  return reduce(__w, 0, __binary_op);
+};
 
 template <class _MaskType, class _SimdType>
 typename _SimdType::value_type
-reduce(const const_where_expression<_MaskType, _SimdType>&,
-       bit_xor<typename _SimdType::value_type>);
+reduce(const const_where_expression<_MaskType, _SimdType>& __w, bit_xor<> __binary_op) noexcept {
+  return reduce(__w, 0, __binary_op);
+};
 
 template <class _Tp, class _Abi>
-_Tp hmin(const simd<_Tp, _Abi>&);
+_Tp hmin(const simd<_Tp, _Abi>& __s) noexcept {
+  return __simd_traits<_Tp, _Abi>::__hmin(__s.__s_);
+}
+
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type
-hmin(const const_where_expression<_MaskType, _SimdType>&);
+typename _SimdType::value_type hmin(const const_where_expression<_MaskType, _SimdType>& __w) noexcept {
+  _SimdType __tmp(__w.__s_);
+  return _SimdType::_Impl::__hmin(_SimdType::_Impl::__masked_assign(
+      __tmp.__s_,
+      _MaskType::_Impl::__negate(__w.__m_.__s_),
+      _SimdType::_Impl::__broadcast(numeric_limits<typename _SimdType::value_type>::max())));
+};
+
 template <class _Tp, class _Abi>
-_Tp hmax(const simd<_Tp, _Abi>&);
+_Tp hmax(const simd<_Tp, _Abi>& __s) noexcept {
+  return __simd_traits<_Tp, _Abi>::__hmax(__s.__s_);
+}
+
 template <class _MaskType, class _SimdType>
-typename _SimdType::value_type
-hmax(const const_where_expression<_MaskType, _SimdType>&);
+typename _SimdType::value_type hmax(const const_where_expression<_MaskType, _SimdType>& __w) noexcept {
+  _SimdType __tmp(__w.__s_);
+  return _SimdType::_Impl::__hmax(_SimdType::_Impl::__masked_assign(
+      __tmp.__s_,
+      _MaskType::_Impl::__negate(__w.__m_.__s_),
+      _SimdType::_Impl::__broadcast(numeric_limits<typename _SimdType::value_type>::lowest())));
+};
 
-// algorithms [simd.alg]
+// Algorithms [parallel.simd.alg]
 template <class _Tp, class _Abi>
-simd<_Tp, _Abi> min(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&) noexcept;
+simd<_Tp, _Abi> min(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
+  return __simd_traits<_Tp, _Abi>::__min(__a.__s_, __b.__s_);
+}
 
 template <class _Tp, class _Abi>
-simd<_Tp, _Abi> max(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&) noexcept;
+simd<_Tp, _Abi> max(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
+  return __simd_traits<_Tp, _Abi>::__max(__a.__s_, __b.__s_);
+}
 
 template <class _Tp, class _Abi>
-std::pair<simd<_Tp, _Abi>, simd<_Tp, _Abi>>
-minmax(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&) noexcept;
+pair<simd<_Tp, _Abi>, simd<_Tp, _Abi>> minmax(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
+  return __simd_traits<_Tp, _Abi>::__minmax(__a.__s_, __b.__s_);
+}
 
 template <class _Tp, class _Abi>
-simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>&, const simd<_Tp, _Abi>&,
-                      const simd<_Tp, _Abi>&);
+simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>& __v, const simd<_Tp, _Abi>& __lo, const simd<_Tp, _Abi>& __hi) noexcept {
+  return __simd_traits<_Tp, _Abi>::__clamp(__v.__s_, __lo.__s_, __hi.__s_);
+}
 
-// [simd.whereexpr]
-// TODO implement where expressions.
-template <class _MaskType, class _Tp>
+// Where expression class templates [parallel.simd.whereexpr]
+template <class _MaskType, class _SimdType>
 class const_where_expression {
+  // TODO: check type of _MaskType and _SimdType
+  template <class _Mp, class _Vp, class _BinaryOp>
+  friend typename _Vp::value_type
+  reduce(const const_where_expression<_Mp, _Vp>& __w, typename _Vp::value_type __identity, _BinaryOp __op);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type hmin(const const_where_expression<_Mp, _Vp>& __w) noexcept;
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type hmax(const const_where_expression<_Mp, _Vp>& __w) noexcept;
+
+protected:
+  using _Impl = typename _SimdType::_Impl;
+  const _MaskType __m_;
+  _SimdType& __s_;
+
 public:
   const_where_expression(const const_where_expression&) = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
-  __remove_const_t<_Tp> operator-() const&&;
+  const_where_expression(const _MaskType& __m, const _SimdType& __s) : __m_(__m), __s_(const_cast<_SimdType&>(__s)) {}
+
+  _SimdType operator-() const&& noexcept {
+    return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__unary_minus(__s_.__s_));
+  }
+  _SimdType operator+() const&& noexcept { return __s_; }
+  _SimdType operator~() const&& noexcept {
+    return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__bitwise_not(__s_.__s_));
+  }
+
   template <class _Up, class _Flags>
-  void copy_to(_Up*, _Flags) const&&;
+  enable_if_t<is_simd_flag_type_v<_Flags> &&
+              ((is_same_v<_Up, bool> && is_same_v<typename _SimdType::value_type, bool>) ||
+               (__is_vectorizable<_Up>() && !is_same_v<typename _SimdType::value_type, bool>))>
+  copy_to(_Up* __mem, _Flags) const&& {
+    _SimdType __tmp;
+    _Impl::__load(__tmp.__s_, _Flags::template __apply<_SimdType>(__mem));
+    _Impl::__store(
+        _Impl::__masked_assign(__tmp.__s_, __m_.__s_, __s_.__s_), _Flags::template __apply<_SimdType>(__mem));
+  }
 };
 
-template <class _MaskType, class _Tp>
-class where_expression : public const_where_expression<_MaskType, _Tp> {
+template <class _Tp>
+class const_where_expression<bool, _Tp> {
+  // TODO: check type of _Tp
+  template <class _Mp, class _Vp, class _BinaryOp>
+  friend typename _Vp::value_type
+  reduce(const const_where_expression<_Mp, _Vp>& __w, typename _Vp::value_type __identity, _BinaryOp __op);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type hmin(const const_where_expression<_Mp, _Vp>& __w) noexcept;
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type hmax(const const_where_expression<_Mp, _Vp>& __w) noexcept;
+
+protected:
+  const bool __m_;
+  _Tp& __s_;
+
 public:
-  where_expression(const where_expression&) = delete;
-  where_expression& operator=(const where_expression&) = delete;
-  template <class _Up>
-  void operator=(_Up&&);
-  template <class _Up>
-  void operator+=(_Up&&);
-  template <class _Up>
-  void operator-=(_Up&&);
-  template <class _Up>
-  void operator*=(_Up&&);
-  template <class _Up>
-  void operator/=(_Up&&);
-  template <class _Up>
-  void operator%=(_Up&&);
-  template <class _Up>
-  void operator&=(_Up&&);
-  template <class _Up>
-  void operator|=(_Up&&);
-  template <class _Up>
-  void operator^=(_Up&&);
-  template <class _Up>
-  void operator<<=(_Up&&);
-  template <class _Up>
-  void operator>>=(_Up&&);
-  void operator++();
-  void operator++(int);
-  void operator--();
-  void operator--(int);
+  const_where_expression(const const_where_expression&) = delete;
+  const_where_expression& operator=(const const_where_expression&) = delete;
+  const_where_expression(const bool __m, const _Tp& __s) : __m_(__m), __s_(const_cast<_Tp&>(__s)) {}
+
+  _Tp operator-() const&& noexcept { return __m_ ? -__s_ : __s_; }
+  _Tp operator+() const&& noexcept { return __s_; }
+  _Tp operator~() const&& noexcept { return __m_ ? !__s_ : __s_; }
+
   template <class _Up, class _Flags>
-  void copy_from(const _Up*, _Flags);
+  enable_if_t<is_simd_flag_type_v<_Flags> &&
+              ((is_same_v<_Up, bool> && is_same_v<_Tp, bool>) || (__is_vectorizable<_Up>() && !is_same_v<_Tp, bool>))>
+  copy_to(_Up* __mem, _Flags) const&& {
+    if (__m_)
+      __mem[0] = __m_ ? __s_ : __mem[0];
+  };
 };
 
-// [simd.class]
-// TODO: implement simd
+template <class _MaskType, class _SimdType>
+class where_expression : public const_where_expression<_MaskType, _SimdType> {
+  using _Impl = typename const_where_expression<_MaskType, _SimdType>::_Impl;
+  using const_where_expression<_MaskType, _SimdType>::__m_;
+  using const_where_expression<_MaskType, _SimdType>::__s_;
+
+public:
+  where_expression(const _MaskType& __m, _SimdType& __s) : const_where_expression<_MaskType, _SimdType>(__m, __s) {}
+
+  template <class _Up>
+  enable_if_t<is_convertible_v<_Up, _SimdType>> operator=(_Up&& __v) && noexcept {
+    if constexpr (is_arithmetic_v<_Up>)
+      _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__broadcast(__v));
+    else
+      _Impl::__masked_assign(__s_.__s_, __m_.__s_, __v.__s_);
+  }
+
+#  define _LIBCXX_SIMD_MASK_OP_(__op, __name)                                                                          \
+    template <class _Up>                                                                                               \
+    enable_if_t<is_convertible_v<decltype(declval<_SimdType&>() __op declval<_Up>()), _SimdType>> operator __op##=(    \
+        _Up&& __v)&& noexcept {                                                                                        \
+      if constexpr (is_arithmetic_v<_Up>)                                                                              \
+        _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name(__s_.__s_, _Impl::__broadcast(__v)));               \
+      else                                                                                                             \
+        _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__name(__s_.__s_, __v.__s_));                              \
+    }
+
+  _LIBCXX_SIMD_MASK_OP_(+, __plus)
+  _LIBCXX_SIMD_MASK_OP_(-, __minus)
+  _LIBCXX_SIMD_MASK_OP_(*, __multiplies)
+  _LIBCXX_SIMD_MASK_OP_(/, __divides)
+  _LIBCXX_SIMD_MASK_OP_(%, __modulus)
+  _LIBCXX_SIMD_MASK_OP_(&, __bitwise_and)
+  _LIBCXX_SIMD_MASK_OP_(|, __bitwise_or)
+  _LIBCXX_SIMD_MASK_OP_(^, __bitwise_xor)
+  _LIBCXX_SIMD_MASK_OP_(<<, __shift_left)
+  _LIBCXX_SIMD_MASK_OP_(>>, __shift_right)
+#  undef _LIBCXX_SIMD_MASK_OP_
+
+  template <class _Up = void, class = decltype(++declval<conditional_t<true, _SimdType, _Up>&>())>
+  void operator++() && noexcept {
+    _SimdType __tmp = __s_;
+    _Impl::__increment(__tmp.__s_);
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
+  }
+
+  template <class _Up = void, class = decltype(declval<conditional_t<true, _SimdType, _Up>&>()++)>
+  void operator++(int) && noexcept {
+    _SimdType __tmp = __s_;
+    _Impl::__increment(__tmp.__s_);
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
+  }
+
+  template <class _Up = void, class = decltype(--declval<conditional_t<true, _SimdType, _Up>&>())>
+  void operator--() && noexcept {
+    _SimdType __tmp = __s_;
+    _Impl::__decrement(__tmp.__s_);
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
+  }
+
+  template <class _Up = void, class = decltype(declval<conditional_t<true, _SimdType, _Up>&>()--)>
+  void operator--(int) && noexcept {
+    _SimdType __tmp = __s_;
+    _Impl::__decrement(__tmp.__s_);
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
+  }
+
+  template <class _Up, class _Flags>
+  enable_if_t<is_simd_flag_type_v<_Flags> &&
+              ((is_same_v<_Up, bool> && is_same_v<typename _SimdType::value_type, bool>) ||
+               (__is_vectorizable<_Up>() && !is_same_v<typename _SimdType::value_type, bool>))>
+  copy_from(const _Up* __mem, _Flags) && {
+    _SimdType __tmp;
+    _Impl::__load(__tmp.__s_, _Flags::template __apply<_SimdType>(__mem));
+    _Impl::__masked_assign(__s_.__s_, __m_.__s_, __tmp.__s_);
+  }
+};
+
+template <class _Tp>
+class where_expression<bool, _Tp> : public const_where_expression<bool, _Tp> {
+  using const_where_expression<bool, _Tp>::__m_;
+  using const_where_expression<bool, _Tp>::__s_;
+
+public:
+  where_expression(const bool __m, _Tp& __s) : const_where_expression<bool, _Tp>(__m, __s) {}
+
+  template <class _Up>
+  enable_if_t<is_convertible_v<_Up, _Tp>> operator=(_Up&& __v) && noexcept {
+    __s_ = __m_ ? static_cast<_Up&&>(__v) : __s_;
+  }
+
+#  define _LIBCXX_SIMD_MASK_OP_(__op)                                                                                  \
+    template <class _Up>                                                                                               \
+    enable_if_t<is_convertible_v<decltype(declval<_Tp&>() __op declval<_Up>()), _Tp>> operator __op##=(                \
+        _Up&& __v)&& noexcept {                                                                                        \
+      __s_ = __m_ ? __s_ __op static_cast<_Up&&>(__v) : __s_;                                                          \
+    }
+  _LIBCXX_SIMD_MASK_OP_(+)
+  _LIBCXX_SIMD_MASK_OP_(-)
+  _LIBCXX_SIMD_MASK_OP_(*)
+  _LIBCXX_SIMD_MASK_OP_(/)
+  _LIBCXX_SIMD_MASK_OP_(%)
+  _LIBCXX_SIMD_MASK_OP_(&)
+  _LIBCXX_SIMD_MASK_OP_(|)
+  _LIBCXX_SIMD_MASK_OP_(^)
+  _LIBCXX_SIMD_MASK_OP_(<<)
+  _LIBCXX_SIMD_MASK_OP_(>>)
+#  undef _LIBCXX_SIMD_MASK_OP_
+
+  template <class _Up = void, class = decltype(++declval<conditional_t<true, _Tp, _Up>&>())>
+  void operator++() && noexcept {
+    if (__m_)
+      __s_++;
+  }
+
+  template <class _Up = void, class = decltype(declval<conditional_t<true, _Tp, _Up>&>()++)>
+  void operator++(int) && noexcept {
+    if (__m_)
+      ++__s_;
+  }
+
+  template <class _Up = void, class = decltype(--declval<conditional_t<true, _Tp, _Up>&>())>
+  void operator--() && noexcept {
+    if (__m_)
+      __s_--;
+  }
+
+  template <class _Up = void, class = decltype(declval<conditional_t<true, _Tp, _Up>&>()--)>
+  void operator--(int) && noexcept {
+    if (__m_)
+      --__s_;
+  }
+
+  template <class _Up, class _Flags>
+  enable_if_t<is_simd_flag_type_v<_Flags> &&
+              ((is_same_v<_Up, bool> && is_same_v<_Tp, bool>) || (__is_vectorizable<_Up>() && !is_same_v<_Tp, bool>))>
+  copy_from(const _Up* __mem, _Flags) && {
+    __s_ = __m_ ? __mem[0] : __s_;
+  }
+};
+
+// Class template simd [parallel.simd.class]
+template <class _Simd, class _Impl, bool>
+class __simd_int_operators {};
+
+template <class _Simd, class _Impl>
+class __simd_int_operators<_Simd, _Impl, true> {
+public:
+  // unary operators for integral _Tp [simd.unary]
+  _Simd operator~() const noexcept { return _Impl::__bitwise_not((*static_cast<const _Simd*>(this)).__s_); }
+
+  // binary operators for integral _Tp [simd.binary]
+  friend _Simd operator%(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__modulus(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator&(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__bitwise_and(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator|(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__bitwise_or(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator^(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator<<(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__shift_left(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator>>(const _Simd& __lhs, const _Simd& __rhs) noexcept {
+    return _Impl::__shift_right(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend _Simd operator<<(const _Simd& __lhs, int __rhs) noexcept { return _Impl::__shift_left(__lhs.__s_, __rhs); }
+
+  friend _Simd operator>>(const _Simd& __lhs, int __rhs) noexcept { return _Impl::__shift_right(__lhs.__s_, __rhs); }
+
+  // compound assignment for integral _Tp [simd.cassign]
+
+  friend _Simd& operator%=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs % __rhs; }
+
+  friend _Simd& operator&=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs & __rhs; }
+
+  friend _Simd& operator|=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs | __rhs; }
+
+  friend _Simd& operator^=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs ^ __rhs; }
+
+  friend _Simd& operator<<=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs << __rhs; }
+
+  friend _Simd& operator>>=(_Simd& __lhs, const _Simd& __rhs) noexcept { return __lhs = __lhs >> __rhs; }
+
+  friend _Simd& operator<<=(_Simd& __lhs, int __rhs) noexcept { return __lhs = __lhs << __rhs; }
+
+  friend _Simd& operator>>=(_Simd& __lhs, int __rhs) noexcept { return __lhs = __lhs >> __rhs; }
+};
+
 template <class _Tp, class _Abi>
-class simd {
+class simd : public __simd_int_operators<simd<_Tp, _Abi>, __simd_traits<_Tp, _Abi>, is_integral_v<_Tp>> {
+  using _Impl    = __simd_traits<_Tp, _Abi>;
+  using _Storage = typename _Impl::_Simd;
+
+  _Storage __s_;
+
+  friend class simd_mask<_Tp, _Abi>;
+  friend class __simd_int_operators<simd, _Impl, true>;
+
+  template <class _MaskType, class _SimdType>
+  friend class const_where_expression;
+  template <class _MaskType, class _SimdType>
+  friend class where_expression;
+
+  friend simd min<>(const simd&, const simd&) noexcept;
+  friend simd max<>(const simd&, const simd&) noexcept;
+  friend pair<simd, simd> minmax<>(const simd&, const simd&) noexcept;
+  friend simd clamp<>(const simd&, const simd&, const simd&) noexcept;
+  friend _Tp hmin<>(const simd&) noexcept;
+  friend _Tp hmax<>(const simd&) noexcept;
+
+  template <class __Tp, class __Abi, class _BinaryOp>
+  friend __Tp reduce(const simd<__Tp, __Abi>&, _BinaryOp);
+
+  template <class _Mp, class _Vp, class _BinaryOp>
+  friend typename _Vp::value_type
+  reduce(const const_where_expression<_Mp, _Vp>& __w, typename _Vp::value_type __identity, _BinaryOp __op);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type hmin(const const_where_expression<_Mp, _Vp>& __w) noexcept;
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type hmax(const const_where_expression<_Mp, _Vp>& __w) noexcept;
+
 public:
   using value_type = _Tp;
-  using reference = __simd_reference<_Tp, _Tp, _Abi>;
-  using mask_type = simd_mask<_Tp, _Abi>;
-  using abi_type = _Abi;
+  using reference  = __simd_reference<_Tp, _Storage, value_type>;
+  using mask_type  = simd_mask<_Tp, _Abi>;
+  using abi_type   = _Abi;
 
-  simd() = default;
+  simd()            = default;
   simd(const simd&) = default;
   simd& operator=(const simd&) = default;
 
-  static constexpr size_t size() noexcept {
-    return simd_size<_Tp, _Abi>::value;
-  }
+  simd(_Storage __s) : __s_(__s) {}
 
-private:
-  __simd_storage<_Tp, _Abi> __s_;
+  static constexpr size_t size() noexcept { return simd_size_v<value_type, abi_type>; }
 
-  template <class _Up>
-  static constexpr bool __can_broadcast() {
-    return (std::is_arithmetic<_Up>::value &&
-            __is_non_narrowing_arithmetic_convertible<_Up, _Tp>()) ||
-           (!std::is_arithmetic<_Up>::value &&
-            std::is_convertible<_Up, _Tp>::value) ||
-           std::is_same<__remove_const_t<_Up>, int>::value ||
-           (std::is_same<__remove_const_t<_Up>,
-                         unsigned int>::value &&
-            std::is_unsigned<_Tp>::value);
-  }
+  // implicit broadcast constructor
+  template <class _Up, enable_if_t<__can_broadcast<value_type, _Up>(), int> = 0>
+  simd(_Up&& __v) : __s_(_Impl::__broadcast(static_cast<value_type>(__v))) {}
 
-  template <class _Generator, size_t... __indicies>
-  static constexpr decltype(
-      std::forward_as_tuple(std::declval<_Generator>()(
-          std::integral_constant<size_t, __indicies>())...),
-      bool())
-  __can_generate(std::index_sequence<__indicies...>) {
-    return !__variadic_sum<bool>(
-        !__can_broadcast<decltype(std::declval<_Generator>()(
-            std::integral_constant<size_t, __indicies>()))>()...);
-  }
-
-  template <class _Generator>
-  static bool __can_generate(...) {
-    return false;
-  }
-
-  template <class _Generator, size_t... __indicies>
-  void __generator_init(_Generator&& __g, std::index_sequence<__indicies...>) {
-    int __not_used[]{((*this)[__indicies] =
-                          __g(std::integral_constant<size_t, __indicies>()),
-                      0)...};
-    (void)__not_used;
-  }
-
-public:
   // implicit type conversion constructor
-  template <class _Up,
-            class = typename std::enable_if<
-                std::is_same<_Abi, simd_abi::fixed_size<size()>>::value &&
-                __is_non_narrowing_arithmetic_convertible<_Up, _Tp>()>::type>
+  template <class _Up, class = std::enable_if_t<std::is_same_v<abi_type, simd_abi::fixed_size<size()>> &&
+                                                __is_non_narrowing_arithmetic_convertible<_Up, value_type>()>>
   simd(const simd<_Up, simd_abi::fixed_size<size()>>& __v) {
     for (size_t __i = 0; __i < size(); __i++) {
       (*this)[__i] = static_cast<_Tp>(__v[__i]);
     }
   }
 
-  // implicit broadcast constructor
-  template <class _Up,
-            class = typename std::enable_if<__can_broadcast<_Up>()>::type>
-  simd(_Up&& __rv) {
-    auto __v = static_cast<_Tp>(__rv);
-    for (size_t __i = 0; __i < size(); __i++) {
-      (*this)[__i] = __v;
-    }
-  }
-
   // generator constructor
   template <class _Generator,
-            int = typename std::enable_if<
-                __can_generate<_Generator>(std::make_index_sequence<size()>()),
-                int>::type()>
-  explicit simd(_Generator&& __g) {
-    __generator_init(std::forward<_Generator>(__g),
-                     std::make_index_sequence<size()>());
-  }
+            enable_if_t<__can_generate<value_type, _Generator>(make_index_sequence<size()>()), int> = 0>
+  explicit simd(_Generator&& __g) : __s_(_Impl::__generate(std::forward<_Generator>(__g))) {}
 
   // load constructor
-  template <
-      class _Up, class _Flags,
-      class = typename std::enable_if<__vectorizable<_Up>()>::type,
-      class = typename std::enable_if<is_simd_flag_type<_Flags>::value>::type>
-  simd(const _Up* __buffer, _Flags) {
-    // TODO: optimize for overaligned flags
-    for (size_t __i = 0; __i < size(); __i++) {
-      (*this)[__i] = static_cast<_Tp>(__buffer[__i]);
-    }
+  template <class _Up, class _Flags, class = enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>>>
+  simd(const _Up* __mem, _Flags) {
+    _Impl::__load(__s_, _Flags::template __apply<simd>(__mem));
   }
 
   // loads [simd.load]
   template <class _Up, class _Flags>
-  typename std::enable_if<__vectorizable<_Up>() &&
-                          is_simd_flag_type<_Flags>::value>::type
-  copy_from(const _Up* __buffer, _Flags) {
-    *this = simd(__buffer, _Flags());
+  enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> copy_from(const _Up* __mem, _Flags) {
+    _Impl::__load(__s_, _Flags::template __apply<simd>(__mem));
   }
 
   // stores [simd.store]
   template <class _Up, class _Flags>
-  typename std::enable_if<__vectorizable<_Up>() &&
-                          is_simd_flag_type<_Flags>::value>::type
-  copy_to(_Up* __buffer, _Flags) const {
-    // TODO: optimize for overaligned flags
-    for (size_t __i = 0; __i < size(); __i++) {
-      __buffer[__i] = static_cast<_Up>((*this)[__i]);
-    }
+  enable_if_t<__is_vectorizable<_Up>() && is_simd_flag_type_v<_Flags>> copy_to(_Up* __mem, _Flags) const {
+    _Impl::__store(__s_, _Flags::template __apply<simd>(__mem));
   }
 
   // scalar access [simd.subscr]
-  reference operator[](size_t __i) { return reference(&__s_, __i); }
+  reference operator[](size_t __i) { return reference(__s_, __i); }
 
   value_type operator[](size_t __i) const { return __s_.__get(__i); }
 
   // unary operators [simd.unary]
-  simd& operator++();
-  simd operator++(int);
-  simd& operator--();
-  simd operator--(int);
-  mask_type operator!() const;
-  simd operator~() const;
-  simd operator+() const;
-  simd operator-() const;
+  simd& operator++() noexcept {
+    _Impl::__increment(__s_);
+    return *this;
+  }
 
-#if 0
+  simd operator++(int) noexcept {
+    simd __r = *this;
+    _Impl::__increment(__s_);
+    return __r;
+  }
+
+  simd& operator--() noexcept {
+    _Impl::__decrement(__s_);
+    return *this;
+  }
+
+  simd operator--(int) noexcept {
+    simd __r = *this;
+    _Impl::__decrement(__s_);
+    return __r;
+  }
+
+  mask_type operator!() const noexcept { return _Impl::__negate(__s_); }
+
+  simd operator+() const noexcept { return *this; }
+
+  simd operator-() const noexcept { return _Impl::__unary_minus(__s_); }
+
   // binary operators [simd.binary]
-  friend simd operator+(const simd&, const simd&);
-  friend simd operator-(const simd&, const simd&);
-  friend simd operator*(const simd&, const simd&);
-  friend simd operator/(const simd&, const simd&);
-  friend simd operator%(const simd&, const simd&);
-  friend simd operator&(const simd&, const simd&);
-  friend simd operator|(const simd&, const simd&);
-  friend simd operator^(const simd&, const simd&);
-  friend simd operator<<(const simd&, const simd&);
-  friend simd operator>>(const simd&, const simd&);
-  friend simd operator<<(const simd&, int);
-  friend simd operator>>(const simd&, int);
+  friend simd operator+(const simd& __lhs, const simd& __rhs) noexcept { return _Impl::__plus(__lhs.__s_, __rhs.__s_); }
+
+  friend simd operator-(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__minus(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd operator*(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__multiplies(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd operator/(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__divides(__lhs.__s_, __rhs.__s_);
+  }
 
   // compound assignment [simd.cassign]
-  friend simd& operator+=(simd&, const simd&);
-  friend simd& operator-=(simd&, const simd&);
-  friend simd& operator*=(simd&, const simd&);
-  friend simd& operator/=(simd&, const simd&);
-  friend simd& operator%=(simd&, const simd&);
+  friend simd& operator+=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs + __rhs; }
 
-  friend simd& operator&=(simd&, const simd&);
-  friend simd& operator|=(simd&, const simd&);
-  friend simd& operator^=(simd&, const simd&);
-  friend simd& operator<<=(simd&, const simd&);
-  friend simd& operator>>=(simd&, const simd&);
-  friend simd& operator<<=(simd&, int);
-  friend simd& operator>>=(simd&, int);
+  friend simd& operator-=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs - __rhs; }
+
+  friend simd& operator*=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs * __rhs; }
+
+  friend simd& operator/=(simd& __lhs, const simd& __rhs) noexcept { return __lhs = __lhs / __rhs; }
 
   // compares [simd.comparison]
-  friend mask_type operator==(const simd&, const simd&);
-  friend mask_type operator!=(const simd&, const simd&);
-  friend mask_type operator>=(const simd&, const simd&);
-  friend mask_type operator<=(const simd&, const simd&);
-  friend mask_type operator>(const simd&, const simd&);
-  friend mask_type operator<(const simd&, const simd&);
-#endif
+  friend mask_type operator==(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__equal_to(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend mask_type operator!=(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__not_equal_to(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend mask_type operator>=(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__less_equal(__rhs.__s_, __lhs.__s_);
+  }
+
+  friend mask_type operator<=(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__less_equal(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend mask_type operator>(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__less(__rhs.__s_, __lhs.__s_);
+  }
+
+  friend mask_type operator<(const simd& __lhs, const simd& __rhs) noexcept {
+    return _Impl::__less(__lhs.__s_, __rhs.__s_);
+  }
 };
 
-// [simd.mask.class]
+// Class template simd_mask [parallel.simd.mask.class]
 template <class _Tp, class _Abi>
-// TODO: implement simd_mask
 class simd_mask {
+  using _Impl    = __mask_traits<_Tp, _Abi>;
+  using _Storage = typename _Impl::_Mask;
+
+  _Storage __s_;
+
+  friend class simd<_Tp, _Abi>;
+
+  template <class _MaskType, class _SimdType>
+  friend class const_where_expression;
+  template <class _MaskType, class _SimdType>
+  friend class where_expression;
+
+  template <class __Tp, class __Abi, class _BinaryOp>
+  friend __Tp reduce(const simd<__Tp, __Abi>&, _BinaryOp);
+
+  template <class _Mp, class _Vp, class _BinaryOp>
+  friend typename _Vp::value_type
+  reduce(const const_where_expression<_Mp, _Vp>& __w, typename _Vp::value_type __identity, _BinaryOp __op);
+
+  friend bool all_of<>(const simd_mask&) noexcept;
+  friend bool any_of<>(const simd_mask&) noexcept;
+  friend bool none_of<>(const simd_mask&) noexcept;
+  friend bool some_of<>(const simd_mask&) noexcept;
+  friend int popcount<>(const simd_mask&) noexcept;
+  friend int find_first_set<>(const simd_mask&);
+  friend int find_last_set<>(const simd_mask&);
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type hmin(const const_where_expression<_Mp, _Vp>& __w) noexcept;
+
+  template <class _Mp, class _Vp>
+  friend typename _Vp::value_type hmax(const const_where_expression<_Mp, _Vp>& __w) noexcept;
+
 public:
   using value_type = bool;
-  // TODO: this is strawman implementation. Turn it into a proxy type.
-  using reference = bool&;
-  using simd_type = simd<_Tp, _Abi>;
-  using abi_type = _Abi;
-  static constexpr size_t size() noexcept;
+  using reference  = __simd_reference<_Tp, _Storage, value_type>;
+  using simd_type  = simd<_Tp, _Abi>;
+  using abi_type   = _Abi;
+
+  static constexpr size_t size() noexcept { return simd_type::size(); }
+
   simd_mask() = default;
 
+  simd_mask(_Storage __s) : __s_(__s) {}
+
   // broadcast constructor
-  explicit simd_mask(value_type) noexcept;
+  explicit simd_mask(value_type __v) noexcept : __s_(_Impl::__broadcast(__v)) {}
 
   // implicit type conversion constructor
-  template <class _Up>
-  simd_mask(const simd_mask<_Up, simd_abi::fixed_size<size()>>&) noexcept;
+  template <class _Up, class = std::enable_if_t<std::is_same_v<abi_type, simd_abi::fixed_size<size()>> &&
+                                                __is_non_narrowing_arithmetic_convertible<_Up, value_type>()>>
+  simd_mask(const simd_mask<_Up, simd_abi::fixed_size<size()>>& __v) noexcept {
+    for (size_t __i = 0; __i < size(); __i++) {
+      (*this)[__i] = static_cast<_Tp>(__v[__i]);
+    }
+  }
 
   // load constructor
-  template <class _Flags>
-  simd_mask(const value_type*, _Flags);
+  template <class _Flags, class = enable_if_t<is_simd_flag_type_v<_Flags>>>
+  simd_mask(const value_type* __mem, _Flags) {
+    _Impl::__load(__s_, _Flags::template __apply<simd_mask>(__mem));
+  }
 
   // loads [simd.mask.copy]
   template <class _Flags>
-  void copy_from(const value_type*, _Flags);
+  enable_if_t<is_simd_flag_type_v<_Flags>> copy_from(const value_type* __mem, _Flags) {
+    _Impl::__load(__s_, _Flags::template __apply<simd_mask>(__mem));
+  }
+
   template <class _Flags>
-  void copy_to(value_type*, _Flags) const;
+  enable_if_t<is_simd_flag_type_v<_Flags>> copy_to(value_type* __mem, _Flags) const {
+    _Impl::__store(__s_, _Flags::template __apply<simd_mask>(__mem));
+  }
 
   // scalar access [simd.mask.subscr]
-  reference operator[](size_t);
-  value_type operator[](size_t) const;
+  reference operator[](size_t __i) { return reference(__s_, __i); }
+
+  value_type operator[](size_t __i) const { return __s_.__get(__i); }
 
   // unary operators [simd.mask.unary]
-  simd_mask operator!() const noexcept;
+  simd_mask operator!() const noexcept { return _Impl::__negate(__s_); }
 
-#if 0
   // simd_mask binary operators [simd.mask.binary]
-  friend simd_mask operator&&(const simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask operator||(const simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask operator&(const simd_mask&, const simd_mask&)noexcept;
-  friend simd_mask operator|(const simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask operator^(const simd_mask&, const simd_mask&) noexcept;
+  friend simd_mask operator&&(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__logical_and(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd_mask operator||(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__logical_or(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd_mask operator&(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__bitwise_and(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd_mask operator|(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__bitwise_or(__lhs.__s_, __rhs.__s_);
+  }
+
+  friend simd_mask operator^(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_);
+  }
 
   // simd_mask compound assignment [simd.mask.cassign]
-  friend simd_mask& operator&=(simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask& operator|=(simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask& operator^=(simd_mask&, const simd_mask&) noexcept;
+  friend simd_mask& operator&=(simd_mask& __lhs, const simd_mask& __rhs) noexcept { return __lhs = __lhs & __rhs; }
+
+  friend simd_mask& operator|=(simd_mask& __lhs, const simd_mask& __rhs) noexcept { return __lhs = __lhs | __rhs; }
+
+  friend simd_mask& operator^=(simd_mask& __lhs, const simd_mask& __rhs) noexcept { return __lhs = __lhs ^ __rhs; }
 
   // simd_mask compares [simd.mask.comparison]
-  friend simd_mask operator==(const simd_mask&, const simd_mask&) noexcept;
-  friend simd_mask operator!=(const simd_mask&, const simd_mask&) noexcept;
-#endif
+  friend simd_mask operator==(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__negate(_Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_));
+  }
+
+  friend simd_mask operator!=(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
+    return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_);
+  }
 };
 
 #endif // _LIBCPP_STD_VER >= 17
@@ -1577,9 +2063,4 @@ _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
 _LIBCPP_POP_MACROS
 
-#if !defined(_LIBCPP_REMOVE_TRANSITIVE_INCLUDES) && _LIBCPP_STD_VER <= 20
-#  include <algorithm>
-#  include <functional>
-#endif
-
-#endif /* _LIBCPP_EXPERIMENTAL_SIMD */
+#endif // _LIBCPP_EXPERIMENTAL_SIMD
