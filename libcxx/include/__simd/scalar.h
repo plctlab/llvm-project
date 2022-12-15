@@ -110,7 +110,9 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   }
 
   template <class _BinaryOp>
-  static _Tp __reduce(const _Simd& __s, _BinaryOp) { return __s.__data; }
+  static _Tp __reduce(const _Simd& __s, _BinaryOp) {
+    return __s.__data;
+  }
 };
 
 template <class _Tp>
@@ -119,13 +121,9 @@ struct __mask_traits<_Tp, simd_abi::__scalar> {
 
   static _Mask __broadcast(bool __v) noexcept { return {__v}; }
 
-  static void __load(_Mask& __s, const bool* __mem) noexcept {
-    __s.__data = __mem[0];
-  }
+  static void __load(_Mask& __s, const bool* __mem) noexcept { __s.__data = __mem[0]; }
 
-  static void __store(_Mask __s, bool* __mem) noexcept {
-    __mem[0] = __s.__data;
-  }
+  static void __store(_Mask __s, bool* __mem) noexcept { __mem[0] = __s.__data; }
 
   static _Mask __negate(_Mask __s) noexcept { return {{!__s.__data}}; }
 

@@ -288,7 +288,8 @@ void test_simd_abi() {
   F{}.template operator()<_Tp, SimdAbi>();
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
-int main() {
+int main(int, char**) {
   test_all_simd_abi<CheckWhereExprOperators>();
   test_all_simd_abi<CheckWhereExprCopyFrom>();
+  return 0;
 }

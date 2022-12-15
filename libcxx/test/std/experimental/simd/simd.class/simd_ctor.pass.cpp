@@ -224,4 +224,5 @@ int main(int, char**) {
   test_all_simd_abi<CheckFixedSimdCtor>();
   test_all_simd_abi<CheckGenerateSimdCtor>();
   test_all_simd_abi<CheckLoadSimdCtor>();
+  return 0;
 }

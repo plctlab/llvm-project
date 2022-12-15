@@ -144,9 +144,10 @@ void test_simd_abi() {
   F{}.template operator()<_Tp, SimdAbi, _Np>();
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
-int main() {
+int main(int, char**) {
   test_all_simd_abi<CheckConcatSimd>();
   test_all_simd_abi<CheckConcatSimdMask>();
   test_all_simd_abi<CheckConcatResizeSimd>();
   test_all_simd_abi<CheckConcatResizeSimdMask>();
+  return 0;
 }

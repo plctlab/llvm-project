@@ -33,4 +33,7 @@ void test_simd_abi() {
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 
-int main(int, char**) { test_all_simd_abi<CheckReferenceValueType>(); }
+int main(int, char**) {
+  test_all_simd_abi<CheckReferenceValueType>();
+  return 0;
+}

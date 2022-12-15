@@ -395,9 +395,10 @@ void test_simd_abi() {
   }
 }
 
-int main() {
+int main(int, char**) {
   test_all_simd_abi<CheckSimdReductionPart1>();
   test_all_simd_abi<CheckSimdReductionPart2>();
   test_all_simd_abi<CheckSimdReductionPart3>();
   test_all_simd_abi<CheckSimdReductionPart4>();
+  return 0;
 }

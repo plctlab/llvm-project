@@ -52,4 +52,5 @@ void test_simd_abi() {
 int main(int, char**) {
   test_all_simd_abi<CheckSimdReferenceSubscr>();
   test_all_simd_abi<CheckSimdValueTypeSubscr>();
+  return 0;
 }

@@ -140,4 +140,7 @@ void test_simd_abi() {
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 
-int main() { test_all_simd_abi<CheckSimdMaskReduction>(); }
+int main(int, char**) {
+  test_all_simd_abi<CheckSimdMaskReduction>();
+  return 0;
+}

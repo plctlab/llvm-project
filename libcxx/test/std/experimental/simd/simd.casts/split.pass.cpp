@@ -308,4 +308,5 @@ void test_simd_abi() {
 int main(int, char**) {
   test_all_simd_abi<CheckSplitToArray>();
   test_all_simd_abi<CheckSplitToTuple>();
+  return 0;
 }

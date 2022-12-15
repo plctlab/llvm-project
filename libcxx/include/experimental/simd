@@ -1269,7 +1269,8 @@ concat(const simd_mask<_Tp, _Abis>&... __m) noexcept {
 }
 
 template <class _Tp, class _Abi, size_t _Num>
-resize_simd_t<simd_size_v<_Tp, _Abi> * _Num, simd<_Tp, _Abi>> concat(const array<simd<_Tp, _Abi>, _Num>& __arr) noexcept {
+resize_simd_t<simd_size_v<_Tp, _Abi> * _Num, simd<_Tp, _Abi>>
+concat(const array<simd<_Tp, _Abi>, _Num>& __arr) noexcept {
   const size_t __size = simd_size_v<_Tp, _Abi>;
   resize_simd_t<__size * _Num, simd<_Tp, _Abi>> __s;
   for (size_t __i = 0; __i < _Num; __i++) {
@@ -1507,7 +1508,7 @@ protected:
   _SimdType& __s_;
 
 public:
-  const_where_expression(const const_where_expression&) = delete;
+  const_where_expression(const const_where_expression&)            = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
   const_where_expression(const _MaskType& __m, const _SimdType& __s) : __m_(__m), __s_(const_cast<_SimdType&>(__s)) {}
 
@@ -1549,7 +1550,7 @@ protected:
   _Tp& __s_;
 
 public:
-  const_where_expression(const const_where_expression&) = delete;
+  const_where_expression(const const_where_expression&)            = delete;
   const_where_expression& operator=(const const_where_expression&) = delete;
   const_where_expression(const bool __m, const _Tp& __s) : __m_(__m), __s_(const_cast<_Tp&>(__s)) {}
 
@@ -1819,8 +1820,9 @@ public:
   _LIBCPP_HIDE_FROM_ABI simd(_Up&& __v) : __s_(_Impl::__broadcast(static_cast<value_type>(__v))) {}
 
   // implicit type conversion constructor
-  template <class _Up, class = std::enable_if_t<std::is_same_v<abi_type, simd_abi::fixed_size<size()>> &&
-                                                __is_non_narrowing_arithmetic_convertible<_Up, value_type>()>>
+  template <class _Up,
+            class = std::enable_if_t<std::is_same_v<abi_type, simd_abi::fixed_size<size()>> &&
+                                     __is_non_narrowing_arithmetic_convertible<_Up, value_type>()>>
   _LIBCPP_HIDE_FROM_ABI simd(const simd<_Up, simd_abi::fixed_size<size()>>& __v) {
     for (size_t __i = 0; __i < size(); __i++) {
       (*this)[__i] = static_cast<_Tp>(__v[__i]);
@@ -1985,8 +1987,9 @@ public:
   explicit simd_mask(value_type __v) noexcept : __s_(_Impl::__broadcast(__v)) {}
 
   // implicit type conversion constructor
-  template <class _Up, class = std::enable_if_t<std::is_same_v<abi_type, simd_abi::fixed_size<size()>> &&
-                                                __is_non_narrowing_arithmetic_convertible<_Up, value_type>()>>
+  template <class _Up,
+            class = std::enable_if_t<std::is_same_v<abi_type, simd_abi::fixed_size<size()>> &&
+                                     __is_non_narrowing_arithmetic_convertible<_Up, value_type>()>>
   simd_mask(const simd_mask<_Up, simd_abi::fixed_size<size()>>& __v) noexcept {
     for (size_t __i = 0; __i < size(); __i++) {
       (*this)[__i] = static_cast<_Tp>(__v[__i]);

@@ -103,9 +103,10 @@ void test_simd_abi() {
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 
-int main() {
+int main(int, char**) {
   test_all_simd_abi<CheckSimdSizeTrue>();
   test_all_simd_abi<CheckSimdSizeVTrue>();
   test_all_simd_abi<CheckSimdSizeExtraTrue>();
   test_all_simd_abi<CheckSimdSizeVExtraTrue>();
+  return 0;
 }

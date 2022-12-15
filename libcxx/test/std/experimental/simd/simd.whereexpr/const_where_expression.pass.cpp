@@ -152,9 +152,10 @@ void test_simd_abi() {
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 
-int main() {
+int main(int, char**) {
   test_all_simd_abi<CheckConstWhereExprOperatorMinus>();
   test_all_simd_abi<CheckConstWhereExprOperatorPositive>();
   test_all_simd_abi<CheckConstWhereExprOperatorNegation>();
   test_all_simd_abi<CheckConstWhereExprCopyTo>();
+  return 0;
 }

@@ -78,4 +78,5 @@ int main(int, char**) {
   test_all_simd_abi<CheckIsSimdFlagTypeFalse>();
   test_all_simd_abi<CheckIsSimdFlagTypeVTrue>();
   test_all_simd_abi<CheckIsSimdFlagTypeVFalse>();
+  return 0;
 }

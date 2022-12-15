@@ -72,4 +72,5 @@ int main(int, char**) {
   test_all_simd_abi<CheckIsSimdMaskFalse>();
   test_all_simd_abi<CheckIsSimdMaskVTrue>();
   test_all_simd_abi<CheckIsSimdMaskVFalse>();
+  return 0;
 }

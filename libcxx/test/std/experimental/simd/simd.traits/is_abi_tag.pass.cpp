@@ -74,4 +74,5 @@ int main(int, char**) {
   test_all_simd_abi<CheckIsAbiTagFalse>();
   test_all_simd_abi<CheckIsAbiTagVTrue>();
   test_all_simd_abi<CheckIsAbiTagVFalse>();
+  return 0;
 }

@@ -74,4 +74,5 @@ void test_simd_abi() {
 int main(int, char**) {
   test_all_simd_abi<CheckToCompatibleSimd>();
   test_all_simd_abi<CheckToCompatibleSimdMask>();
+  return 0;
 }

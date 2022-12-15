@@ -123,4 +123,5 @@ void test_simd_abi() {
 int main(int, char**) {
   test_all_simd_abi<CheckSimdCopyFrom>();
   test_all_simd_abi<CheckSimdCopyTo>();
+  return 0;
 }

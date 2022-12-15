@@ -67,7 +67,8 @@ void test_simd_abi() {
   F{}.template operator()<_Tp, SimdAbi, _Np>();
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
-int main() {
+int main(int, char**) {
   test_all_simd_abi<CheckSplitBySimd>();
   test_all_simd_abi<CheckSplitBySimdMask>();
+  return 0;
 }

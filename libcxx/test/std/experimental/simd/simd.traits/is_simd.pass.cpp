@@ -73,4 +73,5 @@ int main(int, char**) {
   test_all_simd_abi<CheckIsSimdFalse>();
   test_all_simd_abi<CheckIsSimdVTrue>();
   test_all_simd_abi<CheckIsSimdVFalse>();
+  return 0;
 }

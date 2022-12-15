@@ -64,4 +64,7 @@ void test_simd_abi() {
 
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
-int main() { test_all_simd_abi<CheckResizeSimdTrue>(); }
+int main(int, char**) {
+  test_all_simd_abi<CheckResizeSimdTrue>();
+  return 0;
+}

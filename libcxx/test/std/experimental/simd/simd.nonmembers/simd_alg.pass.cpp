@@ -110,9 +110,10 @@ void test_simd_abi() {
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 
-int main() {
+int main(int, char**) {
   test_all_simd_abi<CheckSimdMin>();
   test_all_simd_abi<CheckSimdMax>();
   test_all_simd_abi<CheckSimdMinMax>();
   test_all_simd_abi<CheckSimdClamp>();
+  return 0;
 }

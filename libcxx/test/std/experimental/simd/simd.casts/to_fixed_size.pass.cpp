@@ -73,4 +73,5 @@ void test_simd_abi() {
 int main(int, char**) {
   test_all_simd_abi<CheckToFixedSizeSimd>();
   test_all_simd_abi<CheckToFixedSizeSimdMask>();
+  return 0;
 }

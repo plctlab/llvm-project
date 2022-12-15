@@ -75,4 +75,5 @@ void test_simd_abi() {
 int main(int, char**) {
   test_all_simd_abi<CheckToNativeSimd>();
   test_all_simd_abi<CheckToNativeSimdMask>();
+  return 0;
 }

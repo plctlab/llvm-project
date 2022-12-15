@@ -77,4 +77,7 @@ void test_simd_abi() {
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 
-int main() { test_all_simd_abi<CheckSimdComparison>(); }
+int main(int, char**) {
+  test_all_simd_abi<CheckSimdComparison>();
+  return 0;
+}
