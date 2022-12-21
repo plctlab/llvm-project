@@ -644,11 +644,6 @@ set(files
   __ranges/view_interface.h
   __ranges/views.h
   __ranges/zip_view.h
-  __simd/vec_ext.h
-  __simd/config.h
-  __simd/scalar.h
-  __simd/simd_storage.h
-  __simd/utility.h
   __split_buffer
   __std_mbstate_t.h
   __stop_token/atomic_unique_lock.h
@@ -905,6 +900,13 @@ set(files
   expected
   experimental/__config
   experimental/__memory
+  experimental/__simd/config.h
+  experimental/__simd/declaration.h
+  experimental/__simd/scalar.h
+  experimental/__simd/utility.h
+  experimental/__simd/vec_ext.h
+  experimental/algorithm
+  experimental/coroutine
   experimental/deque
   experimental/forward_list
   experimental/iterator

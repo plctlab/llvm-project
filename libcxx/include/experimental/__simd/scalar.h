@@ -7,14 +7,35 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP___SIMD_SCALAR_H
-#define _LIBCPP___SIMD_SCALAR_H
+#ifndef _LIBCPP_EXPERIMENTAL___SIMD_SCALAR_H
+#define _LIBCPP_EXPERIMENTAL___SIMD_SCALAR_H
 
-#include <__simd/simd_storage.h>
-#include <__simd/utility.h>
+#include <experimental/__simd/declaration.h>
+#include <experimental/__simd/utility.h>
 #include <algorithm>
 
+_LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+
+struct __scalar {
+  static constexpr bool __is_abi_tag  = true;
+  static constexpr size_t __simd_size = 1;
+};
+
+_LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
+
+template <class _Tp>
+struct __simd_storage<_Tp, simd_abi::__scalar> {
+  _Tp __data;
+
+  _Tp __get(size_t __idx) const noexcept { return (&__data)[__idx]; }
+
+  void __set(size_t __idx, _Tp __v) noexcept { (&__data)[__idx] = __v; }
+};
+
+template <class _Tp>
+struct __mask_storage<_Tp, simd_abi::__scalar> : __simd_storage<bool, simd_abi::__scalar> {};
 
 template <class _Tp>
 struct __simd_traits<_Tp, simd_abi::__scalar> {
@@ -159,4 +180,4 @@ struct __mask_traits<_Tp, simd_abi::__scalar> {
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
-#endif // _LIBCPP___SIMD_SCALAR_H
+#endif // _LIBCPP_EXPERIMENTAL___SIMD_SCALAR_H

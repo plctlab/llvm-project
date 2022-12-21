@@ -7,18 +7,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP___SIMD_UTILITY_H
-#define _LIBCPP___SIMD_UTILITY_H
+#ifndef _LIBCPP_EXPERIMENTAL___SIMD_UTILITY_H
+#define _LIBCPP_EXPERIMENTAL___SIMD_UTILITY_H
 
+#include <cstddef>
+#include <cstdint>
 #include <tuple>
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
-
-template <class _Tp, class _Abi>
-struct __simd_traits;
-
-template <class _Tp, class _Abi>
-struct __mask_traits;
 
 class _Bool {
   const bool __v;
@@ -28,6 +24,41 @@ public:
   _Bool(int) = delete;
   constexpr operator bool() const { return __v; }
 };
+
+// TODO: replace it by std::bit_ceil when bump to C++20
+constexpr size_t __next_pow_of_2(size_t __val) {
+  size_t __pow = 1;
+  while (__pow < __val)
+    __pow <<= 1;
+  return __pow;
+}
+
+template <class _Tp>
+auto __choose_mask_type() {
+  if constexpr (sizeof(_Tp) == 1) {
+    return uint8_t{};
+  } else if constexpr (sizeof(_Tp) == 2) {
+    return uint16_t{};
+  } else if constexpr (sizeof(_Tp) == 4) {
+    return uint32_t{};
+  } else if constexpr (sizeof(_Tp) == 8) {
+    return uint64_t{};
+  }
+#ifndef _LIBCPP_HAS_NO_INT128
+  else if constexpr (sizeof(_Tp) == 16) {
+    return __uint128_t{};
+  }
+#endif
+}
+
+template <class _Tp>
+auto __set_all_bits(bool __v) {
+  using _Up = decltype(__choose_mask_type<_Tp>());
+  _Up __res = 0;
+  for (unsigned long __i = 0; __i < __CHAR_BIT__ * sizeof(_Tp); __i++)
+    __res |= static_cast<_Up>(__v) << __i;
+  return __res;
+}
 
 template <class _To, class _From>
 constexpr decltype(_To{std::declval<_From>()}, true) __is_non_narrowing_convertible_impl(_From) {
@@ -80,4 +111,4 @@ bool __can_generate(...) {
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
-#endif // _LIBCPP___SIMD_UTILITY_H
+#endif // _LIBCPP_EXPERIMENTAL___SIMD_UTILITY_H

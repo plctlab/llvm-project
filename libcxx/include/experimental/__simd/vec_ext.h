@@ -7,14 +7,41 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP___SIMD_vec_ext_H
-#define _LIBCPP___SIMD_vec_ext_H
+#ifndef _LIBCPP_EXPERIMENTAL___SIMD_vec_ext_H
+#define _LIBCPP_EXPERIMENTAL___SIMD_vec_ext_H
 
-#include <__simd/simd_storage.h>
-#include <__simd/utility.h>
+#include <experimental/__simd/declaration.h>
+#include <experimental/__simd/utility.h>
 #include <functional>
 
+_LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+
+template <int _Np>
+struct __vec_ext {
+  static constexpr bool __is_abi_tag  = _Np > 0 && _Np <= 32;
+  static constexpr size_t __simd_size = _Np;
+};
+
+_LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD_ABI
+
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
+
+template <class _Tp, int _Np>
+struct __simd_storage<_Tp, simd_abi::__vec_ext<_Np>> {
+#if defined(_LIBCPP_COMPILER_CLANG_BASED)
+  _Tp __data __attribute__((vector_size(sizeof(_Tp) * _Np)));
+#else
+  _Tp __data __attribute__((vector_size(__next_pow_of_2(sizeof(_Tp) * _Np))));
+#endif
+
+  _Tp __get(size_t __idx) const noexcept { return __data[__idx]; }
+
+  void __set(size_t __idx, _Tp __v) noexcept { __data[__idx] = __v; }
+};
+
+template <class _Tp, int _Np>
+struct __mask_storage<_Tp, simd_abi::__vec_ext<_Np>>
+    : __simd_storage<decltype(__choose_mask_type<_Tp>()), simd_abi::__vec_ext<_Np>> {};
 
 template <class _Tp, int _Np>
 struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
@@ -235,4 +262,4 @@ struct __mask_traits<_Tp, simd_abi::__vec_ext<_Np>> {
 
 _LIBCPP_END_NAMESPACE_EXPERIMENTAL_SIMD
 
-#endif // _LIBCPP___SIMD_vec_ext_H
+#endif // _LIBCPP_EXPERIMENTAL___SIMD_vec_ext_H

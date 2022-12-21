@@ -685,10 +685,10 @@ public:
 
 */
 
-#include <__simd/vec_ext.h>
-#include <__simd/config.h>
-#include <__simd/scalar.h>
 #include <experimental/__config>
+#include <experimental/__simd/config.h>
+#include <experimental/__simd/scalar.h>
+#include <experimental/__simd/vec_ext.h>
 #include <functional>
 #include <type_traits>
 #include <utility>
