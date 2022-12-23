@@ -23,17 +23,17 @@ The previously merged patchs only addded synopsis, declarations and a few extern
 
 ### Implementation framework
 
-We reconstructed the original code structure. Moved most independent internal interfaces to directory `libcxx/include/__simd/`. The current directory structure of simd implementations is as follows:
+We reconstructed the original code structure. Moved most independent internal interfaces to directory `libcxx/include/experimental/__simd/`. The current directory structure of simd implementations is as follows:
 
 	- libcxx
 		- include
-			- __simd
-				- config.h //................. Macros of target simd ISA
-				- scalar.h //................. Implementation of internal ABI `__scalar`
-				- simd_storage.h //........... Definition of internal ABIs and their storage types
-				- vec_ext.h //................ Implementation of internal ABI `__vec_ext`
-				- utility.h //................ Some utility classes and functions
 			- experimental
+				- __simd
+					- config.h //................. Macros of target simd ISA
+					- declaration.h //............ Declarations of internal classes
+					- scalar.h //................. Implementation of internal ABI `__scalar`
+					- vec_ext.h //................ Implementation of internal ABI `__vec_ext`
+					- utility.h //................ Some utility internal interfaces and functions
 				- simd //..................... The user visible header file. Definition of the external user interfaces given in the documentation
 
 The current implementation follows previous to use GCC vector extension as the storage type of main internal ABI `__vec_ext`. And use Clang vector operations and vector builtins to implement the operations of `__vec_ext`. Reference: [Clang Language Extensions: Vectors and Extended Vectors](https://clang.llvm.org/docs/LanguageExtensions.html#vectors-and-extended-vectors).
