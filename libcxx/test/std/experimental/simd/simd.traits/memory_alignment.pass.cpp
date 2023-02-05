@@ -23,8 +23,13 @@ namespace ex = std::experimental::parallelism_v2;
 struct CheckMemoryAlignmentNative {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
+#if defined(__AVX__)
+    static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 32);
+    static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 32);
+#else
     static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 16);
     static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 16);
+#endif
   }
 };
 struct CheckMemoryAlignmentCompatible {
@@ -37,78 +42,24 @@ struct CheckMemoryAlignmentCompatible {
 struct CheckMemoryAlignmentScalar {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
-    if constexpr (std::is_same_v<_Tp, signed char> || std::is_same_v<_Tp, unsigned char>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 1);
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 1);
-    } else if constexpr (std::is_same_v<_Tp, short> || std::is_same_v<_Tp, unsigned short> ||
-                         std::is_same_v<_Tp, char16_t>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 2);
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 2);
-    } else if constexpr (std::is_same_v<_Tp, float> || std::is_same_v<_Tp, int> || std::is_same_v<_Tp, unsigned int> ||
-                         std::is_same_v<_Tp, wchar_t> || std::is_same_v<_Tp, char32_t>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 4);
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 4);
-    } else if constexpr (std::is_same_v<_Tp, double> || std::is_same_v<_Tp, long long> ||
-                         std::is_same_v<_Tp, unsigned long long> || std::is_same_v<_Tp, long> ||
-                         std::is_same_v<_Tp, unsigned long>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 8);
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 8);
-    } else {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 16);
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 16);
-    }
+    static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == sizeof(_Tp));
+    static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == sizeof(_Tp));
   }
 };
 
 struct CheckMemoryAlignmentFixedSize {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
-    if constexpr (std::is_same_v<_Tp, signed char> || std::is_same_v<_Tp, unsigned char>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == next_pow2(_Np));
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == next_pow2(_Np));
-    } else if constexpr (std::is_same_v<_Tp, short> || std::is_same_v<_Tp, unsigned short> ||
-                         std::is_same_v<_Tp, char16_t>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 2 * next_pow2(_Np));
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 2 * next_pow2(_Np));
-    } else if constexpr (std::is_same_v<_Tp, float> || std::is_same_v<_Tp, int> || std::is_same_v<_Tp, unsigned int> ||
-                         std::is_same_v<_Tp, wchar_t> || std::is_same_v<_Tp, char32_t>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 4 * next_pow2(_Np));
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 4 * next_pow2(_Np));
-    } else if constexpr (std::is_same_v<_Tp, double> || std::is_same_v<_Tp, long long> ||
-                         std::is_same_v<_Tp, unsigned long long> || std::is_same_v<_Tp, long> ||
-                         std::is_same_v<_Tp, unsigned long>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 8 * next_pow2(_Np));
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 8 * next_pow2(_Np));
-    } else {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 16 * next_pow2(_Np));
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 16 * next_pow2(_Np));
-    }
+    static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == sizeof(_Tp) * next_pow2(_Np));
+    static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == sizeof(_Tp) * next_pow2(_Np));
   }
 };
 
 struct CheckMemoryAlignmentDeduce {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
-    if constexpr (std::is_same_v<_Tp, signed char> || std::is_same_v<_Tp, unsigned char>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == next_pow2(_Np));
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == next_pow2(_Np));
-    } else if constexpr (std::is_same_v<_Tp, short> || std::is_same_v<_Tp, unsigned short> ||
-                         std::is_same_v<_Tp, char16_t>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 2 * next_pow2(_Np));
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 2 * next_pow2(_Np));
-    } else if constexpr (std::is_same_v<_Tp, float> || std::is_same_v<_Tp, int> || std::is_same_v<_Tp, unsigned int> ||
-                         std::is_same_v<_Tp, wchar_t> || std::is_same_v<_Tp, char32_t>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 4 * next_pow2(_Np));
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 4 * next_pow2(_Np));
-    } else if constexpr (std::is_same_v<_Tp, double> || std::is_same_v<_Tp, long long> ||
-                         std::is_same_v<_Tp, unsigned long long> || std::is_same_v<_Tp, long> ||
-                         std::is_same_v<_Tp, unsigned long>) {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 8 * next_pow2(_Np));
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 8 * next_pow2(_Np));
-    } else {
-      static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == 16 * next_pow2(_Np));
-      static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == 16 * next_pow2(_Np));
-    }
+    static_assert(ex::memory_alignment<ex::simd<_Tp, SimdAbi>>{}.value == sizeof(_Tp) * next_pow2(_Np));
+    static_assert(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>> == sizeof(_Tp) * next_pow2(_Np));
   }
 };
 template <class F, std::size_t _Np, class _Tp>

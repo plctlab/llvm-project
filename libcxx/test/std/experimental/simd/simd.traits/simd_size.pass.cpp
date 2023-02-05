@@ -20,93 +20,111 @@
 
 namespace ex = std::experimental::parallelism_v2;
 
-struct CheckSimdSizeTrue {
-  template <class _Tp, std::size_t _Np>
+struct CheckSimdSizeScalar {
+  template <class _Tp, class SimdAbi>
   void operator()() {
-    static_assert(_Tp::value == _Np);
-  }
+    static_assert(ex::simd_size<_Tp, SimdAbi>::value == 1);
+  };
+};
+struct CheckSimdSizeVScalar {
+  template <class _Tp, class SimdAbi>
+  void operator()() {
+    static_assert(ex::simd_size_v<_Tp, SimdAbi> == 1);
+  };
+};
+struct CheckSimdSizeDeduce {
+  template <class _Tp, class SimdAbi, size_t _Np>
+  void operator()() {
+    static_assert(ex::simd_size<_Tp, SimdAbi>::value == _Np);
+  };
+};
+struct CheckSimdSizeVDeduce {
+  template <class _Tp, class SimdAbi, size_t _Np>
+  void operator()() {
+    static_assert(ex::simd_size_v<_Tp, SimdAbi> == _Np);
+  };
+};
+struct CheckSimdSizeFixedSize {
+  template <class _Tp, class SimdAbi, size_t _Np>
+  void operator()() {
+    static_assert(ex::simd_size<_Tp, SimdAbi>::value == _Np);
+  };
+};
+struct CheckSimdSizeVFixedSize {
+  template <class _Tp, class SimdAbi, size_t _Np>
+  void operator()() {
+    static_assert(ex::simd_size_v<_Tp, SimdAbi> == _Np);
+  };
+};
+struct CheckSimdSizeCompatible {
+  template <class _Tp, class SimdAbi>
+  void operator()() {
+    static_assert(ex::simd_size<_Tp, SimdAbi>::value == 16 / sizeof(_Tp));
+  };
+};
+struct CheckSimdSizeVCompatible {
+  template <class _Tp, class SimdAbi>
+  void operator()() {
+    static_assert(ex::simd_size_v<_Tp, SimdAbi> == 16 / sizeof(_Tp));
+  };
 };
 
-struct CheckSimdSizeVTrue {
-  template <std::size_t _Tp, std::size_t _Np>
+struct CheckSimdSizeNative {
+  template <class _Tp, class SimdAbi>
   void operator()() {
-    static_assert(_Tp == _Np);
-  }
+#if defined(__AVX__)
+    static_assert(ex::simd_size<_Tp, SimdAbi>::value == _LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp));
+#else
+    static_assert(ex::simd_size<_Tp, SimdAbi>::value == 16 / sizeof(_Tp));
+#endif
+  };
 };
-
-// the `native abi` will be set to different size(if turn to `AVX` within 256bit or more)
-// current we will focus on 128bit
-struct CheckSimdSizeExtraTrue {
-  template <class _Tp, class _Np>
+struct CheckSimdSizeVNative {
+  template <class _Tp, class SimdAbi>
   void operator()() {
-    if constexpr (std::is_same<_Tp, double>::value || std::is_same<_Tp, long long>::value ||
-                  std::is_same<_Tp, unsigned long long>::value || std::is_same<_Tp, long>::value ||
-                  std::is_same<_Tp, unsigned long>::value) {
-      static_assert(_Np::value == 2);
-    } else if constexpr (std::is_same<_Tp, float>::value || std::is_same<_Tp, int>::value ||
-                         std::is_same<_Tp, unsigned int>::value || std::is_same<_Tp, wchar_t>::value ||
-                         std::is_same<_Tp, char32_t>::value) {
-      static_assert(_Np::value == 4);
-    } else if constexpr (std::is_same<_Tp, short>::value || std::is_same<_Tp, unsigned short>::value ||
-                         std::is_same<_Tp, char16_t>::value) {
-      static_assert(_Np::value == 8);
-    } else if constexpr (std::is_same<_Tp, signed char>::value || std::is_same<_Tp, unsigned char>::value) {
-      static_assert(_Np::value == 16);
-    } else {
-      static_assert(_Np::value == 1);
-    }
-  }
-};
-
-struct CheckSimdSizeVExtraTrue {
-  template <class _Tp, std::size_t _Np>
-  void operator()() {
-    if constexpr (std::is_same<_Tp, double>::value || std::is_same<_Tp, long long>::value ||
-                  std::is_same<_Tp, unsigned long long>::value || std::is_same<_Tp, long>::value ||
-                  std::is_same<_Tp, unsigned long>::value) {
-      static_assert(_Np == 2);
-    } else if constexpr (std::is_same<_Tp, float>::value || std::is_same<_Tp, int>::value ||
-                         std::is_same<_Tp, unsigned int>::value || std::is_same<_Tp, wchar_t>::value ||
-                         std::is_same<_Tp, char32_t>::value) {
-      static_assert(_Np == 4);
-    } else if constexpr (std::is_same<_Tp, short>::value || std::is_same<_Tp, unsigned short>::value ||
-                         std::is_same<_Tp, char16_t>::value) {
-      static_assert(_Np == 8);
-    } else if constexpr (std::is_same<_Tp, signed char>::value || std::is_same<_Tp, unsigned char>::value) {
-      static_assert(_Np == 16);
-    } else {
-      static_assert(_Np == 1);
-    }
-  }
+#if defined(__AVX__)
+    static_assert(ex::simd_size_v<_Tp, SimdAbi> == _LIBCPP_NATIVE_SIMD_WIDTH_IN_BYTES / sizeof(_Tp));
+#else
+    static_assert(ex::simd_size_v<_Tp, SimdAbi> == 16 / sizeof(_Tp));
+#endif
+  };
 };
 
 template <class F, std::size_t _Np, class _Tp>
 void test_simd_abi() {}
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
-  if constexpr (std::is_same<F, CheckSimdSizeTrue>::value) {
-    F{}.template operator()<ex::simd_size<_Tp, ex::simd_abi::scalar>, 1>();
-    F{}.template operator()<ex::simd_size<_Tp, ex::simd_abi::deduce_t<_Tp, _Np>>, _Np>();
-    F{}.template operator()<ex::simd_size<_Tp, ex::simd_abi::fixed_size<_Np>>, _Np>();
-  } else if constexpr (std::is_same<F, CheckSimdSizeVTrue>::value) {
-    F{}.template operator()<ex::simd_size_v<_Tp, ex::simd_abi::scalar>, 1>();
-    F{}.template operator()<ex::simd_size_v<_Tp, ex::simd_abi::deduce_t<_Tp, _Np>>, _Np>();
-    F{}.template operator()<ex::simd_size_v<_Tp, ex::simd_abi::fixed_size<_Np>>, _Np>();
-  } else if constexpr (std::is_same<F, CheckSimdSizeExtraTrue>::value) {
-    F{}.template operator()<_Tp, ex::simd_size<_Tp, ex::simd_abi::native<_Tp>>>();
-    F{}.template operator()<_Tp, ex::simd_size<_Tp, ex::simd_abi::compatible<_Tp>>>();
+  if constexpr (std::is_same<F, CheckSimdSizeScalar>::value || std::is_same<F, CheckSimdSizeVScalar>::value) {
+    F{}.template operator()<_Tp, ex::simd_abi::scalar>();
+  } else if constexpr (std::is_same<F, CheckSimdSizeDeduce>::value || std::is_same<F, CheckSimdSizeVDeduce>::value) {
+    F{}.template operator()<_Tp, ex::simd_abi::deduce_t<_Tp, _Np>, _Np>();
+  } else if constexpr (std::is_same<F, CheckSimdSizeFixedSize>::value ||
+                       std::is_same<F, CheckSimdSizeVFixedSize>::value) {
+    F{}.template operator()<_Tp, ex::simd_abi::fixed_size<_Np>, _Np>();
+  } else if constexpr (std::is_same<F, CheckSimdSizeCompatible>::value ||
+                       std::is_same<F, CheckSimdSizeVCompatible>::value) {
+    F{}.template operator()<_Tp, ex::simd_abi::compatible<_Tp>>();
   } else {
-    F{}.template operator()<_Tp, ex::simd_size_v<_Tp, ex::simd_abi::native<_Tp>>>();
-    F{}.template operator()<_Tp, ex::simd_size_v<_Tp, ex::simd_abi::compatible<_Tp>>>();
+    F{}.template operator()<_Tp, ex::simd_abi::native<_Tp>>();
   }
-
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 
 int main(int, char**) {
-  test_all_simd_abi<CheckSimdSizeTrue>();
-  test_all_simd_abi<CheckSimdSizeVTrue>();
-  test_all_simd_abi<CheckSimdSizeExtraTrue>();
-  test_all_simd_abi<CheckSimdSizeVExtraTrue>();
+  test_all_simd_abi<CheckSimdSizeScalar>();
+  test_all_simd_abi<CheckSimdSizeVScalar>();
+
+  test_all_simd_abi<CheckSimdSizeDeduce>();
+  test_all_simd_abi<CheckSimdSizeVDeduce>();
+
+  test_all_simd_abi<CheckSimdSizeFixedSize>();
+  test_all_simd_abi<CheckSimdSizeVFixedSize>();
+
+  test_all_simd_abi<CheckSimdSizeCompatible>();
+  test_all_simd_abi<CheckSimdSizeVCompatible>();
+
+  test_all_simd_abi<CheckSimdSizeNative>();
+  test_all_simd_abi<CheckSimdSizeVNative>();
+
   return 0;
 }
