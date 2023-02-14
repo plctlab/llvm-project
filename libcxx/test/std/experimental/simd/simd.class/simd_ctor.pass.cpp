@@ -30,7 +30,25 @@ public:
   operator T&() { return val; }
   operator T() const { return val; }
 };
-struct CheckBroadCastSimdCtor {
+
+#define GENARETE_SIGNED_TYPE_FOR_BROADCAST_SIMD_CTOR(x)                                                                \
+  if constexpr (sizeof(signed x) <= sizeof(_Tp)) {                                                                     \
+    ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type_signed_##x(static_cast<signed x>(3));                  \
+    assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type_signed_##x, origin_value);              \
+  }
+
+#define GENARETE_UNSIGNED_TYPE_FOR_BROADCAST_SIMD_CTOR(y)                                                              \
+  if constexpr (sizeof(unsigned y) <= sizeof(_Tp)) {                                                                   \
+    ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type_unsigned_##y(static_cast<unsigned y>(3));              \
+    assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type_unsigned_##y, origin_value);            \
+  }
+
+#define GENARETE_FLOATING_TYPE_FOR_BROADCAST_SIMD_CTOR(x)                                                              \
+  if constexpr (sizeof(x) <= sizeof(_Tp)) {                                                                            \
+    ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type_##x(static_cast<x>(3));                                \
+    assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type_##x, origin_value);                     \
+  }
+struct CheckBroadCastSimdCtorFromVectorizedType {
   template <class _Tp, class SimdAbi, std::size_t>
   void operator()() {
     constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
@@ -38,8 +56,51 @@ struct CheckBroadCastSimdCtor {
     for (size_t i = 0; i < array_size; ++i)
       origin_value[i] = static_cast<_Tp>(3);
 
-    ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type(ex::simd<_Tp, SimdAbi>(static_cast<_Tp>(3)));
-    assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type, origin_value);
+    if constexpr (std::is_integral_v<_Tp>) {
+      if constexpr (std::is_signed_v<_Tp>) {
+        if constexpr (sizeof(wchar_t) <= sizeof(_Tp)) {
+          ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type_wchar_t(static_cast<wchar_t>(3));
+          assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type_wchar_t, origin_value);
+        }
+        GENARETE_SIGNED_TYPE_FOR_BROADCAST_SIMD_CTOR(char)
+        GENARETE_SIGNED_TYPE_FOR_BROADCAST_SIMD_CTOR(short)
+        GENARETE_SIGNED_TYPE_FOR_BROADCAST_SIMD_CTOR(int)
+        GENARETE_SIGNED_TYPE_FOR_BROADCAST_SIMD_CTOR(long)
+
+        if constexpr (sizeof(long long) <= sizeof(_Tp)) {
+          ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type_long_long(static_cast<long long>(3));
+          assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type_long_long, origin_value);
+        }
+      } else {
+        GENARETE_UNSIGNED_TYPE_FOR_BROADCAST_SIMD_CTOR(char)
+        GENARETE_UNSIGNED_TYPE_FOR_BROADCAST_SIMD_CTOR(short)
+        GENARETE_UNSIGNED_TYPE_FOR_BROADCAST_SIMD_CTOR(int)
+        GENARETE_UNSIGNED_TYPE_FOR_BROADCAST_SIMD_CTOR(long)
+
+        if constexpr (sizeof(unsigned long long) <= sizeof(_Tp)) {
+          ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type_unsigned_long_long(
+              static_cast<unsigned long long>(3));
+          assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type_unsigned_long_long, origin_value);
+        }
+      }
+    } else {
+      GENARETE_FLOATING_TYPE_FOR_BROADCAST_SIMD_CTOR(float)
+      GENARETE_FLOATING_TYPE_FOR_BROADCAST_SIMD_CTOR(double)
+      if constexpr (sizeof(long double) <= sizeof(_Tp)) {
+        ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type_long_double(static_cast<long double>(3));
+        assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type_long_double, origin_value);
+      }
+    }
+  }
+};
+
+struct CheckBroadCastSimdCtor {
+  template <class _Tp, class SimdAbi, std::size_t>
+  void operator()() {
+    constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
+    std::array<_Tp, array_size> origin_value;
+    for (size_t i = 0; i < array_size; ++i)
+      origin_value[i] = static_cast<_Tp>(3);
 
     zero_init<_Tp> implicit_convert_to_3(3);
     ex::simd<_Tp, SimdAbi> expected_simd_from_implicit_convert(std::move(implicit_convert_to_3));
@@ -57,34 +118,49 @@ struct CheckBroadCastSimdCtor {
   }
 };
 
+#define GENERATE_SIGNED_TYPE_FOR_FIXED_SIMD_CTOR(x)                                                                    \
+  if constexpr (sizeof(_Tp) >= sizeof(signed x)) {                                                                     \
+    ex::simd<signed x, SimdAbi> x##_simd([](signed x i) { return i; });                                                \
+    ex::simd<_Tp, SimdAbi> convert_from_##x(x##_simd);                                                                 \
+    std::array<signed x, array_size> expected_value;                                                                   \
+    for (size_t i = 0; i < array_size; i++)                                                                            \
+      expected_value[i] = static_cast<signed x>(i);                                                                    \
+    assert_simd_value_correct<array_size, signed x>(convert_from_##x, expected_value);                                 \
+  }
+
+#define GENERATE_UNSIGNED_TYPE_FOR_FIXED_SIMD_CTOR(x)                                                                  \
+  if constexpr (sizeof(_Tp) >= sizeof(unsigned x)) {                                                                   \
+    ex::simd<unsigned x, SimdAbi> x##_simd([](unsigned x i) { return i; });                                            \
+    ex::simd<_Tp, SimdAbi> convert_from_##x(x##_simd);                                                                 \
+    std::array<unsigned x, array_size> expected_value;                                                                 \
+    for (size_t i = 0; i < array_size; i++)                                                                            \
+      expected_value[i] = static_cast<unsigned x>(i);                                                                  \
+    assert_simd_value_correct<array_size, unsigned x>(convert_from_##x, expected_value);                               \
+  }
+
+#define GENERATE_FLOATING_TYPE_FOR_FIXED_SIMD_CTOR(x)                                                                  \
+  if constexpr (sizeof(_Tp) >= sizeof(x)) {                                                                            \
+    ex::simd<x, SimdAbi> x##_simd([](x i) { return i; });                                                              \
+    ex::simd<_Tp, SimdAbi> convert_from_##x(x##_simd);                                                                 \
+    std::array<x, array_size> expected_value;                                                                          \
+    for (size_t i = 0; i < array_size; i++)                                                                            \
+      expected_value[i] = static_cast<x>(i);                                                                           \
+    assert_simd_value_correct<array_size, x>(convert_from_##x, expected_value);                                        \
+  }
+
 struct CheckFixedSimdCtor {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
     if constexpr (std::is_same_v<SimdAbi, ex::simd_abi::fixed_size<_Np>>) {
       constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
-      if constexpr (std::is_integral_v<_Tp> && std::is_signed_v<_Tp>) {
-        if constexpr (sizeof(_Tp) >= sizeof(signed char)) {
-          {
-            ex::simd<signed char, SimdAbi> char_simd([](signed char i) { return i; });
-            ex::simd<_Tp, SimdAbi> convert_from_char(char_simd);
+      if constexpr (std::is_integral_v<_Tp>) {
+        if constexpr (std::is_signed_v<_Tp>) {
+          GENERATE_SIGNED_TYPE_FOR_FIXED_SIMD_CTOR(char)
+          GENERATE_SIGNED_TYPE_FOR_FIXED_SIMD_CTOR(short)
+          GENERATE_SIGNED_TYPE_FOR_FIXED_SIMD_CTOR(int)
+          GENERATE_SIGNED_TYPE_FOR_FIXED_SIMD_CTOR(long)
 
-            std::array<signed char, array_size> expected_value;
-            for (size_t i = 0; i < array_size; i++)
-              expected_value[i] = static_cast<signed char>(i);
-            assert_simd_value_correct<array_size, signed char>(convert_from_char, expected_value);
-          }
-
-          if constexpr (sizeof(_Tp) >= sizeof(short)) {
-            ex::simd<short, SimdAbi> short_simd([](short i) { return i; });
-            ex::simd<_Tp, SimdAbi> convert_from_short(short_simd);
-
-            std::array<short, array_size> expected_value_in_short;
-            for (size_t i = 0; i < array_size; i++)
-              expected_value_in_short[i] = static_cast<short>(i);
-            assert_simd_value_correct<array_size, short>(convert_from_short, expected_value_in_short);
-          }
-
-          if constexpr (!std::is_same_v<_Tp, int> && sizeof(_Tp) >= sizeof(wchar_t)) {
+          if constexpr (std::is_signed_v<wchar_t> && sizeof(_Tp) >= sizeof(wchar_t)) {
             ex::simd<wchar_t, SimdAbi> wchar_simd([](wchar_t i) { return i; });
             ex::simd<_Tp, SimdAbi> convert_from_wchar(wchar_simd);
 
@@ -92,27 +168,6 @@ struct CheckFixedSimdCtor {
             for (size_t i = 0; i < array_size; i++)
               expected_value_in_wchar[i] = static_cast<wchar_t>(i);
             assert_simd_value_correct<array_size, wchar_t>(convert_from_wchar, expected_value_in_wchar);
-          }
-
-          if constexpr (sizeof(_Tp) >= sizeof(int)) {
-            ex::simd<int, SimdAbi> int_simd([](int i) { return i; });
-            ex::simd<_Tp, SimdAbi> convert_from_int(int_simd);
-
-            std::array<int, array_size> expected_value_in_int;
-            for (size_t i = 0; i < array_size; i++)
-              expected_value_in_int[i] = static_cast<int>(i);
-            assert_simd_value_correct<array_size, int>(convert_from_int, expected_value_in_int);
-          }
-
-          if constexpr (sizeof(_Tp) >= sizeof(long)) {
-            ex::simd<long, SimdAbi> long_simd([](long i) { return i; });
-            auto convert_from_long(long_simd);
-            static_assert(std::is_same_v<ex::simd<long, SimdAbi>, decltype(convert_from_long)>);
-
-            std::array<long, array_size> expected_value_in_long;
-            for (size_t i = 0; i < array_size; i++)
-              expected_value_in_long[i] = static_cast<long>(i);
-            assert_simd_value_correct<array_size, long>(convert_from_long, expected_value_in_long);
           }
 
           if constexpr (sizeof(_Tp) >= sizeof(long long)) {
@@ -124,40 +179,34 @@ struct CheckFixedSimdCtor {
               expected_value_in_long_long[i] = static_cast<long long>(i);
             assert_simd_value_correct<array_size, long long>(convert_from_long_long, expected_value_in_long_long);
           }
-        } else if constexpr (std::is_floating_point_v<_Tp>) {
-          if constexpr (sizeof(_Tp) >= sizeof(float)) {
-            {
-              const ex::simd<float, SimdAbi> float_simd([](float i) { return i; });
-              ex::simd<_Tp, SimdAbi> convert_from_float(float_simd);
+        } else {
+          GENERATE_UNSIGNED_TYPE_FOR_FIXED_SIMD_CTOR(char)
+          GENERATE_UNSIGNED_TYPE_FOR_FIXED_SIMD_CTOR(short)
+          GENERATE_UNSIGNED_TYPE_FOR_FIXED_SIMD_CTOR(int)
+          GENERATE_UNSIGNED_TYPE_FOR_FIXED_SIMD_CTOR(long)
 
-              std::array<float, array_size> expected_value_in_float;
-              for (size_t i = 0; i < array_size; i++)
-                expected_value_in_float[i] = static_cast<float>(i);
-              assert_simd_value_correct<array_size, float>(convert_from_float, expected_value_in_float);
-            }
+          if constexpr (sizeof(_Tp) >= sizeof(unsigned long long)) {
+            ex::simd<unsigned long long, SimdAbi> unsigned_long_long_simd([](unsigned long long i) { return i; });
+            ex::simd<_Tp, SimdAbi> convert_from_unsigned_long_long(unsigned_long_long_simd);
 
-            if constexpr (sizeof(_Tp) >= sizeof(double)) {
-              const ex::simd<double, SimdAbi> double_simd([](double i) { return i; });
-              ex::simd<_Tp, SimdAbi> convert_from_double(double_simd);
-
-              std::array<double, array_size> expected_value_in_double;
-              for (size_t i = 0; i < array_size; i++)
-                expected_value_in_double[i] = static_cast<double>(i);
-              assert_simd_value_correct<array_size, double>(convert_from_double, expected_value_in_double);
-            }
-
-            if constexpr (sizeof(_Tp) >= sizeof(long double)) {
-              const ex::simd<long double, SimdAbi> long_double_simd([](long double i) { return i; });
-              ex::simd<_Tp, SimdAbi> convert_from_long_double(long_double_simd);
-
-              std::array<long double, array_size> expected_value_in_long_double;
-              for (size_t i = 0; i < array_size; i++)
-                expected_value_in_long_double[i] = static_cast<long double>(i);
-              assert_simd_value_correct<array_size, long double>(
-                  convert_from_long_double, expected_value_in_long_double);
-            }
-          } else {
+            std::array<unsigned long long, array_size> expected_value_in_unsigned_long_long;
+            for (size_t i = 0; i < array_size; i++)
+              expected_value_in_unsigned_long_long[i] = static_cast<unsigned long long>(i);
+            assert_simd_value_correct<array_size, unsigned long long>(
+                convert_from_unsigned_long_long, expected_value_in_unsigned_long_long);
           }
+        }
+      } else {
+        GENERATE_FLOATING_TYPE_FOR_FIXED_SIMD_CTOR(float)
+        GENERATE_FLOATING_TYPE_FOR_FIXED_SIMD_CTOR(double)
+        if constexpr (sizeof(_Tp) >= sizeof(long double)) {
+          const ex::simd<long double, SimdAbi> long_double_simd([](long double i) { return i; });
+          ex::simd<_Tp, SimdAbi> convert_from_long_double(long_double_simd);
+
+          std::array<long double, array_size> expected_value_in_long_double;
+          for (size_t i = 0; i < array_size; i++)
+            expected_value_in_long_double[i] = static_cast<long double>(i);
+          assert_simd_value_correct<array_size, long double>(convert_from_long_double, expected_value_in_long_double);
         }
       }
     }
@@ -229,6 +278,7 @@ void test_simd_abi() {
 }
 
 int main(int, char**) {
+  test_all_simd_abi<CheckBroadCastSimdCtorFromVectorizedType>();
   test_all_simd_abi<CheckBroadCastSimdCtor>();
   test_all_simd_abi<CheckFixedSimdCtor>();
   test_all_simd_abi<CheckGenerateSimdCtor>();

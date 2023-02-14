@@ -20,29 +20,40 @@
 
 namespace ex = std::experimental::parallelism_v2;
 
-struct CheckSimdMaskCtor {
+struct CheckBroadCastSimdMaskCtor {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
     constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
-    {
-      const ex::simd_mask<_Tp, SimdAbi> mask_ctor_from_broadcast(false);
-      const std::array<bool, array_size> expected_value{};
-      assert_simd_mask_value_correct(mask_ctor_from_broadcast, expected_value);
-    }
-    {
-      if constexpr (std::is_same_v<SimdAbi, ex::simd_abi::fixed_size<_Np>>) {
-        ex::simd_mask<_Tp, SimdAbi> origin_fixed_size_abi_mask;
-        for (size_t i = 0; i < array_size; i++)
-          origin_fixed_size_abi_mask[i] = static_cast<bool>(i % 2);
-        ex::simd_mask<_Tp, SimdAbi> mask_ctor_from_fixed_abi(origin_fixed_size_abi_mask);
 
-        std::array<bool, array_size> expected_value;
-        for (size_t i = 0; i < array_size; i++)
-          expected_value[i] = static_cast<bool>(i % 2);
+    const ex::simd_mask<_Tp, SimdAbi> mask_ctor_from_broadcast(false);
+    const std::array<bool, array_size> expected_value{};
+    assert_simd_mask_value_correct(mask_ctor_from_broadcast, expected_value);
+  }
+};
 
-        assert_simd_mask_value_correct<array_size, bool>(mask_ctor_from_fixed_abi, expected_value);
-      }
+struct CheckFixedSimdMaskCtor {
+  template <class _Tp, class SimdAbi, std::size_t _Np>
+  void operator()() {
+    if constexpr (std::is_same_v<SimdAbi, ex::simd_abi::fixed_size<_Np>>) {
+      constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
+      ex::simd_mask<_Tp, SimdAbi> origin_fixed_size_abi_mask;
+      for (size_t i = 0; i < array_size; i++)
+        origin_fixed_size_abi_mask[i] = static_cast<bool>(i % 2);
+      ex::simd_mask<_Tp, SimdAbi> mask_ctor_from_fixed_abi(origin_fixed_size_abi_mask);
+
+      std::array<bool, array_size> expected_value;
+      for (size_t i = 0; i < array_size; i++)
+        expected_value[i] = static_cast<bool>(i % 2);
+
+      assert_simd_mask_value_correct<array_size, bool>(mask_ctor_from_fixed_abi, expected_value);
     }
+  }
+};
+
+struct CheckLoadSimdMaskCtor {
+  template <class _Tp, class SimdAbi, std::size_t _Np>
+  void operator()() {
+    constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
     {
       alignas(alignof(bool)) bool expected_value[array_size];
       for (size_t i = 0; i < array_size; i++)
@@ -79,6 +90,8 @@ void test_simd_abi() {
 }
 
 int main(int, char**) {
-  test_all_simd_abi<CheckSimdMaskCtor>();
+  test_all_simd_abi<CheckBroadCastSimdMaskCtor>();
+  test_all_simd_abi<CheckFixedSimdMaskCtor>();
+  test_all_simd_abi<CheckLoadSimdMaskCtor>();
   return 0;
 }
