@@ -58,7 +58,7 @@ struct CheckBroadCastSimdCtorFromVectorizedType {
 
     if constexpr (std::is_integral_v<_Tp>) {
       if constexpr (std::is_signed_v<_Tp>) {
-        if constexpr (sizeof(wchar_t) <= sizeof(_Tp)) {
+        if constexpr (std::is_signed_v<wchar_t> && sizeof(wchar_t) <= sizeof(_Tp)) {
           ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type_wchar_t(static_cast<wchar_t>(3));
           assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type_wchar_t, origin_value);
         }
