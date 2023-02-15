@@ -31,21 +31,48 @@ struct CheckBroadCastSimdMaskCtor {
   }
 };
 
+#define GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(x)                                                                      \
+  {                                                                                                                    \
+    ex::simd_mask<x, SimdAbi> origin_fixed_size_abi_mask;                                                              \
+    if constexpr (sizeof(_Tp) >= sizeof(x)) {                                                                          \
+      for (size_t i = 0; i < array_size; i++)                                                                          \
+        origin_fixed_size_abi_mask[i] = static_cast<bool>(i % 2);                                                      \
+      ex::simd_mask<_Tp, SimdAbi> mask_ctor_from_fixed_abi(origin_fixed_size_abi_mask);                                \
+      std::array<bool, array_size> expected_value;                                                                     \
+      for (size_t i = 0; i < array_size; i++)                                                                          \
+        expected_value[i] = static_cast<bool>(i % 2);                                                                  \
+      assert_simd_mask_value_correct<array_size, bool>(mask_ctor_from_fixed_abi, expected_value);                      \
+    }                                                                                                                  \
+  }
+
 struct CheckFixedSimdMaskCtor {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
     if constexpr (std::is_same_v<SimdAbi, ex::simd_abi::fixed_size<_Np>>) {
       constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
-      ex::simd_mask<_Tp, SimdAbi> origin_fixed_size_abi_mask;
-      for (size_t i = 0; i < array_size; i++)
-        origin_fixed_size_abi_mask[i] = static_cast<bool>(i % 2);
-      ex::simd_mask<_Tp, SimdAbi> mask_ctor_from_fixed_abi(origin_fixed_size_abi_mask);
 
-      std::array<bool, array_size> expected_value;
-      for (size_t i = 0; i < array_size; i++)
-        expected_value[i] = static_cast<bool>(i % 2);
-
-      assert_simd_mask_value_correct<array_size, bool>(mask_ctor_from_fixed_abi, expected_value);
+      if constexpr (std::is_integral_v<_Tp>) {
+        if constexpr (std::is_signed_v<_Tp>) {
+          if constexpr (std::is_signed_v<wchar_t>) {
+            GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(wchar_t);
+          }
+          GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(signed char);
+          GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(signed short);
+          GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(signed int);
+          GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(signed long);
+          GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(signed long long);
+        } else if constexpr (std::is_unsigned_v<_Tp>) {
+          GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(unsigned char);
+          GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(unsigned short);
+          GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(unsigned int);
+          GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(unsigned long);
+          GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(unsigned long long);
+        }
+      } else {
+        GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(float);
+        GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(double);
+        GENERATE_TYPE_FOR_FIXED_SIMD_MASK_CTOR(long double);
+      }
     }
   }
 };
