@@ -377,6 +377,9 @@ public:
   bool shouldFoldTerminatingConditionAfterLSR() const {
     return true;
   }
+
+  Value *computeVectorLength(IRBuilderBase &Builder, Value *AVL,
+                             ElementCount VF) const;
 };
 
 } // end namespace llvm

@@ -367,6 +367,7 @@ public:
     VPActiveLaneMaskPHISC,
     VPEVLBasedIVPHISC,
     VPFirstOrderRecurrencePHISC,
+    VPWidenEVLSC,
     VPWidenPHISC,
     VPWidenIntOrFpInductionSC,
     VPWidenPointerInductionSC,

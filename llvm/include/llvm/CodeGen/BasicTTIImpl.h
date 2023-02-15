@@ -35,6 +35,7 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -2557,6 +2558,21 @@ public:
   }
 
   InstructionCost getVectorSplitCost() { return 1; }
+
+  Value *computeVectorLength(IRBuilderBase &Builder, Value *AVL,
+                             ElementCount VF) const {
+    if (!VF.isScalable()) {
+      return ConstantInt::get(Builder.getInt32Ty(), VF.getFixedValue());
+    }
+
+    Constant *EC =
+        ConstantInt::get(Builder.getInt32Ty(), VF.getKnownMinValue());
+    Value *VLMax = Builder.CreateVScale(EC, "vlmax");
+    Value *VL = Builder.CreateZExtOrTrunc(AVL, Builder.getInt32Ty(), "vl");
+
+    return Builder.CreateIntrinsic(Builder.getInt32Ty(), Intrinsic::umin,
+                                   {VLMax, VL}, nullptr, "evl");
+  }
 
   /// @}
 };
