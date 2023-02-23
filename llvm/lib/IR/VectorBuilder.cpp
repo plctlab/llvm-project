@@ -51,13 +51,30 @@ Value &VectorBuilder::requestEVL() {
   return *ConstantInt::get(IntTy, StaticVectorLength.getFixedValue());
 }
 
-Value *VectorBuilder::createVectorInstruction(unsigned Opcode, Type *ReturnTy,
-                                              ArrayRef<Value *> InstOpArray,
-                                              const Twine &Name) {
+Value *VectorBuilder::createVectorInstructionFromOpcode(
+    unsigned Opcode, Type *ReturnTy, ArrayRef<Value *> InstOpArray,
+    const Twine &Name) {
   auto VPID = VPIntrinsic::getForOpcode(Opcode);
   if (VPID == Intrinsic::not_intrinsic)
     return returnWithError<Value *>("No VPIntrinsic for this opcode");
 
+  return createVectorInstruction(VPID, ReturnTy, InstOpArray, Name);
+}
+
+Value *VectorBuilder::createVectorInstructionFromIntrinsicID(
+    Intrinsic::ID IID, Type *ReturnTy, ArrayRef<Value *> InstOpArray,
+    const Twine &Name) {
+  auto VPID = VPIntrinsic::getForIntrinsicID(IID);
+  if (VPID == Intrinsic::not_intrinsic)
+    return returnWithError<Value *>("No VPIntrinsic for this Intrinsic");
+
+  return createVectorInstruction(VPID, ReturnTy, InstOpArray, Name);
+}
+
+Value *VectorBuilder::createVectorInstruction(Intrinsic::ID VPID,
+                                              Type *ReturnTy,
+                                              ArrayRef<Value *> InstOpArray,
+                                              const Twine &Name) {
   auto MaskPosOpt = VPIntrinsic::getMaskParamPos(VPID);
   auto VLenPosOpt = VPIntrinsic::getVectorLengthParamPos(VPID);
   size_t NumInstParams = InstOpArray.size();

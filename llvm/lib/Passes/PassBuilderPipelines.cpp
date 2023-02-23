@@ -135,6 +135,7 @@
 #include "llvm/Transforms/Vectorize/LoopVectorize.h"
 #include "llvm/Transforms/Vectorize/SLPVectorizer.h"
 #include "llvm/Transforms/Vectorize/VectorCombine.h"
+#include "llvm/Transforms/Vectorize/VectorPredication.h"
 
 using namespace llvm;
 
@@ -284,6 +285,11 @@ cl::opt<bool> EnableMemProfContextDisambiguation(
 
 extern cl::opt<bool> EnableInferAlignmentPass;
 } // namespace llvm
+
+static cl::opt<bool>
+    EnableVectorPredication("enable-vector-predication", cl::init(false),
+                            cl::Hidden,
+                            cl::desc("Enable VectorPredicationPass."));
 
 PipelineTuningOptions::PipelineTuningOptions() {
   LoopInterleaving = true;
@@ -1296,6 +1302,10 @@ void PassBuilder::addVectorPasses(OptimizationLevel Level,
       LICMPass(PTO.LicmMssaOptCap, PTO.LicmMssaNoAccForPromotionCap,
                /*AllowSpeculation=*/true),
       /*UseMemorySSA=*/true, /*UseBlockFrequencyInfo=*/false));
+
+  // Try to vector predicate vectorized functions.
+  if (EnableVectorPredication)
+    FPM.addPass(VectorPredicationPass());
 
   // Now that we've vectorized and unrolled loops, we may have more refined
   // alignment information, try to re-derive it here.
