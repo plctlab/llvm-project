@@ -84,6 +84,13 @@ struct VPlanTransforms {
                              const MapVector<Instruction *, uint64_t> &MinBWs,
                              LLVMContext &Ctx);
 
+  /// Add a VPEVLBasedIVPHIRecipe and related recipes to \p Plan and
+  /// replaces all uses except the canonical IV increment of
+  /// VPCanonicalIVPHIRecipe with a VPEVLBasedIVPHIRecipe.
+  /// VPCanonicalIVPHIRecipe is only used to control the loop after
+  /// this transformation.
+  static void addExplicitVectorLength(VPlan &Plan);
+
 private:
   /// Remove redundant VPBasicBlocks by merging them into their predecessor if
   /// the predecessor has a single successor.
