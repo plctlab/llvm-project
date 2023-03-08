@@ -63,44 +63,49 @@ void assert_simd_mask_value_correct(const ex::simd_mask<_Tp, SimdAbi>& origin_ma
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi();
 
+template <class F, class _Tp>
+void test_native_compatible_scalar() {
+  using namespace ex;
+  test_simd_abi<F, 1, _Tp, simd_abi::scalar, simd_abi::native<_Tp>, simd_abi::compatible<_Tp>>();
+}
+
 template <class F, class _Tp, std::size_t... _Np>
-void test_all_simd_abi(std::integer_sequence<std::size_t, _Np...>) {
+void test_fixed_size_deduce_t(std::integer_sequence<std::size_t, _Np...>) {
   using namespace ex;
 
-  (test_simd_abi<F,
-                 _Np + 1,
-                 _Tp,
-                 simd_abi::native<_Tp>,
-                 simd_abi::fixed_size<_Np + 1>,
-                 simd_abi::scalar,
-                 simd_abi::compatible<_Tp>,
-                 simd_abi::deduce_t<_Tp, _Np + 1>>(),
-   ...);
+  (test_simd_abi<F, _Np + 1, _Tp, simd_abi::fixed_size<_Np + 1>, simd_abi::deduce_t<_Tp, _Np + 1>>(), ...);
+}
+
+constexpr std::size_t max_simd_size = 32;
+
+template <class F, class _Tp>
+void test_all_simd_abi() {
+  test_native_compatible_scalar<F, _Tp>();
+
+  constexpr static auto integer_seq_from_make_integer = std::make_integer_sequence<size_t, max_simd_size>();
+
+  test_fixed_size_deduce_t<F, _Tp>(integer_seq_from_make_integer);
 }
 
 template <class F>
 void test_all_simd_abi() {
-  [[maybe_unused]] constexpr auto integer_seq_from_directly_build =
-      std::integer_sequence<std::size_t, 1, 2, 3, 4, 8, 9, 12, 16, 24, 29>();
-  [[maybe_unused]] constexpr auto integer_seq_from_make_integer = std::make_integer_sequence<size_t, 31>();
-  test_all_simd_abi<F, long double>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, double>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, float>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, long long>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, unsigned long long>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, long>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, unsigned long>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, int>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, unsigned int>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, short>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, unsigned short>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, wchar_t>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, signed char>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, unsigned char>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, char32_t>(integer_seq_from_make_integer);
-  test_all_simd_abi<F, char16_t>(integer_seq_from_make_integer);
+  test_all_simd_abi<F, long double>();
+  test_all_simd_abi<F, double>();
+  test_all_simd_abi<F, float>();
+  test_all_simd_abi<F, long long>();
+  test_all_simd_abi<F, unsigned long long>();
+  test_all_simd_abi<F, long>();
+  test_all_simd_abi<F, unsigned long>();
+  test_all_simd_abi<F, int>();
+  test_all_simd_abi<F, unsigned int>();
+  test_all_simd_abi<F, short>();
+  test_all_simd_abi<F, unsigned short>();
+  test_all_simd_abi<F, wchar_t>();
+  test_all_simd_abi<F, signed char>();
+  test_all_simd_abi<F, unsigned char>();
+  test_all_simd_abi<F, char32_t>();
+  test_all_simd_abi<F, char16_t>();
 }
-constexpr std::size_t max_simd_size = 32;
 
 // credit to: https://stackoverflow.com/a/466242
 constexpr size_t next_pow2(size_t v) noexcept {
