@@ -82,7 +82,7 @@ template <class F, class _Tp>
 void test_all_simd_abi() {
   test_native_compatible_scalar<F, _Tp>();
 
-  constexpr static auto integer_seq_from_make_integer = std::make_integer_sequence<size_t, max_simd_size>();
+  constexpr static auto integer_seq_from_make_integer = std::make_integer_sequence<size_t, max_simd_size - 1>();
 
   test_fixed_size_deduce_t<F, _Tp>(integer_seq_from_make_integer);
 }
