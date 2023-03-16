@@ -10,9 +10,9 @@
 #ifndef _LIBCPP_EXPERIMENTAL___SIMD_UTILITY_H
 #define _LIBCPP_EXPERIMENTAL___SIMD_UTILITY_H
 
-#include <cstddef>
 #include <cstdint>
 #include <tuple>
+#include <type_traits> // fix git rebase error
 
 _LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_SIMD
 
@@ -61,7 +61,7 @@ auto __set_all_bits(bool __v) {
 }
 
 template <class _To, class _From>
-constexpr decltype(_To{std::declval<_From>()}, true) __is_non_narrowing_convertible_impl(_From) {
+constexpr decltype(_To{declval<_From>()}, true) __is_non_narrowing_convertible_impl(_From) {
   return true;
 }
 
@@ -72,7 +72,7 @@ constexpr bool __is_non_narrowing_convertible_impl(...) {
 
 template <class _From, class _To>
 constexpr bool __is_non_narrowing_arithmetic_convertible() {
-  if constexpr (std::is_arithmetic_v<_To> && std::is_arithmetic_v<_From>)
+  if constexpr (is_arithmetic_v<_To> && is_arithmetic_v<_From>)
     return __is_non_narrowing_convertible_impl<_To>(_From{});
   else
     return false;
@@ -85,23 +85,21 @@ constexpr _Tp __variadic_sum(_Args... __args) {
 
 template <class _Tp>
 constexpr bool __is_vectorizable() {
-  return std::is_arithmetic_v<_Tp> && !std::is_const_v<_Tp> && !std::is_volatile_v<_Tp> && !std::is_same_v<_Tp, bool>;
+  return is_arithmetic_v<_Tp> && !is_const_v<_Tp> && !is_volatile_v<_Tp> && !is_same_v<_Tp, bool>;
 }
 
 template <class _Tp, class _Up>
 constexpr bool __can_broadcast() {
-  return (std::is_arithmetic_v<_Up> && __is_non_narrowing_arithmetic_convertible<_Up, _Tp>()) ||
-         (!std::is_arithmetic_v<_Up> && std::is_convertible_v<_Up, _Tp>) ||
-         std::is_same_v<std::remove_const_t<_Up>, int> ||
-         (std::is_same_v<std::remove_const_t<_Up>, unsigned int> && std::is_unsigned_v<_Tp>);
+  return (is_arithmetic_v<_Up> && __is_non_narrowing_arithmetic_convertible<_Up, _Tp>()) ||
+         (!is_arithmetic_v<_Up> && is_convertible_v<_Up, _Tp>) || is_same_v<remove_const_t<_Up>, int> ||
+         (is_same_v<remove_const_t<_Up>, unsigned int> && is_unsigned_v<_Tp>);
 }
 
 template <class _Tp, class _Generator, size_t... __indicies>
-constexpr decltype(std::forward_as_tuple(std::declval<_Generator>()(std::integral_constant<size_t, __indicies>())...),
-                   bool())
-__can_generate(std::index_sequence<__indicies...>) {
+constexpr decltype(forward_as_tuple(declval<_Generator>()(integral_constant<size_t, __indicies>())...), bool())
+__can_generate(index_sequence<__indicies...>) {
   return !__variadic_sum<bool>(
-      !__can_broadcast<_Tp, decltype(std::declval<_Generator>()(std::integral_constant<size_t, __indicies>()))>()...);
+      !__can_broadcast<_Tp, decltype(declval<_Generator>()(integral_constant<size_t, __indicies>()))>()...);
 }
 
 template <class _Tp, class _Generator>
