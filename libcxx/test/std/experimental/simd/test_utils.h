@@ -11,6 +11,7 @@
 
 #include <cassert>
 #include <experimental/simd>
+#include "type_algorithms.h"
 
 namespace ex = std::experimental::parallelism_v2;
 
@@ -87,24 +88,13 @@ void test_all_simd_abi() {
   test_fixed_size_deduce_t<F, _Tp>(integer_seq_from_make_integer);
 }
 
+using integral_no_bool_types =
+    types::concatenate_t<types::character_types, types::signed_integer_types, types::unsigned_integer_types>;
+using arithmetic_no_bool_types = types::concatenate_t<integral_no_bool_types, types::floating_point_types>;
+
 template <class F>
 void test_all_simd_abi() {
-  test_all_simd_abi<F, long double>();
-  test_all_simd_abi<F, double>();
-  test_all_simd_abi<F, float>();
-  test_all_simd_abi<F, long long>();
-  test_all_simd_abi<F, unsigned long long>();
-  test_all_simd_abi<F, long>();
-  test_all_simd_abi<F, unsigned long>();
-  test_all_simd_abi<F, int>();
-  test_all_simd_abi<F, unsigned int>();
-  test_all_simd_abi<F, short>();
-  test_all_simd_abi<F, unsigned short>();
-  test_all_simd_abi<F, wchar_t>();
-  test_all_simd_abi<F, signed char>();
-  test_all_simd_abi<F, unsigned char>();
-  test_all_simd_abi<F, char32_t>();
-  test_all_simd_abi<F, char16_t>();
+  types::for_each(arithmetic_no_bool_types(), []<class _Tp>() { test_all_simd_abi<F, _Tp>(); });
 }
 
 // credit to: https://stackoverflow.com/a/466242

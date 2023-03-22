@@ -31,36 +31,22 @@ struct CheckBroadCastSimdMaskCtor {
   }
 };
 
-#define GENERATE_FOR_FIXED_SIMD_MASK_CTOR(_Up, suffix)                                                                 \
-  ex::simd_mask<_Up, SimdAbi> suffix##_mask;                                                                           \
-  std::array<bool, _Np> expected_value_in_##suffix;                                                                    \
-  for (size_t i = 0; i < _Np; i++) {                                                                                   \
-    suffix##_mask[i]              = static_cast<bool>(i % 2);                                                          \
-    expected_value_in_##suffix[i] = suffix##_mask[i];                                                                  \
-  }                                                                                                                    \
-  ex::simd_mask<_Tp, SimdAbi> fixed_mask_from_type_##suffix(suffix##_mask);                                            \
-  assert_simd_mask_value_correct(fixed_mask_from_type_##suffix, expected_value_in_##suffix);
-
 struct CheckFixedSimdMaskCtor {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {
     if constexpr (std::is_same_v<SimdAbi, ex::simd_abi::fixed_size<_Np>>) {
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(char16_t, char16)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(char32_t, char32)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(unsigned char, uchar)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(signed char, schar)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(wchar_t, wchar)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(unsigned short, ushort)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(short, short)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(unsigned int, uint)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(int, int)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(unsigned long, ulong)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(long, long)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(unsigned long long, ulonglong)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(long long, longlong)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(float, float)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(double, double)
-      GENERATE_FOR_FIXED_SIMD_MASK_CTOR(long double, longdouble)
+      types::for_each(arithmetic_no_bool_types{}, []<class _Up> {
+        ex::simd_mask<_Up, SimdAbi> origin_mask;
+        std::array<bool, _Np> expected_value;
+
+        for (size_t i = 0; i < _Np; i++) {
+          origin_mask[i]    = static_cast<bool>(i % 2);
+          expected_value[i] = origin_mask[i];
+        }
+
+        ex::simd_mask<_Tp, SimdAbi> fixed_mask_from_other_type(origin_mask);
+        assert_simd_mask_value_correct(fixed_mask_from_other_type, expected_value);
+      });
     }
   }
 };
