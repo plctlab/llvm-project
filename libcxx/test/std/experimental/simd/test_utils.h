@@ -93,8 +93,17 @@ using integral_no_bool_types =
 using arithmetic_no_bool_types = types::concatenate_t<integral_no_bool_types, types::floating_point_types>;
 
 template <class F>
+struct TestAllSimdAbiFunctor {
+  template <class _Tp>
+  void operator()() {
+    test_all_simd_abi<F, _Tp>();
+  }
+};
+
+
+template <class F>
 void test_all_simd_abi() {
-  types::for_each(arithmetic_no_bool_types(), []<class _Tp>() { test_all_simd_abi<F, _Tp>(); });
+  types::for_each(arithmetic_no_bool_types(), TestAllSimdAbiFunctor<F>());
 }
 
 // credit to: https://stackoverflow.com/a/466242
