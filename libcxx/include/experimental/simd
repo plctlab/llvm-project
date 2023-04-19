@@ -893,7 +893,7 @@ struct element_aligned_tag {
 
 struct vector_aligned_tag {
   template <class _Tp, class _Up = typename _Tp::value_type>
-  static constexpr size_t __alignment = bit_ceil(sizeof(_Up) * _Tp::size());
+  static constexpr size_t __alignment = __next_pow_of_2(sizeof(_Up) * _Tp::size());
 
   template <class _Tp, class _Up>
   static constexpr _Up* __apply(_Up* __ptr) {
@@ -1365,13 +1365,13 @@ where(const typename simd<_Tp, _Abi>::mask_type& __m, const simd<_Tp, _Abi>& __s
 
 template <class _Tp, class _Abi>
 where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>>
-where(const type_identity_t<simd_mask<_Tp, _Abi>>& __m, simd_mask<_Tp, _Abi>& __s) noexcept {
+where(const __type_identity_t<simd_mask<_Tp, _Abi>>& __m, simd_mask<_Tp, _Abi>& __s) noexcept {
   return {__m, __s};
 }
 
 template <class _Tp, class _Abi>
 const_where_expression<simd_mask<_Tp, _Abi>, simd_mask<_Tp, _Abi>>
-where(const type_identity_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>& __s) noexcept {
+where(const __type_identity_t<simd_mask<_Tp, _Abi>>& __m, const simd_mask<_Tp, _Abi>& __s) noexcept {
   return {__m, __s};
 }
 

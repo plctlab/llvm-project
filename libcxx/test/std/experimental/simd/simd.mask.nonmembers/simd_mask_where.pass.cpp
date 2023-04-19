@@ -62,7 +62,7 @@ struct CheckSimdMaskWhere {
       assert_simd_value_correct(const_simd, expected_values);
     }
     {
-      auto pure_mask = +ex::where(std::type_identity_t<ex::simd_mask<_Tp, SimdAbi>>(mask_), mask_);
+      auto pure_mask = +ex::where(__type_identity_t<ex::simd_mask<_Tp, SimdAbi>>(mask_), mask_);
 
       static_assert(std::is_same_v<ex::simd_mask<_Tp, SimdAbi>, decltype(pure_mask)>);
       std::array<bool, array_size> expected_value;
@@ -72,7 +72,7 @@ struct CheckSimdMaskWhere {
       assert_simd_mask_value_correct(pure_mask, expected_value);
     }
     {
-      auto const_mask = +ex::where(std::type_identity_t<ex::simd_mask<_Tp, SimdAbi>>(mask_), const_mask_);
+      auto const_mask = +ex::where(__type_identity_t<ex::simd_mask<_Tp, SimdAbi>>(mask_), const_mask_);
 
       static_assert(std::is_same_v<ex::simd_mask<_Tp, SimdAbi>, decltype(const_mask)>);
       std::array<bool, array_size> expected_value;

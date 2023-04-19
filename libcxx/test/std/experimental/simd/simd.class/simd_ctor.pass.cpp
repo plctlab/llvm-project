@@ -31,15 +31,26 @@ public:
   operator T() const { return val; }
 };
 
+
+template <typename _Tp, typename SimdAbi, std::size_t array_size>
+struct BroadCastHelper {
+  const std::array<_Tp, array_size>& origin_value;
+
+  BroadCastHelper(const std::array<_Tp, array_size>& origin_value) : origin_value(origin_value) {}
+
+  template <typename _Up>
+  void operator()() const {
+    if constexpr (sizeof(_Up) <= sizeof(_Tp)) {
+      ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type(static_cast<_Up>(3));
+      assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type, origin_value);
+    }
+  }
+};
+
 struct CheckBroadCastSimdCtorFromVectorizedType {
   template <class TypeList, class _Tp, class SimdAbi, size_t array_size>
   void check(const std::array<_Tp, array_size>& origin_value) {
-    types::for_each(TypeList{}, [&origin_value]<class _Up> {
-      if constexpr (sizeof(_Up) <= sizeof(_Tp)) {
-        ex::simd<_Tp, SimdAbi> expected_simd_from_vectorizable_type(static_cast<_Up>(3));
-        assert_simd_value_correct<array_size>(expected_simd_from_vectorizable_type, origin_value);
-      }
-    });
+    types::for_each(TypeList{}, BroadCastHelper<_Tp, SimdAbi, array_size>(origin_value));
   }
 
   template <class _Tp, class SimdAbi, std::size_t>
@@ -82,22 +93,29 @@ struct CheckBroadCastSimdCtor {
   }
 };
 
+
+template <typename _Tp, typename SimdAbi, std::size_t _Np>
+struct FixedSimdForEachHelper {
+  static constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
+
+  template <typename _Up>
+  void operator()() const {
+    if constexpr (sizeof(_Tp) >= sizeof(_Up)) {
+      ex::simd<_Up, SimdAbi> origin_simd([](_Up i) { return i; });
+      ex::simd<_Tp, SimdAbi> convert_from_other_simd(origin_simd);
+      std::array<_Up, array_size> expected_value;
+      for (size_t i = 0; i < array_size; i++)
+        expected_value[i] = static_cast<_Up>(i);
+
+      assert_simd_value_correct<array_size, _Up>(convert_from_other_simd, expected_value);
+    }
+  }
+};
+
 struct CheckFixedSimdCtor {
   template <class TypeList, class _Tp, class SimdAbi, std::size_t _Np>
   void check() {
-    types::for_each(TypeList{}, []<class _Up>() {
-      constexpr size_t array_size = ex::simd_size_v<_Tp, SimdAbi>;
-
-      if constexpr (sizeof(_Tp) >= sizeof(_Up)) {
-        ex::simd<_Up, SimdAbi> origin_simd([](_Up i) { return i; });
-        ex::simd<_Tp, SimdAbi> convert_from_other_simd(origin_simd);
-        std::array<_Up, array_size> expected_value;
-        for (size_t i = 0; i < array_size; i++)
-          expected_value[i] = static_cast<_Up>(i);
-
-        assert_simd_value_correct<array_size, _Up>(convert_from_other_simd, expected_value);
-      }
-    });
+    types::for_each(TypeList{}, FixedSimdForEachHelper<_Tp, SimdAbi, _Np>());
   }
 
   template <class _Tp, class SimdAbi, std::size_t _Np>
