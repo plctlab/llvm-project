@@ -1,13 +1,24 @@
 name: SIMD PR Workflow
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 on:
+  push:
+    branches:
+      - simd_for_upstream
+    paths:
+      - 'libcxx/test/std/experimental/simd/*'
+      - 'libcxx/include/experimental/__simd/*'
+      - 'libcxx/include/experimental/simd'
   pull_request:
     branches:    
       - simd_for_upstream
     paths:
       - 'libcxx/test/std/experimental/simd/*'
-      - 'libcxx/include/std/experimental/__simd/*'
-      - 'libcxx/include/std/experimental/simd'
+      - 'libcxx/include/experimental/__simd/*'
+      - 'libcxx/include/experimental/simd'
 
 jobs:
   build_and_test:
