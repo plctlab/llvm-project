@@ -65,7 +65,6 @@ struct CheckSimdMaskWhere {
       // Using the '__type_identity_t' internal keyword in test is unsightly, but necessary for compatibility with C++17.
       auto pure_mask = +ex::where(std::__type_identity_t<ex::simd_mask<_Tp, SimdAbi>>(mask_), mask_);
 
-
       static_assert(std::is_same_v<ex::simd_mask<_Tp, SimdAbi>, decltype(pure_mask)>);
       std::array<bool, array_size> expected_value;
       for (size_t i = 0; i < array_size; ++i)

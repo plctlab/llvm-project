@@ -48,7 +48,6 @@ struct FixedSimdMaskHelper {
   }
 };
 
-
 struct CheckFixedSimdMaskCtor {
   template <class _Tp, class SimdAbi, std::size_t _Np>
   void operator()() {

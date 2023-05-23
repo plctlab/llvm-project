@@ -1514,11 +1514,17 @@ public:
   const_where_expression(const _MaskType& __m, const _SimdType& __s) : __m_(__m), __s_(const_cast<_SimdType&>(__s)) {}
 
   _SimdType operator-() const&& noexcept {
-    return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__unary_minus(__s_.__s_));
+    if constexpr (is_simd_v<_SimdType>)
+      return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__unary_minus(__s_.__s_));
+    else
+      return __s_;
   }
   _SimdType operator+() const&& noexcept { return __s_; }
   _SimdType operator~() const&& noexcept {
-    return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__bitwise_not(__s_.__s_));
+    if constexpr (is_simd_v<_SimdType>)
+      return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__bitwise_not(__s_.__s_));
+    else
+      return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__negate(__s_.__s_));
   }
 
   template <class _Up, class _Flags>
@@ -1557,7 +1563,7 @@ public:
 
   _Tp operator-() const&& noexcept { return __m_ ? -__s_ : __s_; }
   _Tp operator+() const&& noexcept { return __s_; }
-  _Tp operator~() const&& noexcept { return __m_ ? !__s_ : __s_; }
+  _Tp operator~() const&& noexcept { return __m_ ? ~__s_ : __s_; }
 
   template <class _Up, class _Flags>
   enable_if_t<is_simd_flag_type_v<_Flags> &&

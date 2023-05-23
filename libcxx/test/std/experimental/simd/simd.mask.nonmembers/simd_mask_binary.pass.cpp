@@ -18,7 +18,6 @@
 // friend simd_mask operator^ (const simd_mask& lhs, const simd_mask& rhs) noexcept;
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;

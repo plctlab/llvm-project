@@ -31,7 +31,6 @@ public:
   operator T() const { return val; }
 };
 
-
 template <typename _Tp, typename SimdAbi, std::size_t array_size>
 struct BroadCastHelper {
   const std::array<_Tp, array_size>& origin_value;
@@ -92,7 +91,6 @@ struct CheckBroadCastSimdCtor {
     }
   }
 };
-
 
 template <typename _Tp, typename SimdAbi, std::size_t _Np>
 struct FixedSimdForEachHelper {

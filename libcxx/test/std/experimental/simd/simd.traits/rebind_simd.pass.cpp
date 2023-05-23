@@ -15,13 +15,13 @@
 // template<class T, class V> using rebind_simd_t = typename rebind_simd<T, V>::type;
 
 #include "../test_utils.h"
-#include <cstdint>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
 
-struct CheckRebindSimdTrue {
-  template <class _Tp, class _Up, class SimdAbi>
+template <class _Tp, class SimdAbi>
+struct CheckRebindSimdTrueHelper {
+  template <class _Up>
   void operator()() {
     static_assert(
         std::is_same<typename ex::rebind_simd<_Tp, ex::simd<_Up, SimdAbi>>::type,
@@ -38,27 +38,18 @@ struct CheckRebindSimdTrue {
   }
 };
 
+struct CheckRebindSimdTrue {
+  template <class _Tp, class SimdAbi>
+  void operator()() {
+    types::for_each(arithmetic_no_bool_types{}, CheckRebindSimdTrueHelper<_Tp, SimdAbi>());
+  }
+};
+
 template <class F, std::size_t _Np, class _Tp>
 void test_simd_abi() {}
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
-  F{}.template operator()<long double, _Tp, SimdAbi>();
-  F{}.template operator()<double, _Tp, SimdAbi>();
-  F{}.template operator()<float, _Tp, SimdAbi>();
-  F{}.template operator()<long long, _Tp, SimdAbi>();
-  F{}.template operator()<unsigned long long, _Tp, SimdAbi>();
-  F{}.template operator()<long, _Tp, SimdAbi>();
-  F{}.template operator()<unsigned long, _Tp, SimdAbi>();
-  F{}.template operator()<int, _Tp, SimdAbi>();
-  F{}.template operator()<unsigned int, _Tp, SimdAbi>();
-  F{}.template operator()<short, _Tp, SimdAbi>();
-  F{}.template operator()<unsigned short, _Tp, SimdAbi>();
-  F{}.template operator()<wchar_t, _Tp, SimdAbi>();
-  F{}.template operator()<signed char, _Tp, SimdAbi>();
-  F{}.template operator()<unsigned char, _Tp, SimdAbi>();
-  F{}.template operator()<char32_t, _Tp, SimdAbi>();
-  F{}.template operator()<char16_t, _Tp, SimdAbi>();
-
+  F{}.template operator()<_Tp, SimdAbi>();
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
 

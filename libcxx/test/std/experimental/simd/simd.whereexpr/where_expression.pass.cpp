@@ -42,196 +42,294 @@ namespace ex = std::experimental::parallelism_v2;
 struct CheckWhereExprOperators {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    if constexpr (ex::simd_size_v<_Tp, SimdAbi> == 4) {
-      {
-        ex::simd_mask<_Tp, SimdAbi> lhs(true);
-        ex::simd_mask<_Tp, SimdAbi> rhs(false);
-        ex::where(lhs, rhs) = lhs;
-        assert(rhs[0] == true);
-        assert(rhs[1] == true);
-        assert(rhs[2] == true);
-        assert(rhs[3] == true);
-      }
-      {
-        _Tp buf[]{1, 2, 3, 4};
-        ex::simd<_Tp, SimdAbi> lhs;
-        lhs.copy_from(buf, ex::element_aligned_tag());
-        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+    ex::simd_mask<_Tp, SimdAbi> interval_mask_for_where;
+    ex::simd<_Tp, SimdAbi> vec([](_Tp i) { return i; });
 
-        ex::where(rhs, lhs) += 2;
-        assert(lhs[0] == static_cast<_Tp>(3));
-        assert(lhs[1] == static_cast<_Tp>(4));
-        assert(lhs[2] == static_cast<_Tp>(5));
-        assert(lhs[3] == static_cast<_Tp>(6));
-      }
-      {
-        _Tp buf[]{1, 2, 3, 4};
-        ex::simd<_Tp, SimdAbi> lhs;
-        lhs.copy_from(buf, ex::element_aligned_tag());
-        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+    constexpr size_t array_size = vec.size();
 
-        ex::where(rhs, lhs) -= 2;
-        assert(lhs[0] == static_cast<_Tp>(-1));
-        assert(lhs[1] == static_cast<_Tp>(0));
-        assert(lhs[2] == static_cast<_Tp>(1));
-        assert(lhs[3] == static_cast<_Tp>(2));
-      }
-      {
-        _Tp buf[]{2, 2, 4, 4};
-        ex::simd<_Tp, SimdAbi> lhs;
-        lhs.copy_from(buf, ex::element_aligned_tag());
-        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+    std::array<bool, array_size> mask_val;
+    std::array<_Tp, array_size> vec_val{};
 
-        ex::where(rhs, lhs) /= 2;
-        assert(lhs[0] == static_cast<_Tp>(1));
-        assert(lhs[1] == static_cast<_Tp>(1));
-        assert(lhs[2] == static_cast<_Tp>(2));
-        assert(lhs[3] == static_cast<_Tp>(2));
+    for (size_t i = 0; i < array_size; ++i) {
+      if (i % 2) {
+        vec_val[i] = static_cast<_Tp>(i);
       }
-      {
-        if constexpr (!std::is_floating_point_v<_Tp>) {
-          _Tp buf[]{3, 3, 4, 4};
-          ex::simd<_Tp, SimdAbi> lhs;
-          lhs.copy_from(buf, ex::element_aligned_tag());
-          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+      interval_mask_for_where[i] = i % 2;
+      mask_val[i]                = i % 2;
+    }
 
-          ex::where(rhs, lhs) %= 2;
-          assert(lhs[0] == static_cast<_Tp>(1));
-          assert(lhs[1] == static_cast<_Tp>(1));
-          assert(lhs[2] == static_cast<_Tp>(0));
-          assert(lhs[3] == static_cast<_Tp>(0));
-        }
-      }
-      {
-        if constexpr (!std::is_floating_point_v<_Tp>) {
-          _Tp buf[]{3, 3, 4, 4};
-          ex::simd<_Tp, SimdAbi> lhs;
-          lhs.copy_from(buf, ex::element_aligned_tag());
-          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+#define INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(x, y)                                                          \
+  for (size_t i = 0; i < array_size; ++i) {                                                                            \
+    if (i % 2) {                                                                                                       \
+      expected_val[i] = static_cast<_Tp>(x);                                                                           \
+    } else {                                                                                                           \
+      expected_val[i] = static_cast<_Tp>(y);                                                                           \
+    }                                                                                                                  \
+  }
 
-          ex::where(rhs, lhs) &= 2;
-          assert(lhs[0] == static_cast<_Tp>(2));
-          assert(lhs[1] == static_cast<_Tp>(2));
-          assert(lhs[2] == static_cast<_Tp>(0));
-          assert(lhs[3] == static_cast<_Tp>(0));
-        }
-      }
-      {
-        if constexpr (!std::is_floating_point_v<_Tp>) {
-          _Tp buf[]{3, 3, 4, 4};
-          ex::simd<_Tp, SimdAbi> lhs;
-          lhs.copy_from(buf, ex::element_aligned_tag());
-          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+    // operator =
+    {
+      ex::simd<_Tp, SimdAbi> origin(0);
+      ex::where(interval_mask_for_where, origin) = vec;
+      assert_simd_value_correct(origin, vec_val);
 
-          ex::where(rhs, lhs) |= 2;
-          assert(lhs[0] == static_cast<_Tp>(3));
-          assert(lhs[1] == static_cast<_Tp>(3));
-          assert(lhs[2] == static_cast<_Tp>(6));
-          assert(lhs[3] == static_cast<_Tp>(6));
-        }
-      }
-      {
-        if constexpr (!std::is_floating_point_v<_Tp>) {
-          _Tp buf[]{3, 3, 4, 4};
-          ex::simd<_Tp, SimdAbi> lhs;
-          lhs.copy_from(buf, ex::element_aligned_tag());
-          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+      ex::simd_mask<_Tp, SimdAbi> origin_mask(false);
+      ex::where(interval_mask_for_where, origin_mask) = interval_mask_for_where;
+      assert_simd_mask_value_correct(origin_mask, mask_val);
+    }
 
-          ex::where(rhs, lhs) ^= 2;
-          assert(lhs[0] == static_cast<_Tp>(1));
-          assert(lhs[1] == static_cast<_Tp>(1));
-          assert(lhs[2] == static_cast<_Tp>(6));
-          assert(lhs[3] == static_cast<_Tp>(6));
-        }
-      }
-      {
-        if constexpr (!std::is_floating_point_v<_Tp>) {
-          _Tp buf[]{3, 3, 4, 4};
-          ex::simd<_Tp, SimdAbi> lhs;
-          lhs.copy_from(buf, ex::element_aligned_tag());
-          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+    // operator +=
+    {
+      ex::simd<_Tp, SimdAbi> origin(1);
+      ex::where(interval_mask_for_where, origin) += vec;
 
-          ex::where(rhs, lhs) <<= 2;
-          assert(lhs[0] == static_cast<_Tp>(12));
-          assert(lhs[1] == static_cast<_Tp>(12));
-          assert(lhs[2] == static_cast<_Tp>(16));
-          assert(lhs[3] == static_cast<_Tp>(16));
-        }
-      }
-      {
-        if constexpr (!std::is_floating_point_v<_Tp>) {
-          _Tp buf[]{3, 3, 4, 4};
-          ex::simd<_Tp, SimdAbi> lhs;
-          lhs.copy_from(buf, ex::element_aligned_tag());
-          ex::simd_mask<_Tp, SimdAbi> rhs(true);
+      std::array<_Tp, array_size> expected_val;
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(i + 1, 1);
 
-          ex::where(rhs, lhs) >>= 2;
-          assert(lhs[0] == static_cast<_Tp>(0));
-          assert(lhs[1] == static_cast<_Tp>(0));
-          assert(lhs[2] == static_cast<_Tp>(1));
-          assert(lhs[3] == static_cast<_Tp>(1));
-        }
-      }
-      {
-        _Tp buf[]{1, 2, 3, 4};
-        ex::simd<_Tp, SimdAbi> lhs;
-        lhs.copy_from(buf, ex::element_aligned_tag());
-        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+      assert_simd_value_correct(origin, expected_val);
 
-        ex::where(rhs, lhs) *= 2;
-        assert(lhs[0] == static_cast<_Tp>(2));
-        assert(lhs[1] == static_cast<_Tp>(4));
-        assert(lhs[2] == static_cast<_Tp>(6));
-        assert(lhs[3] == static_cast<_Tp>(8));
-      }
-      {
-        _Tp buf[]{1, 2, 3, 4};
-        ex::simd<_Tp, SimdAbi> lhs;
-        lhs.copy_from(buf, ex::element_aligned_tag());
-        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+      ex::where(interval_mask_for_where, origin) += static_cast<_Tp>(2);
 
-        ex::where(rhs, lhs)++;
-        assert(lhs[0] == static_cast<_Tp>(2));
-        assert(lhs[1] == static_cast<_Tp>(3));
-        assert(lhs[2] == static_cast<_Tp>(4));
-        assert(lhs[3] == static_cast<_Tp>(5));
-      }
-      {
-        _Tp buf[]{1, 2, 3, 4};
-        ex::simd<_Tp, SimdAbi> lhs;
-        lhs.copy_from(buf, ex::element_aligned_tag());
-        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(i + 3, 1);
 
-        ++ex::where(rhs, lhs);
-        assert(lhs[0] == static_cast<_Tp>(2));
-        assert(lhs[1] == static_cast<_Tp>(3));
-        assert(lhs[2] == static_cast<_Tp>(4));
-        assert(lhs[3] == static_cast<_Tp>(5));
-      }
-      {
-        _Tp buf[]{1, 2, 3, 4};
-        ex::simd<_Tp, SimdAbi> lhs;
-        lhs.copy_from(buf, ex::element_aligned_tag());
-        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+      assert_simd_value_correct(origin, expected_val);
+    }
 
-        ex::where(rhs, lhs)--;
-        assert(lhs[0] == static_cast<_Tp>(0));
-        assert(lhs[1] == static_cast<_Tp>(1));
-        assert(lhs[2] == static_cast<_Tp>(2));
-        assert(lhs[3] == static_cast<_Tp>(3));
-      }
-      {
-        _Tp buf[]{1, 2, 3, 4};
-        ex::simd<_Tp, SimdAbi> lhs;
-        lhs.copy_from(buf, ex::element_aligned_tag());
-        ex::simd_mask<_Tp, SimdAbi> rhs(true);
+    // operator -=
+    {
+      ex::simd<_Tp, SimdAbi> origin(20);
+      ex::where(interval_mask_for_where, origin) -= static_cast<_Tp>(3);
 
-        --ex::where(rhs, lhs);
-        assert(lhs[0] == static_cast<_Tp>(0));
-        assert(lhs[1] == static_cast<_Tp>(1));
-        assert(lhs[2] == static_cast<_Tp>(2));
-        assert(lhs[3] == static_cast<_Tp>(3));
+      std::array<_Tp, array_size> expected_val;
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(17, 20);
+
+      assert_simd_value_correct(origin, expected_val);
+
+      ex::where(interval_mask_for_where, origin) -= ex::simd<_Tp, SimdAbi>(1);
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(16, 20);
+
+      assert_simd_value_correct(origin, expected_val);
+    }
+
+    // operator *=
+    {
+      // 1, 2, 1, 2
+      ex::simd<_Tp, SimdAbi> origin([](_Tp i) {
+        if (static_cast<int>(i) % 2)
+          return static_cast<_Tp>(2);
+        else
+          return static_cast<_Tp>(1);
+      });
+      // 1, 2 * 2, 1, 2 * 2
+      ex::where(interval_mask_for_where, origin) *= static_cast<_Tp>(2);
+
+      std::array<_Tp, array_size> expected_val;
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(4, 1);
+
+      assert_simd_value_correct(origin, expected_val);
+      // 1, 2 * 2 * 2, 1, 2 * 2 * 2
+      ex::where(interval_mask_for_where, origin) *= ex::simd<_Tp, SimdAbi>(2);
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(8, 1);
+
+      assert_simd_value_correct(origin, expected_val);
+    }
+
+    // operator /=
+    {
+      // 1 * 4, 2 * 4, 3 * 4, 4 * 4
+      ex::simd<_Tp, SimdAbi> origin([](_Tp i) { return static_cast<_Tp>(i * 4); });
+      // 4, 2 * 4 / 2, 3 * 4, 4 * 4 / 2
+      ex::where(interval_mask_for_where, origin) /= static_cast<_Tp>(2);
+
+      std::array<_Tp, array_size> expected_val;
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(i * 2, i * 4);
+
+      assert_simd_value_correct(origin, expected_val);
+      // 4, 2 * 4 / 2 / 2, 3 * 4, 4 * 4 / 2 / 2
+      ex::where(interval_mask_for_where, origin) /= ex::simd<_Tp, SimdAbi>(2);
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(i, i * 4);
+
+      assert_simd_value_correct(origin, expected_val);
+    }
+
+    // operator %=
+    {
+      if constexpr (!std::is_floating_point_v<_Tp>) {
+        // 1, 2, 1, 2
+        ex::simd<_Tp, SimdAbi> origin([](_Tp i) { return static_cast<_Tp>(i % 2 + 1); });
+        // 1, 2 % 2, 1, 2 % 2
+        ex::where(interval_mask_for_where, origin) %= static_cast<_Tp>(2);
+
+        std::array<_Tp, array_size> expected_val;
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(0, 1);
+
+        assert_simd_value_correct(origin, expected_val);
+
+        // 1 + 1, 0 + 1, 1 + 1, 0 + 1
+        origin += static_cast<_Tp>(1);
+
+        // 2, 1 % 2, 2, 1 % 2
+        ex::where(interval_mask_for_where, origin) %= ex::simd<_Tp, SimdAbi>(2);
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(1, 2);
+
+        assert_simd_value_correct(origin, expected_val);
       }
+    }
+
+    // operator &=
+    {
+      if constexpr (!std::is_floating_point_v<_Tp>) {
+        // 1, 2, 1, 2
+        ex::simd<_Tp, SimdAbi> origin([](_Tp i) { return static_cast<_Tp>(i % 2 + 1); });
+        // 1, 2 && 2, 1, 2 && 2
+        ex::where(interval_mask_for_where, origin) &= static_cast<_Tp>(2);
+
+        std::array<_Tp, array_size> expected_val;
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(2, 1);
+
+        assert_simd_value_correct(origin, expected_val);
+
+        // 1 + 2, 2 + 2, 1 + 2, 2 + 2
+        origin += static_cast<_Tp>(2);
+        // 1 + 2, 4 && 2, 1 + 2, 4 && 2
+        ex::where(interval_mask_for_where, origin) &= ex::simd<_Tp, SimdAbi>(2);
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(0, 3);
+
+        assert_simd_value_correct(origin, expected_val);
+      }
+    }
+
+    // operator |=
+    {
+      if constexpr (!std::is_floating_point_v<_Tp>) {
+        // 1, 2, 1, 2
+        ex::simd<_Tp, SimdAbi> origin([](_Tp i) { return static_cast<_Tp>(i % 2 + 1); });
+
+        // 1, 2 || 2, 1, 2 || 2
+        ex::where(interval_mask_for_where, origin) |= static_cast<_Tp>(2);
+
+        std::array<_Tp, array_size> expected_val;
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(2, 1);
+
+        assert_simd_value_correct(origin, expected_val);
+        // 1 + 2, 2 + 2, 1 + 2, 2 + 2
+        origin += static_cast<_Tp>(2);
+
+        // 1 + 2, 4 || 2, 1 + 2, 4 || 2
+        ex::where(interval_mask_for_where, origin) |= ex::simd<_Tp, SimdAbi>(2);
+
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(6, 3);
+
+        assert_simd_value_correct(origin, expected_val);
+      }
+    }
+
+    // operator ^=
+    {
+      if constexpr (!std::is_floating_point_v<_Tp>) {
+        ex::simd<_Tp, SimdAbi> origin([](_Tp i) { return static_cast<_Tp>(i % 2 + 1); });
+        ex::where(interval_mask_for_where, origin) ^= static_cast<_Tp>(2);
+
+        std::array<_Tp, array_size> expected_val;
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(0, 1);
+
+        assert_simd_value_correct(origin, expected_val);
+
+        origin += static_cast<_Tp>(2);
+        ex::where(interval_mask_for_where, origin) ^= ex::simd<_Tp, SimdAbi>(2);
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(0, 3);
+
+        assert_simd_value_correct(origin, expected_val);
+      }
+    }
+
+    // operator <<
+    {
+      if constexpr (!std::is_floating_point_v<_Tp>) {
+        ex::simd<_Tp, SimdAbi> origin([](_Tp i) {
+          if (i % 2)
+            return static_cast<_Tp>(1);
+          else
+            return static_cast<_Tp>(4);
+        });
+        ex::where(interval_mask_for_where, origin) <<= static_cast<_Tp>(1);
+
+        std::array<_Tp, array_size> expected_val;
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(2, 4);
+
+        assert_simd_value_correct(origin, expected_val);
+
+        ex::where(interval_mask_for_where, origin) <<= ex::simd<_Tp, SimdAbi>(1);
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(4, 4);
+
+        assert_simd_value_correct(origin, expected_val);
+      }
+    }
+
+    // operator >>
+    {
+      if constexpr (!std::is_floating_point_v<_Tp>) {
+        ex::simd<_Tp, SimdAbi> origin([](_Tp i) {
+          if (i % 2)
+            return static_cast<_Tp>(4);
+          else
+            return static_cast<_Tp>(1);
+        });
+        ex::where(interval_mask_for_where, origin) >>= static_cast<_Tp>(1);
+
+        std::array<_Tp, array_size> expected_val;
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(2, 1);
+
+        assert_simd_value_correct(origin, expected_val);
+
+        ex::where(interval_mask_for_where, origin) >>= ex::simd<_Tp, SimdAbi>(1);
+        INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(1, 1);
+
+        assert_simd_value_correct(origin, expected_val);
+      }
+    }
+
+    // operator ++
+    {
+      ex::simd<_Tp, SimdAbi> origin([](_Tp i) {
+        if (static_cast<int>(i) % 2)
+          return static_cast<_Tp>(2);
+        else
+          return static_cast<_Tp>(1);
+      });
+      ex::where(interval_mask_for_where, origin)++;
+
+      std::array<_Tp, array_size> expected_val;
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(3, 1);
+
+      assert_simd_value_correct(origin, expected_val);
+
+      ++ex::where(interval_mask_for_where, origin);
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(4, 1);
+
+      assert_simd_value_correct(origin, expected_val);
+    }
+
+    // operator --
+    {
+      ex::simd<_Tp, SimdAbi> origin([](_Tp i) {
+        if (static_cast<int>(i) % 2)
+          return static_cast<_Tp>(3);
+        else
+          return static_cast<_Tp>(2);
+      });
+
+      ex::where(interval_mask_for_where, origin)--;
+
+      std::array<_Tp, array_size> expected_val;
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(2, 2);
+
+      assert_simd_value_correct(origin, expected_val);
+
+      --ex::where(interval_mask_for_where, origin);
+      INITIALIZE_EXPECTED_VAL_WITH_INTERVAL_CONDITION(1, 2);
+
+      assert_simd_value_correct(origin, expected_val);
     }
   }
 };
@@ -239,44 +337,169 @@ struct CheckWhereExprOperators {
 struct CheckWhereExprCopyFrom {
   template <class _Tp, class SimdAbi>
   void operator()() {
-    if constexpr (ex::simd_size_v<_Tp, SimdAbi> == 4) {
-      {
-        alignas(alignof(_Tp))
-            const _Tp buffer[]{static_cast<_Tp>(-1), static_cast<_Tp>(-2), static_cast<_Tp>(-3), static_cast<_Tp>(-4)};
-        ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return i; });
-        ex::where(lhs < 2, lhs).copy_from(buffer, ex::element_aligned_tag());
-        assert(lhs[0] == static_cast<_Tp>(-1));
-        assert(lhs[1] == static_cast<_Tp>(-2));
-        assert(lhs[2] == static_cast<_Tp>(2));
-        assert(lhs[3] == static_cast<_Tp>(3));
-      }
-      {
-        alignas(alignof(_Tp))
-            const _Tp buffer[]{static_cast<_Tp>(-1), static_cast<_Tp>(-2), static_cast<_Tp>(-3), static_cast<_Tp>(-4)};
-        ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return i; });
-        ex::where(lhs < 2, lhs).copy_from(buffer, ex::overaligned_tag<alignof(_Tp)>());
-        assert(lhs[0] == static_cast<_Tp>(-1));
-        assert(lhs[1] == static_cast<_Tp>(-2));
-        assert(lhs[2] == static_cast<_Tp>(2));
-        assert(lhs[3] == static_cast<_Tp>(3));
-      }
-      {
-        alignas(ex::memory_alignment_v<ex::simd<_Tp, SimdAbi>, _Tp>)
-            const _Tp buffer[]{static_cast<_Tp>(-1), static_cast<_Tp>(-2), static_cast<_Tp>(-3), static_cast<_Tp>(-4)};
-        ex::simd<_Tp, SimdAbi> lhs([](_Tp i) { return i; });
-        ex::where(lhs < 2, lhs).copy_from(buffer, ex::vector_aligned_tag());
-        assert(lhs[0] == static_cast<_Tp>(-1));
-        assert(lhs[1] == static_cast<_Tp>(-2));
-        assert(lhs[2] == static_cast<_Tp>(2));
-        assert(lhs[3] == static_cast<_Tp>(3));
+    ex::simd_mask<_Tp, SimdAbi> interval_mask_for_where;
+    for (size_t i = 0; i < interval_mask_for_where.size(); ++i)
+      interval_mask_for_where[i] = i % 2;
+
+    {
+      ex::simd<_Tp, SimdAbi> origin_simd(static_cast<_Tp>(-1));
+      constexpr size_t simd_size = origin_simd.size();
+      alignas(alignof(_Tp)) _Tp buffer[simd_size * 2];
+      for (size_t i = 0; i < simd_size * 2; ++i)
+        buffer[i] = static_cast<_Tp>(i);
+
+      ex::where(interval_mask_for_where, origin_simd).copy_from(&buffer[1], ex::element_aligned_tag());
+
+      assert(origin_simd[0] == static_cast<_Tp>(-1));
+      for (size_t i = 1; i < simd_size; ++i) {
+        if ((i - 1) % 2 == 1)
+          assert(origin_simd[i] == static_cast<_Tp>(-1));
+        else
+          assert(origin_simd[i] == static_cast<_Tp>(i + 1));
       }
     }
 
     {
-      constexpr _Tp rhs = static_cast<_Tp>(1);
-      _Tp lhs           = 3;
-      ex::where(true, lhs).copy_from(&rhs, ex::element_aligned_tag());
-      assert(lhs == 1);
+      ex::simd<_Tp, SimdAbi> origin_simd(static_cast<_Tp>(-1));
+      constexpr size_t simd_size = origin_simd.size();
+      alignas(alignof(_Tp)) _Tp buffer[simd_size * 2];
+      for (size_t i = 0; i < simd_size * 2; ++i)
+        buffer[i] = static_cast<_Tp>(i);
+
+      ex::where(interval_mask_for_where, origin_simd).copy_from(&buffer[2], ex::vector_aligned_tag());
+
+      assert(origin_simd[0] == static_cast<_Tp>(-1));
+      if constexpr (simd_size >= 2)
+        assert(origin_simd[1] == static_cast<_Tp>(3));
+
+      for (size_t i = 2; i < simd_size; ++i) {
+        if ((i - 2) % 2 == 0)
+          assert(origin_simd[i] == static_cast<_Tp>(-1));
+        else
+          assert(origin_simd[i] == static_cast<_Tp>(i + 2));
+      }
+    }
+
+    {
+      ex::simd<_Tp, SimdAbi> origin_simd(static_cast<_Tp>(-1));
+      constexpr size_t simd_size = origin_simd.size();
+      alignas(alignof(_Tp)) _Tp buffer[simd_size * 2];
+      for (size_t i = 0; i < simd_size * 2; ++i)
+        buffer[i] = static_cast<_Tp>(i);
+
+      ex::where(interval_mask_for_where, origin_simd).copy_from(buffer, ex::element_aligned_tag());
+
+      for (size_t i = 0; i < simd_size; ++i) {
+        if (i % 2 == 0)
+          assert(origin_simd[i] == static_cast<_Tp>(-1));
+        else
+          assert(origin_simd[i] == static_cast<_Tp>(i));
+      }
+    }
+
+    {
+      ex::simd_mask<_Tp, SimdAbi> origin_mask(false);
+      constexpr size_t mask_size = origin_mask.size();
+
+      alignas(alignof(bool)) bool buffer[mask_size * 2];
+      for (size_t i = 0; i < mask_size * 2; ++i)
+        buffer[i] = i % 2;
+
+      ex::where(ex::simd_mask<_Tp, SimdAbi>(true), origin_mask).copy_from(&buffer[1], ex::vector_aligned_tag());
+
+      assert(origin_mask[0] == true);
+      for (size_t i = 1; i < mask_size; ++i)
+        assert(!origin_mask[i] == i % 2);
+    }
+
+    {
+      ex::simd_mask<_Tp, SimdAbi> origin_mask(false);
+      constexpr size_t mask_size = origin_mask.size();
+
+      alignas(alignof(bool)) bool buffer[mask_size * 2];
+      for (size_t i = 0; i < mask_size * 2; ++i)
+        buffer[i] = i % 2;
+
+      ex::where(ex::simd_mask<_Tp, SimdAbi>(true), origin_mask).copy_from(buffer, ex::element_aligned_tag());
+
+      for (size_t i = 0; i < mask_size; ++i)
+        assert(origin_mask[i] == i % 2);
+    }
+
+    {
+      ex::simd_mask<_Tp, SimdAbi> origin_mask(true);
+      constexpr size_t mask_size = origin_mask.size();
+
+      alignas(ex::memory_alignment_v<ex::simd_mask<_Tp, SimdAbi>, bool>) bool buffer[mask_size * 2]{};
+
+      ex::where(interval_mask_for_where, origin_mask).copy_to(buffer, ex::vector_aligned_tag());
+
+      for (size_t i = 0; i < mask_size; ++i)
+        assert(origin_mask[i] == true);
+    }
+  }
+};
+
+struct CheckWhereBaseType {
+  template <class _Tp, class>
+  void operator()() {
+    {
+      _Tp val              = 3;
+      ex::where(true, val) = val + 1;
+      assert(val == static_cast<_Tp>(4));
+      ex::where(false, val) = val + 1;
+      assert(val == static_cast<_Tp>(4));
+      ex::where(true, val) += 1;
+      assert(val == static_cast<_Tp>(5));
+      ex::where(true, val) -= 1;
+      assert(val == static_cast<_Tp>(4));
+      val++;
+      ex::where(true, val) *= 2;
+      assert(val == static_cast<_Tp>(10));
+      ex::where(true, val) /= 2;
+      assert(val == static_cast<_Tp>(5));
+      ex::where(true, val)--;
+      assert(val == static_cast<_Tp>(4));
+      --ex::where(true, val);
+      assert(val == static_cast<_Tp>(3));
+      ++ex::where(true, val);
+      assert(val == static_cast<_Tp>(4));
+      ex::where(true, val)++;
+      assert(val == static_cast<_Tp>(5));
+
+      if constexpr (!std::is_floating_point_v<_Tp>) {
+        ex::where(true, val) %= 2;
+        assert(val == static_cast<_Tp>(1));
+        ex::where(true, val) <<= 2;
+        assert(val == static_cast<_Tp>(4));
+        ex::where(true, val) |= 2;
+        assert(val == static_cast<_Tp>(6));
+        ex::where(true, val) &= 2;
+        assert(val == static_cast<_Tp>(2));
+        ex::where(true, val) >>= 1;
+        assert(val == static_cast<_Tp>(1));
+      }
+
+      {
+        constexpr _Tp rhs = static_cast<_Tp>(1);
+        _Tp lhs           = 3;
+        ex::where(true, lhs).copy_from(&rhs, ex::vector_aligned_tag());
+        assert(lhs == 1);
+      }
+
+      {
+        constexpr _Tp rhs = static_cast<_Tp>(1);
+        _Tp lhs           = 3;
+        ex::where(true, lhs).copy_from(&rhs, ex::element_aligned_tag());
+        assert(lhs == 1);
+      }
+
+      {
+        constexpr _Tp rhs = static_cast<_Tp>(1);
+        _Tp lhs           = 3;
+        ex::where(true, lhs).copy_from(&rhs, ex::overaligned_tag<alignof(_Tp)>());
+        assert(lhs == 1);
+      }
     }
   }
 };
@@ -291,5 +514,6 @@ void test_simd_abi() {
 int main(int, char**) {
   test_all_simd_abi<CheckWhereExprOperators>();
   test_all_simd_abi<CheckWhereExprCopyFrom>();
+  test_all_simd_abi<CheckWhereBaseType>();
   return 0;
 }

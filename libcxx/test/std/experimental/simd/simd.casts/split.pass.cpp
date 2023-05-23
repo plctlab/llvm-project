@@ -86,7 +86,7 @@ struct CheckSplitToArray {
             i++;
           }
         }
-        auto split_result =  ex::split<simd_mask_type_>(origin_simd_mask);
+        auto split_result = ex::split<simd_mask_type_>(origin_simd_mask);
         static_assert(std::is_same_v<decltype(split_result), split_result_type>);
 
         std::array<std::array<_Tp, origin_simd_mask_size>, array_count> expected_value;

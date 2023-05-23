@@ -21,8 +21,11 @@ struct CheckReferenceValueType {
   template <class _Tp, class SimdAbi>
   void operator()() {
     ex::simd<_Tp, SimdAbi> origin_simd([](_Tp i) { return static_cast<_Tp>(i + 2); });
-    static_assert(_Tp(2) == static_cast<_Tp>(2));
-    static_assert(std::is_same_v<decltype(_Tp(2)), _Tp>);
+
+    // cannot use `auto` for variable `r` here, the type will be evalued as `ex::simd_reference`
+    _Tp r = origin_simd[0];
+
+    assert(r == 2);
   }
 };
 template <class F, std::size_t _Np, class _Tp>

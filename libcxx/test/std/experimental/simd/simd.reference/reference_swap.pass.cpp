@@ -16,7 +16,6 @@
 // friend void swap(reference&& a, value_type& b) noexcept;
 
 #include "../test_utils.h"
-#include <cassert>
 #include <experimental/simd>
 
 namespace ex = std::experimental::parallelism_v2;
