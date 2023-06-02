@@ -27,9 +27,12 @@ void test_simd_abi() {}
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
   static_assert(ex::is_simd<ex::simd<_Tp, SimdAbi>>::value);
+
   static_assert(!ex::is_simd<_Tp>::value);
   static_assert(!ex::is_simd<ex::simd_mask<_Tp, SimdAbi>>::value);
+
   static_assert(ex::is_simd_v<ex::simd<_Tp, SimdAbi>>);
+
   static_assert(!ex::is_simd_v<_Tp>);
   static_assert(!ex::is_simd_v<ex::simd_mask<_Tp, SimdAbi>>);
 

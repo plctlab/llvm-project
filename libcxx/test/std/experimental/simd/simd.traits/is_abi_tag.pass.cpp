@@ -25,17 +25,17 @@ template <class F, std::size_t _Np, class _Tp>
 void test_simd_abi() {}
 template <class F, std::size_t _Np, class _Tp, class SimdAbi, class... SimdAbis>
 void test_simd_abi() {
-  static_assert(ex::is_abi_tag< SimdAbi >::value);
+  static_assert(ex::is_abi_tag<SimdAbi>::value);
 
-  static_assert(!ex::is_abi_tag< _Tp >::value);
-  static_assert(!ex::is_abi_tag< ex::simd< _Tp, SimdAbi >>::value);
-  static_assert(!ex::is_abi_tag< ex::simd_mask< _Tp, SimdAbi >>::value);
+  static_assert(!ex::is_abi_tag<_Tp>::value);
+  static_assert(!ex::is_abi_tag<ex::simd< _Tp, SimdAbi>>::value);
+  static_assert(!ex::is_abi_tag<ex::simd_mask< _Tp, SimdAbi>>::value);
 
-  static_assert(ex::is_abi_tag_v< SimdAbi >);
+  static_assert(ex::is_abi_tag_v<SimdAbi>);
 
-  static_assert(!ex::is_abi_tag_v< _Tp >);
-  static_assert(!ex::is_abi_tag_v< ex::simd< _Tp, SimdAbi >>);
-  static_assert(!ex::is_abi_tag_v< ex::simd_mask< _Tp, SimdAbi >>);
+  static_assert(!ex::is_abi_tag_v<_Tp>);
+  static_assert(!ex::is_abi_tag_v<ex::simd< _Tp, SimdAbi>>);
+  static_assert(!ex::is_abi_tag_v<ex::simd_mask< _Tp, SimdAbi>>);
 
   test_simd_abi<F, _Np, _Tp, SimdAbis...>();
 }
