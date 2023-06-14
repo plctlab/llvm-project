@@ -69,24 +69,32 @@ void test_can_broadcast() {
 }
 
 // 8. __can_generate
-template <class _Tp>
-struct IntegralGenerator {
-  constexpr _Tp operator()(std::integral_constant<size_t, 0>) const { return _Tp(0); }
-  constexpr _Tp operator()(std::integral_constant<size_t, 1>) const { return _Tp(1); }
-  constexpr _Tp operator()(std::integral_constant<size_t, 2>) const { return _Tp(2); }
-  constexpr _Tp operator()(std::integral_constant<size_t, 3>) const { return _Tp(3); }
-  // Add more if necessary...
+template <typename _Tp>
+struct SimpleGenerator {
+  _Tp base;
+  SimpleGenerator(_Tp base): base(base) {}
+  constexpr _Tp operator()(std::integral_constant<size_t, 0>) const {
+    return base;
+  }
+  template <size_t I>
+  constexpr _Tp operator()(std::integral_constant<size_t, I>) const {
+    return base + I;
+  }
 };
-void test_can_generate() {
-  static_assert(ex::__can_generate<int, IntegralGenerator<int>>(std::index_sequence<0, 1, 2, 3>{}) == true);
-  static_assert(ex::__can_generate<double, IntegralGenerator<double>>(std::index_sequence<0, 1, 2, 3>{}) == true);
-  static_assert(ex::__can_generate<int, IntegralGenerator<int>>(std::index_sequence<3, 2, 1, 0>{}) == true);
 
-  // This should return false because a string can't be broadcasted to an int
-  static_assert(ex::__can_generate<int, IntegralGenerator<std::string>>(std::index_sequence<0, 1, 2, 3>{}) == false);
+void test_can_generate() {
+  // Test with integers
+  static_assert(ex::__can_generate<int, SimpleGenerator<int>>(std::index_sequence<0, 1, 2, 3>{}) == true);
+  
+  // Test with floating-point numbers
+  static_assert(ex::__can_generate<double, SimpleGenerator<double>>(std::index_sequence<0, 1, 2, 3>{}) == true);
+
+  // Test with other type conversions
+  static_assert(ex::__can_generate<double, SimpleGenerator<int>>(std::index_sequence<0, 1, 2, 3>{}) == true);
+  static_assert(ex::__can_generate<int, SimpleGenerator<double>>(std::index_sequence<0, 1, 2, 3>{}) == false);
 
   // Test with no indices, should return true
-  static_assert(ex::__can_generate<int, IntegralGenerator<int>>(std::index_sequence<>{}) == true);
+  static_assert(ex::__can_generate<int, SimpleGenerator<int>>(std::index_sequence<>{}) == true);
 }
 
 int main() {
