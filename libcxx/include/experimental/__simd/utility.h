@@ -80,7 +80,7 @@ constexpr bool __is_non_narrowing_arithmetic_convertible() {
 
 template <class _Tp, class... _Args>
 constexpr _Tp __variadic_sum(_Args... __args) {
-  return (static_cast<_Tp>(__args) + ...);
+  return (static_cast<_Tp>(__args) + ... + static_cast<_Tp>(false));
 }
 
 template <class _Tp>

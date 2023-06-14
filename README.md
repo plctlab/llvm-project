@@ -100,7 +100,7 @@ We also reconstructed the test code structure. Added a test framework to improve
 
 At present, we have implemented all external user interfaces **except** the Section 9.7.7 Math Library. And added corresponding external interfaces tests.
 
-We use [bootstrapping build](https://libcxx.llvm.org/BuildingLibcxx.html#bootstrapping-build) to build and test. All the tests passed with x86_64 from SSE-only up to AVX512. And there are still 4 failed tests on ARM64. Testing on other target platforms has not been completed.
+We use [bootstrapping build](https://libcxx.llvm.org/BuildingLibcxx.html#bootstrapping-build) to build and test. All the tests passed with x86_64 from SSE-only up to AVX512. You can try it out online using [godbolt](https://godbolt.org/z/o6n4oY3x5). Additionally, please refer to the [aarch64 and s390x CI](https://github.com/fepicture/llvm-project/actions/workflows/simd_multiarch_nightlytest.yml) for further verification. We are grateful to [Pengcheng Laboratory](https://www.pcl.ac.cn/) and [IBM LinuxOne Community](https://www.ibm.com/community/z/) for their generous sponsorship of the CI server.
 
 #### Interfaces support
 
