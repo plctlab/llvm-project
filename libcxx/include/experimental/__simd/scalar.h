@@ -45,17 +45,17 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   static _Simd __broadcast(_Tp __v) noexcept { return {__v}; }
 
   template <class _Generator>
-  static _Simd __generate(_Generator&& __g) noexcept {
+  static _LIBCPP_HIDE_FROM_ABI _Simd __generate(_Generator&& __g) noexcept {
     return {__g(std::integral_constant<size_t, 0>())};
   }
 
   template <class _Up>
-  static void __load(_Simd& __s, const _Up* __mem) noexcept {
+  static _LIBCPP_HIDE_FROM_ABI void __load(_Simd& __s, const _Up* __mem) noexcept {
     __s.__data = static_cast<_Tp>(__mem[0]);
   }
 
   template <class _Up>
-  static void __store(_Simd __s, _Up* __mem) noexcept {
+  static _LIBCPP_HIDE_FROM_ABI void __store(_Simd __s, _Up* __mem) noexcept {
     *__mem = static_cast<_Up>(__s.__data);
   }
 
@@ -117,9 +117,23 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
 
   static _Tp __hmax(_Simd __s) { return __s.__data; }
 
-  static _Simd __min(_Simd __a, _Simd __b) noexcept { return {std::min(__a.__data, __b.__data)}; }
+  // fix macro conflict after https://reviews.llvm.org/D151654
+  static _Simd __min(_Simd __a, _Simd __b) noexcept {
+#ifdef min
+#  undef min
+#endif
 
-  static _Simd __max(_Simd __a, _Simd __b) noexcept { return {std::max(__a.__data, __b.__data)}; }
+    return {std::min(__a.__data, __b.__data)};
+  }
+
+  // fix macro conflict after https://reviews.llvm.org/D151654
+  static _Simd __max(_Simd __a, _Simd __b) noexcept {
+#ifdef max
+#  undef max
+#endif
+
+    return {std::max(__a.__data, __b.__data)};
+  }
 
   static std::pair<_Simd, _Simd> __minmax(_Simd __a, _Simd __b) noexcept { return {__min(__a, __b), __max(__a, __b)}; }
 
@@ -131,7 +145,7 @@ struct __simd_traits<_Tp, simd_abi::__scalar> {
   }
 
   template <class _BinaryOp>
-  static _Tp __reduce(const _Simd& __s, _BinaryOp) {
+  static _LIBCPP_HIDE_FROM_ABI _Tp __reduce(const _Simd& __s, _BinaryOp) {
     return __s.__data;
   }
 };

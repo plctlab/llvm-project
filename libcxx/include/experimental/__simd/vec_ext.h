@@ -54,27 +54,27 @@ struct __simd_traits<_Tp, simd_abi::__vec_ext<_Np>> {
   }
 
   template <class _Generator, size_t... _Is>
-  static _Simd __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
+  static _LIBCPP_HIDE_FROM_ABI _Simd __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
     // TODO: Optimizeable
     // _Simd specified here is to work around GCC
     return _Simd{{__g(std::integral_constant<size_t, _Is>())...}};
   }
 
   template <class _Generator>
-  static _Simd __generate(_Generator&& __g) noexcept {
+  static _LIBCPP_HIDE_FROM_ABI _Simd __generate(_Generator&& __g) noexcept {
     // TODO: Optimizeable
     return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Np>());
   }
 
   template <class _Up>
-  static void __load(_Simd& __s, const _Up* __mem) noexcept {
+  static _LIBCPP_HIDE_FROM_ABI void __load(_Simd& __s, const _Up* __mem) noexcept {
     // TODO: Optimize with intrinsics
     for (size_t __i = 0; __i < _Np; __i++)
       __s.__data[__i] = static_cast<_Tp>(__mem[__i]);
   }
 
   template <class _Up>
-  static void __store(_Simd __s, _Up* __mem) noexcept {
+  static _LIBCPP_HIDE_FROM_ABI void __store(_Simd __s, _Up* __mem) noexcept {
     // TODO: Optimize with intrinsics
     for (size_t __i = 0; __i < _Np; __i++)
       __mem[__i] = static_cast<_Up>(__s.__data[__i]);
@@ -156,18 +156,18 @@ struct __mask_traits<_Tp, simd_abi::__vec_ext<_Np>> {
 
   static _Mask __broadcast(bool __v) noexcept {
     // TODO: Optimizeable
-    return __generate([=](size_t) { return __set_all_bits<_Tp>(__v); });
+    return __generate([=](size_t) { return std::experimental::parallelism_v2::__set_all_bits<_Tp>(__v); });
   }
 
   template <class _Generator, size_t... _Is>
-  static _Mask __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
+  static _LIBCPP_HIDE_FROM_ABI _Mask __generate_init(_Generator&& __g, std::index_sequence<_Is...>) {
     // TODO: Optimizeable
     // _Simd specified here is to work around GCC
     return _Mask{{__g(std::integral_constant<size_t, _Is>())...}};
   }
 
   template <class _Generator>
-  static _Mask __generate(_Generator&& __g) noexcept {
+  static _LIBCPP_HIDE_FROM_ABI _Mask __generate(_Generator&& __g) noexcept {
     // TODO: Optimizeable
     return __generate_init(std::forward<_Generator>(__g), std::make_index_sequence<_Np>());
   }
@@ -175,7 +175,7 @@ struct __mask_traits<_Tp, simd_abi::__vec_ext<_Np>> {
   static void __load(_Mask& __s, const bool* __mem) noexcept {
     // TODO: Optimize with intrinsics
     for (size_t __i = 0; __i < _Np; __i++)
-      __s.__data[__i] = __set_all_bits<_Tp>(__mem[__i]);
+      __s.__data[__i] = std::experimental::parallelism_v2::__set_all_bits<_Tp>(__mem[__i]);
   }
 
   static void __store(_Mask __s, bool* __mem) noexcept {

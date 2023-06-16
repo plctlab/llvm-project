@@ -21,7 +21,8 @@ set(files
   __algorithm/find_end.h
   __algorithm/find_first_of.h
   __algorithm/find_if.h
-  __algorithm/find.h
+  __algorithm/find_if_not.h
+  __algorithm/for_each.h
   __algorithm/for_each_n.h
   __algorithm/for_each_segment.h
   __algorithm/generate.h
@@ -184,8 +185,6 @@ set(files
   __algorithm/ranges_unique_copy.h
   __algorithm/ranges_upper_bound.h
   __algorithm/remove.h
-  __algorithm/remove_copy.h
-  __algorithm/remove_copy_if.h
   __algorithm/remove_copy.h
   __algorithm/remove_copy_if.h
   __algorithm/remove_if.h

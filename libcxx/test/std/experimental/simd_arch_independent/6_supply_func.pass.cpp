@@ -72,10 +72,8 @@ void test_can_broadcast() {
 template <typename _Tp>
 struct SimpleGenerator {
   _Tp base;
-  SimpleGenerator(_Tp base): base(base) {}
-  constexpr _Tp operator()(std::integral_constant<size_t, 0>) const {
-    return base;
-  }
+  SimpleGenerator(_Tp base) : base(base) {}
+  constexpr _Tp operator()(std::integral_constant<size_t, 0>) const { return base; }
   template <size_t I>
   constexpr _Tp operator()(std::integral_constant<size_t, I>) const {
     return base + I;
@@ -85,7 +83,7 @@ struct SimpleGenerator {
 void test_can_generate() {
   // Test with integers
   static_assert(ex::__can_generate<int, SimpleGenerator<int>>(std::index_sequence<0, 1, 2, 3>{}) == true);
-  
+
   // Test with floating-point numbers
   static_assert(ex::__can_generate<double, SimpleGenerator<double>>(std::index_sequence<0, 1, 2, 3>{}) == true);
 
