@@ -1472,22 +1472,22 @@ _LIBCPP_HIDE_FROM_ABI typename _SimdType::value_type hmax(const const_where_expr
 // Algorithms [parallel.simd.alg]
 template <class _Tp, class _Abi>
 _LIBCPP_HIDE_FROM_ABI simd<_Tp, _Abi> min(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
-  return __simd_traits<_Tp, _Abi>::__min(__a.__s_, __b.__s_);
+  return static_cast<simd<_Tp, _Abi>>(__simd_traits<_Tp, _Abi>::__min(__a.__s_, __b.__s_));
 }
 
 template <class _Tp, class _Abi>
 _LIBCPP_HIDE_FROM_ABI simd<_Tp, _Abi> max(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
-  return __simd_traits<_Tp, _Abi>::__max(__a.__s_, __b.__s_);
+  return static_cast<simd<_Tp, _Abi>>(__simd_traits<_Tp, _Abi>::__max(__a.__s_, __b.__s_));
 }
 
 template <class _Tp, class _Abi>
 _LIBCPP_HIDE_FROM_ABI pair<simd<_Tp, _Abi>, simd<_Tp, _Abi>> minmax(const simd<_Tp, _Abi>& __a, const simd<_Tp, _Abi>& __b) noexcept {
-  return __simd_traits<_Tp, _Abi>::__minmax(__a.__s_, __b.__s_);
+  return static_cast<pair<simd<_Tp, _Abi>, simd<_Tp, _Abi>>>(__simd_traits<_Tp, _Abi>::__minmax(__a.__s_, __b.__s_));
 }
 
 template <class _Tp, class _Abi>
 _LIBCPP_HIDE_FROM_ABI simd<_Tp, _Abi> clamp(const simd<_Tp, _Abi>& __v, const simd<_Tp, _Abi>& __lo, const simd<_Tp, _Abi>& __hi) noexcept {
-  return __simd_traits<_Tp, _Abi>::__clamp(__v.__s_, __lo.__s_, __hi.__s_);
+  return static_cast<simd<_Tp, _Abi>>(__simd_traits<_Tp, _Abi>::__clamp(__v.__s_, __lo.__s_, __hi.__s_));
 }
 
 // Where expression class templates [parallel.simd.whereexpr]
@@ -1516,16 +1516,16 @@ public:
 
   _LIBCPP_HIDE_FROM_ABI _SimdType operator-() const&& noexcept {
     if constexpr (is_simd_v<_SimdType>)
-      return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__unary_minus(__s_.__s_));
+      return static_cast<_SimdType>(_Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__unary_minus(__s_.__s_)));
     else
       return __s_;
   }
   _LIBCPP_HIDE_FROM_ABI _SimdType operator+() const&& noexcept { return __s_; }
   _LIBCPP_HIDE_FROM_ABI _SimdType operator~() const&& noexcept {
     if constexpr (is_simd_v<_SimdType>)
-      return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__bitwise_not(__s_.__s_));
+      return static_cast<_SimdType>(_Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__bitwise_not(__s_.__s_)));
     else
-      return _Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__negate(__s_.__s_));
+      return static_cast<_SimdType>(_Impl::__masked_assign(__s_.__s_, __m_.__s_, _Impl::__negate(__s_.__s_)));
   }
 
   template <class _Up, class _Flags>
@@ -1727,40 +1727,40 @@ class __simd_int_operators<_Simd, _Impl, true> {
 public:
   // unary operators for integral _Tp [simd.unary]
   _LIBCPP_HIDE_FROM_ABI _Simd operator~() const noexcept {
-    return _Impl::__bitwise_not((*static_cast<const _Simd*>(this)).__s_);
+    return static_cast<_Simd>(_Impl::__bitwise_not((*static_cast<const _Simd*>(this)).__s_));
   }
 
   // binary operators for integral _Tp [simd.binary]
   friend _LIBCPP_HIDE_FROM_ABI _Simd operator%(const _Simd& __lhs, const _Simd& __rhs) noexcept {
-    return _Impl::__modulus(__lhs.__s_, __rhs.__s_);
+    return static_cast<_Simd>(_Impl::__modulus(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI _Simd operator&(const _Simd& __lhs, const _Simd& __rhs) noexcept {
-    return _Impl::__bitwise_and(__lhs.__s_, __rhs.__s_);
+    return static_cast<_Simd>(_Impl::__bitwise_and(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI _Simd operator|(const _Simd& __lhs, const _Simd& __rhs) noexcept {
-    return _Impl::__bitwise_or(__lhs.__s_, __rhs.__s_);
+    return static_cast<_Simd>(_Impl::__bitwise_or(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI _Simd operator^(const _Simd& __lhs, const _Simd& __rhs) noexcept {
-    return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_);
+    return static_cast<_Simd>(_Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI _Simd operator<<(const _Simd& __lhs, const _Simd& __rhs) noexcept {
-    return _Impl::__shift_left(__lhs.__s_, __rhs.__s_);
+    return static_cast<_Simd>(_Impl::__shift_left(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI _Simd operator>>(const _Simd& __lhs, const _Simd& __rhs) noexcept {
-    return _Impl::__shift_right(__lhs.__s_, __rhs.__s_);
+    return static_cast<_Simd>(_Impl::__shift_right(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI _Simd operator<<(const _Simd& __lhs, int __rhs) noexcept {
-    return _Impl::__shift_left(__lhs.__s_, __rhs);
+    return static_cast<_Simd>(_Impl::__shift_left(__lhs.__s_, __rhs));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI _Simd operator>>(const _Simd& __lhs, int __rhs) noexcept {
-    return _Impl::__shift_right(__lhs.__s_, __rhs);
+    return static_cast<_Simd>(_Impl::__shift_right(__lhs.__s_, __rhs));
   }
 
   // compound assignment for integral _Tp [simd.cassign]
@@ -1841,8 +1841,8 @@ public:
   _LIBCPP_HIDE_FROM_ABI simd(const simd&)            = default;
   _LIBCPP_HIDE_FROM_ABI simd& operator=(const simd&) = default;
 
-  explicit operator _Storage() const;
-  simd(const _Storage& __s) : __s_(__s) {}
+  explicit _LIBCPP_HIDE_FROM_ABI operator _Storage() const;
+  explicit _LIBCPP_HIDE_FROM_ABI simd(const _Storage& __s) : __s_(__s) {}
 
   // implicit broadcast constructor
   template <class _Up, enable_if_t<__can_broadcast<value_type, _Up>(), int> = 0>
@@ -1911,27 +1911,27 @@ public:
     return __r;
   }
 
-  _LIBCPP_HIDE_FROM_ABI mask_type operator!() const noexcept { return _Impl::__negate(__s_); }
+  _LIBCPP_HIDE_FROM_ABI mask_type operator!() const noexcept { return static_cast<mask_type>(_Impl::__negate(__s_)); }
 
   _LIBCPP_HIDE_FROM_ABI simd operator+() const noexcept { return *this; }
 
-  _LIBCPP_HIDE_FROM_ABI simd operator-() const noexcept { return _Impl::__unary_minus(__s_); }
+  _LIBCPP_HIDE_FROM_ABI simd operator-() const noexcept { return static_cast<simd>(_Impl::__unary_minus(__s_)); }
 
   // binary operators [simd.binary]
   friend _LIBCPP_HIDE_FROM_ABI simd operator+(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__plus(__lhs.__s_, __rhs.__s_);
+    return static_cast<simd>(_Impl::__plus(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI simd operator-(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__minus(__lhs.__s_, __rhs.__s_);
+    return static_cast<simd>(_Impl::__minus(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI simd operator*(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__multiplies(__lhs.__s_, __rhs.__s_);
+    return static_cast<simd>(_Impl::__multiplies(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI simd operator/(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__divides(__lhs.__s_, __rhs.__s_);
+    return static_cast<simd>(_Impl::__divides(__lhs.__s_, __rhs.__s_));
   }
 
   // compound assignment [simd.cassign]
@@ -1953,27 +1953,27 @@ public:
 
   // compares [simd.comparison]
   friend _LIBCPP_HIDE_FROM_ABI mask_type operator==(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__equal_to(__lhs.__s_, __rhs.__s_);
+    return static_cast<mask_type>(_Impl::__equal_to(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI mask_type operator!=(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__not_equal_to(__lhs.__s_, __rhs.__s_);
+    return static_cast<mask_type>(_Impl::__not_equal_to(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI mask_type operator>=(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__less_equal(__rhs.__s_, __lhs.__s_);
+    return static_cast<mask_type>(_Impl::__less_equal(__rhs.__s_, __lhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI mask_type operator<=(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__less_equal(__lhs.__s_, __rhs.__s_);
+    return static_cast<mask_type>(_Impl::__less_equal(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI mask_type operator>(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__less(__rhs.__s_, __lhs.__s_);
+    return static_cast<mask_type>(_Impl::__less(__rhs.__s_, __lhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI mask_type operator<(const simd& __lhs, const simd& __rhs) noexcept {
-    return _Impl::__less(__lhs.__s_, __rhs.__s_);
+    return static_cast<mask_type>(_Impl::__less(__lhs.__s_, __rhs.__s_));
   }
 };
 
@@ -2023,8 +2023,8 @@ public:
 
   _LIBCPP_HIDE_FROM_ABI simd_mask() = default;
 
-  explicit operator _Storage() const;
-  simd_mask(const _Storage& __s) : __s_(__s) {}
+  explicit _LIBCPP_HIDE_FROM_ABI operator _Storage() const;
+  explicit _LIBCPP_HIDE_FROM_ABI simd_mask(const _Storage& __s) : __s_(__s) {}
 
   // broadcast constructor
   _LIBCPP_HIDE_FROM_ABI explicit simd_mask(value_type __v) noexcept : __s_(_Impl::__broadcast(__v)) {}
@@ -2061,27 +2061,27 @@ public:
   _LIBCPP_HIDE_FROM_ABI value_type operator[](size_t __i) const { return __s_.__get(__i); }
 
   // unary operators [simd.mask.unary]
-  _LIBCPP_HIDE_FROM_ABI simd_mask operator!() const noexcept { return _Impl::__negate(__s_); }
+  _LIBCPP_HIDE_FROM_ABI simd_mask operator!() const noexcept { return static_cast<simd_mask>(_Impl::__negate(__s_)); }
 
   // simd_mask binary operators [simd.mask.binary]
   friend _LIBCPP_HIDE_FROM_ABI simd_mask operator&&(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
-    return _Impl::__logical_and(__lhs.__s_, __rhs.__s_);
+    return static_cast<simd_mask>(_Impl::__logical_and(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI simd_mask operator||(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
-    return _Impl::__logical_or(__lhs.__s_, __rhs.__s_);
+    return static_cast<simd_mask>(_Impl::__logical_or(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI simd_mask operator&(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
-    return _Impl::__bitwise_and(__lhs.__s_, __rhs.__s_);
+    return static_cast<simd_mask>(_Impl::__bitwise_and(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI simd_mask operator|(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
-    return _Impl::__bitwise_or(__lhs.__s_, __rhs.__s_);
+    return static_cast<simd_mask>(_Impl::__bitwise_or(__lhs.__s_, __rhs.__s_));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI simd_mask operator^(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
-    return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_);
+    return static_cast<simd_mask>(_Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_));
   }
 
   // simd_mask compound assignment [simd.mask.cassign]
@@ -2099,11 +2099,11 @@ public:
 
   // simd_mask compares [simd.mask.comparison]
   friend _LIBCPP_HIDE_FROM_ABI simd_mask operator==(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
-    return _Impl::__negate(_Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_));
+    return static_cast<simd_mask>(_Impl::__negate(_Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_)));
   }
 
   friend _LIBCPP_HIDE_FROM_ABI simd_mask operator!=(const simd_mask& __lhs, const simd_mask& __rhs) noexcept {
-    return _Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_);
+    return static_cast<simd_mask>(_Impl::__bitwise_xor(__lhs.__s_, __rhs.__s_));
   }
 };
 
