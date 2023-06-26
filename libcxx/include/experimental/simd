@@ -1835,13 +1835,14 @@ public:
   using mask_type  = simd_mask<_Tp, _Abi>;
   using abi_type   = _Abi;
 
+  static _LIBCPP_HIDE_FROM_ABI constexpr size_t size() noexcept { return simd_size_v<value_type, abi_type>; }
+
   _LIBCPP_HIDE_FROM_ABI simd()                       = default;
   _LIBCPP_HIDE_FROM_ABI simd(const simd&)            = default;
   _LIBCPP_HIDE_FROM_ABI simd& operator=(const simd&) = default;
 
-  _LIBCPP_HIDE_FROM_ABI simd(_Storage __s) : __s_(__s) {}
-
-  static _LIBCPP_HIDE_FROM_ABI constexpr size_t size() noexcept { return simd_size_v<value_type, abi_type>; }
+  explicit operator _Storage() const;
+  simd(const _Storage& __s) : __s_(__s) {}
 
   // implicit broadcast constructor
   template <class _Up, enable_if_t<__can_broadcast<value_type, _Up>(), int> = 0>
@@ -2022,7 +2023,8 @@ public:
 
   _LIBCPP_HIDE_FROM_ABI simd_mask() = default;
 
-  _LIBCPP_HIDE_FROM_ABI simd_mask(_Storage __s) : __s_(__s) {}
+  explicit operator _Storage() const;
+  simd_mask(const _Storage& __s) : __s_(__s) {}
 
   // broadcast constructor
   _LIBCPP_HIDE_FROM_ABI explicit simd_mask(value_type __v) noexcept : __s_(_Impl::__broadcast(__v)) {}
