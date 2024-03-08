@@ -275,12 +275,25 @@ Value *VPInstruction::generateInstruction(VPTransformState &State,
   IRBuilderBase &Builder = State.Builder;
   Builder.SetCurrentDebugLocation(getDebugLoc());
 
-  if (Instruction::isBinaryOp(getOpcode())) {
+  unsigned Opc = getOpcode();
+  if (Instruction::isBinaryOp(Opc)) {
     if (Part != 0 && vputils::onlyFirstPartUsed(this))
       return State.get(this, 0);
 
     Value *A = State.get(getOperand(0), Part);
-    Value *B = State.get(getOperand(1), Part);
+    Value *B = nullptr;
+
+    if (UseVectorPredicationIntrinsics && Opc == Instruction::Add) {
+      // We have the EVL value available to use.
+      VPValue *VPEVL = getOperand(1);
+      Value *Step = State.get(VPEVL, 0);
+      for (unsigned P = 1; P < State.UF; P++)
+        Step = Builder.CreateAdd(Step, State.get(VPEVL, P));
+
+      B = Builder.CreateZExtOrTrunc(Step, A->getType());
+    } else
+      B = State.get(getOperand(1), Part);
+
     auto *Res =
         Builder.CreateBinOp((Instruction::BinaryOps)getOpcode(), A, B, Name);
     if (auto *I = dyn_cast<Instruction>(Res))
@@ -444,16 +457,14 @@ Value *VPInstruction::generateInstruction(VPTransformState &State,
     Value *Next = nullptr;
     if (Part == 0) {
       auto *EVLRecipe = cast<VPEVLPHIRecipe>(getOperand(0));
-      Value *StartEVL = State.get(EVLRecipe->getOperand(0), 0);
+      Value *StartEVL = EVLRecipe->getOperand(0)->getUnderlyingValue();
       Value *IVIncrement = State.get(getOperand(1), 0);
 
       Next = Builder.CreateSub(StartEVL, IVIncrement, "evl.next");
     } else {
       Next = State.get(this, 0);
     }
-
-    State.set(this, Next, Part);
-    break;
+    return Next;
   }
   default:
     llvm_unreachable("Unsupported opcode for instruction");
@@ -1815,7 +1826,7 @@ void VPEVLBasedIVPHIRecipe::print(raw_ostream &O, const Twine &Indent,
 #endif
 
 void VPEVLPHIRecipe::execute(VPTransformState &State) {
-  Value *StartEVL = State.get(getOperand(0), 0);
+  Value *StartEVL = getOperand(0)->getUnderlyingValue();
   BasicBlock *VectorPH = State.CFG.getPreheaderBBFor(this);
   this->Phi = State.Builder.CreatePHI(StartEVL->getType(), 2, "evl.phi");
   this->Phi->addIncoming(StartEVL, VectorPH);
