@@ -75,7 +75,8 @@ struct VPlanTransforms {
   /// UseActiveLaneMaskForControlFlow.
   static void addActiveLaneMask(VPlan &Plan,
                                 bool UseActiveLaneMaskForControlFlow,
-                                bool DataAndControlFlowWithoutRuntimeCheck);
+                                bool DataAndControlFlowWithoutRuntimeCheck,
+                                VPInstruction *NextEVL);
 
   /// Insert truncates and extends for any truncated recipe. Redundant casts
   /// will be folded later.

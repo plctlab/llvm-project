@@ -771,10 +771,10 @@ public:
   /// Returns the underlying instruction, if the recipe is a VPValue or nullptr
   /// otherwise.
   Instruction *getUnderlyingInstr() {
-    return cast<Instruction>(getVPSingleValue()->getUnderlyingValue());
+    return cast_or_null<Instruction>(getVPSingleValue()->getUnderlyingValue());
   }
   const Instruction *getUnderlyingInstr() const {
-    return cast<Instruction>(getVPSingleValue()->getUnderlyingValue());
+    return cast_or_null<Instruction>(getVPSingleValue()->getUnderlyingValue());
   }
 
   /// Method to support type inquiry through isa, cast, and dyn_cast.
@@ -1069,7 +1069,8 @@ public:
     // Increment the canonical IV separately for each unrolled part.
     CanonicalIVIncrementForPart,
     BranchOnCount,
-    BranchOnCond
+    BranchOnCond,
+    NextEVL
   };
 
 private:
@@ -1452,20 +1453,28 @@ class VPWidenIntOrFpInductionRecipe : public VPHeaderPHIRecipe {
   TruncInst *Trunc;
   const InductionDescriptor &IndDesc;
 
+  void addEVL(VPValue *EVLRecipe) {
+    if (EVLRecipe)
+      addOperand(EVLRecipe);
+  }
+
 public:
   VPWidenIntOrFpInductionRecipe(PHINode *IV, VPValue *Start, VPValue *Step,
-                                const InductionDescriptor &IndDesc)
+                                const InductionDescriptor &IndDesc,
+                                VPValue *EVLRecipe)
       : VPHeaderPHIRecipe(VPDef::VPWidenIntOrFpInductionSC, IV, Start), IV(IV),
         Trunc(nullptr), IndDesc(IndDesc) {
     addOperand(Step);
+    addEVL(EVLRecipe);
   }
 
   VPWidenIntOrFpInductionRecipe(PHINode *IV, VPValue *Start, VPValue *Step,
                                 const InductionDescriptor &IndDesc,
-                                TruncInst *Trunc)
+                                TruncInst *Trunc, VPValue *EVLRecipe)
       : VPHeaderPHIRecipe(VPDef::VPWidenIntOrFpInductionSC, Trunc, Start),
         IV(IV), Trunc(Trunc), IndDesc(IndDesc) {
     addOperand(Step);
+    addEVL(EVLRecipe);
   }
 
   ~VPWidenIntOrFpInductionRecipe() override = default;
@@ -1499,6 +1508,12 @@ public:
   /// Returns the step value of the induction.
   VPValue *getStepValue() { return getOperand(1); }
   const VPValue *getStepValue() const { return getOperand(1); }
+
+  /// Return the EVL value of the current loop iteration.
+  VPValue *getEVL() { return getNumOperands() == 3 ? getOperand(2) : nullptr; }
+  const VPValue *getEVL() const {
+    return getNumOperands() == 3 ? getOperand(2) : nullptr;
+  }
 
   /// Returns the first defined value as TruncInst, if it is one or nullptr
   /// otherwise.
@@ -1988,8 +2003,8 @@ public:
 
 /// A Recipe for widening load/store operations.
 /// The recipe uses the following VPValues:
-/// - For load: Address, optional mask
-/// - For store: Address, stored value, optional mask
+/// - For load: Address, optional mask, optional evl
+/// - For store: Address, stored value, optional mask, optional evl
 /// TODO: We currently execute only per-part unless a specific instance is
 /// provided.
 class VPWidenMemoryInstructionRecipe : public VPRecipeBase {
@@ -2001,33 +2016,41 @@ class VPWidenMemoryInstructionRecipe : public VPRecipeBase {
   // Whether the consecutive loaded/stored addresses are in reverse order.
   bool Reverse;
 
-  void setMask(VPValue *Mask) {
-    if (!Mask)
-      return;
-    addOperand(Mask);
-  }
+  // Whether the instruction has a not all-ones mask.
+  bool Masked = false;
 
-  bool isMasked() const {
-    return isStore() ? getNumOperands() == 3 : getNumOperands() == 2;
+  // Whether a vector length is available to the instruction.
+  bool HasVL = false;
+
+  void setMaskAndEVL(VPValue *Mask, VPValue *VPEVL) {
+    if (Mask) {
+      this->Masked = true;
+      addOperand(Mask);
+    }
+
+    if (VPEVL) {
+      this->HasVL = true;
+      addOperand(VPEVL);
+    }
   }
 
 public:
   VPWidenMemoryInstructionRecipe(LoadInst &Load, VPValue *Addr, VPValue *Mask,
-                                 bool Consecutive, bool Reverse)
+                                 VPValue *EVL, bool Consecutive, bool Reverse)
       : VPRecipeBase(VPDef::VPWidenMemoryInstructionSC, {Addr}),
         Ingredient(Load), Consecutive(Consecutive), Reverse(Reverse) {
     assert((Consecutive || !Reverse) && "Reverse implies consecutive");
     new VPValue(this, &Load);
-    setMask(Mask);
+    setMaskAndEVL(Mask, EVL);
   }
 
   VPWidenMemoryInstructionRecipe(StoreInst &Store, VPValue *Addr,
                                  VPValue *StoredValue, VPValue *Mask,
-                                 bool Consecutive, bool Reverse)
+                                 VPValue *EVL, bool Consecutive, bool Reverse)
       : VPRecipeBase(VPDef::VPWidenMemoryInstructionSC, {Addr, StoredValue}),
         Ingredient(Store), Consecutive(Consecutive), Reverse(Reverse) {
     assert((Consecutive || !Reverse) && "Reverse implies consecutive");
-    setMask(Mask);
+    setMaskAndEVL(Mask, EVL);
   }
 
   VP_CLASSOF_IMPL(VPDef::VPWidenMemoryInstructionSC)
@@ -2040,8 +2063,15 @@ public:
   /// Return the mask used by this recipe. Note that a full mask is represented
   /// by a nullptr.
   VPValue *getMask() const {
-    // Mask is optional and therefore the last operand.
-    return isMasked() ? getOperand(getNumOperands() - 1) : nullptr;
+    return Masked ? (HasVL ? getOperand(getNumOperands() - 2)
+                           : getOperand(getNumOperands() - 1))
+                  : nullptr;
+  }
+
+  /// Return the evl used by this recipe. If we are working with full-length
+  /// vectors, return nullptr.
+  VPValue *getEVL() const {
+    return HasVL ? getOperand(getNumOperands() - 1) : nullptr;
   }
 
   /// Returns true if this recipe is a store.
@@ -2181,6 +2211,33 @@ public:
   }
 
   /// Generate the active lane mask phi of the vector loop.
+  void execute(VPTransformState &State) override;
+
+#if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
+  /// Print the recipe.
+  void print(raw_ostream &O, const Twine &Indent,
+             VPSlotTracker &SlotTracker) const override;
+#endif
+};
+
+class VPEVLPHIRecipe : public VPHeaderPHIRecipe {
+  const TargetTransformInfo *TTI;
+  PHINode *Phi = nullptr;
+
+public:
+  VPEVLPHIRecipe(VPValue *StartEVL, const TargetTransformInfo *TTI)
+      : VPHeaderPHIRecipe(VPDef::VPWidenEVLSC, nullptr, StartEVL), TTI(TTI) {}
+
+  ~VPEVLPHIRecipe() override = default;
+
+  VP_CLASSOF_IMPL(VPDef::VPWidenEVLSC)
+
+  PHINode *getPhi() const { return Phi; }
+
+  static inline bool classof(const VPHeaderPHIRecipe *D) {
+    return D->getVPDefID() == VPDef::VPWidenEVLSC;
+  }
+
   void execute(VPTransformState &State) override;
 
 #if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
@@ -2794,6 +2851,10 @@ public:
     }
     return cast<VPCanonicalIVPHIRecipe>(&*EntryVPBB->begin());
   }
+
+  /// Find and return the VPEVLPHIRecipe from the header - there should be only
+  /// one at most. If there isn't one, then return nullptr.
+  VPEVLPHIRecipe *getEVLPhi();
 
   void addLiveOut(PHINode *PN, VPValue *V);
 

@@ -57,6 +57,10 @@ private:
     return RetType();
   }
 
+  Value *createVectorInstruction(Intrinsic::ID VPID, Type *ReturnTy,
+                                 ArrayRef<Value *> VecOpArray,
+                                 const Twine &Name = Twine());
+
 public:
   VectorBuilder(IRBuilderBase &Builder,
                 Behavior ErrorHandling = Behavior::ReportAndAbort)
@@ -89,9 +93,19 @@ public:
   // \p Opcode      The functional instruction opcode of the emitted intrinsic.
   // \p ReturnTy    The return type of the operation.
   // \p VecOpArray  The operand list.
-  Value *createVectorInstruction(unsigned Opcode, Type *ReturnTy,
-                                 ArrayRef<Value *> VecOpArray,
-                                 const Twine &Name = Twine());
+  Value *createVectorInstructionFromOpcode(unsigned Opcode, Type *ReturnTy,
+                                           ArrayRef<Value *> VecOpArray,
+                                           const Twine &Name = Twine());
+
+  // Emit a VP intrinsic call that mimics a regular intrinsic.
+  // This operation behaves according to the VectorBuilderBehavior.
+  // \p IID         The functional intrinsic ID of the emitted VP intrinsic.
+  // \p ReturnTy    The return type of the operation.
+  // \p VecOpArray  The operand list.
+  Value *createVectorInstructionFromIntrinsicID(Intrinsic::ID IID,
+                                                Type *ReturnTy,
+                                                ArrayRef<Value *> VecOpArray,
+                                                const Twine &Name = Twine());
 };
 
 } // namespace llvm

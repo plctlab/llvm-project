@@ -708,6 +708,16 @@ VPlan::~VPlan() {
     delete BackedgeTakenCount;
 }
 
+VPEVLPHIRecipe *VPlan::getEVLPhi() {
+  VPBasicBlock *Header = getVectorLoopRegion()->getEntryBasicBlock();
+  for (VPRecipeBase &R : Header->phis()) {
+    if (isa<VPEVLPHIRecipe>(&R))
+      return cast<VPEVLPHIRecipe>(&R);
+  }
+  
+  return nullptr;
+}
+
 VPlanPtr VPlan::createInitialVPlan(const SCEV *TripCount, ScalarEvolution &SE) {
   VPBasicBlock *Preheader = new VPBasicBlock("ph");
   VPBasicBlock *VecPreheader = new VPBasicBlock("vector.ph");
@@ -821,6 +831,13 @@ void VPlan::execute(VPTransformState *State) {
     }
 
     auto *PhiR = cast<VPHeaderPHIRecipe>(&R);
+    if (auto *EVLPhi = dyn_cast<VPEVLPHIRecipe>(PhiR)) {
+      PHINode *Phi = EVLPhi->getPhi();
+      Phi->addIncoming(State->get(EVLPhi->getBackedgeValue(), State->UF - 1),
+                       VectorLatchBB);
+      continue;
+    }
+
     // For  canonical IV, first-order recurrences and in-order reduction phis,
     // only a single part is generated, which provides the last part from the
     // previous iteration. For non-ordered reductions all UF parts are

@@ -1264,6 +1264,12 @@ bool TargetTransformInfo::hasActiveVectorLength(unsigned Opcode, Type *DataType,
   return TTIImpl->hasActiveVectorLength(Opcode, DataType, Alignment);
 }
 
+Value *TargetTransformInfo::computeVectorLength(IRBuilderBase &Builder,
+                                                Value *AVL,
+                                                ElementCount VF) const {
+  return TTIImpl->computeVectorLength(Builder, AVL, VF);
+}
+
 TargetTransformInfo::Concept::~Concept() = default;
 
 TargetIRAnalysis::TargetIRAnalysis() : TTICallback(&getDefaultTTI) {}

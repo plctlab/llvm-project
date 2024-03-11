@@ -411,6 +411,10 @@ static constexpr uint32_t MemCheckBypassWeights[] = {1, 127};
 // after prolog. See `emitIterationCountCheck`.
 static constexpr uint32_t MinItersBypassWeights[] = {1, 127};
 
+cl::opt<bool> UseVectorPredicationIntrinsics(
+    "use-vp-intrinsics", cl::init(false), cl::Hidden,
+    cl::desc("Use Vector Predication intrinsics during vectorization."));
+
 /// A helper function that returns true if the given type is irregular. The
 /// type is irregular if its allocated size doesn't equal the store size of an
 /// element of the corresponding vector type.
@@ -2792,6 +2796,11 @@ InnerLoopVectorizer::getOrCreateVectorTripCount(BasicBlock *InsertBlock) {
   if (VectorTripCount)
     return VectorTripCount;
 
+  // With VP intrinsics, we require tail-folding by masking; this way, we
+  // operate on a number of elements equal to the original loop trip count.
+  if (UseVectorPredicationIntrinsics)
+    return VectorTripCount = getTripCount();
+
   Value *TC = getTripCount();
   IRBuilder<> Builder(InsertBlock->getTerminator());
 
@@ -2828,6 +2837,7 @@ InnerLoopVectorizer::getOrCreateVectorTripCount(BasicBlock *InsertBlock) {
   // the step does not evenly divide the trip count, no adjustment is necessary
   // since there will already be scalar iterations. Note that the minimum
   // iterations check ensures that N >= Step.
+  // TODO: we should probably honor the cost model also with VP intrinsics.
   if (Cost->requiresScalarEpilogue(VF.isVector())) {
     auto *IsZero = Builder.CreateICmpEQ(R, ConstantInt::get(R->getType(), 0));
     R = Builder.CreateSelect(IsZero, Step, R);
@@ -6316,9 +6326,12 @@ LoopVectorizationCostModel::getConsecutiveMemOpCost(Instruction *I,
   }
 
   bool Reverse = ConsecutiveStride < 0;
-  if (Reverse)
+  if (Reverse) {
+    if (UseVectorPredicationIntrinsics)
+      return InstructionCost::getInvalid();
     Cost += TTI.getShuffleCost(TargetTransformInfo::SK_Reverse, VectorTy,
                                std::nullopt, CostKind, 0);
+  }
   return Cost;
 }
 
@@ -8234,12 +8247,13 @@ VPRecipeBase *VPRecipeBuilder::tryToWidenMemory(Instruction *I,
       Reverse || Decision == LoopVectorizationCostModel::CM_Widen;
 
   if (LoadInst *Load = dyn_cast<LoadInst>(I))
-    return new VPWidenMemoryInstructionRecipe(*Load, Operands[0], Mask,
-                                              Consecutive, Reverse);
+    return new VPWidenMemoryInstructionRecipe(
+        *Load, Operands[0], Mask, Plan->getEVLPhi(), Consecutive, Reverse);
 
   StoreInst *Store = cast<StoreInst>(I);
   return new VPWidenMemoryInstructionRecipe(*Store, Operands[1], Operands[0],
-                                            Mask, Consecutive, Reverse);
+                                            Mask, Plan->getEVLPhi(),
+                                            Consecutive, Reverse);
 }
 
 /// Creates a VPWidenIntOrFpInductionRecpipe for \p Phi. If needed, it will also
@@ -8257,10 +8271,12 @@ createWidenInductionRecipes(PHINode *Phi, Instruction *PhiOrTrunc,
   VPValue *Step =
       vputils::getOrCreateVPValueForSCEVExpr(Plan, IndDesc.getStep(), SE);
   if (auto *TruncI = dyn_cast<TruncInst>(PhiOrTrunc)) {
-    return new VPWidenIntOrFpInductionRecipe(Phi, Start, Step, IndDesc, TruncI);
+    return new VPWidenIntOrFpInductionRecipe(Phi, Start, Step, IndDesc, TruncI,
+                                             Plan.getEVLPhi());
   }
   assert(isa<PHINode>(PhiOrTrunc) && "must be a phi node here");
-  return new VPWidenIntOrFpInductionRecipe(Phi, Start, Step, IndDesc);
+  return new VPWidenIntOrFpInductionRecipe(Phi, Start, Step, IndDesc,
+                                           Plan.getEVLPhi());
 }
 
 VPRecipeBase *VPRecipeBuilder::tryToOptimizeInductionPHI(
@@ -8692,32 +8708,64 @@ void LoopVectorizationPlanner::buildVPlansWithVPRecipes(ElementCount MinVF,
 
 // Add the necessary canonical IV and branch recipes required to control the
 // loop.
-static void addCanonicalIVRecipes(VPlan &Plan, Type *IdxTy, bool HasNUW,
-                                  DebugLoc DL) {
-  Value *StartIdx = ConstantInt::get(IdxTy, 0);
-  auto *StartV = Plan.getVPValueOrAddLiveIn(StartIdx);
-
-  // Add a VPCanonicalIVPHIRecipe starting at 0 to the header.
-  auto *CanonicalIVPHI = new VPCanonicalIVPHIRecipe(StartV, DL);
+static VPInstruction *addCanonicalIVRecipes(VPlan &Plan, Type *IdxTy,
+                                            bool HasNUW, DebugLoc DL,
+                                            const TargetTransformInfo *TTI) {
   VPRegionBlock *TopRegion = Plan.getVectorLoopRegion();
   VPBasicBlock *Header = TopRegion->getEntryBasicBlock();
+
+  // Add the EVL recipe, used to calculate the correct IV increment.
+  VPEVLPHIRecipe *EVLRecipe = nullptr;
+  // TODO: TTI should be able to indicate if a target prefers vector predication
+  // intrinsics.
+  if (UseVectorPredicationIntrinsics) {
+    EVLRecipe = new VPEVLPHIRecipe(Plan.getTripCount(), TTI);
+    Header->insert(EVLRecipe, Header->begin());
+  }
+
+  // Add a VPCanonicalIVPHIRecipe starting at 0 to the header.
+  Value *StartIdx = ConstantInt::get(IdxTy, 0);
+  auto *StartV = Plan.getVPValueOrAddLiveIn(StartIdx);
+  auto *CanonicalIVPHI = new VPCanonicalIVPHIRecipe(StartV, DL);
   Header->insert(CanonicalIVPHI, Header->begin());
 
   // Add a CanonicalIVIncrement{NUW} VPInstruction to increment the scalar
-  // IV by VF * UF.
-  auto *CanonicalIVIncrement =
+  // IV either by VF * UF or by the EVL values.
+  VPInstruction *CanonicalIVIncrement = nullptr;
+  if (EVLRecipe)
+    CanonicalIVIncrement =
+      new VPInstruction(Instruction::Add, {CanonicalIVPHI, EVLRecipe},
+                        {HasNUW, false}, DL, "index.next");
+  else
+    CanonicalIVIncrement =
       new VPInstruction(Instruction::Add, {CanonicalIVPHI, &Plan.getVFxUF()},
                         {HasNUW, false}, DL, "index.next");
+
   CanonicalIVPHI->addOperand(CanonicalIVIncrement);
+
+  // If we are working with vector predication instrinsics, add a NextEVL
+  // VPInstruction to calculate the remaining elements number.
+  VPInstruction *NextEVL = nullptr;
+  if (EVLRecipe) {
+    NextEVL =
+        new VPInstruction(VPInstruction::NextEVL,
+                          {EVLRecipe, CanonicalIVIncrement}, DL, "evl.next");
+    EVLRecipe->addOperand(NextEVL);
+  }
 
   VPBasicBlock *EB = TopRegion->getExitingBasicBlock();
   EB->appendRecipe(CanonicalIVIncrement);
+  if (NextEVL) {
+    EB->appendRecipe(NextEVL);
+  }
 
   // Add the BranchOnCount VPInstruction to the latch.
   VPInstruction *BranchBack =
       new VPInstruction(VPInstruction::BranchOnCount,
                         {CanonicalIVIncrement, &Plan.getVectorTripCount()}, DL);
   EB->appendRecipe(BranchBack);
+
+  return NextEVL;
 }
 
 // Add exit values to \p Plan. VPLiveOuts are added for each LCSSA phi in the
@@ -8807,7 +8855,8 @@ LoopVectorizationPlanner::tryToBuildVPlanWithVPRecipes(VFRange &Range) {
   // When not folding the tail, we know that the induction increment will not
   // overflow.
   bool HasNUW = Style == TailFoldingStyle::None;
-  addCanonicalIVRecipes(*Plan, Legal->getWidestInductionType(), HasNUW, DL);
+  auto *NextEVL = addCanonicalIVRecipes(*Plan, Legal->getWidestInductionType(),
+                                        HasNUW, DL, &TTI);
 
   // Proactively create header mask. Masks for other blocks are created on
   // demand.
@@ -8982,7 +9031,7 @@ LoopVectorizationPlanner::tryToBuildVPlanWithVPRecipes(VFRange &Range) {
     bool WithoutRuntimeCheck =
         Style == TailFoldingStyle::DataAndControlFlowWithoutRuntimeCheck;
     VPlanTransforms::addActiveLaneMask(*Plan, ForControlFlow,
-                                       WithoutRuntimeCheck);
+                                       WithoutRuntimeCheck, NextEVL);
   }
   return Plan;
 }
@@ -9022,7 +9071,7 @@ VPlanPtr LoopVectorizationPlanner::buildVPlan(VFRange &Range) {
   // is guaranteed to not wrap.
   bool HasNUW = true;
   addCanonicalIVRecipes(*Plan, Legal->getWidestInductionType(), HasNUW,
-                        DebugLoc());
+                        DebugLoc(), &TTI);
   return Plan;
 }
 
@@ -9529,7 +9578,7 @@ lowerStoreUsingVectorIntrinsics(IRBuilderBase &Builder, Value *Addr,
   } else {
     VectorBuilder VBuilder(Builder);
     VBuilder.setEVL(EVLPart).setMask(Mask);
-    Call = cast<CallInst>(VBuilder.createVectorInstruction(
+    Call = cast<CallInst>(VBuilder.createVectorInstructionFromOpcode(
         Instruction::Store, Type::getVoidTy(EVLPart->getContext()),
         {StoredVal, Addr}));
   }
@@ -9553,7 +9602,7 @@ static Instruction *lowerLoadUsingVectorIntrinsics(IRBuilderBase &Builder,
   } else {
     VectorBuilder VBuilder(Builder);
     VBuilder.setEVL(EVLPart).setMask(Mask);
-    Call = cast<CallInst>(VBuilder.createVectorInstruction(
+    Call = cast<CallInst>(VBuilder.createVectorInstructionFromOpcode(
         Instruction::Load, DataTy, Addr, "vp.op.load"));
   }
   Call->addParamAttr(
@@ -9580,8 +9629,15 @@ void VPWidenMemoryInstructionRecipe::execute(VPTransformState &State) {
 
   auto &Builder = State.Builder;
   InnerLoopVectorizer::VectorParts BlockInMaskParts(State.UF);
-  bool isMaskRequired = getMask();
-  if (isMaskRequired) {
+  VPValue *VPMask = getMask();
+  VPValue *VPEVL = getEVL();
+  if (VPEVL && (!VPMask || (isa<VPInstruction>(VPMask) &&
+                            dyn_cast<VPInstruction>(VPMask)->getOpcode() ==
+                                VPInstruction::ActiveLaneMask))) {
+    auto *MaskTy = VectorType::get(Builder.getInt1Ty(), State.VF);
+    for (unsigned Part = 0; Part < State.UF; ++Part)
+      BlockInMaskParts[Part] = ConstantInt::getTrue(MaskTy);
+  } else if (VPMask) {
     // Mask reversal is only neede for non-all-one (null) masks, as reverse of a
     // null all-one mask is a null mask.
     for (unsigned Part = 0; Part < State.UF; ++Part) {
@@ -9623,7 +9679,14 @@ void VPWidenMemoryInstructionRecipe::execute(VPTransformState &State) {
       PartPtr =
           Builder.CreateGEP(ScalarDataTy, PartPtr, LastLane, "", InBounds);
     } else {
-      Value *Increment = createStepForVF(Builder, IndexTy, State.VF, Part);
+      Value *Increment = nullptr;
+      if (VPEVL) {
+        Increment = Builder.getInt32(0); // EVL is always an i32.
+        for (unsigned int P = 0; P < Part; P++)
+          Increment = Builder.CreateAdd(Increment, State.get(VPEVL, P));
+      } else {
+        Increment = createStepForVF(Builder, IndexTy, State.VF, Part);
+      }
       PartPtr = Builder.CreateGEP(ScalarDataTy, Ptr, Increment, "", InBounds);
     }
 
@@ -9631,7 +9694,7 @@ void VPWidenMemoryInstructionRecipe::execute(VPTransformState &State) {
   };
 
   auto MaskValue = [&](unsigned Part) -> Value * {
-    if (isMaskRequired)
+    if (VPMask)
       return BlockInMaskParts[Part];
     return nullptr;
   };
@@ -9659,10 +9722,19 @@ void VPWidenMemoryInstructionRecipe::execute(VPTransformState &State) {
             StoredVal, CreateGatherScatter, MaskValue(Part), EVLPart,
             Alignment);
       } else if (CreateGatherScatter) {
-        Value *MaskPart = isMaskRequired ? BlockInMaskParts[Part] : nullptr;
+        Value *MaskPart =
+            (VPMask || VPEVL) ? BlockInMaskParts[Part] : nullptr;
         Value *VectorGep = State.get(getAddr(), Part);
-        NewSI = Builder.CreateMaskedScatter(StoredVal, VectorGep, Alignment,
-                                            MaskPart);
+        if (VPEVL) {
+          auto *PtrsTy = cast<VectorType>(VectorGep->getType());
+          Value *Operands[] = {StoredVal, VectorGep, MaskPart,
+                               State.get(VPEVL, Part)};
+          NewSI = Builder.CreateIntrinsic(Intrinsic::vp_scatter,
+                                          {DataTy, PtrsTy}, Operands);
+        } else {
+          NewSI = Builder.CreateMaskedScatter(StoredVal, VectorGep, Alignment,
+                                              MaskPart);
+        }
       } else {
         if (isReverse()) {
           // If we store to reverse consecutive memory locations, then we need
@@ -9673,11 +9745,17 @@ void VPWidenMemoryInstructionRecipe::execute(VPTransformState &State) {
         }
         auto *VecPtr =
             CreateVecPtr(Part, State.get(getAddr(), VPIteration(0, 0)));
-        if (isMaskRequired)
+        if (VPEVL) {
+          Value *Operands[] = {StoredVal, VecPtr, BlockInMaskParts[Part],
+                               State.get(VPEVL, Part)};
+          NewSI = Builder.CreateIntrinsic(
+              Intrinsic::vp_store, {DataTy, VecPtr->getType()}, Operands);
+        } else if (VPMask) {
           NewSI = Builder.CreateMaskedStore(StoredVal, VecPtr, Alignment,
                                             BlockInMaskParts[Part]);
-        else
+        } else {
           NewSI = Builder.CreateAlignedStore(StoredVal, VecPtr, Alignment);
+        }
       }
       State.addMetadata(NewSI, SI);
     }
@@ -9704,21 +9782,37 @@ void VPWidenMemoryInstructionRecipe::execute(VPTransformState &State) {
               : CreateVecPtr(Part, State.get(getAddr(), VPIteration(0, 0))),
           CreateGatherScatter, MaskValue(Part), EVLPart, Alignment);
     } else if (CreateGatherScatter) {
-      Value *MaskPart = isMaskRequired ? BlockInMaskParts[Part] : nullptr;
+      Value *MaskPart =
+          (VPMask || VPEVL) ? BlockInMaskParts[Part] : nullptr;
       Value *VectorGep = State.get(getAddr(), Part);
-      NewLI = Builder.CreateMaskedGather(DataTy, VectorGep, Alignment, MaskPart,
-                                         nullptr, "wide.masked.gather");
+      if (VPEVL) {
+        auto *PtrsTy = cast<VectorType>(VectorGep->getType());
+        Value *Operands[] = {VectorGep, MaskPart, State.get(VPEVL, Part)};
+        NewLI = Builder.CreateIntrinsic(Intrinsic::vp_gather, {DataTy, PtrsTy},
+                                        Operands, nullptr, "vp.gather");
+      } else {
+        NewLI =
+            Builder.CreateMaskedGather(DataTy, VectorGep, Alignment, MaskPart,
+                                       nullptr, "wide.masked.gather");
+      }
       State.addMetadata(NewLI, LI);
     } else {
       auto *VecPtr =
           CreateVecPtr(Part, State.get(getAddr(), VPIteration(0, 0)));
-      if (isMaskRequired)
+      if (VPEVL) {
+        Value *Operands[] = {VecPtr, BlockInMaskParts[Part],
+                             State.get(VPEVL, Part)};
+        NewLI = Builder.CreateIntrinsic(Intrinsic::vp_load,
+                                        {DataTy, VecPtr->getType()}, Operands,
+                                        nullptr, "vp.load");
+      } else if (VPMask) {
         NewLI = Builder.CreateMaskedLoad(
             DataTy, VecPtr, Alignment, BlockInMaskParts[Part],
             PoisonValue::get(DataTy), "wide.masked.load");
-      else
+      } else {
         NewLI =
             Builder.CreateAlignedLoad(DataTy, VecPtr, Alignment, "wide.load");
+      }
 
       // Add metadata to the load, but setVectorValue to the reverse shuffle.
       State.addMetadata(NewLI, LI);
@@ -10516,6 +10610,11 @@ LoopVectorizeResult LoopVectorizePass::runImpl(
 
 PreservedAnalyses LoopVectorizePass::run(Function &F,
                                          FunctionAnalysisManager &AM) {
+    assert((!UseVectorPredicationIntrinsics ||
+            PreferPredicateOverEpilogue ==
+                PreferPredicateTy::PredicateOrDontVectorize) &&
+           "Tail folding required when using VP intrinsics.");
+
     auto &LI = AM.getResult<LoopAnalysis>(F);
     // There are no loops in the function. Return before computing other expensive
     // analyses.

@@ -53,7 +53,8 @@ void VPlanTransforms::VPInstructionsToVPRecipes(
           VPValue *Start = Plan->getVPValueOrAddLiveIn(II->getStartValue());
           VPValue *Step =
               vputils::getOrCreateVPValueForSCEVExpr(*Plan, II->getStep(), SE);
-          NewRecipe = new VPWidenIntOrFpInductionRecipe(Phi, Start, Step, *II);
+          NewRecipe = new VPWidenIntOrFpInductionRecipe(Phi, Start, Step, *II,
+                                                        Plan->getEVLPhi());
         } else {
           Plan->addVPValue(Phi, VPPhi);
           continue;
@@ -66,11 +67,12 @@ void VPlanTransforms::VPInstructionsToVPRecipes(
         if (LoadInst *Load = dyn_cast<LoadInst>(Inst)) {
           NewRecipe = new VPWidenMemoryInstructionRecipe(
               *Load, Ingredient.getOperand(0), nullptr /*Mask*/,
-              false /*Consecutive*/, false /*Reverse*/);
+              nullptr /*EVL*/, false /*Consecutive*/, false /*Reverse*/);
         } else if (StoreInst *Store = dyn_cast<StoreInst>(Inst)) {
           NewRecipe = new VPWidenMemoryInstructionRecipe(
               *Store, Ingredient.getOperand(1), Ingredient.getOperand(0),
-              nullptr /*Mask*/, false /*Consecutive*/, false /*Reverse*/);
+              nullptr /*Mask*/, nullptr /*EVL*/, false /*Consecutive*/,
+              false /*Reverse*/);
         } else if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Inst)) {
           NewRecipe = new VPWidenGEPRecipe(GEP, Ingredient.operands());
         } else if (CallInst *CI = dyn_cast<CallInst>(Inst)) {
@@ -1040,7 +1042,8 @@ void VPlanTransforms::optimize(VPlan &Plan, ScalarEvolution &SE) {
 //   branch-on-cond %Negated
 //
 static VPActiveLaneMaskPHIRecipe *addVPLaneMaskPhiAndUpdateExitBranch(
-    VPlan &Plan, bool DataAndControlFlowWithoutRuntimeCheck) {
+    VPlan &Plan, bool DataAndControlFlowWithoutRuntimeCheck,
+    VPInstruction *NextEVL) {
   VPRegionBlock *TopRegion = Plan.getVectorLoopRegion();
   VPBasicBlock *EB = TopRegion->getExitingBasicBlock();
   auto *CanonicalIVPHI = Plan.getCanonicalIV();
@@ -1066,6 +1069,9 @@ static VPActiveLaneMaskPHIRecipe *addVPLaneMaskPhiAndUpdateExitBranch(
     // When the loop is guarded by a runtime overflow check for the loop
     // induction variable increment by VF, we can increment the value before
     // the get.active.lane mask and use the unmodified tripcount.
+    if (NextEVL) {
+      EB->insert(NextEVL, EB->end()--);
+    }
     IncrementValue = CanonicalIVIncrement;
     TripCount = TC;
   } else {
@@ -1101,6 +1107,10 @@ static VPActiveLaneMaskPHIRecipe *addVPLaneMaskPhiAndUpdateExitBranch(
                                    {InLoopIncrement, TripCount}, DL,
                                    "active.lane.mask.next");
   LaneMaskPhi->addOperand(ALM);
+
+  if (DataAndControlFlowWithoutRuntimeCheck && NextEVL) {
+    EB->insert(NextEVL, EB->end()--);
+  }
 
   // Replace the original terminator with BranchOnCond. We have to invert the
   // mask here because a true condition means jumping to the exit block.
@@ -1151,7 +1161,8 @@ static void replaceHeaderPredicateWithIdiom(
 
 void VPlanTransforms::addActiveLaneMask(
     VPlan &Plan, bool UseActiveLaneMaskForControlFlow,
-    bool DataAndControlFlowWithoutRuntimeCheck) {
+    bool DataAndControlFlowWithoutRuntimeCheck,
+    VPInstruction *NextEVL) {
   assert((!DataAndControlFlowWithoutRuntimeCheck ||
           UseActiveLaneMaskForControlFlow) &&
          "DataAndControlFlowWithoutRuntimeCheck implies "
@@ -1167,7 +1178,7 @@ void VPlanTransforms::addActiveLaneMask(
   VPRecipeBase *LaneMask;
   if (UseActiveLaneMaskForControlFlow) {
     LaneMask = addVPLaneMaskPhiAndUpdateExitBranch(
-        Plan, DataAndControlFlowWithoutRuntimeCheck);
+        Plan, DataAndControlFlowWithoutRuntimeCheck, NextEVL);
   } else {
     LaneMask = new VPInstruction(VPInstruction::ActiveLaneMask,
                                  {WideCanonicalIV, Plan.getTripCount()},

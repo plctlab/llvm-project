@@ -23,6 +23,7 @@
 
 #include "llvm/ADT/SmallBitVector.h"
 #include "llvm/IR/FMF.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Pass.h"
@@ -1714,6 +1715,9 @@ public:
   /// \return The maximum number of function arguments the target supports.
   unsigned getMaxNumArgs() const;
 
+  Value *computeVectorLength(IRBuilderBase &Builder, Value *AVL,
+                             ElementCount VF) const;
+
   /// @}
 
 private:
@@ -2088,6 +2092,8 @@ public:
   getVPLegalizationStrategy(const VPIntrinsic &PI) const = 0;
   virtual bool hasArmWideBranch(bool Thumb) const = 0;
   virtual unsigned getMaxNumArgs() const = 0;
+  virtual Value *computeVectorLength(IRBuilderBase &Builder, Value *AVL,
+                                     ElementCount VF) const = 0;
 };
 
 template <typename T>
@@ -2814,6 +2820,11 @@ public:
 
   unsigned getMaxNumArgs() const override {
     return Impl.getMaxNumArgs();
+  }
+
+  Value *computeVectorLength(IRBuilderBase &Builder, Value *AVL,
+                             ElementCount VF) const override {
+    return Impl.computeVectorLength(Builder, AVL, VF);
   }
 };
 

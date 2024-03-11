@@ -38,6 +38,7 @@ using VectorParts = SmallVector<Value *, 2>;
 namespace llvm {
 extern cl::opt<bool> EnableVPlanNativePath;
 }
+extern cl::opt<bool> UseVectorPredicationIntrinsics;
 
 #define LV_NAME "loop-vectorize"
 #define DEBUG_TYPE LV_NAME
@@ -274,12 +275,25 @@ Value *VPInstruction::generateInstruction(VPTransformState &State,
   IRBuilderBase &Builder = State.Builder;
   Builder.SetCurrentDebugLocation(getDebugLoc());
 
-  if (Instruction::isBinaryOp(getOpcode())) {
+  unsigned Opc = getOpcode();
+  if (Instruction::isBinaryOp(Opc)) {
     if (Part != 0 && vputils::onlyFirstPartUsed(this))
       return State.get(this, 0);
 
     Value *A = State.get(getOperand(0), Part);
-    Value *B = State.get(getOperand(1), Part);
+    Value *B = nullptr;
+
+    if (UseVectorPredicationIntrinsics && Opc == Instruction::Add) {
+      // We have the EVL value available to use.
+      VPValue *VPEVL = getOperand(1);
+      Value *Step = State.get(VPEVL, 0);
+      for (unsigned P = 1; P < State.UF; P++)
+        Step = Builder.CreateAdd(Step, State.get(VPEVL, P));
+
+      B = Builder.CreateZExtOrTrunc(Step, A->getType());
+    } else
+      B = State.get(getOperand(1), Part);
+
     auto *Res =
         Builder.CreateBinOp((Instruction::BinaryOps)getOpcode(), A, B, Name);
     if (auto *I = dyn_cast<Instruction>(Res))
@@ -439,6 +453,19 @@ Value *VPInstruction::generateInstruction(VPTransformState &State,
     Builder.GetInsertBlock()->getTerminator()->eraseFromParent();
     return CondBr;
   }
+  case VPInstruction::NextEVL: {
+    Value *Next = nullptr;
+    if (Part == 0) {
+      auto *EVLRecipe = cast<VPEVLPHIRecipe>(getOperand(0));
+      Value *StartEVL = EVLRecipe->getOperand(0)->getUnderlyingValue();
+      Value *IVIncrement = State.get(getOperand(1), 0);
+
+      Next = Builder.CreateSub(StartEVL, IVIncrement, "evl.next");
+    } else {
+      Next = State.get(this, 0);
+    }
+    return Next;
+  }
   default:
     llvm_unreachable("Unsupported opcode for instruction");
   }
@@ -520,6 +547,9 @@ void VPInstruction::print(raw_ostream &O, const Twine &Indent,
     break;
   case VPInstruction::BranchOnCount:
     O << "branch-on-count";
+    break;
+  case VPInstruction::NextEVL:
+    O << "next-evl";
     break;
   default:
     O << Instruction::getOpcodeName(getOpcode());
@@ -968,24 +998,27 @@ void VPWidenIntOrFpInductionRecipe::execute(VPTransformState &State) {
     MulOp = Instruction::FMul;
   }
 
-  // Multiply the vectorization factor by the step using integer or
-  // floating-point arithmetic as appropriate.
-  Type *StepType = Step->getType();
-  Value *RuntimeVF;
-  if (Step->getType()->isFloatingPointTy())
-    RuntimeVF = getRuntimeVFAsFloat(Builder, StepType, State.VF);
-  else
-    RuntimeVF = getRuntimeVF(Builder, StepType, State.VF);
-  Value *Mul = Builder.CreateBinOp(MulOp, Step, RuntimeVF);
+  Value *SplatVF = nullptr;
+  if (!getEVL()) {
+    // Multiply the vectorization factor by the step using integer or
+    // floating-point arithmetic as appropriate.
+    Type *StepType = Step->getType();
+    Value *RuntimeVF;
+    if (Step->getType()->isFloatingPointTy())
+      RuntimeVF = getRuntimeVFAsFloat(Builder, StepType, State.VF);
+    else
+      RuntimeVF = getRuntimeVF(Builder, StepType, State.VF);
+    Value *Mul = Builder.CreateBinOp(MulOp, Step, RuntimeVF);
 
-  // Create a vector splat to use in the induction update.
-  //
-  // FIXME: If the step is non-constant, we create the vector splat with
-  //        IRBuilder. IRBuilder can constant-fold the multiply, but it doesn't
-  //        handle a constant vector splat.
-  Value *SplatVF = isa<Constant>(Mul)
-                       ? ConstantVector::getSplat(State.VF, cast<Constant>(Mul))
-                       : Builder.CreateVectorSplat(State.VF, Mul);
+    // Create a vector splat to use in the induction update.
+    //
+    // FIXME: If the step is non-constant, we create the vector splat with
+    //        IRBuilder. IRBuilder can constant-fold the multiply, but it
+    //        doesn't handle a constant vector splat.
+    SplatVF = isa<Constant>(Mul)
+                  ? ConstantVector::getSplat(State.VF, cast<Constant>(Mul))
+                  : Builder.CreateVectorSplat(State.VF, Mul);
+  }
   Builder.restoreIP(CurrIP);
 
   // We may need to add the step a number of times, depending on the unroll
@@ -1000,8 +1033,26 @@ void VPWidenIntOrFpInductionRecipe::execute(VPTransformState &State) {
     if (isa<TruncInst>(EntryVal))
       State.addMetadata(LastInduction, EntryVal);
 
-    LastInduction = cast<Instruction>(
-        Builder.CreateBinOp(AddOp, LastInduction, SplatVF, "step.add"));
+    if (auto *EVLRecipe = getEVL()) {
+      // Ensure the types match.
+      Type *DestTy = LastInduction->getType()->getScalarType();
+      Value *EVL = State.get(EVLRecipe, Part);
+      if (DestTy->isIntegerTy()) {
+        EVL = Builder.CreateZExtOrTrunc(EVL, DestTy);
+      } else {
+        assert(DestTy->isFloatingPointTy());
+        EVL = Builder.CreateUIToFP(EVL, DestTy);
+      }
+      // Multiply the EVL by the step using integer or floating-point
+      // arithmetic as appropriate.
+      Value *Mul = Builder.CreateBinOp(MulOp, Step, EVL);
+      Value *SplatEVL = Builder.CreateVectorSplat(State.VF, Mul);
+      LastInduction = cast<Instruction>(
+          Builder.CreateBinOp(AddOp, LastInduction, SplatEVL, "step.add.vl"));
+    } else {
+      LastInduction = cast<Instruction>(
+          Builder.CreateBinOp(AddOp, LastInduction, SplatVF, "step.add"));
+    }
     LastInduction->setDebugLoc(EntryVal->getDebugLoc());
   }
 
@@ -1033,6 +1084,9 @@ void VPWidenIntOrFpInductionRecipe::print(raw_ostream &O, const Twine &Indent,
 #endif
 
 bool VPWidenIntOrFpInductionRecipe::isCanonical() const {
+  if (getEVL())
+    return false;
+
   // The step may be defined by a recipe in the preheader (e.g. if it requires
   // SCEV expansion), but for the canonical induction the step is required to be
   // 1, which is represented as live-in.
@@ -1765,6 +1819,33 @@ void VPEVLBasedIVPHIRecipe::print(raw_ostream &O, const Twine &Indent,
                                   VPSlotTracker &SlotTracker) const {
   O << Indent << "EXPLICIT-VECTOR-LENGTH-BASED-IV-PHI ";
 
+  printAsOperand(O, SlotTracker);
+  O << " = phi ";
+  printOperands(O, SlotTracker);
+}
+#endif
+
+void VPEVLPHIRecipe::execute(VPTransformState &State) {
+  Value *StartEVL = getOperand(0)->getUnderlyingValue();
+  BasicBlock *VectorPH = State.CFG.getPreheaderBBFor(this);
+  this->Phi = State.Builder.CreatePHI(StartEVL->getType(), 2, "evl.phi");
+  this->Phi->addIncoming(StartEVL, VectorPH);
+
+  Value *PrevEVL = State.Builder.CreateZExtOrTrunc(
+      cast<Value>(this->Phi), State.Builder.getInt32Ty(), "evl.phi.cast");
+  Value *EVL = nullptr;
+  for (unsigned Part = 0; Part < State.UF; Part++) {
+    if (EVL)
+      PrevEVL = State.Builder.CreateSub(PrevEVL, EVL);
+    EVL = TTI->computeVectorLength(State.Builder, PrevEVL, State.VF);
+    State.set(this, EVL, Part);
+  }
+}
+
+#if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
+void VPEVLPHIRecipe::print(raw_ostream &O, const Twine &Indent,
+                             VPSlotTracker &SlotTracker) const {
+  O << Indent << "EVL-PHI ";
   printAsOperand(O, SlotTracker);
   O << " = phi ";
   printOperands(O, SlotTracker);

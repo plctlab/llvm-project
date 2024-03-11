@@ -14,6 +14,7 @@
 #include "llvm/CodeGen/CostTable.h"
 #include "llvm/CodeGen/TargetLowering.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicsRISCV.h"
 #include <cmath>
 #include <optional>
 using namespace llvm;
@@ -1847,4 +1848,37 @@ bool RISCVTTIImpl::isLSRCostLess(const TargetTransformInfo::LSRCost &C1,
          std::tie(C2.Insns, C2.NumRegs, C2.AddRecCost,
                   C2.NumIVMuls, C2.NumBaseAdds,
                   C2.ScaleCost, C2.ImmCost, C2.SetupCost);
+}
+
+Value *RISCVTTIImpl::computeVectorLength(IRBuilderBase &Builder, Value *AVL,
+                                         ElementCount VF) const {
+  // Maps a VF to a (SEW, LMUL) pair.
+  // NOTE: we assume ELEN = 64.
+  const std::map<unsigned int, std::pair<unsigned int, unsigned int>>
+      VFToSEWLMUL = {{1, {3, 0}},  {2, {3, 1}},  {4, {3, 2}}, {8, {3, 3}},
+                     {16, {2, 3}}, {32, {1, 3}}, {64, {0, 3}}};
+
+  assert(AVL->getType()->isIntegerTy() &&
+         "Requested vector length should be an integer.");
+  assert(VFToSEWLMUL.find(VF.getKnownMinValue()) != VFToSEWLMUL.end() &&
+         "Invalid value for LMUL argument.");
+  auto VFToSEWLMULVal = VFToSEWLMUL.at(VF.getKnownMinValue());
+
+  Value *AVLArg = Builder.CreateZExtOrTrunc(AVL, Builder.getInt64Ty());
+  Constant *SEWArg =
+      ConstantInt::get(Builder.getInt64Ty(), VFToSEWLMULVal.first);
+  Constant *LMULArg =
+      ConstantInt::get(Builder.getInt64Ty(), VFToSEWLMULVal.second);
+  Value *EVLRes =
+      Builder.CreateIntrinsic(Intrinsic::riscv_vsetvli, {AVLArg->getType()},
+                              {AVLArg, SEWArg, LMULArg}, nullptr, "vl");
+
+  // NOTE: evl type is required to be i32.
+  Value *EVL = Builder.CreateZExtOrTrunc(EVLRes, Builder.getInt32Ty());
+  if (!VF.isScalable()) {
+    EVL = Builder.CreateBinaryIntrinsic(
+        Intrinsic::umin,
+        ConstantInt::get(Builder.getInt32Ty(), VF.getFixedValue()), EVL);
+  }
+  return EVL;
 }
