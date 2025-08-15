@@ -182,6 +182,36 @@ let TargetPrefix = "riscv" in {
 
   defm add8     : RVPBinaryIntrinsics;
   defm add16    : RVPBinaryIntrinsics;
+  defm add32    : RVPBinaryIntrinsics;
+  defm radd32   : RVPBinaryIntrinsics;
+  defm uradd32  : RVPBinaryIntrinsics;
+  defm kadd32   : RVPBinaryIntrinsics;
+  defm ukadd32  : RVPBinaryIntrinsics;
+  defm sub32    : RVPBinaryIntrinsics;
+  defm rsub32   : RVPBinaryIntrinsics;
+  defm ursub32  : RVPBinaryIntrinsics;
+  defm ksub32   : RVPBinaryIntrinsics;
+  defm uksub32  : RVPBinaryIntrinsics;
+  defm cras32   : RVPBinaryIntrinsics;
+  defm rcras32  : RVPBinaryIntrinsics;
+  defm urcras32 : RVPBinaryIntrinsics;
+  defm kcras32  : RVPBinaryIntrinsics;
+  defm ukcras32 : RVPBinaryIntrinsics;
+  defm crsa32   : RVPBinaryIntrinsics;
+  defm rcrsa32  : RVPBinaryIntrinsics;
+  defm urcrsa32 : RVPBinaryIntrinsics;
+  defm kcrsa32  : RVPBinaryIntrinsics;
+  defm ukcrsa32 : RVPBinaryIntrinsics;
+  defm stas32   : RVPBinaryIntrinsics;
+  defm rstas32  : RVPBinaryIntrinsics;
+  defm urstas32 : RVPBinaryIntrinsics;
+  defm kstas32  : RVPBinaryIntrinsics;
+  defm ukstas32 : RVPBinaryIntrinsics;
+  defm stsa32   : RVPBinaryIntrinsics;
+  defm rstsa32  : RVPBinaryIntrinsics;
+  defm urstsa32 : RVPBinaryIntrinsics;
+  defm kstsa32  : RVPBinaryIntrinsics;
+  defm ukstsa32 : RVPBinaryIntrinsics;
   defm ave      : RVPBinaryIntrinsics;
   defm bitrev   : RVPBinaryIntrinsics;
   defm cmpeq8   : RVPBinaryIntrinsics;
@@ -198,6 +228,8 @@ let TargetPrefix = "riscv" in {
   defm khmx8    : RVPBinaryIntrinsics;
   defm khm16    : RVPBinaryIntrinsics;
   defm khmx16   : RVPBinaryIntrinsics;
+  defm kmda32   : RVPBinaryIntrinsics;
+  defm kmxda32  : RVPBinaryIntrinsics;
   defm ksllw    : RVPBinaryIntrinsics;
   defm kslraw   : RVPBinaryIntrinsics;
   defm kslraw_u : RVPBinaryIntrinsics;
@@ -231,10 +263,16 @@ let TargetPrefix = "riscv" in {
   defm scmplt16 : RVPBinaryIntrinsics;
   defm smax8    : RVPBinaryIntrinsics;
   defm smax16   : RVPBinaryIntrinsics;
+  defm smbb32   : RVPBinaryIntrinsics;
+  defm smbt32   : RVPBinaryIntrinsics;
+  defm smtt32   : RVPBinaryIntrinsics;
   defm smin8    : RVPBinaryIntrinsics;
   defm smin16   : RVPBinaryIntrinsics;
   defm smmul    : RVPBinaryIntrinsics;
   defm smmul_u  : RVPBinaryIntrinsics;
+  defm smds32   : RVPBinaryIntrinsics;
+  defm smdrs32  : RVPBinaryIntrinsics;
+  defm smxds32  : RVPBinaryIntrinsics;
   defm stas16   : RVPBinaryIntrinsics;
   defm stsa16   : RVPBinaryIntrinsics;
   defm sub8     : RVPBinaryIntrinsics;
@@ -279,21 +317,27 @@ let TargetPrefix = "riscv" in {
     def "int_riscv_" # NAME : RVPBinaryABBIntrinsics;
   }
 
-  defm kdmbb  : RVPBinaryABBIntrinsics;
-  defm kdmbt  : RVPBinaryABBIntrinsics;
-  defm kdmtt  : RVPBinaryABBIntrinsics;
-  defm khmbb  : RVPBinaryABBIntrinsics;
-  defm khmbt  : RVPBinaryABBIntrinsics;
-  defm khmtt  : RVPBinaryABBIntrinsics;
-  defm kmda   : RVPBinaryABBIntrinsics;
-  defm kmxda  : RVPBinaryABBIntrinsics;
-  defm pbsad  : RVPBinaryABBIntrinsics;
-  defm smbb16 : RVPBinaryABBIntrinsics;
-  defm smbt16 : RVPBinaryABBIntrinsics;
-  defm smtt16 : RVPBinaryABBIntrinsics;
-  defm smds   : RVPBinaryABBIntrinsics;
-  defm smdrs  : RVPBinaryABBIntrinsics;
-  defm smxds  : RVPBinaryABBIntrinsics;
+  defm kdmbb   : RVPBinaryABBIntrinsics;
+  defm kdmbt   : RVPBinaryABBIntrinsics;
+  defm kdmtt   : RVPBinaryABBIntrinsics;
+  defm khmbb   : RVPBinaryABBIntrinsics;
+  defm khmbt   : RVPBinaryABBIntrinsics;
+  defm khmtt   : RVPBinaryABBIntrinsics;
+  defm kmda    : RVPBinaryABBIntrinsics;
+  defm kmxda   : RVPBinaryABBIntrinsics;
+  defm pbsad   : RVPBinaryABBIntrinsics;
+  defm smbb16  : RVPBinaryABBIntrinsics;
+  defm smbt16  : RVPBinaryABBIntrinsics;
+  defm smtt16  : RVPBinaryABBIntrinsics;
+  defm smds    : RVPBinaryABBIntrinsics;
+  defm smdrs   : RVPBinaryABBIntrinsics;
+  defm smxds   : RVPBinaryABBIntrinsics;
+  defm khmbb16 : RVPBinaryABBIntrinsics;
+  defm khmbt16 : RVPBinaryABBIntrinsics;
+  defm khmtt16 : RVPBinaryABBIntrinsics;
+  defm kdmbb16 : RVPBinaryABBIntrinsics;
+  defm kdmbt16 : RVPBinaryABBIntrinsics;
+  defm kdmtt16 : RVPBinaryABBIntrinsics;
 
   class RVPBinaryAABIntrinsics
       : Intrinsic<[llvm_any_ty],
@@ -345,12 +389,19 @@ let TargetPrefix = "riscv" in {
     def "int_riscv_" # NAME : RVPTernaryIntrinsics;
   }
 
-  defm bpick   : RVPTernaryIntrinsics;
-  defm insb    : RVPTernaryIntrinsics;
-  defm kmmac   : RVPTernaryIntrinsics;
-  defm kmmac_u : RVPTernaryIntrinsics;
-  defm kmmsb   : RVPTernaryIntrinsics;
-  defm kmmsb_u : RVPTernaryIntrinsics;
+  defm bpick    : RVPTernaryIntrinsics;
+  defm insb     : RVPTernaryIntrinsics;
+  defm kmada32  : RVPTernaryIntrinsics;
+  defm kmaxda32 : RVPTernaryIntrinsics;
+  defm kmads32  : RVPTernaryIntrinsics;
+  defm kmadrs32 : RVPTernaryIntrinsics;
+  defm kmaxds32 : RVPTernaryIntrinsics;
+  defm kmsda32  : RVPTernaryIntrinsics;
+  defm kmsxda32 : RVPTernaryIntrinsics;
+  defm kmmac    : RVPTernaryIntrinsics;
+  defm kmmac_u  : RVPTernaryIntrinsics;
+  defm kmmsb    : RVPTernaryIntrinsics;
+  defm kmmsb_u  : RVPTernaryIntrinsics;
 
   class RVPTernaryAABBIntrinsics
       : Intrinsic<[llvm_any_ty],
@@ -378,6 +429,9 @@ let TargetPrefix = "riscv" in {
   defm smaqa    : RVPTernaryAABBIntrinsics;
   defm smaqa_su : RVPTernaryAABBIntrinsics;
   defm umaqa    : RVPTernaryAABBIntrinsics;
+  defm kdmabb16 : RVPTernaryAABBIntrinsics;
+  defm kdmabt16 : RVPTernaryAABBIntrinsics;
+  defm kdmatt16 : RVPTernaryAABBIntrinsics;
 
   class RVPTernaryAAABIntrinsics
       : Intrinsic<[llvm_any_ty],
@@ -860,7 +914,7 @@ let TargetPrefix = "riscv" in {
   class RISCVClassifyMasked
         : Intrinsic<[LLVMVectorOfBitcastsToInt<0>],
                     [LLVMVectorOfBitcastsToInt<0>, llvm_anyvector_ty,
-                     LLVMScalarOrSameVectorWidth<0, llvm_i1_ty>, 
+                     LLVMScalarOrSameVectorWidth<0, llvm_i1_ty>,
                      llvm_anyint_ty, LLVMMatchType<1>],
                     [IntrNoMem, ImmArg<ArgIndex<4>>]>, RISCVVIntrinsic {
     let VLOperand = 3;

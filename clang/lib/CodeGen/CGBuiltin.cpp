@@ -19230,6 +19230,7 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   // Intrinsic type is obtained from Ops[0].
   case RISCV::BI__rv_add8:
   case RISCV::BI__rv_add16:
+  case RISCV::BI__rv_add32:
   case RISCV::BI__rv_ave:
   case RISCV::BI__rv_bitrev:
   case RISCV::BI__rv_bpick:
@@ -19242,17 +19243,22 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   case RISCV::BI__rv_cmpeq8:
   case RISCV::BI__rv_cmpeq16:
   case RISCV::BI__rv_cras16:
+  case RISCV::BI__rv_cras32:
   case RISCV::BI__rv_crsa16:
+  case RISCV::BI__rv_crsa32:
   case RISCV::BI__rv_insb:
   case RISCV::BI__rv_kabs8:
   case RISCV::BI__rv_kabs16:
   case RISCV::BI__rv_kabsw:
   case RISCV::BI__rv_kadd8:
   case RISCV::BI__rv_kadd16:
+  case RISCV::BI__rv_kadd32:
   case RISCV::BI__rv_kaddh:
   case RISCV::BI__rv_kaddw:
   case RISCV::BI__rv_kcras16:
+  case RISCV::BI__rv_kcras32:
   case RISCV::BI__rv_kcrsa16:
+  case RISCV::BI__rv_kcrsa32:
   case RISCV::BI__rv_khm8:
   case RISCV::BI__rv_khm16:
   case RISCV::BI__rv_khmx8:
@@ -19265,9 +19271,12 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   case RISCV::BI__rv_kslraw:
   case RISCV::BI__rv_kslraw_u:
   case RISCV::BI__rv_kstas16:
+  case RISCV::BI__rv_kstas32:
   case RISCV::BI__rv_kstsa16:
+  case RISCV::BI__rv_kstsa32:
   case RISCV::BI__rv_ksub8:
   case RISCV::BI__rv_ksub16:
+  case RISCV::BI__rv_ksub32:
   case RISCV::BI__rv_ksubh:
   case RISCV::BI__rv_ksubw:
   case RISCV::BI__rv_kwmmul:
@@ -19280,13 +19289,19 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   case RISCV::BI__rv_pktb16:
   case RISCV::BI__rv_radd8:
   case RISCV::BI__rv_radd16:
+  case RISCV::BI__rv_radd32:
   case RISCV::BI__rv_raddw:
   case RISCV::BI__rv_rcras16:
+  case RISCV::BI__rv_rcras32:
   case RISCV::BI__rv_rcrsa16:
+  case RISCV::BI__rv_rcrsa32:
   case RISCV::BI__rv_rstas16:
+  case RISCV::BI__rv_rstas32:
   case RISCV::BI__rv_rstsa16:
+  case RISCV::BI__rv_rstsa32:
   case RISCV::BI__rv_rsub8:
   case RISCV::BI__rv_rsub16:
+  case RISCV::BI__rv_rsub32:
   case RISCV::BI__rv_rsubw:
   case RISCV::BI__rv_scmple8:
   case RISCV::BI__rv_scmple16:
@@ -19294,14 +19309,20 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   case RISCV::BI__rv_scmplt16:
   case RISCV::BI__rv_smax8:
   case RISCV::BI__rv_smax16:
+  case RISCV::BI__rv_smbb32:
+  case RISCV::BI__rv_smbt32:
+  case RISCV::BI__rv_smtt32:
   case RISCV::BI__rv_smin8:
   case RISCV::BI__rv_smin16:
   case RISCV::BI__rv_smmul:
   case RISCV::BI__rv_smmul_u:
   case RISCV::BI__rv_stas16:
+  case RISCV::BI__rv_stas32:
   case RISCV::BI__rv_stsa16:
+  case RISCV::BI__rv_stsa32:
   case RISCV::BI__rv_sub8:
   case RISCV::BI__rv_sub16:
+  case RISCV::BI__rv_sub32:
   case RISCV::BI__rv_swap8:
   case RISCV::BI__rv_swap16:
   case RISCV::BI__rv_ucmple8:
@@ -19310,14 +19331,20 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   case RISCV::BI__rv_ucmplt16:
   case RISCV::BI__rv_ukadd8:
   case RISCV::BI__rv_ukadd16:
+  case RISCV::BI__rv_ukadd32:
   case RISCV::BI__rv_ukaddh:
   case RISCV::BI__rv_ukaddw:
   case RISCV::BI__rv_ukcras16:
+  case RISCV::BI__rv_ukcras32:
   case RISCV::BI__rv_ukcrsa16:
+  case RISCV::BI__rv_ukcrsa32:
   case RISCV::BI__rv_ukstas16:
+  case RISCV::BI__rv_ukstas32:
   case RISCV::BI__rv_ukstsa16:
+  case RISCV::BI__rv_ukstsa32:
   case RISCV::BI__rv_uksub8:
   case RISCV::BI__rv_uksub16:
+  case RISCV::BI__rv_uksub32:
   case RISCV::BI__rv_uksubh:
   case RISCV::BI__rv_uksubw:
   case RISCV::BI__rv_umax8:
@@ -19326,19 +19353,26 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   case RISCV::BI__rv_umin16:
   case RISCV::BI__rv_uradd8:
   case RISCV::BI__rv_uradd16:
+  case RISCV::BI__rv_uradd32:
   case RISCV::BI__rv_uraddw:
   case RISCV::BI__rv_urcras16:
+  case RISCV::BI__rv_urcras32:
   case RISCV::BI__rv_urcrsa16:
+  case RISCV::BI__rv_urcrsa32:
   case RISCV::BI__rv_urstas16:
+  case RISCV::BI__rv_urstas32:
   case RISCV::BI__rv_urstsa16:
+  case RISCV::BI__rv_urstsa32:
   case RISCV::BI__rv_ursub8:
   case RISCV::BI__rv_ursub16:
+  case RISCV::BI__rv_ursub32:
   case RISCV::BI__rv_ursubw: {
     switch (BuiltinID) {
     default:
       llvm_unreachable("unexpected builtin ID");
       BUILTIN_ID(add8)
       BUILTIN_ID(add16)
+      BUILTIN_ID(add32)
       BUILTIN_ID(ave)
       BUILTIN_ID(bitrev)
       BUILTIN_ID(bpick)
@@ -19351,17 +19385,22 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       BUILTIN_ID(cmpeq8)
       BUILTIN_ID(cmpeq16)
       BUILTIN_ID(cras16)
+      BUILTIN_ID(cras32)
       BUILTIN_ID(crsa16)
+      BUILTIN_ID(crsa32)
       BUILTIN_ID(insb)
       BUILTIN_ID(kabs8)
       BUILTIN_ID(kabs16)
       BUILTIN_ID(kabsw)
       BUILTIN_ID(kadd8)
       BUILTIN_ID(kadd16)
+      BUILTIN_ID(kadd32)
       BUILTIN_ID(kaddh)
       BUILTIN_ID(kaddw)
       BUILTIN_ID(kcras16)
+      BUILTIN_ID(kcras32)
       BUILTIN_ID(kcrsa16)
+      BUILTIN_ID(kcrsa32)
       BUILTIN_ID(khm8)
       BUILTIN_ID(khm16)
       BUILTIN_ID(khmx8)
@@ -19374,9 +19413,12 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       BUILTIN_ID(kslraw)
       BUILTIN_ID(kslraw_u)
       BUILTIN_ID(kstas16)
+      BUILTIN_ID(kstas32)
       BUILTIN_ID(kstsa16)
+      BUILTIN_ID(kstsa32)
       BUILTIN_ID(ksub8)
       BUILTIN_ID(ksub16)
+      BUILTIN_ID(ksub32)
       BUILTIN_ID(ksubh)
       BUILTIN_ID(ksubw)
       BUILTIN_ID(kwmmul)
@@ -19389,13 +19431,19 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       BUILTIN_ID(pktb16)
       BUILTIN_ID(radd8)
       BUILTIN_ID(radd16)
+      BUILTIN_ID(radd32)
       BUILTIN_ID(raddw)
       BUILTIN_ID(rcras16)
+      BUILTIN_ID(rcras32)
       BUILTIN_ID(rcrsa16)
+      BUILTIN_ID(rcrsa32)
       BUILTIN_ID(rstas16)
+      BUILTIN_ID(rstas32)
       BUILTIN_ID(rstsa16)
+      BUILTIN_ID(rstsa32)
       BUILTIN_ID(rsub8)
       BUILTIN_ID(rsub16)
+      BUILTIN_ID(rsub32)
       BUILTIN_ID(rsubw)
       BUILTIN_ID(scmple8)
       BUILTIN_ID(scmple16)
@@ -19403,14 +19451,20 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       BUILTIN_ID(scmplt16)
       BUILTIN_ID(smax8)
       BUILTIN_ID(smax16)
+      BUILTIN_ID(smbb32)
+      BUILTIN_ID(smbt32)
+      BUILTIN_ID(smtt32)
       BUILTIN_ID(smin8)
       BUILTIN_ID(smin16)
       BUILTIN_ID(smmul)
       BUILTIN_ID(smmul_u)
       BUILTIN_ID(stas16)
+      BUILTIN_ID(stas32)
       BUILTIN_ID(stsa16)
+      BUILTIN_ID(stsa32)
       BUILTIN_ID(sub8)
       BUILTIN_ID(sub16)
+      BUILTIN_ID(sub32)
       BUILTIN_ID(swap8)
       BUILTIN_ID(swap16)
       BUILTIN_ID(ucmple8)
@@ -19419,14 +19473,20 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       BUILTIN_ID(ucmplt16)
       BUILTIN_ID(ukadd8)
       BUILTIN_ID(ukadd16)
+      BUILTIN_ID(ukadd32)
       BUILTIN_ID(ukaddh)
       BUILTIN_ID(ukaddw)
       BUILTIN_ID(ukcras16)
+      BUILTIN_ID(ukcras32)
       BUILTIN_ID(ukcrsa16)
+      BUILTIN_ID(ukcrsa32)
       BUILTIN_ID(ukstas16)
+      BUILTIN_ID(ukstas32)
       BUILTIN_ID(ukstsa16)
+      BUILTIN_ID(ukstsa32)
       BUILTIN_ID(uksub8)
       BUILTIN_ID(uksub16)
+      BUILTIN_ID(uksub32)
       BUILTIN_ID(uksubh)
       BUILTIN_ID(uksubw)
       BUILTIN_ID(umax8)
@@ -19435,13 +19495,19 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       BUILTIN_ID(umin16)
       BUILTIN_ID(uradd8)
       BUILTIN_ID(uradd16)
+      BUILTIN_ID(uradd32)
       BUILTIN_ID(uraddw)
       BUILTIN_ID(urcras16)
+      BUILTIN_ID(urcras32)
       BUILTIN_ID(urcrsa16)
+      BUILTIN_ID(urcrsa32)
       BUILTIN_ID(urstas16)
+      BUILTIN_ID(urstas32)
       BUILTIN_ID(urstsa16)
+      BUILTIN_ID(urstsa32)
       BUILTIN_ID(ursub8)
       BUILTIN_ID(ursub16)
+      BUILTIN_ID(ursub32)
       BUILTIN_ID(ursubw)
     }
 
@@ -19486,6 +19552,12 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   case RISCV::BI__rv_khmbb:
   case RISCV::BI__rv_khmbt:
   case RISCV::BI__rv_khmtt:
+  case RISCV::BI__rv_kdmbb16:
+  case RISCV::BI__rv_kdmbt16:
+  case RISCV::BI__rv_kdmtt16:
+  case RISCV::BI__rv_khmbb16:
+  case RISCV::BI__rv_khmbt16:
+  case RISCV::BI__rv_khmtt16:
   case RISCV::BI__rv_kmda:
   case RISCV::BI__rv_kmxda:
   case RISCV::BI__rv_pbsad:
@@ -19504,6 +19576,12 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       BUILTIN_ID(khmbb)
       BUILTIN_ID(khmbt)
       BUILTIN_ID(khmtt)
+      BUILTIN_ID(kdmbb16)
+      BUILTIN_ID(kdmbt16)
+      BUILTIN_ID(kdmtt16)
+      BUILTIN_ID(khmbb16)
+      BUILTIN_ID(khmbt16)
+      BUILTIN_ID(khmtt16)
       BUILTIN_ID(kmda)
       BUILTIN_ID(kmxda)
       BUILTIN_ID(pbsad)
@@ -19523,6 +19601,9 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   case RISCV::BI__rv_kdmabb:
   case RISCV::BI__rv_kdmabt:
   case RISCV::BI__rv_kdmatt:
+  case RISCV::BI__rv_kdmabb16:
+  case RISCV::BI__rv_kdmabt16:
+  case RISCV::BI__rv_kdmatt16:
   case RISCV::BI__rv_kmabb:
   case RISCV::BI__rv_kmabt:
   case RISCV::BI__rv_kmatt:
@@ -19574,6 +19655,9 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       BUILTIN_ID(kdmabb)
       BUILTIN_ID(kdmabt)
       BUILTIN_ID(kdmatt)
+      BUILTIN_ID(kdmabb16)
+      BUILTIN_ID(kdmabt16)
+      BUILTIN_ID(kdmatt16)
       BUILTIN_ID(kmabb)
       BUILTIN_ID(kmabt)
       BUILTIN_ID(kmatt)

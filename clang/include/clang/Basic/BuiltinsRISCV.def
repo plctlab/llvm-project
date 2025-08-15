@@ -130,6 +130,9 @@ TARGET_BUILTIN(__rv_add8, "ULiULiULi", "", "experimental-p")
 // add16
 TARGET_BUILTIN(__rv_add16, "ULiULiULi", "", "experimental-p")
 
+// add32
+TARGET_BUILTIN(__rv_add32, "ULiULiULi", "", "experimental-p")
+
 // ave
 TARGET_BUILTIN(__rv_ave, "SLiSLiSLi", "", "experimental-p")
 
@@ -166,8 +169,14 @@ TARGET_BUILTIN(__rv_cmpeq16, "ULiULiULi", "", "experimental-p")
 // cras16
 TARGET_BUILTIN(__rv_cras16, "ULiULiULi", "", "experimental-p")
 
+// cras32
+TARGET_BUILTIN(__rv_cras32, "ULiULiULi", "", "experimental-p")
+
 // crsa16
 TARGET_BUILTIN(__rv_crsa16, "ULiULiULi", "", "experimental-p")
+
+// crsa32
+TARGET_BUILTIN(__rv_crsa32, "ULiULiULi", "", "experimental-p")
 
 // insb
 TARGET_BUILTIN(__rv_insb, "ULiULiULiULi", "", "experimental-p")
@@ -187,6 +196,9 @@ TARGET_BUILTIN(__rv_kadd8, "ULiULiULi", "", "experimental-p")
 // kadd16
 TARGET_BUILTIN(__rv_kadd16, "ULiULiULi", "", "experimental-p")
 
+// kadd32
+TARGET_BUILTIN(__rv_kadd32, "ULiULiULi", "", "experimental-p")
+
 // kaddh
 TARGET_BUILTIN(__rv_kaddh, "LiLiLi", "", "experimental-p")
 
@@ -196,8 +208,14 @@ TARGET_BUILTIN(__rv_kaddw, "LiLiLi", "", "experimental-p")
 // kcras16
 TARGET_BUILTIN(__rv_kcras16, "ULiULiULi", "", "experimental-p")
 
+// kcras32
+TARGET_BUILTIN(__rv_kcras32, "ULiULiULi", "", "experimental-p")
+
 // kcrsa16
 TARGET_BUILTIN(__rv_kcrsa16, "ULiULiULi", "", "experimental-p")
+
+// kcrsa32
+TARGET_BUILTIN(__rv_kcrsa32, "ULiULiULi", "", "experimental-p")
 
 // kdmbb
 TARGET_BUILTIN(__rv_kdmbb, "LiULiULi", "", "experimental-p")
@@ -206,12 +224,26 @@ TARGET_BUILTIN(__rv_kdmbt, "LiULiULi", "", "experimental-p")
 // kdmtt
 TARGET_BUILTIN(__rv_kdmtt, "LiULiULi", "", "experimental-p")
 
+// kdmbb16
+TARGET_BUILTIN(__rv_kdmbb16, "LiULiULi", "", "experimental-p")
+// kdmbt16
+TARGET_BUILTIN(__rv_kdmbt16, "LiULiULi", "", "experimental-p")
+// kdmtt16
+TARGET_BUILTIN(__rv_kdmtt16, "LiULiULi", "", "experimental-p")
+
 // kdmabb
 TARGET_BUILTIN(__rv_kdmabb, "LiLiULiULi", "", "experimental-p")
 // kdmabt
 TARGET_BUILTIN(__rv_kdmabt, "LiLiULiULi", "", "experimental-p")
 // kdmatt
 TARGET_BUILTIN(__rv_kdmatt, "LiLiULiULi", "", "experimental-p")
+
+// kdmabb16
+TARGET_BUILTIN(__rv_kdmabb16, "LiLiULiULi", "", "experimental-p")
+// kdmabt16
+TARGET_BUILTIN(__rv_kdmabt16, "LiLiULiULi", "", "experimental-p")
+// kdmatt16
+TARGET_BUILTIN(__rv_kdmatt16, "LiLiULiULi", "", "experimental-p")
 
 // khm8
 TARGET_BUILTIN(__rv_khm8, "ULiULiULi", "", "experimental-p")
@@ -229,6 +261,13 @@ TARGET_BUILTIN(__rv_khmbb, "LiULiULi", "", "experimental-p")
 TARGET_BUILTIN(__rv_khmbt, "LiULiULi", "", "experimental-p")
 // khmtt
 TARGET_BUILTIN(__rv_khmtt, "LiULiULi", "", "experimental-p")
+
+// khmbb16
+TARGET_BUILTIN(__rv_khmbb16, "LiULiULi", "", "experimental-p")
+// khmbt16
+TARGET_BUILTIN(__rv_khmbt16, "LiULiULi", "", "experimental-p")
+// khmtt16
+TARGET_BUILTIN(__rv_khmtt16, "LiULiULi", "", "experimental-p")
 
 // kmabb
 TARGET_BUILTIN(__rv_kmabb, "LiLiULiULi", "", "experimental-p")
@@ -326,14 +365,23 @@ TARGET_BUILTIN(__rv_kslraw_u, "LiLiLi", "", "experimental-p")
 // kstas16
 TARGET_BUILTIN(__rv_kstas16, "ULiULiULi", "", "experimental-p")
 
+// kstas32
+TARGET_BUILTIN(__rv_kstas32, "ULiULiULi", "", "experimental-p")
+
 // kstsa16
 TARGET_BUILTIN(__rv_kstsa16, "ULiULiULi", "", "experimental-p")
+
+// kstsa32
+TARGET_BUILTIN(__rv_kstsa32, "ULiULiULi", "", "experimental-p")
 
 // ksub8
 TARGET_BUILTIN(__rv_ksub8, "ULiULiULi", "", "experimental-p")
 
 // ksub16
 TARGET_BUILTIN(__rv_ksub16, "ULiULiULi", "", "experimental-p")
+
+// ksub32
+TARGET_BUILTIN(__rv_ksub32, "ULiULiULi", "", "experimental-p")
 
 // ksubh
 TARGET_BUILTIN(__rv_ksubh, "LiLiLi", "", "experimental-p")
@@ -373,26 +421,44 @@ TARGET_BUILTIN(__rv_radd8, "ULiULiULi", "", "experimental-p")
 // radd16
 TARGET_BUILTIN(__rv_radd16, "ULiULiULi", "", "experimental-p")
 
+// radd32
+TARGET_BUILTIN(__rv_radd32, "ULiULiULi", "", "experimental-p")
+
 // raddw
 TARGET_BUILTIN(__rv_raddw, "LiLiLi", "", "experimental-p")
 
 // rcras16
 TARGET_BUILTIN(__rv_rcras16, "ULiULiULi", "", "experimental-p")
 
+// rcras32
+TARGET_BUILTIN(__rv_rcras32, "ULiULiULi", "", "experimental-p")
+
 // rcrsa16
 TARGET_BUILTIN(__rv_rcrsa16, "ULiULiULi", "", "experimental-p")
+
+// rcrsa32
+TARGET_BUILTIN(__rv_rcrsa32, "ULiULiULi", "", "experimental-p")
 
 // rstas16
 TARGET_BUILTIN(__rv_rstas16, "ULiULiULi", "", "experimental-p")
 
+// rstas32
+TARGET_BUILTIN(__rv_rstas32, "ULiULiULi", "", "experimental-p")
+
 // rstsa16
 TARGET_BUILTIN(__rv_rstsa16, "ULiULiULi", "", "experimental-p")
+
+// rstsa32
+TARGET_BUILTIN(__rv_rstsa32, "ULiULiULi", "", "experimental-p")
 
 // rsub8
 TARGET_BUILTIN(__rv_rsub8, "ULiULiULi", "", "experimental-p")
 
 // rsub16
 TARGET_BUILTIN(__rv_rsub16, "ULiULiULi", "", "experimental-p")
+
+// rsub32
+TARGET_BUILTIN(__rv_rsub32, "ULiULiULi", "", "experimental-p")
 
 // rsubw
 TARGET_BUILTIN(__rv_rsubw, "LiLiLi", "", "experimental-p")
@@ -438,10 +504,21 @@ TARGET_BUILTIN(__rv_smax16, "ULiULiULi", "", "experimental-p")
 
 // smbb16
 TARGET_BUILTIN(__rv_smbb16, "LiULiULi", "", "experimental-p")
+
+//smbb32
+TARGET_BUILTIN(__rv_smbb32, "LiLiLi", "", "experimental-p")
+
 // smbt16
 TARGET_BUILTIN(__rv_smbt16, "LiULiULi", "", "experimental-p")
+
+// smbt32
+TARGET_BUILTIN(__rv_smbt32, "LiLiLi", "", "experimental-p")
+
 // smtt16
 TARGET_BUILTIN(__rv_smtt16, "LiULiULi", "", "experimental-p")
+
+// smtt32
+TARGET_BUILTIN(__rv_smtt32, "LiLiLi", "", "experimental-p")
 
 // smds
 TARGET_BUILTIN(__rv_smds, "LiULiULi", "", "experimental-p")
@@ -497,14 +574,23 @@ TARGET_BUILTIN(__rv_srl16_u, "ULiULiULi", "", "experimental-p")
 // stas16
 TARGET_BUILTIN(__rv_stas16, "ULiULiULi", "", "experimental-p")
 
+// stas32
+TARGET_BUILTIN(__rv_stas32, "ULiULiULi", "", "experimental-p")
+
 // stsa16
 TARGET_BUILTIN(__rv_stsa16, "ULiULiULi", "", "experimental-p")
+
+// stsa32
+TARGET_BUILTIN(__rv_stsa32, "ULiULiULi", "", "experimental-p")
 
 // sub8
 TARGET_BUILTIN(__rv_sub8, "ULiULiULi", "", "experimental-p")
 
 // sub16
 TARGET_BUILTIN(__rv_sub16, "ULiULiULi", "", "experimental-p")
+
+// sub32
+TARGET_BUILTIN(__rv_sub32, "ULiULiULi", "", "experimental-p")
 
 // sunpkd810
 TARGET_BUILTIN(__rv_sunpkd810, "ULiULi", "", "experimental-p")
@@ -550,6 +636,9 @@ TARGET_BUILTIN(__rv_ukadd8, "ULiULiULi", "", "experimental-p")
 // ukadd16
 TARGET_BUILTIN(__rv_ukadd16, "ULiULiULi", "", "experimental-p")
 
+// ukadd32
+TARGET_BUILTIN(__rv_ukadd32, "ULiULiULi", "", "experimental-p")
+
 // ukaddh
 TARGET_BUILTIN(__rv_ukaddh, "ULiULiULi", "", "experimental-p")
 
@@ -559,20 +648,35 @@ TARGET_BUILTIN(__rv_ukaddw, "ULiULiULi", "", "experimental-p")
 // ukcras16
 TARGET_BUILTIN(__rv_ukcras16, "ULiULiULi", "", "experimental-p")
 
+// ukcras32
+TARGET_BUILTIN(__rv_ukcras32, "ULiULiULi", "", "experimental-p")
+
 // ukcrsa16
 TARGET_BUILTIN(__rv_ukcrsa16, "ULiULiULi", "", "experimental-p")
+
+// ukcrsa32
+TARGET_BUILTIN(__rv_ukcrsa32, "ULiULiULi", "", "experimental-p")
 
 // ukstas16
 TARGET_BUILTIN(__rv_ukstas16, "ULiULiULi", "", "experimental-p")
 
+// ukstas32
+TARGET_BUILTIN(__rv_ukstas32, "ULiULiULi", "", "experimental-p")
+
 // ukstsa16
 TARGET_BUILTIN(__rv_ukstsa16, "ULiULiULi", "", "experimental-p")
+
+// ukstsa32
+TARGET_BUILTIN(__rv_ukstsa32, "ULiULiULi", "", "experimental-p")
 
 // uksub8
 TARGET_BUILTIN(__rv_uksub8, "ULiULiULi", "", "experimental-p")
 
 // uksub16
 TARGET_BUILTIN(__rv_uksub16, "ULiULiULi", "", "experimental-p")
+
+// uksub32
+TARGET_BUILTIN(__rv_uksub32, "ULiULiULi", "", "experimental-p")
 
 // uksubh
 TARGET_BUILTIN(__rv_uksubh, "LiLiLi", "", "experimental-p")
@@ -601,26 +705,44 @@ TARGET_BUILTIN(__rv_uradd8, "ULiULiULi", "", "experimental-p")
 // uradd16
 TARGET_BUILTIN(__rv_uradd16, "ULiULiULi", "", "experimental-p")
 
+// uradd32
+TARGET_BUILTIN(__rv_uradd32, "ULiULiULi", "", "experimental-p")
+
 // uraddw
 TARGET_BUILTIN(__rv_uraddw, "LiLiLi", "", "experimental-p")
 
 // urcras16
 TARGET_BUILTIN(__rv_urcras16, "ULiULiULi", "", "experimental-p")
 
+// urcras32
+TARGET_BUILTIN(__rv_urcras32, "ULiULiULi", "", "experimental-p")
+
 // urcrsa16
 TARGET_BUILTIN(__rv_urcrsa16, "ULiULiULi", "", "experimental-p")
+
+// urcrsa32
+TARGET_BUILTIN(__rv_urcrsa32, "ULiULiULi", "", "experimental-p")
 
 // urstas16
 TARGET_BUILTIN(__rv_urstas16, "ULiULiULi", "", "experimental-p")
 
+// urstas32
+TARGET_BUILTIN(__rv_urstas32, "ULiULiULi", "", "experimental-p")
+
 // urstsa16
 TARGET_BUILTIN(__rv_urstsa16, "ULiULiULi", "", "experimental-p")
+
+// urstsa32
+TARGET_BUILTIN(__rv_urstsa32, "ULiULiULi", "", "experimental-p")
 
 // ursub8
 TARGET_BUILTIN(__rv_ursub8, "ULiULiULi", "", "experimental-p")
 
 // ursub16
 TARGET_BUILTIN(__rv_ursub16, "ULiULiULi", "", "experimental-p")
+
+// ursub32
+TARGET_BUILTIN(__rv_ursub32, "ULiULiULi", "", "experimental-p")
 
 // ursubw
 TARGET_BUILTIN(__rv_ursubw, "LiLiLi", "", "experimental-p")

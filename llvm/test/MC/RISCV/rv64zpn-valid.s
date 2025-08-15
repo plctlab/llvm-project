@@ -10,14 +10,14 @@
 # RUN:        | llvm-objdump -d - | FileCheck %s --check-prefix=CHECK-UNKNOWN
 
 # With Zpn extension:
-# RUN: llvm-mc -triple=riscv64 -show-encoding --mattr=+experimental-zpn %s \
+# RUN: llvm-mc -triple=riscv64 -show-encoding --mattr=+experimental-zpn,+experimental-zpsfoperand %s \
 # RUN:        | FileCheck %s --check-prefixes=CHECK-ENCODING,CHECK-INST
 # RUN: not llvm-mc -triple=riscv64 -show-encoding %s 2>&1 \
 # RUN:        | FileCheck %s --check-prefix=CHECK-ERROR
-# RUN: llvm-mc -triple=riscv64 -filetype=obj --mattr=+experimental-zpn %s \
+# RUN: llvm-mc -triple=riscv64 -filetype=obj --mattr=+experimental-zpn,+experimental-zpsfoperand %s \
 # RUN:        | llvm-objdump -d --mattr=+experimental-p - \
 # RUN:        | FileCheck %s --check-prefix=CHECK-INST
-# RUN: llvm-mc -triple=riscv64 -filetype=obj --mattr=+experimental-zpn %s \
+# RUN: llvm-mc -triple=riscv64 -filetype=obj --mattr=+experimental-zpn,+experimental-zpsfoperand %s \
 # RUN:        | llvm-objdump -d - | FileCheck %s --check-prefix=CHECK-UNKNOWN
 
 # RV64P only
@@ -380,6 +380,12 @@ kdmatt16 a0, a1, a2
 
 # 32-bit Multiply
 
+# CHECK-INST: smbb32 a0, a1, a2
+# CHECK-ENCODING: [0x77,0x95,0xc5,0xe0]
+# CHECK-ERROR: instruction requires the following: 'Zpn' (Normal 'P' Instructions)
+# CHECK-UNKNOWN: 77 95 c5 e0 <unknown>
+smbb32 a0, a1, a2
+
 # CHECK-INST: smbt32 a0, a1, a2
 # CHECK-ENCODING: [0x77,0xa5,0xc5,0x18]
 # CHECK-ERROR: instruction requires the following: 'Zpn' (Normal 'P' Instructions)
@@ -423,6 +429,12 @@ kmda32 a0, a1, a2
 # CHECK-ERROR: instruction requires the following: 'Zpn' (Normal 'P' Instructions)
 # CHECK-UNKNOWN: 77 a5 c5 3a <unknown>
 kmxda32 a0, a1, a2
+
+# CHECK-INST: kmada32 a0, a1, a2
+# CHECK-ENCODING: [0x77,0x95,0xc5,0x94]
+# CHECK-ERROR: instruction requires the following: 'Zpn' (Normal 'P' Instructions)
+# CHECK-UNKNOWN: 77 95 c5 94 <unknown>
+kmada32 a0, a1, a2
 
 # CHECK-INST: kmaxda32 a0, a1, a2
 # CHECK-ENCODING: [0x77,0xa5,0xc5,0x4a]
