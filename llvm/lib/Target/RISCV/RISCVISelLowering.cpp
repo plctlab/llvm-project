@@ -92,6 +92,8 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
     addRegisterClass(MVT::f32, &RISCV::FPR32RegClass);
   if (Subtarget.hasStdExtD())
     addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
+  if (Subtarget.hasStdExtZpsfoperand() && Subtarget.getXLen() == 32)
+    addRegisterClass(MVT::i64, &RISCV::GPR32PairRegClass);
 
   static const MVT::SimpleValueType BoolVecVTs[] = {
       MVT::nxv1i1,  MVT::nxv2i1,  MVT::nxv4i1, MVT::nxv8i1,
@@ -9746,6 +9748,10 @@ static const MCPhysReg ArgFPR64s[] = {
   RISCV::F10_D, RISCV::F11_D, RISCV::F12_D, RISCV::F13_D,
   RISCV::F14_D, RISCV::F15_D, RISCV::F16_D, RISCV::F17_D
 };
+static const MCPhysReg ArgGPRPair[] = {
+    RISCV::X10_X11, RISCV::X12_X13,
+    RISCV::X14_X15, RISCV::X16_X17
+};
 // This is an interim calling convention and it may be changed in the future.
 static const MCPhysReg ArgVRs[] = {
     RISCV::V8,  RISCV::V9,  RISCV::V10, RISCV::V11, RISCV::V12, RISCV::V13,
@@ -9992,7 +9998,10 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
       }
     }
   } else {
-    Reg = State.AllocateReg(ArgGPRs);
+    if (ValVT == MVT::i64 && TLI.getSubtarget().hasStdExtZpsfoperand() && XLenVT == MVT::i32)
+      Reg = State.AllocateReg(ArgGPRPair);
+    else
+      Reg = State.AllocateReg(ArgGPRs);
   }
 
   unsigned StackOffset =
@@ -10016,7 +10025,7 @@ static bool CC_RISCV(const DataLayout &DL, RISCVABI::ABI ABI, unsigned ValNo,
     return false;
   }
 
-  assert((!UseGPRForF16_F32 || !UseGPRForF64 || LocVT == XLenVT ||
+  assert((!UseGPRForF16_F32 || !UseGPRForF64 || LocVT == XLenVT || (TLI.getSubtarget().hasStdExtZpsfoperand())  ||
           (TLI.getSubtarget().hasVInstructions() && ValVT.isVector())) &&
          "Expected an XLenVT or vector types at this stage");
 

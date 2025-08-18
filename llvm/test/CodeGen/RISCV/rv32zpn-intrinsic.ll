@@ -48,6 +48,16 @@ entry:
   ret i32 %0
 }
 
+define i32 @bitrevi(i32 %a, i32 %b) {
+; CHECK-LABEL: bitrevi:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    bitrevi a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i32 @llvm.riscv.bitrev.i32(i32 %a, i32 1)
+  ret i32 %0
+}
+
 declare i32 @llvm.riscv.bitrev.i32(i32, i32)
 
 define i32 @bpick(i32 %a, i32 %b, i32 %c) {
@@ -1596,6 +1606,16 @@ entry:
   ret i32 %0
 }
 
+define i32 @srai_u(i32 %a, i32 %b) {
+; CHECK-LABEL: srai_u:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    srai.u a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i32 @llvm.riscv.sra.u.i32.i32(i32 %a, i32 1)
+  ret i32 %0
+}
+
 declare i32 @llvm.riscv.sra.u.i32.i32(i32, i32)
 
 define i32 @sra8(i32 %a, i32 %b) {
@@ -2373,3 +2393,27 @@ entry:
 }
 
 declare i32 @llvm.riscv.zunpkd832.i32(i32)
+
+define i32 @maddr32(i32 %t, i32 %a, i32 %b) {
+; CHECK-LABEL: maddr32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    maddr32 a0, a1, a2
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i32 @llvm.riscv.maddr32.i32(i32 %t, i32 %a, i32 %b)
+  ret i32 %0
+}
+
+declare i32 @llvm.riscv.maddr32.i32(i32, i32, i32)
+
+define i32 @msubr32(i32 %t, i32 %a, i32 %b) {
+; CHECK-LABEL: msubr32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    msubr32 a0, a1, a2
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i32 @llvm.riscv.msubr32.i32(i32 %t, i32 %a, i32 %b)
+  ret i32 %0
+}
+
+declare i32 @llvm.riscv.msubr32.i32(i32, i32, i32)

@@ -204,7 +204,7 @@ def GPR32Pairs : RegisterTuples<[gpr32_pair_lo, gpr32_pair_hi],
                                       X17,              X19, X21, X23,
                                       X25,              X27, X29, X31)]>;
 
-def GPR32Pair : RegisterClass<"RISCV", [untyped], 64, (add GPR32Pairs)> {
+def GPR32Pair : RegisterClass<"RISCV", [i64], 64, (add GPR32Pairs)> {
   let Size = 64;
 }
 

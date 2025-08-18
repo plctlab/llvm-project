@@ -50,13 +50,24 @@ entry:
 
 declare i64 @llvm.riscv.ave.i64(i64, i64)
 
-define i64 @bitrev(i64 %a, i64 %b) {
+define i64 @bitrev(i64 %a, i32 signext %b) {
 ; CHECK-LABEL: bitrev:
 ; CHECK:       # %bb.0: # %entry
 ; CHECK-NEXT:    bitrev a0, a0, a1
 ; CHECK-NEXT:    ret
 entry:
-  %0 = tail call i64 @llvm.riscv.bitrev.i64(i64 %a, i64 %b)
+  %conv = sext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.bitrev.i64(i64 %a, i64 %conv)
+  ret i64 %0
+}
+
+define i64 @bitrevi(i64 %a, i32 signext %b) {
+; CHECK-LABEL: bitrevi:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    bitrevi a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.bitrev.i64(i64 %a, i64 1)
   ret i64 %0
 }
 
@@ -253,6 +264,18 @@ entry:
 }
 
 declare i64 @llvm.riscv.kabs16.i64(i64)
+
+define i64 @kabs32(i64 %a) {
+; CHECK-LABEL: kabs32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    kabs32 a0, a0
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.kabs32.i64(i64 %a)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.kabs32.i64(i64)
 
 define i64 @kabsw(i64 %a) {
 ; CHECK-LABEL: kabsw:
@@ -708,6 +731,18 @@ entry:
 
 declare i64 @llvm.riscv.kmabb.i64.i64(i64, i64, i64)
 
+define i64 @kmabb32(i64 %t, i64 %a, i64 %b) {
+; CHECK-LABEL: kmabb32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    kmabb32 a0, a1, a2
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.kmabb32.i64.i64(i64 %t, i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.kmabb32.i64.i64(i64, i64, i64)
+
 define i64 @kmabt(i64 %t, i64 %a, i64 %b) {
 ; CHECK-LABEL: kmabt:
 ; CHECK:       # %bb.0: # %entry
@@ -720,6 +755,18 @@ entry:
 
 declare i64 @llvm.riscv.kmabt.i64.i64(i64, i64, i64)
 
+define i64 @kmabt32(i64 %t, i64 %a, i64 %b) {
+; CHECK-LABEL: kmabt32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    kmabt32 a0, a1, a2
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.kmabt32.i64.i64(i64 %t, i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.kmabt32.i64.i64(i64, i64, i64)
+
 define i64 @kmatt(i64 %t, i64 %a, i64 %b) {
 ; CHECK-LABEL: kmatt:
 ; CHECK:       # %bb.0: # %entry
@@ -731,6 +778,18 @@ entry:
 }
 
 declare i64 @llvm.riscv.kmatt.i64.i64(i64, i64, i64)
+
+define i64 @kmatt32(i64 %t, i64 %a, i64 %b) {
+; CHECK-LABEL: kmatt32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    kmatt32 a0, a1, a2
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.kmatt32.i64.i64(i64 %t, i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.kmatt32.i64.i64(i64, i64, i64)
 
 define i64 @kmada(i64 %t, i64 %a, i64 %b) {
 ; CHECK-LABEL: kmada:
@@ -1203,6 +1262,31 @@ entry:
 
 declare i64 @llvm.riscv.ksll16.i64.i64(i64, i64)
 
+define i64 @ksll32(i64 %a, i32 signext %b) {
+; CHECK-LABEL: ksll32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    slli a1, a1, 32
+; CHECK-NEXT:    srli a1, a1, 32
+; CHECK-NEXT:    ksll32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %conv = zext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.ksll32.i64.i64(i64 %a, i64 %conv)
+  ret i64 %0
+}
+
+define i64 @kslli32(i64 %a, i32 signext %b) {
+; CHECK-LABEL: kslli32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    kslli32 a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.ksll32.i64.i64(i64 %a, i64 1)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.ksll32.i64.i64(i64, i64)
+
 define i64 @kslra8(i64 %a, i32 signext %b) {
 ; CHECK-LABEL: kslra8:
 ; CHECK:       # %bb.0: # %entry
@@ -1254,6 +1338,32 @@ entry:
 }
 
 declare i64 @llvm.riscv.kslra16.u.i64.i64(i64, i64)
+
+define i64 @kslra32(i64 %a, i32 signext %b) {
+; CHECK-LABEL: kslra32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    kslra32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %conv = sext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.kslra32.i64.i64(i64 %a, i64 %conv)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.kslra32.i64.i64(i64, i64)
+
+define i64 @kslra32_u(i64 %a, i32 signext %b) {
+; CHECK-LABEL: kslra32_u:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    kslra32.u a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %conv = sext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.kslra32.u.i64.i64(i64 %a, i64 %conv)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.kslra32.u.i64.i64(i64, i64)
 
 define i64 @kslraw(i32 signext %a, i32 signext %b) {
 ; CHECK-LABEL: kslraw:
@@ -1483,6 +1593,18 @@ entry:
 
 declare i64 @llvm.riscv.pkbb16.i64(i64, i64)
 
+define i64 @pkbb32(i64 %a, i64 %b) {
+; CHECK-LABEL: pkbb32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    pkbb32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.pkbb32.i64(i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.pkbb32.i64(i64, i64)
+
 define i64 @pkbt16(i64 %a, i64 %b) {
 ; CHECK-LABEL: pkbt16:
 ; CHECK:       # %bb.0: # %entry
@@ -1494,6 +1616,18 @@ entry:
 }
 
 declare i64 @llvm.riscv.pkbt16.i64(i64, i64)
+
+define i64 @pkbt32(i64 %a, i64 %b) {
+; CHECK-LABEL: pkbt32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    pkbt32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.pkbt32.i64(i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.pkbt32.i64(i64, i64)
 
 define i64 @pktt16(i64 %a, i64 %b) {
 ; CHECK-LABEL: pktt16:
@@ -1507,6 +1641,18 @@ entry:
 
 declare i64 @llvm.riscv.pktt16.i64(i64, i64)
 
+define i64 @pktt32(i64 %a, i64 %b) {
+; CHECK-LABEL: pktt32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    pktt32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.pktt32.i64(i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.pktt32.i64(i64, i64)
+
 define i64 @pktb16(i64 %a, i64 %b) {
 ; CHECK-LABEL: pktb16:
 ; CHECK:       # %bb.0: # %entry
@@ -1518,6 +1664,18 @@ entry:
 }
 
 declare i64 @llvm.riscv.pktb16.i64(i64, i64)
+
+define i64 @pktb32(i64 %a, i64 %b) {
+; CHECK-LABEL: pktb32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    pktb32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.pktb32.i64(i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.pktb32.i64(i64, i64)
 
 define i64 @radd8(i64 %a, i64 %b) {
 ; CHECK-LABEL: radd8:
@@ -1850,6 +2008,32 @@ entry:
 
 declare i64 @llvm.riscv.sll16.i64.i64(i64, i64)
 
+define i64 @sll32(i64 %a, i32 signext %b) {
+; CHECK-LABEL: sll32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    slli a1, a1, 32
+; CHECK-NEXT:    srli a1, a1, 32
+; CHECK-NEXT:    sll32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %conv = zext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.sll32.i64.i64(i64 %a, i64 %conv)
+  ret i64 %0
+}
+
+define i64 @slli32(i64 %a, i32 signext %b) {
+; CHECK-LABEL: slli32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    slli32 a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.sll32.i64.i64(i64 %a, i64 1)
+  ret i64 %0
+}
+
+
+declare i64 @llvm.riscv.sll32.i64.i64(i64, i64)
+
 define i64 @smaqa(i64 %t, i64 %a, i64 %b) {
 ; CHECK-LABEL: smaqa:
 ; CHECK:       # %bb.0: # %entry
@@ -1897,6 +2081,18 @@ entry:
 }
 
 declare i64 @llvm.riscv.smax16.i64(i64, i64)
+
+define i64 @smax32(i64 %a, i64 %b) {
+; CHECK-LABEL: smax32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    smax32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.smax32.i64(i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.smax32.i64(i64, i64)
 
 define i64 @smbb16(i64 %a, i64 %b) {
 ; CHECK-LABEL: smbb16:
@@ -2066,6 +2262,18 @@ entry:
 
 declare i64 @llvm.riscv.smin16.i64(i64, i64)
 
+define i64 @smin32(i64 %a, i64 %b) {
+; CHECK-LABEL: smin32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    smin32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.smin32.i64(i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.smin32.i64(i64, i64)
+
 define i64 @smmul(i64 %a, i64 %b) {
 ; CHECK-LABEL: smmul:
 ; CHECK:       # %bb.0: # %entry
@@ -2151,6 +2359,16 @@ entry:
   ret i64 %0
 }
 
+define i64 @srai_u(i64 %a, i32 signext %b) {
+; CHECK-LABEL: srai_u:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    srai.u a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.sra.u.i64.i64(i64 %a, i64 1)
+  ret i64 %0
+}
+
 declare i64 @llvm.riscv.sra.u.i64.i64(i64, i64)
 
 define i64 @sra8(i64 %a, i32 signext %b) {
@@ -2228,6 +2446,31 @@ entry:
 
 declare i64 @llvm.riscv.sra16.i64.i64(i64, i64)
 
+define i64 @sra32(i64 %a, i32 signext %b) {
+; CHECK-LABEL: sra32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    slli a1, a1, 32
+; CHECK-NEXT:    srli a1, a1, 32
+; CHECK-NEXT:    sra32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %conv = zext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.sra32.i64.i64(i64 %a, i64 %conv)
+  ret i64 %0
+}
+
+define i64 @srai32(i64 %a, i32 signext %b) {
+; CHECK-LABEL: srai32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    srai32 a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.sra32.i64.i64(i64 %a, i64 1)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.sra32.i64.i64(i64, i64)
+
 define i64 @sra16_u(i64 %a, i32 signext %b) {
 ; CHECK-LABEL: sra16_u:
 ; CHECK:       # %bb.0: # %entry
@@ -2252,6 +2495,31 @@ entry:
 }
 
 declare i64 @llvm.riscv.sra16.u.i64.i64(i64, i64)
+
+define i64 @sra32_u(i64 %a, i32 signext %b) {
+; CHECK-LABEL: sra32_u:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    slli a1, a1, 32
+; CHECK-NEXT:    srli a1, a1, 32
+; CHECK-NEXT:    sra32.u a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %conv = zext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.sra32.u.i64.i64(i64 %a, i64 %conv)
+  ret i64 %0
+}
+
+define i64 @srai32_u(i64 %a, i32 signext %b) {
+; CHECK-LABEL: srai32_u:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    srai32.u a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.sra32.u.i64.i64(i64 %a, i64 1)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.sra32.u.i64.i64(i64, i64)
 
 define i64 @srl8(i64 %a, i32 signext %b) {
 ; CHECK-LABEL: srl8:
@@ -2328,6 +2596,31 @@ entry:
 
 declare i64 @llvm.riscv.srl16.i64.i64(i64, i64)
 
+define i64 @srl32(i64 %a, i32 signext %b) {
+; CHECK-LABEL: srl32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    slli a1, a1, 32
+; CHECK-NEXT:    srli a1, a1, 32
+; CHECK-NEXT:    srl32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %conv = zext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.srl32.i64.i64(i64 %a, i64 %conv)
+  ret i64 %0
+}
+
+define i64 @srli32(i64 %a, i32 signext %b) {
+; CHECK-LABEL: srli32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    srli32 a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.srl32.i64.i64(i64 %a, i64 1)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.srl32.i64.i64(i64, i64)
+
 define i64 @srl16_u(i64 %a, i32 signext %b) {
 ; CHECK-LABEL: srl16_u:
 ; CHECK:       # %bb.0: # %entry
@@ -2352,6 +2645,31 @@ entry:
 }
 
 declare i64 @llvm.riscv.srl16.u.i64.i64(i64, i64)
+
+define i64 @srl32_u(i64 %a, i32 signext %b) {
+; CHECK-LABEL: srl32_u:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    slli a1, a1, 32
+; CHECK-NEXT:    srli a1, a1, 32
+; CHECK-NEXT:    srl32.u a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %conv = zext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.srl32.u.i64.i64(i64 %a, i64 %conv)
+  ret i64 %0
+}
+
+define i64 @srli32_u(i64 %a, i32 signext %b) {
+; CHECK-LABEL: srli32_u:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    srli32.u a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.srl32.u.i64.i64(i64 %a, i64 1)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.srl32.u.i64.i64(i64, i64)
 
 define i64 @stas16(i64 %a, i64 %b) {
 ; CHECK-LABEL: stas16:
@@ -2873,6 +3191,18 @@ entry:
 
 declare i64 @llvm.riscv.umax16.i64(i64, i64)
 
+define i64 @umax32(i64 %a, i64 %b) {
+; CHECK-LABEL: umax32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    umax32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.umax32.i64(i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.umax32.i64(i64, i64)
+
 define i64 @umin8(i64 %a, i64 %b) {
 ; CHECK-LABEL: umin8:
 ; CHECK:       # %bb.0: # %entry
@@ -2896,6 +3226,18 @@ entry:
 }
 
 declare i64 @llvm.riscv.umin16.i64(i64, i64)
+
+define i64 @umin32(i64 %a, i64 %b) {
+; CHECK-LABEL: umin32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    umin32 a0, a0, a1
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.umin32.i64(i64 %a, i64 %b)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.umin32.i64(i64, i64)
 
 define i64 @uradd8(i64 %a, i64 %b) {
 ; CHECK-LABEL: uradd8:
@@ -3160,3 +3502,46 @@ entry:
 }
 
 declare i64 @llvm.riscv.zunpkd832.i64(i64)
+
+define i64 @maddr32(i32 signext %t, i32 signext %a, i32 signext %b) {
+; CHECK-LABEL: maddr32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    maddr32 a0, a1, a2
+; CHECK-NEXT:    ret
+entry:
+  %conv = sext i32 %t to i64
+  %conv1 = sext i32 %a to i64
+  %conv2 = sext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.maddr32.i64(i64 %conv, i64 %conv1, i64 %conv2)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.maddr32.i64(i64, i64, i64)
+
+define i64 @msubr32(i32 signext %t, i32 signext %a, i32 signext %b) {
+; CHECK-LABEL: msubr32:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    msubr32 a0, a1, a2
+; CHECK-NEXT:    ret
+entry:
+  %conv = sext i32 %t to i64
+  %conv1 = sext i32 %a to i64
+  %conv2 = sext i32 %b to i64
+  %0 = tail call i64 @llvm.riscv.msubr32.i64(i64 %conv, i64 %conv1, i64 %conv2)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.msubr32.i64(i64, i64, i64)
+
+define i64 @sraiw_u(i32 signext %a, i32 signext %b) {
+; CHECK-LABEL: sraiw_u:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    sraiw.u a0, a0, 1
+; CHECK-NEXT:    ret
+entry:
+  %conv = sext i32 %a to i64
+  %0 = tail call i64 @llvm.riscv.sraiw.u.i64.i64(i64 %conv, i64 1)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.sraiw.u.i64.i64(i64, i64)

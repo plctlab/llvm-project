@@ -24,6 +24,13 @@ def uimm4 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<4>(Imm);}]> {
   let OperandNamespace = "RISCVOp";
 }
 
+def uimm6 : Operand<XLenVT>, ImmLeaf<XLenVT, [{return isUInt<6>(Imm);}]> {
+  let ParserMatchClass = UImmAsmOperand<6>;
+  let DecoderMethod = "decodeUImmOperand<6>";
+  let OperandType = "OPERAND_UIMM6";
+  let OperandNamespace = "RISCVOp";
+}
+
 def UImmLog2XLenBytesAsmOperand : AsmOperandClass {
   let Name = "UImmLog2XLenBytes";
   let RenderMethod = "addImmOperands";
@@ -812,8 +819,16 @@ def INSB : RVInstI<0b000, OPC_OP_P, (outs GPR:$rd_wb),
 
 // Zpsfoperand extension (64-bit Instructions)
 
-defm ADD64   : RVPALU64<0b1100000, 0b001, "add64">,
-               Sched<[]>;
+// ADD64/SUB64 RV32 Only
+let Predicates = [HasStdExtZpsfoperand, IsRV32] in {
+def ADD64 : RVPBinary<0b1100000, 0b001, "add64", GPR32PairOp,
+                      GPR32PairOp, GPR32PairOp>,
+            Sched<[]>;
+def SUB64 : RVPBinary<0b1100001, 0b001, "sub64", GPR32PairOp,
+                      GPR32PairOp, GPR32PairOp>,
+            Sched<[]>;
+} // Predicates = [HasStdExtZpsfoperand, IsRV32]
+
 defm KADD64  : RVPALU64<0b1001000, 0b001, "kadd64">,
                Sched<[]>;
 defm KSUB64  : RVPALU64<0b1001001, 0b001, "ksub64">,
@@ -821,8 +836,6 @@ defm KSUB64  : RVPALU64<0b1001001, 0b001, "ksub64">,
 defm RADD64  : RVPALU64<0b1000000, 0b001, "radd64">,
                Sched<[]>;
 defm RSUB64  : RVPALU64<0b1000001, 0b001, "rsub64">,
-               Sched<[]>;
-defm SUB64   : RVPALU64<0b1100001, 0b001, "sub64">,
                Sched<[]>;
 defm UKADD64 : RVPALU64<0b1011000, 0b001, "ukadd64">,
                Sched<[]>;
@@ -970,6 +983,9 @@ def : RVPUnaryIntPat<ZUNPKD830, "zunpkd830">;
 def : RVPUnaryIntPat<ZUNPKD831, "zunpkd831">;
 def : RVPUnaryIntPat<ZUNPKD832, "zunpkd832">;
 } // Predicates = [HasStdExtZpn]
+
+let Predicates = [HasStdExtZpn, IsRV64] in
+def : RVPUnaryIntPat<KABS32, "kabs32">;
 
 // Binary operation
 class RVPBinaryIntPat<RVInst Inst, string IntID>
@@ -1148,12 +1164,28 @@ def : RVPBinaryIntPat<KDMBT16,    "kdmbt16">;
 def : RVPBinaryIntPat<KDMTT16,    "kdmtt16">;
 def : RVPBinaryIntPat<KMDA32,     "kmda32">;
 def : RVPBinaryIntPat<KMXDA32,    "kmxda32">;
+def : RVPBinaryIntPat<PKBB32,     "pkbb32">;
+def : RVPBinaryIntPat<PKBT32,     "pkbt32">;
+def : RVPBinaryIntPat<PKTB32,     "pktb32">;
+def : RVPBinaryIntPat<PKTT32,     "pktt32">;
+def : RVPBinaryIntPat<SMIN32,     "smin32">;
+def : RVPBinaryIntPat<SMAX32,     "smax32">;
 def : RVPBinaryIntPat<MULSR64_64, "smbb32">;
 def : RVPBinaryIntPat<SMBT32,     "smbt32">;
 def : RVPBinaryIntPat<SMTT32,     "smtt32">;
 def : RVPBinaryIntPat<SMDS32,     "smds32">;
 def : RVPBinaryIntPat<SMDRS32,    "smdrs32">;
 def : RVPBinaryIntPat<SMXDS32,    "smxds32">;
+def : RVPBinaryIntPat<SRA32,      "sra32">;
+def : RVPBinaryIntPat<SRA32U,     "sra32_u">;
+def : RVPBinaryIntPat<SRL32,      "srl32">;
+def : RVPBinaryIntPat<SRL32U,     "srl32_u">;
+def : RVPBinaryIntPat<SLL32,      "sll32">;
+def : RVPBinaryIntPat<KSLL32,     "ksll32">;
+def : RVPBinaryIntPat<KSLRA32,    "kslra32">;
+def : RVPBinaryIntPat<KSLRA32U,   "kslra32_u">;
+def : RVPBinaryIntPat<UMIN32,     "umin32">;
+def : RVPBinaryIntPat<UMAX32,     "umax32">;
 } // Predicates = [HasStdExtZpn, IsRV64]
 
 class RVPBinaryI3IntPat<RVInst Inst, string IntID>
@@ -1199,6 +1231,32 @@ def : RVPBinaryI5IntPat<UCLIP32, "uclip32">;
 def : RVPBinaryI5IntPat<KSLLIW,  "ksllw">;
 } // Predicates = [HasStdExtZpn]
 
+let Predicates = [HasStdExtZpn, IsRV32] in {
+def : RVPBinaryI5IntPat<SRAIU,   "sra_u">;
+def : RVPBinaryI5IntPat<BITREVI, "bitrev">;
+} // Predicates = [HasStdExtZpn, IsRV32]
+
+let Predicates = [HasStdExtZpn, IsRV64] in {
+def : RVPBinaryI5IntPat<SRAI32,  "sra32">;
+def : RVPBinaryI5IntPat<SRAI32U, "sra32_u">;
+def : RVPBinaryI5IntPat<SRLI32,  "srl32">;
+def : RVPBinaryI5IntPat<SRLI32U, "srl32_u">;
+def : RVPBinaryI5IntPat<SLLI32,  "sll32">;
+def : RVPBinaryI5IntPat<KSLLI32, "ksll32">;
+def : RVPBinaryI5IntPat<SRAIWU,  "sraiw_u">;
+} // Predicates = [HasStdExtZpn, IsRV64]
+
+class RVPBinaryI6IntPat<RVInst Inst, string IntID>
+    : Pat<(XLenVT (!cast<Intrinsic>("int_riscv_" # IntID)
+                   XLenVT:$rs1, uimm6:$rs2)),
+          (Inst GPR:$rs1, uimm6:$rs2)>;
+
+
+let Predicates = [HasStdExtZpn, IsRV64] in {
+def : RVPBinaryI6IntPat<SRAIU,   "sra_u">;
+def : RVPBinaryI6IntPat<BITREVI, "bitrev">;
+}
+
 // Ternary operation
 class RVPTernaryIntPat<RVInst Inst, string IntID>
     : Pat<(XLenVT (!cast<Intrinsic>("int_riscv_" # IntID)
@@ -1243,13 +1301,18 @@ def : RVPTernaryIntPat<PBSADA,    "pbsada">;
 def : RVPTernaryIntPat<SMAQA,     "smaqa">;
 def : RVPTernaryIntPat<SMAQASU,   "smaqa_su">;
 def : RVPTernaryIntPat<UMAQA,     "umaqa">;
+def : RVPTernaryIntPat<MADDR32,   "maddr32">;
+def : RVPTernaryIntPat<MSUBR32,   "msubr32">;
 } // Predicates = [HasStdExtZpn]
 
 let Predicates = [HasStdExtZpn, IsRV64] in {
 def : RVPTernaryIntPat<KDMABB16, "kdmabb16">;
 def : RVPTernaryIntPat<KDMABT16, "kdmabt16">;
 def : RVPTernaryIntPat<KDMATT16, "kdmatt16">;
-}
+def : RVPTernaryIntPat<KMABB32,  "kmabb32">;
+def : RVPTernaryIntPat<KMABT32,  "kmabt32">;
+def : RVPTernaryIntPat<KMATT32,  "kmatt32">;
+} // Predicates = [HasStdExtZpn, IsRV64]
 
 class RVPTernaryINSBIntPat<RVInst Inst, string IntID>
     : Pat<(XLenVT (!cast<Intrinsic>("int_riscv_" # IntID)
@@ -1258,3 +1321,139 @@ class RVPTernaryINSBIntPat<RVInst Inst, string IntID>
 
 let Predicates = [HasStdExtZpn] in
 def : RVPTernaryINSBIntPat<INSB, "insb">;
+
+// Zpsfoperand extension
+
+let Predicates = [HasStdExtZpsfoperand, IsRV32] in {
+def : Pat<(i64 (!cast<Intrinsic>("int_riscv_add64") i64:$rs1, i64:$rs2)),
+          (ADD64 GPR32PairOp:$rs1, GPR32PairOp:$rs2)>;
+def : Pat<(i64 (!cast<Intrinsic>("int_riscv_sub64") i64:$rs1, i64:$rs2)),
+          (SUB64 GPR32PairOp:$rs1, GPR32PairOp:$rs2)>;
+} // Predicates = [HasStdExtZpsfoperand, IsRV32]
+
+multiclass RVPBinaryMUL64Pat<RVInst Inst32,
+                             RVInst Inst64,
+                             string IntID> {
+  let Predicates = [HasStdExtZpsfoperand, IsRV32] in
+  def : Pat<
+    (i64 (!cast<Intrinsic>("int_riscv_" # IntID) i32:$rs1, i32:$rs2)),
+    (Inst32 GPR:$rs1, GPR:$rs2)
+    >;
+  let Predicates = [HasStdExtZpsfoperand, IsRV64] in
+  def : Pat<
+    (i64 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs1, i64:$rs2)),
+    (Inst64 GPR:$rs1, GPR:$rs2)
+  >;
+}
+
+defm : RVPBinaryMUL64Pat<MULR64_32,  MULR64_64,  "mulr64">;
+defm : RVPBinaryMUL64Pat<MULSR64_32, MULSR64_64, "mulsr64">;
+defm : RVPBinaryMUL64Pat<SMUL8_32,   SMUL8_64,   "smul8">;
+defm : RVPBinaryMUL64Pat<SMULX8_32,  SMULX8_64,  "smulx8">;
+defm : RVPBinaryMUL64Pat<SMUL16_32,  SMUL16_64,  "smul16">;
+defm : RVPBinaryMUL64Pat<SMULX16_32, SMULX16_64, "smulx16">;
+defm : RVPBinaryMUL64Pat<UMUL8_32,   UMUL8_64,   "umul8">;
+defm : RVPBinaryMUL64Pat<UMULX8_32,  UMULX8_64,  "umulx8">;
+defm : RVPBinaryMUL64Pat<UMUL16_32,  UMUL16_64,  "umul16">;
+defm : RVPBinaryMUL64Pat<UMULX16_32, UMULX16_64, "umulx16">;
+
+multiclass RVPBinarySMAL64Pat<RVInst Inst32,
+                             RVInst Inst64,
+                             string IntID> {
+  let Predicates = [HasStdExtZpsfoperand, IsRV32] in
+  def : Pat<
+    (i64 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs1, i32:$rs2)),
+    (Inst32 GPR32PairOp:$rs1, GPR:$rs2)
+    >;
+  let Predicates = [HasStdExtZpsfoperand, IsRV64] in
+  def : Pat<
+    (i64 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs1, i64:$rs2)),
+    (Inst64 GPR:$rs1, GPR:$rs2)
+  >;
+}
+
+defm : RVPBinarySMAL64Pat<SMAL_32, SMAL_64, "smal">;
+
+multiclass RVPBinaryALU64Pat<RVInst Inst32,
+                             RVInst Inst64,
+                             string IntID> {
+  let Predicates = [HasStdExtZpsfoperand, IsRV32] in
+  def : Pat<
+    (i64 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs1, i64:$rs2)),
+    (Inst32 GPR32PairOp:$rs1, GPR32PairOp:$rs2)
+    >;
+  let Predicates = [HasStdExtZpsfoperand, IsRV64] in
+  def : Pat<
+    (i64 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs1, i64:$rs2)),
+    (Inst64 GPR:$rs1, GPR:$rs2)
+  >;
+}
+
+defm : RVPBinaryALU64Pat<RADD64_32,  RADD64_64,  "radd64">;
+defm : RVPBinaryALU64Pat<URADD64_32, URADD64_64, "uradd64">;
+defm : RVPBinaryALU64Pat<KADD64_32,  KADD64_64,  "kadd64">;
+defm : RVPBinaryALU64Pat<UKADD64_32, UKADD64_64, "ukadd64">;
+defm : RVPBinaryALU64Pat<RSUB64_32,  RSUB64_64,  "rsub64">;
+defm : RVPBinaryALU64Pat<URSUB64_32, URSUB64_64, "ursub64">;
+defm : RVPBinaryALU64Pat<KSUB64_32,  KSUB64_64,  "ksub64">;
+defm : RVPBinaryALU64Pat<UKSUB64_32, UKSUB64_64, "uksub64">;
+
+multiclass RVPTernaryMA64Pat<RVInst Inst32,
+                             RVInst Inst64,
+                             string IntID> {
+  let Predicates = [HasStdExtZpsfoperand, IsRV32] in
+  def : Pat<
+    (i64 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs3, i32:$rs1, i32:$rs2)),
+    (Inst32 GPR32PairOp:$rs3, GPR:$rs1, GPR:$rs2)
+    >;
+  let Predicates = [HasStdExtZpsfoperand, IsRV64] in
+  def : Pat<
+    (i64 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs3, i64:$rs1, i64:$rs2)),
+    (Inst64 GPR:$rs3, GPR:$rs1, GPR:$rs2)
+  >;
+}
+
+defm : RVPTernaryMA64Pat<SMAR64_32,  SMAR64_64,  "smar64">;
+defm : RVPTernaryMA64Pat<SMSR64_32,  SMSR64_64,  "smsr64">;
+defm : RVPTernaryMA64Pat<UMAR64_32,  UMAR64_64,  "umar64">;
+defm : RVPTernaryMA64Pat<UMSR64_32,  UMSR64_64,  "umsr64">;
+defm : RVPTernaryMA64Pat<KMAR64_32,  KMAR64_64,  "kmar64">;
+defm : RVPTernaryMA64Pat<KMSR64_32,  KMSR64_64,  "kmsr64">;
+defm : RVPTernaryMA64Pat<UKMAR64_32, UKMAR64_64, "ukmar64">;
+defm : RVPTernaryMA64Pat<UKMSR64_32, UKMSR64_64, "ukmsr64">;
+defm : RVPTernaryMA64Pat<SMALBB_32,  SMALBB_64,  "smalbb">;
+defm : RVPTernaryMA64Pat<SMALBT_32,  SMALBT_64,  "smalbt">;
+defm : RVPTernaryMA64Pat<SMALTT_32,  SMALTT_64,  "smaltt">;
+defm : RVPTernaryMA64Pat<SMALDA_32,  SMALDA_64,  "smalda">;
+defm : RVPTernaryMA64Pat<SMALXDA_32, SMALXDA_64, "smalxda">;
+defm : RVPTernaryMA64Pat<SMALDS_32,  SMALDS_64,  "smalds">;
+defm : RVPTernaryMA64Pat<SMALDRS_32, SMALDRS_64, "smaldrs">;
+defm : RVPTernaryMA64Pat<SMALXDS_32, SMALXDS_64, "smalxds">;
+defm : RVPTernaryMA64Pat<SMSLDA_32,  SMSLDA_64,  "smslda">;
+defm : RVPTernaryMA64Pat<SMSLXDA_32, SMSLXDA_64, "smslxda">;
+
+multiclass RVPWEXTPat<RVInst Inst32,
+                      RVInst Inst64,
+                      string IntID> {
+  let Predicates = [HasStdExtZpsfoperand, IsRV32] in
+  def : Pat<(i32 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs1, i32:$rs2)),
+            (Inst32 GPR32PairOp:$rs1, GPR:$rs2)>;
+  let Predicates = [HasStdExtZpsfoperand, IsRV64] in
+  def : Pat<(i64 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs1, i64:$rs2)),
+            (Inst64 GPR:$rs1, GPR:$rs2)>;
+}
+
+defm : RVPWEXTPat<WEXT_32, WEXT_64, "wext">;
+
+multiclass RVPWEXTIPat<RVInst Inst32,
+                      RVInst Inst64,
+                      string IntID> {
+  let Predicates = [HasStdExtZpsfoperand, IsRV32] in
+  def : Pat<(i32 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs1, uimm5:$rs2)),
+            (Inst32 GPR32PairOp:$rs1, uimm5:$rs2)>;
+  let Predicates = [HasStdExtZpsfoperand, IsRV64] in
+  def : Pat<(i64 (!cast<Intrinsic>("int_riscv_" # IntID) i64:$rs1, uimm5:$rs2)),
+            (Inst64 GPR:$rs1, uimm5:$rs2)>;
+}
+
+defm : RVPWEXTIPat<WEXTI_32, WEXTI_64, "wext">;

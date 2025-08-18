@@ -5,3 +5,9 @@
 
 # CHECK-ERROR: immediate must be an integer in the range [0, 31]
 wexti a0, a1, 33
+
+# CHECK-ERROR: invalid operand for instruction
+add64 a0, a0, a1
+
+# CHECK-ERROR: invalid operand for instruction
+sub64 a0, a0, a1

@@ -609,6 +609,15 @@ public:
     return IsConstantImm && isUInt<5>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
   }
 
+  bool isUImm6() const {
+    int64_t Imm;
+    RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
+    if (!isImm())
+      return false;
+    bool IsConstantImm = evaluateConstantImm(getImm(), Imm, VK);
+    return IsConstantImm && isUInt<6>(Imm) && VK == RISCVMCExpr::VK_RISCV_None;
+  }
+
   bool isUImm7() const {
     int64_t Imm;
     RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;

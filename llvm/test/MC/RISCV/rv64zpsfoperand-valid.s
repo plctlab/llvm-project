@@ -30,12 +30,6 @@ smal a1, a2, a3
 
 # SIMD 64-bit Add/Subtract
 
-# CHECK-INST: add64 a4, a5, a6
-# CHECK-ENCODING: [0x77,0x97,0x07,0xc1]
-# CHECK-ERROR: instruction requires the following: 'Zpsfoperand' (64-bit operand 'P' Instructions)
-# CHECK-UNKNOWN: 77 97 07 c1 <unknown>
-add64 a4, a5, a6
-
 # CHECK-INST: kadd64 a1, a2, a3
 # CHECK-ENCODING: [0xf7,0x15,0xd6,0x90]
 # CHECK-ERROR: instruction requires the following: 'Zpsfoperand' (64-bit operand 'P' Instructions)
@@ -59,12 +53,6 @@ radd64 a0, a2, a4
 # CHECK-ERROR: instruction requires the following: 'Zpsfoperand' (64-bit operand 'P' Instructions)
 # CHECK-UNKNOWN: 77 15 e6 82 <unknown>
 rsub64 a0, a2, a4
-
-# CHECK-INST: sub64 a0, a2, a4
-# CHECK-ENCODING: [0x77,0x15,0xe6,0xc2]
-# CHECK-ERROR: instruction requires the following: 'Zpsfoperand' (64-bit operand 'P' Instructions)
-# CHECK-UNKNOWN: 77 15 e6 c2 <unknown>
-sub64 a0, a2, a4
 
 # CHECK-INST: ukadd64 a0, a2, a4
 # CHECK-ENCODING: [0x77,0x15,0xe6,0xb0]
