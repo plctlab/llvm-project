@@ -1226,3 +1226,8 @@ let Predicates = [HasStdExtZbkx] in {
 def : PatGprGpr<int_riscv_xperm4, XPERM4>;
 def : PatGprGpr<int_riscv_xperm8, XPERM8>;
 } // Predicates = [HasStdExtZbkx]
+
+let Predicates = [HasStdExtZbt] in {
+def : Pat<(XLenVT (!cast<Intrinsic>("int_riscv_cmix") XLenVT:$rs1, XLenVT:$rs2, XLenVT:$rs3)),
+          (CMIX GPR:$rs2, GPR:$rs1, GPR:$rs3)>;
+}

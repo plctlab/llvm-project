@@ -3545,3 +3545,15 @@ entry:
 }
 
 declare i64 @llvm.riscv.sraiw.u.i64.i64(i64, i64)
+
+define i64 @rdov() {
+; CHECK-LABEL: rdov:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    csrr a0, vxsat
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.rdov.i64()
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.rdov.i64()

@@ -125,3 +125,15 @@ define i64 @fsri_i64(i64 %a, i64 %b) nounwind {
   %1 = call i64 @llvm.riscv.fsr.i64(i64 %a, i64 %b, i64 5)
   ret i64 %1
 }
+
+define i64 @cmix(i64 %a, i64 %b, i64 %c) {
+; RV64ZBT-LABEL: cmix:
+; RV64ZBT:       # %bb.0: # %entry
+; RV64ZBT-NEXT:    cmix a0, a0, a1, a2
+; RV64ZBT-NEXT:    ret
+entry:
+  %0 = tail call i64 @llvm.riscv.cmix.i64(i64 %a, i64 %b, i64 %c)
+  ret i64 %0
+}
+
+declare i64 @llvm.riscv.cmix.i64(i64, i64, i64)

@@ -2417,3 +2417,15 @@ entry:
 }
 
 declare i32 @llvm.riscv.msubr32.i32(i32, i32, i32)
+
+define i32 @rdov() {
+; CHECK-LABEL: rdov:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    csrr a0, vxsat
+; CHECK-NEXT:    ret
+entry:
+  %0 = tail call i32 @llvm.riscv.rdov.i32()
+  ret i32 %0
+}
+
+declare i32 @llvm.riscv.rdov.i32()

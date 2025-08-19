@@ -63,3 +63,15 @@ define i32 @fsri_i32(i32 %a, i32 %b) nounwind {
   %1 = call i32 @llvm.riscv.fsr.i32(i32 %a, i32 %b, i32 15)
   ret i32 %1
 }
+
+define i32 @cmix(i32 %a, i32 %b, i32 %c) {
+; RV32ZBT-LABEL: cmix:
+; RV32ZBT:       # %bb.0: # %entry
+; RV32ZBT-NEXT:    cmix a0, a0, a1, a2
+; RV32ZBT-NEXT:    ret
+entry:
+  %0 = tail call i32 @llvm.riscv.cmix.i32(i32 %a, i32 %b, i32 %c)
+  ret i32 %0
+}
+
+declare i32 @llvm.riscv.cmix.i32(i32, i32, i32)
