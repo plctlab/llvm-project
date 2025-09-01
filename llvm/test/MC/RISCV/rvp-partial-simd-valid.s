@@ -344,6 +344,12 @@ uclip32 a0, a1, 19
 # CHECK-UNKNOWN: 77 85 85 af <unknown>
 clrs32 a0, a1
 
+# CHECK-INST: clz32 a0, a1
+# CHECK-ENCODING: [0x77,0x85,0x95,0xaf]
+# CHECK-ERROR: instruction requires the following: 'Zpn' (Normal 'P' Instructions)
+# CHECK-UNKNOWN: 77 85 95 af <unknown>
+clz32 a0, a1
+
 # CHECK-INST: pbsad a0, a1, a2
 # CHECK-ENCODING: [0x77,0x85,0xc5,0xfc]
 # CHECK-ERROR: instruction requires the following: 'Zpn' (Normal 'P' Instructions)
