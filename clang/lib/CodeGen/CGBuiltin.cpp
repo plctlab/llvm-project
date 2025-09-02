@@ -19232,7 +19232,6 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   case RISCV::BI__rv_add16:
   case RISCV::BI__rv_add32:
   case RISCV::BI__rv_ave:
-  case RISCV::BI__rv_bitrev:
   case RISCV::BI__rv_bpick:
   case RISCV::BI__rv_clrs8:
   case RISCV::BI__rv_clrs16:
@@ -19374,7 +19373,6 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
       BUILTIN_ID(add16)
       BUILTIN_ID(add32)
       BUILTIN_ID(ave)
-      BUILTIN_ID(bitrev)
       BUILTIN_ID(bpick)
       BUILTIN_ID(clrs8)
       BUILTIN_ID(clrs16)
@@ -19598,6 +19596,7 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   }
 
   // Intrinsic type is obtained from ResultType and Ops[1].
+  case RISCV::BI__rv_bitrev:
   case RISCV::BI__rv_kdmabb:
   case RISCV::BI__rv_kdmabt:
   case RISCV::BI__rv_kdmatt:
@@ -19652,6 +19651,7 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
     switch (BuiltinID) {
     default:
       llvm_unreachable("unexpected builtin ID");
+      BUILTIN_ID(bitrev)
       BUILTIN_ID(kdmabb)
       BUILTIN_ID(kdmabt)
       BUILTIN_ID(kdmatt)
