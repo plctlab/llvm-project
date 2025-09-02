@@ -37,7 +37,7 @@ long ave(long a, long b) {
 
 // CHECK-RV32-LABEL: @bitrev(
 // CHECK-RV32-NEXT:  entry:
-// CHECK-RV32-NEXT:    [[TMP0:%.*]] = tail call i32 @llvm.riscv.bitrev.i32(i32 [[A:%.*]], i32 [[B:%.*]])
+// CHECK-RV32-NEXT:    [[TMP0:%.*]] = tail call i32 @llvm.riscv.bitrev.i32.i32(i32 [[A:%.*]], i32 [[B:%.*]])
 // CHECK-RV32-NEXT:    ret i32 [[TMP0]]
 //
 unsigned long bitrev(unsigned long a, unsigned long b) {
