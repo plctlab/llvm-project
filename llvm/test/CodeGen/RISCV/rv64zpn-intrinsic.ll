@@ -3557,3 +3557,15 @@ entry:
 }
 
 declare i64 @llvm.riscv.rdov.i64()
+
+define void @clrov() {
+; CHECK-LABEL: clrov:
+; CHECK:       # %bb.0: # %entry
+; CHECK-NEXT:    csrci vxsat, 1
+; CHECK-NEXT:    ret
+entry:
+  call void @llvm.riscv.clrov()
+  ret void
+}
+
+declare void @llvm.riscv.clrov()

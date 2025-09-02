@@ -2930,8 +2930,7 @@ RValue CodeGenFunction::EmitBuiltinExpr(const GlobalDecl GD, unsigned BuiltinID,
     Value *End = EmitScalarExpr(E->getArg(1));
     Function *F = CGM.getIntrinsic(Intrinsic::clear_cache);
     return RValue::get(Builder.CreateCall(F, {Begin, End}));
-  }
-  case Builtin::BI__builtin_trap:
+  } case Builtin::BI__builtin_trap:
     return RValue::get(EmitTrapCall(Intrinsic::trap));
   case Builtin::BI__debugbreak:
     return RValue::get(EmitTrapCall(Intrinsic::debugtrap));
@@ -18928,7 +18927,8 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
   Intrinsic::ID ID = Intrinsic::not_intrinsic;
   unsigned NF = 1;
   constexpr unsigned TAIL_UNDISTURBED = 0;
-
+  if (BuiltinID == RISCV::BI__rv_clrov) 
+    return  Builder.CreateCall(CGM.getIntrinsic(Intrinsic::riscv_clrov));
   // Required for overloaded intrinsics.
   llvm::SmallVector<llvm::Type *, 2> IntrinsicTypes;
   switch (BuiltinID) {

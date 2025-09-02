@@ -1458,7 +1458,6 @@ def : Pat<(atomic_fence (XLenVT 7), (timm)), (FENCE 0b11, 0b11)>;
 // Helpers for defining specific operations. They are defined for each system
 // register separately. Side effect is not used because dependencies are
 // expressed via use-def properties.
-
 class ReadSysReg<SysReg SR, list<Register> Regs>
   : Pseudo<(outs GPR:$rd), (ins),
            [(set (XLenVT GPR:$rd), (riscv_read_csr (XLenVT SR.Encoding)))]>,

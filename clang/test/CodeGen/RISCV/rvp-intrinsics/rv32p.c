@@ -1799,3 +1799,12 @@ unsigned long zunpkd831(unsigned long a) {
 unsigned long zunpkd832(unsigned long a) {
   return __rv_zunpkd832(a);
 }
+
+// CHECK-RV32-LABEL: @clrov(
+// CHECK-RV32-NEXT:  entry:
+// CHECK-RV32-NEXT:    tail call void @llvm.riscv.clrov()
+// CHECK-RV32-NEXT:    unreachable
+//
+void clrov(){
+  __rv_clrov();
+}

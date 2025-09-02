@@ -197,9 +197,11 @@ multiclass RVPWEXTI<bits<7> funct7, bits<3> funct3, string opcodestr> {
 // TODO: Add scheduling information for these instructions.
 
 // OV flag Set/Clear Instructions
-let Predicates = [HasStdExtZpn] in
+let Predicates = [HasStdExtZpn] in {
 def RDOV : ReadSysReg<SysRegVXSAT, [VXSAT]>;
-
+def CLROV : Pseudo<(outs), (ins), []>,
+    PseudoInstExpansion<(CSRRCI X0, SysRegVXSAT.Encoding, (XLenVT 1))> {}
+}
 // Unary Instructions
 
 let Predicates = [HasStdExtZpn] in {
@@ -1330,6 +1332,8 @@ def : RVPTernaryINSBIntPat<INSB, "insb">;
 let Predicates = [HasStdExtZpn] in {
 def : Pat<(XLenVT (int_riscv_rdov)),
           (RDOV)>;
+def : Pat<(int_riscv_clrov),
+          (CLROV)>;
 }
 
 // Zpsfoperand extension

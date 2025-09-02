@@ -400,6 +400,9 @@ TARGET_BUILTIN(__rv_maxw, "LiLiLi", "", "experimental-p")
 // minw
 TARGET_BUILTIN(__rv_minw, "LiLiLi", "", "experimental-p")
 
+// clrov
+TARGET_BUILTIN(__rv_clrov, "v", "nr", "experimental-p")
+
 // pbsad
 TARGET_BUILTIN(__rv_pbsad, "ULiULiULi", "", "experimental-p")
 
