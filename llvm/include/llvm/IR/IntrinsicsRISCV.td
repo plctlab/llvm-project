@@ -173,7 +173,7 @@ let TargetPrefix = "riscv" in {
   defm zunpkd831 : RVPUnaryIntrinsics;
   defm zunpkd832 : RVPUnaryIntrinsics;
 
-  def int_riscv_clrov : Intrinsic<[],[],[IntrNoReturn]>;
+  def int_riscv_clrov : Intrinsic<[],[],[]>;
 
   class RVPBinaryIntrinsics
       : Intrinsic<[llvm_any_ty],
